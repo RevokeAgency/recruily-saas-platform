@@ -39,11 +39,10 @@ const metrics = [
 export function DashboardMetrics() {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-      {metrics.map((metric, index) => (
+      {metrics.map((metric) => (
         <Card 
           key={metric.title} 
-          className="bg-white border-slate-200 rounded-xl shadow-sm card-hover hover-glow opacity-0 animate-fade-in-up"
-          style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' }}
+          className="bg-white border-slate-200 rounded-xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-500">
@@ -54,7 +53,7 @@ export function DashboardMetrics() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-slate-900 animate-count-up" style={{ animationDelay: `${index * 0.1 + 0.2}s` }}>
+            <div className="text-3xl font-bold text-slate-900">
               {metric.value}
             </div>
             <div className="flex items-center gap-2 mt-2">

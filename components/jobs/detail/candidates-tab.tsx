@@ -231,11 +231,10 @@ export function JobCandidatesTab({ jobId, jobTitle }: JobCandidatesTabProps) {
 
       {/* Candidates List */}
       <div className="space-y-4">
-        {filteredCandidates.map((candidate, index) => (
+        {filteredCandidates.map((candidate) => (
           <Card 
             key={candidate.id} 
-            className="border border-slate-200 bg-white rounded-xl hover:shadow-lg hover-glow transition-all duration-300 opacity-0 animate-fade-in-up"
-            style={{ animationDelay: `${index * 0.08}s`, animationFillMode: 'forwards' }}
+            className="border border-slate-200 bg-white rounded-xl hover:shadow-lg transition-all duration-300"
           >
             <CardContent className="p-6">
               <div className="flex flex-col xl:flex-row gap-6">
@@ -274,11 +273,10 @@ export function JobCandidatesTab({ jobId, jobTitle }: JobCandidatesTabProps) {
 
                   {/* Skills */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {candidate.skills.map((skill, skillIdx) => (
+                    {candidate.skills.map((skill) => (
                       <span 
                         key={skill} 
-                        className="skill-tag cursor-default"
-                        style={{ animationDelay: `${skillIdx * 0.05}s` }}
+                        className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-xs font-medium hover:bg-teal-100 transition-colors cursor-default"
                       >
                         {skill}
                       </span>
@@ -321,7 +319,7 @@ export function JobCandidatesTab({ jobId, jobTitle }: JobCandidatesTabProps) {
                 {/* Right: Match Score */}
                 <div className="xl:w-64 xl:border-l xl:pl-6 xl:border-border">
                   <div className="text-center xl:text-right mb-4">
-                    <p className={`text-4xl font-bold ${getScoreColor(candidate.matchScore)} animate-count-up`}>
+                    <p className={`text-4xl font-bold ${getScoreColor(candidate.matchScore)}`}>
                       {candidate.matchScore}%
                     </p>
                     <p className="text-sm text-muted-foreground">Overall Match</p>

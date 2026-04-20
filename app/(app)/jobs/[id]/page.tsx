@@ -64,38 +64,10 @@ export default function JobDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 lg:p-8 space-y-6">
-        {/* Header skeleton */}
-        <div className="flex items-center justify-between">
-          <div className="h-9 w-32 animate-shimmer rounded-lg" />
-          <div className="h-9 w-24 animate-shimmer rounded-lg" />
-        </div>
-        {/* Title skeleton */}
-        <div className="space-y-2">
-          <div className="h-8 w-72 animate-shimmer rounded" />
-          <div className="h-5 w-96 animate-shimmer rounded" />
-        </div>
-        {/* Stats cards skeleton */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="border border-slate-200 bg-white rounded-xl">
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="w-12 h-12 animate-shimmer rounded-xl" />
-                <div className="space-y-2">
-                  <div className="h-4 w-20 animate-shimmer rounded" />
-                  <div className="h-6 w-12 animate-shimmer rounded" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        {/* Tabs skeleton */}
-        <div className="h-12 w-full animate-shimmer rounded-lg" />
-        {/* Content skeleton */}
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-40 w-full animate-shimmer rounded-xl" />
-          ))}
+      <div className="p-6 lg:p-8 flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+          <p className="text-muted-foreground">Laden...</p>
         </div>
       </div>
     )
@@ -163,7 +135,7 @@ export default function JobDetailPage() {
       </div>
 
       {/* Job Title Section */}
-      <div className="mb-6 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900 mb-1">{job.title}</h1>
         <p className="text-slate-500">
           {job.company} {shortDescription && `• ${shortDescription}`}
@@ -173,33 +145,33 @@ export default function JobDetailPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* Applications */}
-        <Card className="border border-slate-200 bg-white rounded-xl card-hover hover-glow opacity-0 animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+        <Card className="border border-slate-200 bg-white rounded-xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center transition-transform duration-300 hover:scale-110">
               <Users className="h-6 w-6 text-blue-600" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Applications</p>
-              <p className="text-2xl font-bold text-foreground animate-count-up">0</p>
+              <p className="text-2xl font-bold text-foreground">0</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Matches */}
-        <Card className="border border-slate-200 bg-white rounded-xl card-hover hover-glow opacity-0 animate-fade-in-up" style={{ animationDelay: '0.15s', animationFillMode: 'forwards' }}>
+        <Card className="border border-slate-200 bg-white rounded-xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center transition-transform duration-300 hover:scale-110">
               <BarChart3 className="h-6 w-6 text-emerald-600" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Matches</p>
-              <p className="text-2xl font-bold text-foreground animate-count-up">{job.candidate_count}</p>
+              <p className="text-2xl font-bold text-foreground">{job.candidate_count}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Posted */}
-        <Card className="border border-slate-200 bg-white rounded-xl card-hover hover-glow opacity-0 animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+        <Card className="border border-slate-200 bg-white rounded-xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center transition-transform duration-300 hover:scale-110">
               <Calendar className="h-6 w-6 text-pink-600" />
@@ -212,7 +184,7 @@ export default function JobDetailPage() {
         </Card>
 
         {/* Type */}
-        <Card className="border border-slate-200 bg-white rounded-xl card-hover hover-glow opacity-0 animate-fade-in-up" style={{ animationDelay: '0.25s', animationFillMode: 'forwards' }}>
+        <Card className="border border-slate-200 bg-white rounded-xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center transition-transform duration-300 hover:scale-110">
               <Clock className="h-6 w-6 text-orange-600" />

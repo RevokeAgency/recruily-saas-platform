@@ -48,28 +48,8 @@ export function JobsList() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Card key={i} className="bg-white border border-slate-200 rounded-xl shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-6 w-48 animate-shimmer rounded" />
-                <div className="h-5 w-16 animate-shimmer rounded-full" />
-              </div>
-              <div className="h-4 w-32 animate-shimmer rounded mb-1" />
-              <div className="h-4 w-40 animate-shimmer rounded mb-4" />
-              <div className="h-20 w-full animate-shimmer rounded-xl mb-4" />
-              <div className="h-4 w-full animate-shimmer rounded mb-2" />
-              <div className="h-4 w-3/4 animate-shimmer rounded mb-4" />
-              <div className="flex gap-2 mb-5">
-                <div className="h-6 w-16 animate-shimmer rounded-full" />
-                <div className="h-6 w-20 animate-shimmer rounded-full" />
-                <div className="h-6 w-14 animate-shimmer rounded-full" />
-              </div>
-              <div className="h-10 w-full animate-shimmer rounded-xl" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     )
   }
@@ -115,11 +95,10 @@ export function JobsList() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-      {jobs.map((job, index) => (
+      {jobs.map((job) => (
         <Card 
           key={job.id} 
-          className="bg-white border border-slate-200 rounded-xl shadow-sm card-hover hover-glow flex flex-col opacity-0 animate-fade-in-up"
-          style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'forwards' }}
+          className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col"
         >
           <CardContent className="p-6 flex flex-col flex-1">
             {/* Header with title, badge, menu */}
@@ -223,7 +202,7 @@ export function JobsList() {
                 {job.required_skills.slice(0, 4).map((skill, idx) => (
                   <span 
                     key={idx} 
-                    className="skill-tag"
+                    className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-xs font-medium hover:bg-teal-100 transition-colors"
                   >
                     {skill}
                   </span>
