@@ -5,22 +5,21 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import useSWR from "swr"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   ArrowLeft,
-  Pencil,
-  Archive,
-  Share2,
-  MapPin,
-  Clock,
+  Settings,
+  Users,
+  BarChart3,
   Calendar,
-  Briefcase,
+  Clock,
   Loader2,
 } from "lucide-react"
 import { JobOverviewTab } from "@/components/jobs/detail/overview-tab"
 import { JobCandidatesTab } from "@/components/jobs/detail/candidates-tab"
-import { JobMatchesTab } from "@/components/jobs/detail/matches-tab"
+import { JobApplicationsTab } from "@/components/jobs/detail/applications-tab"
+import { JobAnalyticsTab } from "@/components/jobs/detail/analytics-tab"
 
 interface Job {
   id: string
@@ -43,25 +42,20 @@ interface Job {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
-const statusConfig = {
-  active: { label: "Aktiv", className: "bg-success text-success-foreground" },
-  draft: { label: "Entwurf", className: "bg-muted text-muted-foreground" },
-}
-
 const getEmploymentLabel = (type: string | null) => {
   switch (type) {
-    case "full-time": return "Vollzeit"
-    case "part-time": return "Teilzeit"
-    case "contract": return "Vertrag"
+    case "full-time": return "Full Time"
+    case "part-time": return "Part Time"
+    case "contract": return "Contract"
     case "remote": return "Remote"
-    default: return type || "Vollzeit"
+    default: return type || "Full Time"
   }
 }
 
 export default function JobDetailPage() {
   const params = useParams()
   const jobId = params.id as string
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState("candidates")
 
   const { data, error, isLoading } = useSWR<{ job: Job }>(
     jobId ? `/api/jobs/${jobId}` : null,
@@ -79,10 +73,10 @@ export default function JobDetailPage() {
   if (error || !data?.job) {
     return (
       <div className="p-6 lg:p-8">
-        <Button variant="ghost" asChild className="mb-4 -ml-2">
+        <Button variant="outline" asChild className="mb-4">
           <Link href="/jobs">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Zurück zu Jobs
+            Back to Jobs
           </Link>
         </Button>
         <div className="text-center py-12">
@@ -94,7 +88,6 @@ export default function JobDetailPage() {
   }
 
   const job = data.job
-  const status = job.is_active ? "active" : "draft"
 
   // Transform job data for the overview component
   const jobForOverview = {
@@ -111,86 +104,139 @@ export default function JobDetailPage() {
     languages: job.languages || [],
   }
 
+  const formattedDate = new Date(job.created_at).toLocaleDateString("de-DE", {
+    day: "numeric",
+    month: "numeric",
+    year: "numeric"
+  })
+
+  // Truncate description for header
+  const shortDescription = job.description 
+    ? job.description.slice(0, 60) + (job.description.length > 60 ? "..." : "")
+    : ""
+
   return (
     <div className="p-6 lg:p-8">
-      {/* Back Button */}
-      <Button variant="ghost" asChild className="mb-4 -ml-2">
-        <Link href="/jobs">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Zurück zu Jobs
-        </Link>
-      </Button>
+      {/* Header Row */}
+      <div className="flex items-center justify-between mb-6">
+        <Button variant="outline" asChild size="sm">
+          <Link href="/jobs">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Jobs
+          </Link>
+        </Button>
+        <Button variant="outline" size="sm">
+          <Settings className="mr-2 h-4 w-4" />
+          Settings
+        </Button>
+      </div>
 
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-8">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Briefcase className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-semibold text-foreground">{job.title}</h1>
-              <Badge className={statusConfig[status].className}>
-                {statusConfig[status].label}
-              </Badge>
-            </div>
-            <p className="text-muted-foreground">{job.company}</p>
-            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
-              {job.location && (
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4" />
-                  {job.location}
-                </span>
-              )}
-              <span className="flex items-center gap-1.5">
-                <Clock className="h-4 w-4" />
-                {getEmploymentLabel(job.employment_type)}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                Erstellt am {new Date(job.created_at).toLocaleDateString("de-DE")}
-              </span>
-            </div>
-          </div>
-        </div>
+      {/* Job Title Section */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground mb-1">{job.title}</h1>
+        <p className="text-muted-foreground">
+          {job.company} {shortDescription && `• ${shortDescription}`}
+        </p>
+      </div>
 
-        {/* Actions */}
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm">
-            <Share2 className="mr-2 h-4 w-4" />
-            Teilen
-          </Button>
-          <Button variant="outline" size="sm">
-            <Archive className="mr-2 h-4 w-4" />
-            Archivieren
-          </Button>
-          <Button size="sm">
-            <Pencil className="mr-2 h-4 w-4" />
-            Bearbeiten
-          </Button>
-        </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Applications */}
+        <Card className="border border-border">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+              <Users className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Applications</p>
+              <p className="text-2xl font-bold text-foreground">0</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Matches */}
+        <Card className="border border-border">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <BarChart3 className="h-6 w-6 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Matches</p>
+              <p className="text-2xl font-bold text-foreground">{job.candidate_count}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Posted */}
+        <Card className="border border-border">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center">
+              <Calendar className="h-6 w-6 text-pink-600" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Posted</p>
+              <p className="text-2xl font-bold text-foreground">{formattedDate}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Type */}
+        <Card className="border border-border">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+              <Clock className="h-6 w-6 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Type</p>
+              <p className="text-2xl font-bold text-foreground">{getEmploymentLabel(job.employment_type)}</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="overview">Übersicht</TabsTrigger>
-          <TabsTrigger value="candidates">
-            Kandidaten ({job.candidate_count})
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full grid grid-cols-4 mb-6 h-12 bg-muted/50">
+          <TabsTrigger 
+            value="candidates" 
+            className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            Candidates
           </TabsTrigger>
-          <TabsTrigger value="matches">Match-Analyse</TabsTrigger>
+          <TabsTrigger 
+            value="overview"
+            className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger 
+            value="applications"
+            className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            Applications
+          </TabsTrigger>
+          <TabsTrigger 
+            value="analytics"
+            className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            Analytics
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="candidates">
+          <JobCandidatesTab jobId={jobId} jobTitle={job.title} />
+        </TabsContent>
 
         <TabsContent value="overview">
           <JobOverviewTab job={jobForOverview} />
         </TabsContent>
 
-        <TabsContent value="candidates">
-          <JobCandidatesTab />
+        <TabsContent value="applications">
+          <JobApplicationsTab jobId={jobId} />
         </TabsContent>
 
-        <TabsContent value="matches">
-          <JobMatchesTab />
+        <TabsContent value="analytics">
+          <JobAnalyticsTab jobId={jobId} />
         </TabsContent>
       </Tabs>
     </div>
