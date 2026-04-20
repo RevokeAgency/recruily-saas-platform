@@ -153,21 +153,27 @@ async function triggerIMLRSMatch(
 
     const matchResult = await matchResponse.json()
 
-    // Update job_candidates with match scores
+    // Helper to safely round scores to integers
+    const roundScore = (score: number | undefined | null): number | null => {
+      if (score === undefined || score === null) return null
+      return Math.round(score)
+    }
+
+    // Update job_candidates with match scores (rounded to integers)
     const { error: updateError } = await supabase
       .from("job_candidates")
       .update({
         status: "scored",
-        match_score: matchResult.overallScore,
-        hard_skills_score: matchResult.scores?.hardSkills,
-        experience_score: matchResult.scores?.experience,
-        education_score: matchResult.scores?.education,
-        soft_skills_score: matchResult.scores?.softSkills,
-        languages_score: matchResult.scores?.languages,
-        location_score: matchResult.scores?.location,
-        industry_score: matchResult.scores?.industry,
-        salary_score: matchResult.scores?.salary,
-        culture_score: matchResult.scores?.culture,
+        match_score: roundScore(matchResult.overallScore),
+        hard_skills_score: roundScore(matchResult.scores?.hardSkills),
+        experience_score: roundScore(matchResult.scores?.experience),
+        education_score: roundScore(matchResult.scores?.education),
+        soft_skills_score: roundScore(matchResult.scores?.softSkills),
+        languages_score: roundScore(matchResult.scores?.languages),
+        location_score: roundScore(matchResult.scores?.location),
+        industry_score: roundScore(matchResult.scores?.industry),
+        salary_score: roundScore(matchResult.scores?.salary),
+        culture_score: roundScore(matchResult.scores?.culture),
         career_prognosis: matchResult.careerPrognosis?.trend,
         ai_summary: matchResult.contextualPitch?.join(" | "),
       })
