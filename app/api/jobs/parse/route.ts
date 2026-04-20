@@ -1,5 +1,11 @@
 import { generateText, Output } from "ai"
+import { createOpenAI } from "@ai-sdk/openai"
 import { z } from "zod"
+
+// Create OpenAI provider with API key from environment
+const openai = createOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
 // Schema for parsed job data
 const jobSchema = z.object({
@@ -96,7 +102,7 @@ ${content}`,
     }
 
     const { output } = await generateText({
-      model: "anthropic/claude-sonnet-4.6",
+      model: openai("gpt-4o"),
       system: `Du bist ein Experte für HR und Recruiting. 
 Deine Aufgabe ist es, Stellenausschreibungen zu analysieren und strukturierte Daten zu extrahieren.
 Extrahiere alle relevanten Informationen und fülle die Felder so vollständig wie möglich aus.
