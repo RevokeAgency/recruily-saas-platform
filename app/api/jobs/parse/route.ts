@@ -1,10 +1,10 @@
 import { generateText, Output } from "ai"
-import { createOpenAI } from "@ai-sdk/openai"
+import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { z } from "zod"
 
-// Create OpenAI provider with API key from environment
-const openai = createOpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Create Google Gemini provider with API key from environment
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 })
 
 // Schema for parsed job data
@@ -102,7 +102,7 @@ ${content}`,
     }
 
     const { output } = await generateText({
-      model: openai("gpt-4o"),
+      model: google("gemini-2.0-flash"),
       system: `Du bist ein Experte für HR und Recruiting. 
 Deine Aufgabe ist es, Stellenausschreibungen zu analysieren und strukturierte Daten zu extrahieren.
 Extrahiere alle relevanten Informationen und fülle die Felder so vollständig wie möglich aus.
