@@ -1,0 +1,34 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Zap } from "lucide-react"
+
+export function QuotaProgress() {
+  const used = 47
+  const total = 100
+  const percentage = (used / total) * 100
+
+  return (
+    <Card className="border border-border shadow-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <Zap className="h-4 w-4" />
+          Monatliches Matching-Kontingent
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-2xl font-bold text-foreground">
+              {used}/{total}
+            </span>
+            <span className="text-sm text-muted-foreground">Matches verwendet</span>
+          </div>
+          <Progress value={percentage} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            Noch {total - used} Matches verfügbar in diesem Monat. Erneuert sich am 1. des Monats.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}

@@ -1,0 +1,368 @@
+"use client"
+
+import { useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  User,
+  Bell,
+  Key,
+  Shield,
+  Users,
+  Upload,
+  Download,
+  Trash2,
+  Copy,
+  RefreshCw,
+  Server,
+} from "lucide-react"
+import { toast } from "sonner"
+
+export default function SettingsPage() {
+  const [profile, setProfile] = useState({
+    name: "Max Mustermann",
+    email: "max@recruily.de",
+    company: "TechCorp GmbH",
+  })
+
+  const [notifications, setNotifications] = useState({
+    newMatch: true,
+    weeklyReport: true,
+    productUpdates: false,
+    marketingEmails: false,
+  })
+
+  const [apiKey] = useState("rcy_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+
+  const copyApiKey = () => {
+    navigator.clipboard.writeText(apiKey)
+    toast.success("API Key kopiert")
+  }
+
+  const handleSaveProfile = () => {
+    toast.success("Profil gespeichert", {
+      description: "Deine Änderungen wurden übernommen.",
+    })
+  }
+
+  const handleExportData = () => {
+    toast.info("Export gestartet", {
+      description: "Du erhältst eine E-Mail, sobald der Export bereit ist.",
+    })
+  }
+
+  return (
+    <div className="p-6 lg:p-8 max-w-4xl">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-foreground">Einstellungen</h1>
+        <p className="text-muted-foreground mt-1">
+          Verwalte dein Konto und deine Präferenzen
+        </p>
+      </div>
+
+      <div className="space-y-8">
+        {/* Profile Section */}
+        <Card className="border border-border">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <User className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-lg">Profil</CardTitle>
+            </div>
+            <CardDescription>
+              Deine persönlichen Informationen und Unternehmensdaten
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={profile.name}
+                  onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">E-Mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={profile.email}
+                  onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="company">Unternehmen</Label>
+                <Input
+                  id="company"
+                  value={profile.company}
+                  onChange={(e) => setProfile({ ...profile, company: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="logo">Firmenlogo</Label>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">
+                    <Upload className="mr-2 h-4 w-4" />
+                    Logo hochladen
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleSaveProfile}>Speichern</Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notifications Section */}
+        <Card className="border border-border">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-lg">Benachrichtigungen</CardTitle>
+            </div>
+            <CardDescription>
+              Lege fest, wann du E-Mail-Benachrichtigungen erhalten möchtest
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="notify-match">Neue Matches</Label>
+                <p className="text-sm text-muted-foreground">
+                  Benachrichtigung bei neuen Kandidaten-Matches
+                </p>
+              </div>
+              <Switch
+                id="notify-match"
+                checked={notifications.newMatch}
+                onCheckedChange={(checked) =>
+                  setNotifications({ ...notifications, newMatch: checked })
+                }
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="notify-report">Wöchentlicher Report</Label>
+                <p className="text-sm text-muted-foreground">
+                  Zusammenfassung deiner Recruiting-Aktivitäten
+                </p>
+              </div>
+              <Switch
+                id="notify-report"
+                checked={notifications.weeklyReport}
+                onCheckedChange={(checked) =>
+                  setNotifications({ ...notifications, weeklyReport: checked })
+                }
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="notify-updates">Produkt-Updates</Label>
+                <p className="text-sm text-muted-foreground">
+                  Neue Features und Verbesserungen
+                </p>
+              </div>
+              <Switch
+                id="notify-updates"
+                checked={notifications.productUpdates}
+                onCheckedChange={(checked) =>
+                  setNotifications({ ...notifications, productUpdates: checked })
+                }
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="notify-marketing">Marketing E-Mails</Label>
+                <p className="text-sm text-muted-foreground">
+                  Tipps und Best Practices für Recruiting
+                </p>
+              </div>
+              <Switch
+                id="notify-marketing"
+                checked={notifications.marketingEmails}
+                onCheckedChange={(checked) =>
+                  setNotifications({ ...notifications, marketingEmails: checked })
+                }
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* API & Integrations Section */}
+        <Card className="border border-border">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Key className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-lg">API & Integrationen</CardTitle>
+            </div>
+            <CardDescription>
+              Verbinde RECRUILY mit deinen bestehenden Tools
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>API Key</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={apiKey}
+                  readOnly
+                  className="font-mono text-sm"
+                />
+                <Button variant="outline" size="icon" onClick={copyApiKey}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon">
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Verwende diesen Key, um die RECRUILY API zu nutzen.
+              </p>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <Label>ATS Integrationen</Label>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline" className="text-muted-foreground">
+                  SAP SuccessFactors (bald verfügbar)
+                </Badge>
+                <Badge variant="outline" className="text-muted-foreground">
+                  Workday (bald verfügbar)
+                </Badge>
+                <Badge variant="outline" className="text-muted-foreground">
+                  Personio (bald verfügbar)
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* DSGVO / Data Privacy Section */}
+        <Card className="border border-border">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-lg">Datenschutz (DSGVO)</CardTitle>
+            </div>
+            <CardDescription>
+              Verwalte deine Daten gemäß der Datenschutz-Grundverordnung
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
+              <Server className="h-5 w-5 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">
+                  Server-Standort: Deutschland
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Alle Daten werden auf Servern in Deutschland gespeichert
+                </p>
+              </div>
+              <Badge variant="outline">DSGVO-konform</Badge>
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <p className="font-medium text-foreground">Daten exportieren</p>
+                <p className="text-sm text-muted-foreground">
+                  Lade alle deine Daten als JSON-Datei herunter
+                </p>
+              </div>
+              <Button variant="outline" onClick={handleExportData}>
+                <Download className="mr-2 h-4 w-4" />
+                Exportieren
+              </Button>
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <p className="font-medium text-destructive">Konto löschen</p>
+                <p className="text-sm text-muted-foreground">
+                  Lösche dein Konto und alle zugehörigen Daten permanent
+                </p>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Konto löschen
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Bist du sicher?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Diese Aktion kann nicht rückgängig gemacht werden. Alle
+                      deine Daten, Jobs, Kandidaten und Matches werden permanent
+                      gelöscht.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                    <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Ja, Konto löschen
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Team Section (Placeholder) */}
+        <Card className="border border-border">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-lg">Team</CardTitle>
+              <Badge variant="secondary" className="ml-2">Bald verfügbar</Badge>
+            </div>
+            <CardDescription>
+              Lade Teammitglieder ein und verwalte Berechtigungen
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <Users className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+              <p className="text-muted-foreground">
+                Team-Funktionen kommen in Version 2.0
+              </p>
+              <Button variant="outline" className="mt-4" disabled>
+                Teammitglied einladen
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
