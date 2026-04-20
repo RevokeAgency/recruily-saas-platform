@@ -1,6 +1,71 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Banknote, GraduationCap, Languages, Briefcase } from "lucide-react"
+import { Banknote, GraduationCap, Languages, Briefcase, CheckCircle2 } from "lucide-react"
+
+// Helper function to format job description with better structure
+function formatDescription(text: string) {
+  if (!text) return null
+  
+  const lines = text.split("\n")
+  const elements: React.ReactNode[] = []
+  let currentList: string[] = []
+  let key = 0
+
+  const flushList = () => {
+    if (currentList.length > 0) {
+      elements.push(
+        <ul key={key++} className="space-y-2 my-4">
+          {currentList.map((item, idx) => (
+            <li key={idx} className="flex items-start gap-2.5 text-muted-foreground">
+              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      )
+      currentList = []
+    }
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    
+    // Skip empty lines
+    if (!trimmed) {
+      flushList()
+      continue
+    }
+    
+    // Check if it's a bullet point (•, -, *)
+    const bulletMatch = trimmed.match(/^[•\-\*]\s*(.+)/)
+    if (bulletMatch) {
+      currentList.push(bulletMatch[1])
+      continue
+    }
+    
+    // Check if it's a section header (ends with : and is relatively short)
+    if (trimmed.endsWith(":") && trimmed.length < 50) {
+      flushList()
+      elements.push(
+        <h4 key={key++} className="font-semibold text-foreground mt-6 mb-2 first:mt-0">
+          {trimmed}
+        </h4>
+      )
+      continue
+    }
+    
+    // Regular paragraph
+    flushList()
+    elements.push(
+      <p key={key++} className="text-muted-foreground leading-relaxed mb-3 last:mb-0">
+        {trimmed}
+      </p>
+    )
+  }
+  
+  flushList()
+  return elements
+}
 
 interface Job {
   description: string
@@ -26,10 +91,8 @@ export function JobOverviewTab({ job }: JobOverviewTabProps) {
           <CardHeader>
             <CardTitle className="text-lg">Stellenbeschreibung</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
-              {job.description}
-            </p>
+          <CardContent className="prose prose-sm max-w-none">
+            {formatDescription(job.description)}
           </CardContent>
         </Card>
 
