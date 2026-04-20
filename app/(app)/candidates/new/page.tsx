@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -48,6 +48,9 @@ const experienceLevelConfig = {
 
 export default function NewCandidatePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const jobId = searchParams.get("jobId")
+  
   const [step, setStep] = useState<"upload" | "preview" | "success">("upload")
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -205,14 +208,16 @@ export default function NewCandidatePage() {
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Button variant="outline" size="sm" asChild className="gap-2">
-          <Link href="/candidates">
+          <Link href={jobId ? `/jobs/${jobId}` : "/candidates"}>
             <ArrowLeft className="h-4 w-4" />
             Zurück
           </Link>
         </Button>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Kandidat hinzufügen</h1>
-          <p className="text-slate-500">CV hochladen und Profil erstellen</p>
+          <p className="text-slate-500">
+            {jobId ? "CV hochladen und zum Job hinzufügen" : "CV hochladen und Profil erstellen"}
+          </p>
         </div>
       </div>
 
@@ -246,6 +251,7 @@ export default function NewCandidatePage() {
       {step === "success" && candidateData && (
         <SuccessSection 
           candidateName={candidateData.full_name}
+          jobId={jobId}
           onAddAnother={() => {
             setCandidateData(null)
             setStep("upload")
@@ -610,9 +616,11 @@ function PreviewSection({
 // Success Section Component
 function SuccessSection({
   candidateName,
+  jobId,
   onAddAnother,
 }: {
   candidateName: string
+  jobId: string | null
   onAddAnother: () => void
 }) {
   const router = useRouter()
@@ -627,7 +635,7 @@ function SuccessSection({
           Kandidat erfolgreich indexiert!
         </h2>
         <p className="text-slate-500 mb-8">
-          {candidateName} wurde zu deinem Kandidatenpool hinzugefügt und kann jetzt mit Jobs gematcht werden.
+          {candidateName} wurde zu deinem Kandidatenpool hinzugefügt{jobId ? " und dem Job zugeordnet" : ""}.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
@@ -639,11 +647,11 @@ function SuccessSection({
             Weiteren Kandidaten hinzufügen
           </Button>
           <Button
-            onClick={() => router.push("/jobs")}
+            onClick={() => router.push(jobId ? `/jobs/${jobId}` : "/jobs")}
             className="bg-teal-600 hover:bg-teal-700 gap-2"
           >
             <Sparkles className="h-4 w-4" />
-            Direkt mit Jobs matchen
+            {jobId ? "Zurück zum Job" : "Direkt mit Jobs matchen"}
           </Button>
         </div>
       </CardContent>

@@ -27,7 +27,9 @@ import {
   CheckCircle2,
   Filter,
   ArrowUpDown,
+  UserPlus,
 } from "lucide-react"
+import Link from "next/link"
 
 interface JobCandidatesTabProps {
   jobId: string
@@ -181,9 +183,17 @@ export function JobCandidatesTab({ jobId, jobTitle }: JobCandidatesTabProps) {
             {filteredCandidates.length} candidates for {jobTitle}
           </p>
         </div>
-        <Badge variant="secondary" className="text-sm">
-          {filteredCandidates.length} Total
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant="secondary" className="text-sm">
+            {filteredCandidates.length} Total
+          </Badge>
+          <Button asChild className="bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm">
+            <Link href={`/candidates/new?jobId=${jobId}`}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Kandidat hinzufügen
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
