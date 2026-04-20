@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import useSWR from "swr"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -26,179 +27,201 @@ import {
   Briefcase,
   Trash2,
   Mail,
-  Phone,
-  Calendar,
-  TrendingUp,
+  MapPin,
+  Loader2,
+  GraduationCap,
+  Plus,
 } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
-import { CandidateProfile } from "./candidate-profile"
+import { toast } from "sonner"
 
-const mockCandidates = [
-  {
-    id: "1",
-    name: "Anna Schmidt",
-    initials: "AS",
-    email: "anna.schmidt@email.at",
-    phone: "+43 660 1234567",
-    topSkills: ["React", "TypeScript", "Next.js"],
-    jobsMatched: 3,
-    bestScore: 92,
-    uploadDate: "15.03.2024",
-  },
-  {
-    id: "2",
-    name: "Thomas Müller",
-    initials: "TM",
-    email: "t.mueller@email.de",
-    phone: "+43 664 9876543",
-    topSkills: ["Python", "Machine Learning", "TensorFlow"],
-    jobsMatched: 2,
-    bestScore: 87,
-    uploadDate: "14.03.2024",
-  },
-  {
-    id: "3",
-    name: "Lisa Weber",
-    initials: "LW",
-    email: "lisa.weber@email.at",
-    phone: "+43 676 5555555",
-    topSkills: ["Java", "Spring Boot", "Kubernetes"],
-    jobsMatched: 4,
-    bestScore: 89,
-    uploadDate: "12.03.2024",
-  },
-  {
-    id: "4",
-    name: "Michael Bauer",
-    initials: "MB",
-    email: "m.bauer@email.at",
-    phone: "+43 650 1111111",
-    topSkills: ["Product Management", "Agile", "Jira"],
-    jobsMatched: 1,
-    bestScore: 78,
-    uploadDate: "10.03.2024",
-  },
-  {
-    id: "5",
-    name: "Sarah Klein",
-    initials: "SK",
-    email: "sarah.klein@email.de",
-    phone: "+43 699 2222222",
-    topSkills: ["UX Design", "Figma", "User Research"],
-    jobsMatched: 2,
-    bestScore: 84,
-    uploadDate: "08.03.2024",
-  },
-  {
-    id: "6",
-    name: "David Gruber",
-    initials: "DG",
-    email: "d.gruber@email.at",
-    phone: "+43 660 3333333",
-    topSkills: ["DevOps", "AWS", "Terraform"],
-    jobsMatched: 0,
-    bestScore: 0,
-    uploadDate: "05.03.2024",
-  },
-]
+interface Candidate {
+  id: string
+  full_name: string
+  email: string | null
+  phone: string | null
+  job_title: string | null
+  years_of_experience: number
+  experience_level: "junior" | "mid" | "senior"
+  skills: string[]
+  education: string | null
+  summary_ai: string | null
+  location: string | null
+  created_at: string
+}
 
-function getScoreColor(score: number) {
-  if (score >= 80) return "text-success"
-  if (score >= 60) return "text-warning-foreground"
-  return "text-muted-foreground"
+const fetcher = (url: string) => fetch(url).then((res) => res.json())
+
+const experienceLevelConfig = {
+  junior: { label: "Junior", color: "bg-blue-100 text-blue-700" },
+  mid: { label: "Mid-Level", color: "bg-amber-100 text-amber-700" },
+  senior: { label: "Senior", color: "bg-emerald-100 text-emerald-700" },
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
 }
 
 export function CandidatesList() {
-  const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null)
+  const { data, error, isLoading, mutate } = useSWR<{ candidates: Candidate[] }>(
+    "/api/candidates",
+    fetcher
+  )
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
 
-  if (mockCandidates.length === 0) {
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/candidates/${id}`, {
+        method: "DELETE",
+      })
+      
+      if (response.ok) {
+        toast.success("Kandidat gelöscht")
+        mutate()
+      } else {
+        toast.error("Fehler beim Löschen")
+      }
+    } catch {
+      toast.error("Fehler beim Löschen")
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="border-red-200 bg-red-50 rounded-xl">
+        <CardContent className="p-6 text-center text-red-600">
+          Fehler beim Laden der Kandidaten
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const candidates = data?.candidates || []
+
+  if (candidates.length === 0) {
     return (
       <EmptyState
         icon={Users}
         title="Noch keine Kandidaten"
         description="Lade deinen ersten Kandidaten-CV hoch, um mit dem Matching zu beginnen."
-        actionLabel="Kandidaten hochladen"
-        onAction={() => document.getElementById("cv-upload")?.click()}
+        actionLabel="Kandidat hinzufügen"
+        actionHref="/candidates/new"
       />
     )
   }
 
-  const selectedCandidateData = mockCandidates.find((c) => c.id === selectedCandidate)
-
   return (
     <>
       <div className="grid gap-4">
-        {mockCandidates.map((candidate) => (
-          <Card key={candidate.id} className="border border-border hover:shadow-sm transition-shadow">
-            <CardContent className="p-4">
+        {candidates.map((candidate) => (
+          <Card 
+            key={candidate.id} 
+            className="bg-white border border-slate-200 rounded-xl hover:shadow-lg transition-all duration-300"
+          >
+            <CardContent className="p-5">
               <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                 {/* Candidate Info */}
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                      {candidate.initials}
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <Avatar className="h-12 w-12">
+                    <AvatarFallback className="bg-teal-100 text-teal-700 font-semibold">
+                      {getInitials(candidate.full_name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="font-medium text-foreground truncate">
-                      {candidate.name}
-                    </p>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1 truncate">
-                        <Mail className="h-3.5 w-3.5 flex-shrink-0" />
-                        <span className="truncate">{candidate.email}</span>
-                      </span>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-slate-900 truncate">
+                        {candidate.full_name}
+                      </p>
+                      <Badge className={experienceLevelConfig[candidate.experience_level].color}>
+                        {experienceLevelConfig[candidate.experience_level].label}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-slate-500 mt-1">
+                      {candidate.job_title && (
+                        <span className="flex items-center gap-1.5">
+                          <Briefcase className="h-3.5 w-3.5" />
+                          {candidate.job_title}
+                        </span>
+                      )}
+                      {candidate.location && (
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {candidate.location}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Top Skills */}
-                <div className="flex flex-wrap gap-1.5">
-                  {candidate.topSkills.slice(0, 3).map((skill) => (
-                    <Badge key={skill} variant="secondary" className="text-xs">
+                {/* Skills */}
+                <div className="flex flex-wrap gap-2">
+                  {candidate.skills.slice(0, 4).map((skill) => (
+                    <span
+                      key={skill}
+                      className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-xs font-medium"
+                    >
                       {skill}
-                    </Badge>
+                    </span>
                   ))}
+                  {candidate.skills.length > 4 && (
+                    <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-medium">
+                      +{candidate.skills.length - 4}
+                    </span>
+                  )}
                 </div>
 
-                {/* Stats */}
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Briefcase className="h-4 w-4" />
-                    <span>{candidate.jobsMatched} Jobs</span>
-                  </div>
-
-                  {candidate.bestScore > 0 && (
-                    <div className={`flex items-center gap-1.5 ${getScoreColor(candidate.bestScore)}`}>
-                      <TrendingUp className="h-4 w-4" />
-                      <span>Best: {candidate.bestScore}%</span>
-                    </div>
+                {/* Info */}
+                <div className="flex items-center gap-4 text-sm text-slate-500">
+                  {candidate.email && (
+                    <span className="flex items-center gap-1.5">
+                      <Mail className="h-4 w-4" />
+                      <span className="hidden xl:inline truncate max-w-32">{candidate.email}</span>
+                    </span>
                   )}
-
-                  <div className="flex items-center gap-1.5 text-muted-foreground hidden sm:flex">
-                    <Calendar className="h-4 w-4" />
-                    <span>{candidate.uploadDate}</span>
-                  </div>
+                  {candidate.education && (
+                    <span className="flex items-center gap-1.5 hidden lg:flex">
+                      <GraduationCap className="h-4 w-4" />
+                      <span className="truncate max-w-32">{candidate.education}</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Actions */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-400 hover:text-slate-600">
+                      <MoreHorizontal className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setSelectedCandidate(candidate.id)}>
+                  <DropdownMenuContent align="end" className="rounded-xl">
+                    <DropdownMenuItem onClick={() => setSelectedCandidate(candidate)}>
                       <Eye className="mr-2 h-4 w-4" />
                       Profil anzeigen
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Briefcase className="mr-2 h-4 w-4" />
-                      Mit Job matchen
+                    <DropdownMenuItem asChild>
+                      <Link href="/jobs">
+                        <Briefcase className="mr-2 h-4 w-4" />
+                        Mit Job matchen
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">
+                    <DropdownMenuItem 
+                      className="text-red-600 focus:text-red-600"
+                      onClick={() => handleDelete(candidate.id)}
+                    >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Löschen
                     </DropdownMenuItem>
@@ -212,12 +235,96 @@ export function CandidatesList() {
 
       {/* Candidate Profile Dialog */}
       <Dialog open={!!selectedCandidate} onOpenChange={() => setSelectedCandidate(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
-            <DialogTitle>Kandidatenprofil</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-slate-900">Kandidatenprofil</DialogTitle>
           </DialogHeader>
-          {selectedCandidateData && (
-            <CandidateProfile candidate={selectedCandidateData} />
+          {selectedCandidate && (
+            <div className="space-y-6 pt-4">
+              {/* Header */}
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback className="bg-teal-100 text-teal-700 text-xl font-bold">
+                    {getInitials(selectedCandidate.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {selectedCandidate.full_name}
+                  </h3>
+                  {selectedCandidate.job_title && (
+                    <p className="text-slate-600">{selectedCandidate.job_title}</p>
+                  )}
+                  <Badge className={`mt-2 ${experienceLevelConfig[selectedCandidate.experience_level].color}`}>
+                    {experienceLevelConfig[selectedCandidate.experience_level].label} • {selectedCandidate.years_of_experience} Jahre Erfahrung
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div className="grid grid-cols-2 gap-4">
+                {selectedCandidate.email && (
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <Mail className="h-4 w-4 text-slate-400" />
+                    {selectedCandidate.email}
+                  </div>
+                )}
+                {selectedCandidate.location && (
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <MapPin className="h-4 w-4 text-slate-400" />
+                    {selectedCandidate.location}
+                  </div>
+                )}
+              </div>
+
+              {/* AI Summary */}
+              {selectedCandidate.summary_ai && (
+                <div className="bg-teal-50 rounded-xl p-4">
+                  <h4 className="font-semibold text-teal-900 mb-2">KI-Zusammenfassung</h4>
+                  <p className="text-teal-800 text-sm">{selectedCandidate.summary_ai}</p>
+                </div>
+              )}
+
+              {/* Skills */}
+              <div>
+                <h4 className="font-semibold text-slate-900 mb-3">Skills</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedCandidate.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="bg-teal-50 text-teal-700 px-3 py-1.5 rounded-full text-sm font-medium"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Education */}
+              {selectedCandidate.education && (
+                <div>
+                  <h4 className="font-semibold text-slate-900 mb-2">Ausbildung</h4>
+                  <p className="text-slate-600">{selectedCandidate.education}</p>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t border-slate-200">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setSelectedCandidate(null)}
+                >
+                  Schließen
+                </Button>
+                <Button asChild className="flex-1 bg-teal-600 hover:bg-teal-700">
+                  <Link href="/jobs">
+                    <Briefcase className="mr-2 h-4 w-4" />
+                    Mit Job matchen
+                  </Link>
+                </Button>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>

@@ -1,0 +1,652 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { 
+  ArrowLeft, 
+  FileUp, 
+  Loader2, 
+  X, 
+  Plus,
+  CheckCircle2,
+  Sparkles,
+  Mail,
+  Phone,
+  MapPin,
+  Briefcase,
+  GraduationCap,
+  User
+} from "lucide-react"
+import { toast } from "sonner"
+
+type ExperienceLevel = "junior" | "mid" | "senior"
+
+interface CandidateData {
+  full_name: string
+  email: string | null
+  phone: string | null
+  job_title: string | null
+  years_of_experience: number
+  experience_level: ExperienceLevel
+  skills: string[]
+  education: string | null
+  location: string | null
+  summary_ai: string | null
+}
+
+const experienceLevelConfig = {
+  junior: { label: "Junior", color: "bg-blue-100 text-blue-700", years: "0-2 Jahre" },
+  mid: { label: "Mid-Level", color: "bg-amber-100 text-amber-700", years: "3-5 Jahre" },
+  senior: { label: "Senior", color: "bg-emerald-100 text-emerald-700", years: "6+ Jahre" },
+}
+
+export default function NewCandidatePage() {
+  const router = useRouter()
+  const [step, setStep] = useState<"upload" | "preview" | "success">("upload")
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [candidateData, setCandidateData] = useState<CandidateData | null>(null)
+  const [newSkill, setNewSkill] = useState("")
+
+  // Handle file upload
+  const handleFileUpload = async (file: File) => {
+    setIsProcessing(true)
+
+    try {
+      const arrayBuffer = await file.arrayBuffer()
+      const base64 = btoa(
+        new Uint8Array(arrayBuffer).reduce(
+          (data, byte) => data + String.fromCharCode(byte),
+          ""
+        )
+      )
+
+      const response = await fetch("/api/candidates/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileData: base64,
+          fileName: file.name,
+          mimeType: file.type,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || result.error) {
+        toast.error(result.error || "Fehler beim Analysieren des CVs")
+        setIsProcessing(false)
+        return
+      }
+
+      setCandidateData(result.data)
+      setStep("preview")
+      toast.success("CV erfolgreich analysiert")
+    } catch (error) {
+      console.error("Error parsing CV:", error)
+      toast.error("Fehler beim Analysieren des CVs")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // Handle text paste fallback
+  const handleTextSubmit = async (text: string) => {
+    if (!text.trim()) {
+      toast.error("Bitte fügen Sie CV-Text ein")
+      return
+    }
+
+    setIsProcessing(true)
+
+    try {
+      const response = await fetch("/api/candidates/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ textContent: text }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || result.error) {
+        toast.error(result.error || "Fehler beim Analysieren des CVs")
+        setIsProcessing(false)
+        return
+      }
+
+      setCandidateData(result.data)
+      setStep("preview")
+      toast.success("CV erfolgreich analysiert")
+    } catch (error) {
+      console.error("Error parsing CV:", error)
+      toast.error("Fehler beim Analysieren des CVs")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // Add skill
+  const addSkill = () => {
+    if (!newSkill.trim() || !candidateData) return
+    if (candidateData.skills.includes(newSkill.trim())) {
+      toast.error("Skill bereits vorhanden")
+      return
+    }
+    setCandidateData({
+      ...candidateData,
+      skills: [...candidateData.skills, newSkill.trim()],
+    })
+    setNewSkill("")
+  }
+
+  // Remove skill
+  const removeSkill = (skill: string) => {
+    if (!candidateData) return
+    setCandidateData({
+      ...candidateData,
+      skills: candidateData.skills.filter((s) => s !== skill),
+    })
+  }
+
+  // Set experience level
+  const setExperienceLevel = (level: ExperienceLevel) => {
+    if (!candidateData) return
+    setCandidateData({ ...candidateData, experience_level: level })
+  }
+
+  // Save candidate
+  const saveCandidate = async () => {
+    if (!candidateData) return
+
+    setIsSaving(true)
+
+    try {
+      const response = await fetch("/api/candidates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(candidateData),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || result.error) {
+        toast.error(result.error || "Fehler beim Speichern")
+        setIsSaving(false)
+        return
+      }
+
+      setStep("success")
+    } catch (error) {
+      console.error("Error saving candidate:", error)
+      toast.error("Fehler beim Speichern")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Get initials
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  return (
+    <div className="p-6 lg:p-8 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="outline" size="sm" asChild className="gap-2">
+          <Link href="/candidates">
+            <ArrowLeft className="h-4 w-4" />
+            Zurück
+          </Link>
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Kandidat hinzufügen</h1>
+          <p className="text-slate-500">CV hochladen und Profil erstellen</p>
+        </div>
+      </div>
+
+      {/* Step: Upload */}
+      {step === "upload" && (
+        <UploadSection
+          isProcessing={isProcessing}
+          onFileUpload={handleFileUpload}
+          onTextSubmit={handleTextSubmit}
+        />
+      )}
+
+      {/* Step: Preview */}
+      {step === "preview" && candidateData && (
+        <PreviewSection
+          data={candidateData}
+          onDataChange={setCandidateData}
+          onAddSkill={addSkill}
+          onRemoveSkill={removeSkill}
+          onSetExperienceLevel={setExperienceLevel}
+          newSkill={newSkill}
+          setNewSkill={setNewSkill}
+          getInitials={getInitials}
+          isSaving={isSaving}
+          onSave={saveCandidate}
+          onBack={() => setStep("upload")}
+        />
+      )}
+
+      {/* Step: Success */}
+      {step === "success" && candidateData && (
+        <SuccessSection 
+          candidateName={candidateData.full_name}
+          onAddAnother={() => {
+            setCandidateData(null)
+            setStep("upload")
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// Upload Section Component
+function UploadSection({
+  isProcessing,
+  onFileUpload,
+  onTextSubmit,
+}: {
+  isProcessing: boolean
+  onFileUpload: (file: File) => void
+  onTextSubmit: (text: string) => void
+}) {
+  const [showTextFallback, setShowTextFallback] = useState(false)
+  const [cvText, setCvText] = useState("")
+
+  return (
+    <div className="space-y-6">
+      {/* File Upload Card */}
+      <Card className="border-2 border-dashed border-slate-200 hover:border-teal-400 transition-colors rounded-2xl overflow-hidden">
+        <CardContent className="p-0">
+          {isProcessing ? (
+            <div className="flex flex-col items-center justify-center py-16 px-8">
+              <div className="relative">
+                <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center">
+                  <Loader2 className="h-10 w-10 text-teal-600 animate-spin" />
+                </div>
+                <Sparkles className="absolute -top-1 -right-1 h-6 w-6 text-teal-500" />
+              </div>
+              <p className="text-lg font-semibold text-slate-900 mt-6">
+                KI analysiert CV...
+              </p>
+              <p className="text-sm text-slate-500 mt-2">
+                Extrahiere Fähigkeiten, Erfahrung und Profil
+              </p>
+            </div>
+          ) : (
+            <div
+              className="flex flex-col items-center justify-center py-16 px-8 cursor-pointer"
+              onClick={() => document.getElementById("cv-file-upload")?.click()}
+            >
+              <input
+                id="cv-file-upload"
+                type="file"
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) onFileUpload(file)
+                }}
+              />
+              <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center mb-6 transition-transform hover:scale-110">
+                <FileUp className="h-10 w-10 text-teal-600" />
+              </div>
+              <p className="text-lg font-semibold text-slate-900">
+                CV hochladen
+              </p>
+              <p className="text-sm text-slate-500 mt-2">
+                PDF oder DOCX Datei hierher ziehen oder klicken
+              </p>
+              <div className="flex items-center gap-2 mt-4">
+                <Badge variant="secondary" className="bg-slate-100 text-slate-600">
+                  .pdf
+                </Badge>
+                <Badge variant="secondary" className="bg-slate-100 text-slate-600">
+                  .docx
+                </Badge>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Text Fallback */}
+      {!isProcessing && (
+        <div className="text-center">
+          <button
+            onClick={() => setShowTextFallback(!showTextFallback)}
+            className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+          >
+            {showTextFallback ? "Datei-Upload verwenden" : "Oder: CV-Text einfügen"}
+          </button>
+        </div>
+      )}
+
+      {showTextFallback && !isProcessing && (
+        <Card className="rounded-2xl">
+          <CardContent className="p-6 space-y-4">
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-2 block">
+                CV-Text einfügen
+              </label>
+              <Textarea
+                placeholder="Kopieren Sie den CV-Text hier hinein..."
+                value={cvText}
+                onChange={(e) => setCvText(e.target.value)}
+                rows={10}
+                className="resize-none"
+              />
+            </div>
+            <Button
+              onClick={() => onTextSubmit(cvText)}
+              className="w-full bg-teal-600 hover:bg-teal-700"
+              disabled={!cvText.trim()}
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Mit KI analysieren
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Info Box */}
+      <Card className="bg-teal-50 border-teal-200 rounded-2xl">
+        <CardContent className="p-5 flex items-start gap-4">
+          <Sparkles className="h-5 w-5 text-teal-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-teal-900">Powered by Gemini AI</p>
+            <p className="text-sm text-teal-700 mt-1">
+              Unsere KI extrahiert automatisch alle relevanten Informationen aus dem CV: 
+              Kontaktdaten, Skills, Berufserfahrung und erstellt ein professionelles Profil.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Preview Section Component
+function PreviewSection({
+  data,
+  onDataChange,
+  onAddSkill,
+  onRemoveSkill,
+  onSetExperienceLevel,
+  newSkill,
+  setNewSkill,
+  getInitials,
+  isSaving,
+  onSave,
+  onBack,
+}: {
+  data: CandidateData
+  onDataChange: (data: CandidateData) => void
+  onAddSkill: () => void
+  onRemoveSkill: (skill: string) => void
+  onSetExperienceLevel: (level: ExperienceLevel) => void
+  newSkill: string
+  setNewSkill: (value: string) => void
+  getInitials: (name: string) => string
+  isSaving: boolean
+  onSave: () => void
+  onBack: () => void
+}) {
+  return (
+    <div className="space-y-6">
+      {/* Profile Card */}
+      <Card className="rounded-2xl overflow-hidden">
+        <CardContent className="p-0">
+          {/* Header with gradient */}
+          <div className="bg-gradient-to-r from-teal-500 to-teal-600 px-8 py-10">
+            <div className="flex items-center gap-6">
+              {/* Avatar */}
+              <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center shadow-lg">
+                <span className="text-3xl font-bold text-teal-600">
+                  {getInitials(data.full_name)}
+                </span>
+              </div>
+              {/* Name & Role */}
+              <div className="text-white">
+                <Input
+                  value={data.full_name}
+                  onChange={(e) => onDataChange({ ...data, full_name: e.target.value })}
+                  className="text-2xl font-bold bg-transparent border-none text-white placeholder:text-white/60 p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+                <Input
+                  value={data.job_title || ""}
+                  onChange={(e) => onDataChange({ ...data, job_title: e.target.value })}
+                  placeholder="Aktuelle Position"
+                  className="text-lg bg-transparent border-none text-white/90 placeholder:text-white/60 p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0 mt-1"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-8 space-y-8">
+            {/* Contact Info */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                  <Mail className="h-5 w-5 text-slate-500" />
+                </div>
+                <Input
+                  value={data.email || ""}
+                  onChange={(e) => onDataChange({ ...data, email: e.target.value })}
+                  placeholder="Email"
+                  className="border-slate-200"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                  <Phone className="h-5 w-5 text-slate-500" />
+                </div>
+                <Input
+                  value={data.phone || ""}
+                  onChange={(e) => onDataChange({ ...data, phone: e.target.value })}
+                  placeholder="Telefon"
+                  className="border-slate-200"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                  <MapPin className="h-5 w-5 text-slate-500" />
+                </div>
+                <Input
+                  value={data.location || ""}
+                  onChange={(e) => onDataChange({ ...data, location: e.target.value })}
+                  placeholder="Standort"
+                  className="border-slate-200"
+                />
+              </div>
+            </div>
+
+            {/* AI Summary */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-4 w-4 text-teal-600" />
+                <h3 className="font-semibold text-slate-900">KI-Zusammenfassung</h3>
+              </div>
+              <Textarea
+                value={data.summary_ai || ""}
+                onChange={(e) => onDataChange({ ...data, summary_ai: e.target.value })}
+                rows={3}
+                className="border-slate-200 bg-teal-50/50"
+              />
+            </div>
+
+            {/* Experience Level */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Briefcase className="h-4 w-4 text-slate-500" />
+                <h3 className="font-semibold text-slate-900">Erfahrungslevel</h3>
+              </div>
+              <div className="flex gap-3">
+                {(["junior", "mid", "senior"] as ExperienceLevel[]).map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => onSetExperienceLevel(level)}
+                    className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all ${
+                      data.experience_level === level
+                        ? "border-teal-500 bg-teal-50"
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <Badge className={experienceLevelConfig[level].color}>
+                      {experienceLevelConfig[level].label}
+                    </Badge>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {experienceLevelConfig[level].years}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Skills */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <User className="h-4 w-4 text-slate-500" />
+                <h3 className="font-semibold text-slate-900">Skills</h3>
+              </div>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {data.skills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 px-3 py-1.5 rounded-full text-sm font-medium group"
+                  >
+                    {skill}
+                    <button
+                      onClick={() => onRemoveSkill(skill)}
+                      className="text-teal-400 hover:text-teal-600 transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newSkill}
+                  onChange={(e) => setNewSkill(e.target.value)}
+                  placeholder="Neuen Skill hinzufügen..."
+                  className="border-slate-200"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      onAddSkill()
+                    }
+                  }}
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={onAddSkill}
+                  className="flex-shrink-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Education */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <GraduationCap className="h-4 w-4 text-slate-500" />
+                <h3 className="font-semibold text-slate-900">Ausbildung</h3>
+              </div>
+              <Input
+                value={data.education || ""}
+                onChange={(e) => onDataChange({ ...data, education: e.target.value })}
+                placeholder="Höchster Abschluss"
+                className="border-slate-200"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Actions */}
+      <div className="flex gap-4">
+        <Button variant="outline" onClick={onBack} className="flex-1">
+          Zurück
+        </Button>
+        <Button
+          onClick={onSave}
+          disabled={isSaving}
+          className="flex-1 bg-teal-600 hover:bg-teal-700"
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Speichern...
+            </>
+          ) : (
+            "Kandidat aufnehmen"
+          )}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// Success Section Component
+function SuccessSection({
+  candidateName,
+  onAddAnother,
+}: {
+  candidateName: string
+  onAddAnother: () => void
+}) {
+  const router = useRouter()
+
+  return (
+    <Card className="rounded-2xl">
+      <CardContent className="p-12 text-center">
+        <div className="w-20 h-20 rounded-full bg-teal-100 flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 className="h-10 w-10 text-teal-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">
+          Kandidat erfolgreich indexiert!
+        </h2>
+        <p className="text-slate-500 mb-8">
+          {candidateName} wurde zu deinem Kandidatenpool hinzugefügt und kann jetzt mit Jobs gematcht werden.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button
+            variant="outline"
+            onClick={onAddAnother}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Weiteren Kandidaten hinzufügen
+          </Button>
+          <Button
+            onClick={() => router.push("/jobs")}
+            className="bg-teal-600 hover:bg-teal-700 gap-2"
+          >
+            <Sparkles className="h-4 w-4" />
+            Direkt mit Jobs matchen
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
