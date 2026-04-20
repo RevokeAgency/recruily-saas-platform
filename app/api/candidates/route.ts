@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       email: body.email || null,
       phone: body.phone || null,
       job_title: body.job_title || null,
-      years_of_experience: body.years_of_experience || 0,
+      years_of_experience: Math.round(body.years_of_experience || 0), // Round to integer
       experience_level: body.experience_level || "mid",
       skills: body.skills || [],
       education: body.education || null,
