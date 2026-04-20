@@ -1,12 +1,7 @@
 import { generateText, Output } from "ai"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { z } from "zod"
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-})
-
-// Schema for parsed candidate data
+// Schema for parsed candidate data - using nullable() for OpenAI strict mode compatibility
 const candidateSchema = z.object({
   full_name: z.string().describe("Full name of the candidate"),
   email: z.string().nullable().describe("Email address if found"),
@@ -20,80 +15,80 @@ const candidateSchema = z.object({
   summary_ai: z.string().describe("A compelling 2-sentence pitch about this candidate highlighting their strengths"),
 })
 
+const systemPrompt = `Du bist ein HR-Experte. Analysiere den Lebenslauf/CV und extrahiere alle relevanten Informationen.
+
+Wichtig:
+- Extrahiere alle Skills (technische und Soft Skills)
+- Schätze die Berufserfahrung in Jahren
+- Erstelle einen kurzen, professionellen 2-Satz-Pitch über den Kandidaten
+- Antworte auf Deutsch`
+
 export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { fileData, fileName, mimeType, textContent } = body
 
-    let content: string
-
-    // If text content is provided directly (fallback method)
+    // If text content is provided (fallback method)
     if (textContent) {
-      content = textContent
-    } else if (fileData) {
-      // For file uploads, we'll send the base64 data to Gemini
-      // Gemini can process PDFs directly
-      content = `[File: ${fileName}]\n\nPlease analyze this CV/resume document.`
-    } else {
-      return Response.json(
-        { error: "Keine Daten zum Analysieren vorhanden" },
-        { status: 400 }
-      )
+      const { output } = await generateText({
+        model: "google/gemini-2.5-flash",
+        output: Output.object({
+          schema: candidateSchema,
+        }),
+        system: systemPrompt,
+        prompt: `CV-Inhalt:\n${textContent}`,
+      })
+
+      if (!output) {
+        return Response.json(
+          { error: "Konnte keine Daten aus dem CV extrahieren" },
+          { status: 400 }
+        )
+      }
+
+      return Response.json({ data: output })
     }
 
-    const { output } = await generateText({
-      model: google("gemini-2.5-flash"),
-      output: Output.object({
-        schema: candidateSchema,
-      }),
-      messages: fileData ? [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Du bist ein HR-Experte. Analysiere diesen Lebenslauf/CV und extrahiere alle relevanten Informationen.
-              
-Wichtig:
-- Extrahiere alle Skills (technische und Soft Skills)
-- Schätze die Berufserfahrung in Jahren
-- Erstelle einen kurzen, professionellen 2-Satz-Pitch über den Kandidaten
-- Antworte auf Deutsch
+    // For file uploads
+    if (fileData) {
+      const { output } = await generateText({
+        model: "google/gemini-2.5-flash",
+        output: Output.object({
+          schema: candidateSchema,
+        }),
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `${systemPrompt}\n\nAnalysiere diesen Lebenslauf:`,
+              },
+              {
+                type: "file",
+                data: fileData,
+                mediaType: mimeType || "application/pdf",
+                filename: fileName || "cv.pdf",
+              },
+            ],
+          },
+        ],
+      })
 
-CV-Inhalt:`,
-            },
-            {
-              type: "file",
-              data: fileData,
-              mimeType: mimeType || "application/pdf",
-            },
-          ],
-        },
-      ] : [
-        {
-          role: "user",
-          content: `Du bist ein HR-Experte. Analysiere diesen Lebenslauf/CV und extrahiere alle relevanten Informationen.
-              
-Wichtig:
-- Extrahiere alle Skills (technische und Soft Skills)
-- Schätze die Berufserfahrung in Jahren
-- Erstelle einen kurzen, professionellen 2-Satz-Pitch über den Kandidaten
-- Antworte auf Deutsch
+      if (!output) {
+        return Response.json(
+          { error: "Konnte keine Daten aus dem CV extrahieren" },
+          { status: 400 }
+        )
+      }
 
-CV-Inhalt:
-${content}`,
-        },
-      ],
-    })
-
-    if (!output) {
-      return Response.json(
-        { error: "Konnte keine Daten aus dem CV extrahieren" },
-        { status: 400 }
-      )
+      return Response.json({ data: output })
     }
 
-    return Response.json({ data: output })
+    return Response.json(
+      { error: "Keine Daten zum Analysieren vorhanden" },
+      { status: 400 }
+    )
   } catch (error) {
     console.error("Error parsing candidate CV:", error)
     return Response.json(
