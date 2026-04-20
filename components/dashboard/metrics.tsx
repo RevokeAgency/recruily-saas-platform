@@ -39,21 +39,27 @@ const metrics = [
 export function DashboardMetrics() {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-      {metrics.map((metric) => (
-        <Card key={metric.title} className="bg-white border-slate-200 rounded-xl shadow-sm card-hover">
+      {metrics.map((metric, index) => (
+        <Card 
+          key={metric.title} 
+          className="bg-white border-slate-200 rounded-xl shadow-sm card-hover hover-glow opacity-0 animate-fade-in-up"
+          style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' }}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-500">
               {metric.title}
             </CardTitle>
-            <div className="h-10 w-10 rounded-xl bg-teal-50 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-xl bg-teal-50 flex items-center justify-center transition-transform duration-300 hover:scale-110 hover:rotate-3">
               <metric.icon className="h-5 w-5 text-teal-600" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-slate-900">{metric.value}</div>
+            <div className="text-3xl font-bold text-slate-900 animate-count-up" style={{ animationDelay: `${index * 0.1 + 0.2}s` }}>
+              {metric.value}
+            </div>
             <div className="flex items-center gap-2 mt-2">
               <span
-                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                className={`text-xs font-semibold px-2 py-0.5 rounded-full transition-all duration-300 hover:scale-105 ${
                   metric.trendUp ? "bg-teal-50 text-teal-600" : "bg-red-50 text-red-600"
                 }`}
               >
