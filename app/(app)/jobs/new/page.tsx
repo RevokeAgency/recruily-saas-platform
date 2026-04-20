@@ -8,6 +8,7 @@ import { JobWizardProgress } from "@/components/jobs/wizard/progress"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { toast } from "sonner"
 
 export type JobFormData = {
   inputMethod: "upload" | "url" | "manual" | null
@@ -66,28 +67,83 @@ export default function NewJobPage() {
     setFormData((prev) => ({ ...prev, ...data }))
   }
 
-  // Simulate URL scraping
+  // Parse job from URL using AI
   const handleScrapeUrl = async () => {
-    setIsProcessing(true)
-    // Simulate AI processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    if (!formData.url) return
     
-    // Mock parsed data
-    updateFormData({
-      title: "Senior Frontend Developer",
-      company: "TechCorp GmbH",
-      location: "Wien, Österreich",
-      employmentType: "full-time",
-      salaryRange: "€60.000 - €80.000",
-      description: "Wir suchen einen erfahrenen Frontend Developer mit React-Expertise für unser wachsendes Team. Sie werden an der Entwicklung unserer SaaS-Plattform arbeiten und eng mit dem Design-Team zusammenarbeiten.\n\nAufgaben:\n- Entwicklung von React-Komponenten\n- Code Reviews und Mentoring\n- Performance-Optimierung\n- Zusammenarbeit mit Backend-Team",
-      requiredSkills: ["React", "TypeScript", "CSS", "Git", "REST APIs"],
-      niceToHaveSkills: ["Next.js", "GraphQL", "Testing", "CI/CD"],
-      yearsExperience: "5+",
-      education: "Bachelor in Informatik oder vergleichbar",
-      languages: ["Deutsch (fließend)", "Englisch (gut)"],
-    })
-    setIsProcessing(false)
-    handleNext()
+    setIsProcessing(true)
+    try {
+      const response = await fetch("/api/jobs/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "url",
+          url: formData.url,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || result.error) {
+        toast.error(result.error || "Fehler beim Analysieren der URL")
+        setIsProcessing(false)
+        return
+      }
+
+      updateFormData(result.data)
+      toast.success("Stellenausschreibung erfolgreich analysiert")
+      handleNext()
+    } catch (error) {
+      console.error("Error parsing URL:", error)
+      toast.error("Fehler beim Analysieren der URL")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  // Parse job from file upload using AI
+  const handleFileUpload = async (file: File) => {
+    setIsProcessing(true)
+    updateFormData({ file })
+
+    try {
+      // Convert file to base64
+      const arrayBuffer = await file.arrayBuffer()
+      const base64 = btoa(
+        new Uint8Array(arrayBuffer).reduce(
+          (data, byte) => data + String.fromCharCode(byte),
+          ""
+        )
+      )
+
+      const response = await fetch("/api/jobs/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "file",
+          fileData: base64,
+          fileName: file.name,
+          mimeType: file.type,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || result.error) {
+        toast.error(result.error || "Fehler beim Analysieren der Datei")
+        setIsProcessing(false)
+        return
+      }
+
+      updateFormData(result.data)
+      toast.success("Datei erfolgreich analysiert")
+      handleNext()
+    } catch (error) {
+      console.error("Error parsing file:", error)
+      toast.error("Fehler beim Analysieren der Datei")
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   return (
@@ -117,6 +173,7 @@ export default function NewJobPage() {
             updateFormData={updateFormData}
             onNext={handleNext}
             onScrapeUrl={handleScrapeUrl}
+            onFileUpload={handleFileUpload}
             isProcessing={isProcessing}
           />
         )}

@@ -13,6 +13,7 @@ interface Step1Props {
   updateFormData: (data: Partial<JobFormData>) => void
   onNext: () => void
   onScrapeUrl: () => void
+  onFileUpload: (file: File) => void
   isProcessing: boolean
 }
 
@@ -51,6 +52,7 @@ export function JobWizardStep1({
   updateFormData,
   onNext,
   onScrapeUrl,
+  onFileUpload,
   isProcessing,
 }: Step1Props) {
   const handleMethodSelect = (method: "upload" | "url" | "manual") => {
@@ -136,35 +138,44 @@ export function JobWizardStep1({
       {formData.inputMethod === "upload" && (
         <Card className="border border-border">
           <CardContent className="pt-6">
-            <div
-              className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
-              onClick={() => {
-                // Trigger file input
-                document.getElementById("file-upload")?.click()
-              }}
-            >
-              <input
-                id="file-upload"
-                type="file"
-                accept=".pdf,.docx"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) {
-                    updateFormData({ file })
-                    // Simulate processing
-                    onNext()
-                  }
+            {isProcessing ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+                <p className="text-sm font-medium text-foreground">
+                  Analysiere Stellenausschreibung mit AI...
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Dies kann einige Sekunden dauern
+                </p>
+              </div>
+            ) : (
+              <div
+                className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
+                onClick={() => {
+                  document.getElementById("file-upload")?.click()
                 }}
-              />
-              <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm font-medium text-foreground">
-                Datei hierher ziehen oder klicken
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                PDF oder DOCX, max. 10MB
-              </p>
-            </div>
+              >
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      onFileUpload(file)
+                    }
+                  }}
+                />
+                <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm font-medium text-foreground">
+                  Datei hierher ziehen oder klicken
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  PDF oder DOCX, max. 10MB
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
