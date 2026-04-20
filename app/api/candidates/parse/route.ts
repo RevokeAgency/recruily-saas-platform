@@ -1,5 +1,11 @@
 import { generateText, Output } from "ai"
+import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { z } from "zod"
+
+// Create Google Gemini provider with API key from environment
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+})
 
 // Schema for parsed candidate data - using nullable() for OpenAI strict mode compatibility
 const candidateSchema = z.object({
@@ -31,7 +37,7 @@ export async function POST(req: Request) {
     // If text content is provided (fallback method)
     if (textContent) {
       const { output } = await generateText({
-        model: "google/gemini-2.5-flash",
+        model: google("gemini-2.5-flash"),
         output: Output.object({
           schema: candidateSchema,
         }),
@@ -52,7 +58,7 @@ export async function POST(req: Request) {
     // For file uploads
     if (fileData) {
       const { output } = await generateText({
-        model: "google/gemini-2.5-flash",
+        model: google("gemini-2.5-flash"),
         output: Output.object({
           schema: candidateSchema,
         }),
