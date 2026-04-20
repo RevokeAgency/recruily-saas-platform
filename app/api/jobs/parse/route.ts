@@ -124,7 +124,7 @@ ${content}`,
     }
 
     const { output } = await generateText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-1.5-flash"),
       system: `Du bist ein Experte für HR und Recruiting. 
 Deine Aufgabe ist es, Stellenausschreibungen zu analysieren und strukturierte Daten zu extrahieren.
 Extrahiere alle relevanten Informationen und fülle die Felder so vollständig wie möglich aus.
