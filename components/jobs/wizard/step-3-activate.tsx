@@ -34,21 +34,41 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
   const handleSubmit = async (asDraft: boolean = false) => {
     setIsSubmitting(true)
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    
-    if (asDraft) {
-      toast.success("Job als Entwurf gespeichert", {
-        description: "Du kannst ihn jederzeit aktivieren.",
+    try {
+      const response = await fetch("/api/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          isActive: asDraft ? false : formData.isActive,
+        }),
       })
-    } else {
-      toast.success("Job erfolgreich erstellt!", {
-        description: "Das Kandidaten-Matching kann jetzt starten.",
-      })
+
+      const result = await response.json()
+
+      if (!response.ok || result.error) {
+        toast.error(result.error || "Fehler beim Speichern des Jobs")
+        setIsSubmitting(false)
+        return
+      }
+      
+      if (asDraft) {
+        toast.success("Job als Entwurf gespeichert", {
+          description: "Du kannst ihn jederzeit aktivieren.",
+        })
+      } else {
+        toast.success("Job erfolgreich erstellt!", {
+          description: "Das Kandidaten-Matching kann jetzt starten.",
+        })
+      }
+      
+      router.push("/jobs")
+    } catch (error) {
+      console.error("Error saving job:", error)
+      toast.error("Fehler beim Speichern des Jobs")
+    } finally {
+      setIsSubmitting(false)
     }
-    
-    setIsSubmitting(false)
-    router.push("/jobs")
   }
 
   return (

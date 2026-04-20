@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import useSWR from "swr"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -21,70 +22,29 @@ import {
   Archive,
   Trash2,
   TrendingUp,
+  Loader2,
 } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
 
-const mockJobs = [
-  {
-    id: "1",
-    title: "Senior Frontend Developer",
-    company: "TechCorp GmbH",
-    status: "active" as const,
-    candidates: 24,
-    topScore: 92,
-    createdAt: "15.03.2024",
-  },
-  {
-    id: "2",
-    title: "Product Manager",
-    company: "StartupXYZ",
-    status: "active" as const,
-    candidates: 18,
-    topScore: 87,
-    createdAt: "12.03.2024",
-  },
-  {
-    id: "3",
-    title: "UX Designer",
-    company: "DesignStudio",
-    status: "draft" as const,
-    candidates: 0,
-    topScore: 0,
-    createdAt: "10.03.2024",
-  },
-  {
-    id: "4",
-    title: "Backend Engineer",
-    company: "CloudServices AG",
-    status: "active" as const,
-    candidates: 31,
-    topScore: 89,
-    createdAt: "08.03.2024",
-  },
-  {
-    id: "5",
-    title: "Data Scientist",
-    company: "Analytics Pro",
-    status: "archived" as const,
-    candidates: 15,
-    topScore: 78,
-    createdAt: "01.03.2024",
-  },
-  {
-    id: "6",
-    title: "DevOps Engineer",
-    company: "InfraCloud",
-    status: "active" as const,
-    candidates: 12,
-    topScore: 84,
-    createdAt: "28.02.2024",
-  },
-]
+interface Job {
+  id: string
+  title: string
+  company: string
+  is_active: boolean
+  candidate_count: number
+  top_match_score: number
+  created_at: string
+}
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json())
+
+function getStatus(isActive: boolean): "active" | "draft" {
+  return isActive ? "active" : "draft"
+}
 
 const statusConfig = {
   active: { label: "Aktiv", className: "bg-success text-success-foreground" },
   draft: { label: "Entwurf", className: "bg-muted text-muted-foreground" },
-  archived: { label: "Archiviert", className: "bg-muted/50 text-muted-foreground border border-border" },
 }
 
 function getScoreColor(score: number) {
@@ -94,7 +54,27 @@ function getScoreColor(score: number) {
 }
 
 export function JobsList() {
-  if (mockJobs.length === 0) {
+  const { data, error, isLoading } = useSWR<{ jobs: Job[] }>("/api/jobs", fetcher)
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12 text-destructive">
+        Fehler beim Laden der Jobs
+      </div>
+    )
+  }
+
+  const jobs = data?.jobs || []
+
+  if (jobs.length === 0) {
     return (
       <EmptyState
         icon={Briefcase}
@@ -108,7 +88,7 @@ export function JobsList() {
 
   return (
     <div className="grid gap-4">
-      {mockJobs.map((job) => (
+      {jobs.map((job) => (
         <Card key={job.id} className="border border-border shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex flex-col lg:flex-row lg:items-center gap-4">
@@ -130,25 +110,30 @@ export function JobsList() {
 
               {/* Status & Metrics */}
               <div className="flex flex-wrap items-center gap-4 lg:gap-6">
-                <Badge className={statusConfig[job.status].className}>
-                  {statusConfig[job.status].label}
-                </Badge>
+                {(() => {
+                  const status = getStatus(job.is_active)
+                  return (
+                    <Badge className={statusConfig[status].className}>
+                      {statusConfig[status].label}
+                    </Badge>
+                  )
+                })()}
 
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>{job.createdAt}</span>
+                  <span>{new Date(job.created_at).toLocaleDateString("de-DE")}</span>
                 </div>
 
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" />
-                  <span>{job.candidates} Kandidaten</span>
+                  <span>{job.candidate_count} Kandidaten</span>
                 </div>
 
-                {job.topScore > 0 && (
+                {job.top_match_score > 0 && (
                   <div className="flex items-center gap-1.5 text-sm">
-                    <TrendingUp className={`h-4 w-4 ${getScoreColor(job.topScore)}`} />
-                    <span className={getScoreColor(job.topScore)}>
-                      Top: {job.topScore}%
+                    <TrendingUp className={`h-4 w-4 ${getScoreColor(job.top_match_score)}`} />
+                    <span className={getScoreColor(job.top_match_score)}>
+                      Top: {job.top_match_score}%
                     </span>
                   </div>
                 )}
