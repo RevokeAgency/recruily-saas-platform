@@ -28,12 +28,28 @@ import {
   Filter,
   ArrowUpDown,
   UserPlus,
+  Sparkles,
 } from "lucide-react"
 import Link from "next/link"
+import { CandidateMatchModal } from "./candidate-match-modal"
+
+interface Job {
+  id: string
+  title: string
+  company: string
+  location?: string
+  employment_type?: string
+  required_skills?: string[]
+  nice_to_have_skills?: string[]
+  years_experience?: string
+  education?: string
+  description?: string
+}
 
 interface JobCandidatesTabProps {
   jobId: string
   jobTitle: string
+  job: Job
 }
 
 const mockCandidates = [
@@ -160,10 +176,12 @@ function getScoreColor(score: number) {
   return "text-destructive"
 }
 
-export function JobCandidatesTab({ jobId, jobTitle }: JobCandidatesTabProps) {
+export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [sortBy, setSortBy] = useState("match")
+  const [selectedCandidate, setSelectedCandidate] = useState<typeof mockCandidates[0] | null>(null)
+  const [matchModalOpen, setMatchModalOpen] = useState(false)
 
   const filteredCandidates = mockCandidates
     .filter((c) => 
@@ -362,12 +380,27 @@ export function JobCandidatesTab({ jobId, jobTitle }: JobCandidatesTabProps) {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => {
+                        setSelectedCandidate(candidate)
+                        setMatchModalOpen(true)
+                      }}
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90">
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Shortlist
+                    <Button 
+                      size="sm" 
+                      className="flex-1 bg-teal-600 hover:bg-teal-700 gap-1"
+                      onClick={() => {
+                        setSelectedCandidate(candidate)
+                        setMatchModalOpen(true)
+                      }}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      Match analysieren
                     </Button>
                     <Button variant="outline" size="sm" className="flex-1">
                       <Calendar className="mr-2 h-4 w-4" />
@@ -383,6 +416,18 @@ export function JobCandidatesTab({ jobId, jobTitle }: JobCandidatesTabProps) {
           </Card>
         ))}
       </div>
+
+      {/* Godlike Matcher Modal */}
+      <CandidateMatchModal
+        open={matchModalOpen}
+        onOpenChange={setMatchModalOpen}
+        candidate={selectedCandidate}
+        job={job}
+        onInviteToInterview={(candidateId) => {
+          console.log("Invite to interview:", candidateId)
+          // TODO: Update candidate status in database
+        }}
+      />
     </div>
   )
 }

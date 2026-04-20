@@ -227,7 +227,22 @@ export default function JobDetailPage() {
         </TabsList>
 
         <TabsContent value="candidates">
-          <JobCandidatesTab jobId={jobId} jobTitle={job.title} />
+          <JobCandidatesTab 
+            jobId={jobId} 
+            jobTitle={job.title} 
+            job={{
+              id: job.id,
+              title: job.title,
+              company: job.company,
+              location: job.location || undefined,
+              employment_type: job.employment_type || undefined,
+              required_skills: job.required_skills || undefined,
+              nice_to_have_skills: job.nice_to_have_skills || undefined,
+              years_experience: job.years_experience || undefined,
+              education: job.education || undefined,
+              description: job.description || undefined,
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="overview">
