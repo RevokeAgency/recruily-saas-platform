@@ -65,11 +65,18 @@ interface Candidate {
   education: string | null
   summary_ai: string | null
   location: string | null
-  status: string
+  status: "analyzing" | "scored" | "error" | "stale" | "new" | "shortlisted" | "interviewed"
   match_score: number | null
-  skills_score: number | null
+  hard_skills_score: number | null
   experience_score: number | null
+  education_score: number | null
+  soft_skills_score: number | null
+  languages_score: number | null
+  location_score: number | null
+  industry_score: number | null
+  salary_score: number | null
   culture_score: number | null
+  career_prognosis: string | null
   ai_summary: string | null
   notes: string | null
   added_at: string
@@ -88,10 +95,17 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
   const [matchModalOpen, setMatchModalOpen] = useState(false)
 
-  // Fetch candidates for this job
+  // Fetch candidates for this job - refresh every 2s while any candidate is analyzing
   const { data, error, isLoading } = useSWR<{ candidates: Candidate[] }>(
     `/api/jobs/${jobId}/candidates`,
-    fetcher
+    fetcher,
+    {
+      refreshInterval: (latestData) => {
+        // Check if any candidate is still analyzing
+        const hasAnalyzing = latestData?.candidates?.some(c => c.status === "analyzing")
+        return hasAnalyzing ? 2000 : 0 // Poll every 2s if analyzing, otherwise stop
+      },
+    }
   )
 
   const candidates = data?.candidates || []
@@ -300,43 +314,89 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                 {/* Right: Match Score */}
                 <div className="xl:w-64 xl:border-l xl:pl-6 xl:border-border">
                   <div className="text-center xl:text-right mb-4">
-                    {candidate.match_score ? (
+                    {/* Analyzing State - Pulsing Ring */}
+                    {candidate.status === "analyzing" ? (
+                      <div className="flex flex-col items-center xl:items-end">
+                        <div className="relative w-16 h-16 mb-2">
+                          {/* Pulsing dashed circle */}
+                          <svg className="w-16 h-16 animate-pulse" viewBox="0 0 64 64">
+                            <circle
+                              cx="32"
+                              cy="32"
+                              r="28"
+                              fill="none"
+                              stroke="#0D9488"
+                              strokeWidth="3"
+                              strokeDasharray="8 4"
+                              className="animate-spin"
+                              style={{ animationDuration: "3s" }}
+                            />
+                          </svg>
+                          <Loader2 className="absolute inset-0 m-auto h-6 w-6 text-teal-600 animate-spin" />
+                        </div>
+                        <p className="text-sm font-medium text-teal-600">Wird analysiert...</p>
+                        <p className="text-xs text-muted-foreground mt-1">KI-Analyse läuft...</p>
+                      </div>
+                    ) : candidate.status === "error" ? (
+                      <div className="flex flex-col items-center xl:items-end">
+                        <div className="w-16 h-16 rounded-full border-2 border-dashed border-red-300 flex items-center justify-center mb-2">
+                          <span className="text-red-500 text-xl">!</span>
+                        </div>
+                        <p className="text-sm font-medium text-red-500">Fehler</p>
+                        <p className="text-xs text-muted-foreground mt-1">Analyse fehlgeschlagen</p>
+                      </div>
+                    ) : candidate.match_score ? (
                       <>
                         <p className={`text-4xl font-bold ${getScoreColor(candidate.match_score)}`}>
                           {candidate.match_score}%
                         </p>
-                        <p className="text-sm text-muted-foreground">Overall Match</p>
+                        <p className="text-sm text-muted-foreground">IMLRS Score</p>
+                        {candidate.career_prognosis && (
+                          <Badge 
+                            variant="outline" 
+                            className={`mt-2 text-xs ${
+                              candidate.career_prognosis === "ascending" 
+                                ? "border-teal-300 text-teal-600 bg-teal-50" 
+                                : candidate.career_prognosis === "stable"
+                                ? "border-amber-300 text-amber-600 bg-amber-50"
+                                : "border-red-300 text-red-600 bg-red-50"
+                            }`}
+                          >
+                            {candidate.career_prognosis === "ascending" ? "Aufsteigend" : 
+                             candidate.career_prognosis === "stable" ? "Stabil" : "Risiko"}
+                          </Badge>
+                        )}
                       </>
                     ) : (
                       <>
                         <p className="text-2xl font-bold text-slate-400">--</p>
-                        <p className="text-sm text-muted-foreground">Match noch nicht berechnet</p>
+                        <p className="text-sm text-muted-foreground">Kein Score</p>
                       </>
                     )}
                   </div>
 
-                  {/* Score Breakdown (only if scores exist) */}
-                  {candidate.match_score && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Skills</span>
+                  {/* Score Breakdown (only if scored) */}
+                  {candidate.status === "scored" && candidate.match_score && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Hard Skills</span>
                         <div className="flex items-center gap-2">
-                          <Progress value={candidate.skills_score || 0} className="w-20 h-2" />
-                          <span className="w-10 text-right font-medium">{candidate.skills_score || 0}%</span>
+                          <Progress value={candidate.hard_skills_score || 0} className="w-16 h-1.5" />
+                          <span className="w-8 text-right font-medium">{candidate.hard_skills_score || 0}%</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Experience</span>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Erfahrung</span>
                         <div className="flex items-center gap-2">
-                          <Progress value={candidate.experience_score || 0} className="w-20 h-2" />
-                          <span className="w-10 text-right font-medium">{candidate.experience_score || 0}%</span>
+                          <Progress value={candidate.experience_score || 0} className="w-16 h-1.5" />
+                          <span className="w-8 text-right font-medium">{candidate.experience_score || 0}%</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Culture</span>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Kultur</span>
                         <div className="flex items-center gap-2">
-                          <Progress value={candidate.culture_score || 0} className="w-20 h-2" />
-                          <span className="w-10 text-right font-medium">{candidate.culture_score || 0}%</span>
+                          <Progress value={candidate.culture_score || 0} className="w-16 h-1.5" />
+                          <span className="w-8 text-right font-medium">{candidate.culture_score || 0}%</span>
                         </div>
                       </div>
                     </div>
@@ -344,18 +404,26 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
+                    {candidate.status === "scored" && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="flex-1 gap-1"
+                        onClick={() => {
+                          setSelectedCandidate(candidate)
+                          setMatchModalOpen(true)
+                        }}
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        Details
+                      </Button>
+                    )}
                     <Button 
+                      variant={candidate.status === "scored" ? "default" : "outline"} 
                       size="sm" 
-                      className="flex-1 bg-teal-600 hover:bg-teal-700 gap-1"
-                      onClick={() => {
-                        setSelectedCandidate(candidate)
-                        setMatchModalOpen(true)
-                      }}
+                      className={`flex-1 ${candidate.status === "scored" ? "bg-teal-600 hover:bg-teal-700" : ""}`}
+                      disabled={candidate.status === "analyzing"}
                     >
-                      <Sparkles className="h-4 w-4" />
-                      Match analysieren
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
                       <Calendar className="mr-2 h-4 w-4" />
                       Interview
                     </Button>

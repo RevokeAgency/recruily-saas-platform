@@ -637,9 +637,22 @@ function SuccessSection({
         <h2 className="text-2xl font-bold text-slate-900 mb-2">
           Kandidat erfolgreich indexiert!
         </h2>
-        <p className="text-slate-500 mb-8">
+        <p className="text-slate-500 mb-4">
           {candidateName} wurde zu deinem Kandidatenpool hinzugefügt{jobId ? " und dem Job zugeordnet" : ""}.
         </p>
+        
+        {/* IMLRS Analysis Notice */}
+        {jobId && (
+          <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 mb-8 inline-flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-teal-600" />
+            </div>
+            <p className="text-sm text-teal-700">
+              <span className="font-medium">IMLRS-Analyse läuft automatisch</span> — Der Match-Score wird im Hintergrund berechnet.
+            </p>
+          </div>
+        )}
+        
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
             variant="outline"
@@ -654,7 +667,7 @@ function SuccessSection({
             className="bg-teal-600 hover:bg-teal-700 gap-2"
           >
             <Sparkles className="h-4 w-4" />
-            {jobId ? "Zurück zum Job" : "Direkt mit Jobs matchen"}
+            {jobId ? "Zum Candidate Pool" : "Direkt mit Jobs matchen"}
           </Button>
         </div>
       </CardContent>
