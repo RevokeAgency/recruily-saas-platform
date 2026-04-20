@@ -27,6 +27,28 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { type, content, url, fileData, fileName, mimeType } = body
 
+    console.log("[v0] Job Parse Request:", { type, url: url?.slice(0, 50), fileName })
+
+    // Validate URL type requests
+    if (type === "url") {
+      if (!url || typeof url !== "string") {
+        return Response.json(
+          { error: "URL ist erforderlich" },
+          { status: 400 }
+        )
+      }
+
+      // Validate URL format
+      try {
+        new URL(url)
+      } catch {
+        return Response.json(
+          { error: "Ungültige URL. Bitte geben Sie eine vollständige URL ein (z.B. https://example.com/job)" },
+          { status: 400 }
+        )
+      }
+    }
+
     let messages: Parameters<typeof generateText>[0]["messages"]
 
     if (type === "url") {
