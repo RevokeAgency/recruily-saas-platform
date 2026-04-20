@@ -96,19 +96,18 @@ export function JobsList() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {jobs.map((job) => (
-        <Card key={job.id} className="border border-border shadow-sm hover:shadow-md transition-shadow flex flex-col">
-          <CardContent className="p-5 flex flex-col flex-1">
+        <Card key={job.id} className="bg-white border border-slate-200 rounded-xl shadow-sm card-hover flex flex-col">
+          <CardContent className="p-6 flex flex-col flex-1">
             {/* Header with title, badge, menu */}
             <div className="flex items-start justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-semibold text-foreground text-lg leading-tight">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h3 className="font-bold text-slate-900 text-lg leading-tight">
                   {job.title}
                 </h3>
                 <Badge 
-                  variant="outline" 
                   className={job.is_active 
-                    ? "bg-primary/10 text-primary border-primary/30 uppercase text-xs font-medium" 
-                    : "bg-muted text-muted-foreground uppercase text-xs font-medium"
+                    ? "status-active uppercase text-xs font-medium px-2.5 py-0.5" 
+                    : "status-draft uppercase text-xs font-medium px-2.5 py-0.5"
                   }
                 >
                   {job.is_active ? "Active" : "Draft"}
@@ -147,27 +146,27 @@ export function JobsList() {
             </div>
 
             {/* Company */}
-            <p className="text-sm text-muted-foreground mb-1">{job.company}</p>
+            <p className="text-sm text-slate-600 mb-1">{job.company}</p>
 
             {/* Location */}
             {job.location && (
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
-                <MapPin className="h-3.5 w-3.5" />
+              <div className="flex items-center gap-1.5 text-sm text-slate-500 mb-4">
+                <MapPin className="h-3.5 w-3.5 text-slate-400" />
                 <span>{job.location}</span>
               </div>
             )}
 
             {/* Stats Row */}
-            <div className="flex items-center gap-6 py-3 px-4 bg-muted/50 rounded-lg mb-4">
+            <div className="flex items-center gap-6 py-4 px-5 bg-slate-50 rounded-xl mb-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">{job.candidate_count}</p>
-                <p className="text-xs text-muted-foreground">Candidates</p>
+                <p className="text-2xl font-bold text-slate-900">{job.candidate_count}</p>
+                <p className="text-xs text-slate-500">Candidates</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">{job.top_match_score}%</p>
-                <p className="text-xs text-muted-foreground">Match</p>
+                <p className="text-2xl font-bold text-slate-900">{job.top_match_score}%</p>
+                <p className="text-xs text-slate-500">Match</p>
               </div>
-              <div className="text-sm text-primary ml-auto">
+              <div className="text-sm text-teal-600 font-medium ml-auto">
                 {new Date(job.created_at).toLocaleDateString("de-DE")}
               </div>
             </div>
@@ -196,29 +195,25 @@ export function JobsList() {
 
             {/* Skills */}
             {job.required_skills && job.required_skills.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-4 mt-auto">
+              <div className="flex flex-wrap gap-2 mb-5 mt-auto pt-2">
                 {job.required_skills.slice(0, 4).map((skill, idx) => (
-                  <Badge 
+                  <span 
                     key={idx} 
-                    variant="outline" 
-                    className="text-xs font-normal bg-background"
+                    className="skill-tag"
                   >
                     {skill}
-                  </Badge>
+                  </span>
                 ))}
                 {job.required_skills.length > 4 && (
-                  <Badge 
-                    variant="outline" 
-                    className="text-xs font-normal bg-background"
-                  >
+                  <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-medium">
                     +{job.required_skills.length - 4}
-                  </Badge>
+                  </span>
                 )}
               </div>
             )}
 
             {/* Open Workspace Button */}
-            <Button asChild className="w-full mt-auto">
+            <Button asChild className="w-full mt-auto rounded-xl bg-primary hover:bg-primary/90 btn-hover">
               <Link href={`/jobs/${job.id}`}>
                 <Users2 className="mr-2 h-4 w-4" />
                 Open Workspace

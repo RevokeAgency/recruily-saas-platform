@@ -28,10 +28,10 @@ import { useState } from "react"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Jobs", href: "/jobs", icon: Briefcase, badge: 12 },
-  { name: "Candidates", href: "/candidates", icon: Users },
-  { name: "Subscription", href: "/subscription", icon: CreditCard },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Stellenangebote", href: "/jobs", icon: Briefcase },
+  { name: "Kandidaten", href: "/candidates", icon: Users },
+  { name: "Abonnement", href: "/subscription", icon: CreditCard },
+  { name: "Einstellungen", href: "/settings", icon: Settings },
 ]
 
 const mockUser = {
@@ -52,27 +52,27 @@ export function AppSidebar() {
       )}
     >
       {/* Logo & Menu Toggle */}
-      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+      <div className="flex items-center justify-between p-5 border-b border-slate-200">
         {!collapsed && (
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">R</span>
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm">
+              <span className="text-primary-foreground font-bold text-base">R</span>
             </div>
-            <span className="font-semibold text-lg text-foreground">RECRUILY</span>
+            <span className="font-bold text-xl text-slate-900 tracking-tight">Recruily</span>
           </Link>
         )}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className={cn("text-sidebar-foreground hover:bg-sidebar-accent", collapsed && "mx-auto")}
+          className={cn("text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-snappy", collapsed && "mx-auto")}
         >
           <Menu className="h-5 w-5" />
         </Button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1">
+      <nav className="flex-1 p-4 space-y-1.5">
         {navigation.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
           return (
@@ -80,22 +80,18 @@ export function AppSidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-snappy",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
               )}
             >
-              <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary")} />
+              <item.icon className={cn(
+                "h-5 w-5 flex-shrink-0 transition-colors",
+                isActive ? "text-primary-foreground" : "text-slate-400"
+              )} />
               {!collapsed && (
-                <>
-                  <span className="flex-1">{item.name}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
-                      {item.badge}
-                    </Badge>
-                  )}
-                </>
+                <span className="flex-1">{item.name}</span>
               )}
             </Link>
           )

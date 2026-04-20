@@ -38,26 +38,28 @@ const metrics = [
 
 export function DashboardMetrics() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       {metrics.map((metric) => (
-        <Card key={metric.title} className="border border-border shadow-sm">
+        <Card key={metric.title} className="bg-white border-slate-200 rounded-xl shadow-sm card-hover">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-slate-500">
               {metric.title}
             </CardTitle>
-            <metric.icon className="h-4 w-4 text-muted-foreground" />
+            <div className="h-10 w-10 rounded-xl bg-teal-50 flex items-center justify-center">
+              <metric.icon className="h-5 w-5 text-teal-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{metric.value}</div>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="text-3xl font-bold text-slate-900">{metric.value}</div>
+            <div className="flex items-center gap-2 mt-2">
               <span
-                className={`text-xs font-medium ${
-                  metric.trendUp ? "text-success" : "text-destructive"
+                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  metric.trendUp ? "bg-teal-50 text-teal-600" : "bg-red-50 text-red-600"
                 }`}
               >
                 {metric.trend}
               </span>
-              <span className="text-xs text-muted-foreground">{metric.description}</span>
+              <span className="text-xs text-slate-500">{metric.description}</span>
             </div>
           </CardContent>
         </Card>
