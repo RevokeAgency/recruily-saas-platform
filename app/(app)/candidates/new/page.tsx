@@ -173,7 +173,10 @@ export default function NewCandidatePage() {
       const response = await fetch("/api/candidates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(candidateData),
+        body: JSON.stringify({
+          ...candidateData,
+          jobId: jobId, // Include jobId to link candidate to job
+        }),
       })
 
       const result = await response.json()

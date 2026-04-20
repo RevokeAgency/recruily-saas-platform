@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import useSWR from "swr"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -20,18 +21,17 @@ import {
   Mail,
   MapPin,
   Briefcase,
-  TrendingUp,
-  Star,
-  Eye,
   Calendar,
-  CheckCircle2,
   Filter,
   ArrowUpDown,
   UserPlus,
   Sparkles,
+  Loader2,
 } from "lucide-react"
 import Link from "next/link"
 import { CandidateMatchModal } from "./candidate-match-modal"
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 interface Job {
   id: string
@@ -52,123 +52,28 @@ interface JobCandidatesTabProps {
   job: Job
 }
 
-const mockCandidates = [
-  {
-    id: "1",
-    name: "Sarah Johnson",
-    initials: "S",
-    email: "sarah.johnson@email.com",
-    location: "San Francisco, CA",
-    experience: "7 years exp",
-    matchScore: 92,
-    skillsScore: 90,
-    experienceScore: 88,
-    educationScore: 95,
-    skills: ["React", "Node.js", "TypeScript", "PostgreSQL", "AWS"],
-    strengths: [
-      "7 years of relevant experience",
-      "Strong technical skill set (5 skills)",
-      "Educational background: BS Computer Science",
-    ],
-    recommendations: [
-      "Schedule interview immediately",
-      "Strong candidate - fast-track process",
-    ],
-    isDemo: true,
-  },
-  {
-    id: "2",
-    name: "Michael Chen",
-    initials: "M",
-    email: "m.chen@techmail.com",
-    location: "New York, NY",
-    experience: "5 years exp",
-    matchScore: 87,
-    skillsScore: 85,
-    experienceScore: 90,
-    educationScore: 82,
-    skills: ["React", "JavaScript", "CSS", "Node.js", "MongoDB"],
-    strengths: [
-      "5 years of frontend experience",
-      "Strong React knowledge",
-      "Good communication skills",
-    ],
-    recommendations: [
-      "Consider for technical interview",
-      "May need upskilling in TypeScript",
-    ],
-    isDemo: true,
-  },
-  {
-    id: "3",
-    name: "Emma Davis",
-    initials: "E",
-    email: "emma.d@gmail.com",
-    location: "Berlin, DE",
-    experience: "4 years exp",
-    matchScore: 78,
-    skillsScore: 80,
-    experienceScore: 75,
-    educationScore: 78,
-    skills: ["Vue.js", "TypeScript", "Tailwind", "Python"],
-    strengths: [
-      "4 years of frontend development",
-      "TypeScript proficiency",
-      "Agile methodology experience",
-    ],
-    recommendations: [
-      "Good backup candidate",
-      "Consider for Vue.js specific roles",
-    ],
-    isDemo: true,
-  },
-  {
-    id: "4",
-    name: "Thomas Mueller",
-    initials: "T",
-    email: "t.mueller@company.de",
-    location: "Munich, DE",
-    experience: "6 years exp",
-    matchScore: 85,
-    skillsScore: 88,
-    experienceScore: 82,
-    educationScore: 85,
-    skills: ["React", "TypeScript", "GraphQL", "AWS", "Docker"],
-    strengths: [
-      "6 years senior-level experience",
-      "Full-stack capabilities",
-      "Cloud architecture knowledge",
-    ],
-    recommendations: [
-      "Strong technical candidate",
-      "Schedule technical deep-dive",
-    ],
-    isDemo: true,
-  },
-  {
-    id: "5",
-    name: "Lisa Weber",
-    initials: "L",
-    email: "lisa.weber@mail.at",
-    location: "Vienna, AT",
-    experience: "3 years exp",
-    matchScore: 72,
-    skillsScore: 70,
-    experienceScore: 68,
-    educationScore: 80,
-    skills: ["Angular", "TypeScript", "RxJS", "Java"],
-    strengths: [
-      "3 years of Angular experience",
-      "Strong TypeScript skills",
-      "Java backend knowledge",
-    ],
-    recommendations: [
-      "Consider for Angular projects",
-      "May need React training",
-    ],
-    isDemo: true,
-  },
-]
+interface Candidate {
+  id: string
+  linkId: string
+  full_name: string
+  email: string | null
+  phone: string | null
+  job_title: string | null
+  years_of_experience: number
+  experience_level: string
+  skills: string[]
+  education: string | null
+  summary_ai: string | null
+  location: string | null
+  status: string
+  match_score: number | null
+  skills_score: number | null
+  experience_score: number | null
+  culture_score: number | null
+  ai_summary: string | null
+  notes: string | null
+  added_at: string
+}
 
 function getScoreColor(score: number) {
   if (score >= 80) return "text-primary"
@@ -180,16 +85,50 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [sortBy, setSortBy] = useState("match")
-  const [selectedCandidate, setSelectedCandidate] = useState<typeof mockCandidates[0] | null>(null)
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
   const [matchModalOpen, setMatchModalOpen] = useState(false)
 
-  const filteredCandidates = mockCandidates
+  // Fetch candidates for this job
+  const { data, error, isLoading } = useSWR<{ candidates: Candidate[] }>(
+    `/api/jobs/${jobId}/candidates`,
+    fetcher
+  )
+
+  const candidates = data?.candidates || []
+
+  const filteredCandidates = candidates
     .filter((c) => 
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.skills.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
+      c.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.skills?.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
     )
-    .sort((a, b) => b.matchScore - a.matchScore)
+    .sort((a, b) => (b.match_score || 0) - (a.match_score || 0))
+
+  // Helper to get initials
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500">Fehler beim Laden der Kandidaten</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -257,6 +196,27 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
         </CardContent>
       </Card>
 
+      {/* Empty State */}
+      {filteredCandidates.length === 0 && (
+        <Card className="border border-slate-200 bg-white rounded-xl">
+          <CardContent className="p-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+              <UserPlus className="h-8 w-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Noch keine Kandidaten</h3>
+            <p className="text-slate-500 mb-6">
+              Füge den ersten Kandidaten zu diesem Job hinzu um das Matching zu starten.
+            </p>
+            <Button asChild className="bg-teal-600 hover:bg-teal-700">
+              <Link href={`/candidates/new?jobId=${jobId}`}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Kandidat hinzufügen
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Candidates List */}
       <div className="space-y-4">
         {filteredCandidates.map((candidate) => (
@@ -270,127 +230,120 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                 <div className="flex-1 min-w-0">
                   {/* Header */}
                   <div className="flex items-start gap-4 mb-4">
-                    <Avatar className="h-12 w-12 bg-primary text-primary-foreground">
-                      <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                        {candidate.initials}
+                    <Avatar className="h-12 w-12 bg-teal-600 text-white">
+                      <AvatarFallback className="bg-teal-600 text-white font-semibold">
+                        {getInitials(candidate.full_name)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-foreground text-lg">{candidate.name}</h3>
-                        {candidate.isDemo && (
-                          <Badge variant="outline" className="text-xs">Demo Data</Badge>
-                        )}
+                        <h3 className="font-semibold text-foreground text-lg">{candidate.full_name}</h3>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs capitalize ${
+                            candidate.status === 'new' ? 'border-blue-300 text-blue-600' :
+                            candidate.status === 'shortlisted' ? 'border-teal-300 text-teal-600' :
+                            candidate.status === 'interviewed' ? 'border-amber-300 text-amber-600' :
+                            'border-slate-300 text-slate-600'
+                          }`}
+                        >
+                          {candidate.status}
+                        </Badge>
                       </div>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1.5">
-                          <Mail className="h-4 w-4" />
-                          {candidate.email}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <MapPin className="h-4 w-4" />
-                          {candidate.location}
-                        </span>
+                        {candidate.email && (
+                          <span className="flex items-center gap-1.5">
+                            <Mail className="h-4 w-4" />
+                            {candidate.email}
+                          </span>
+                        )}
+                        {candidate.location && (
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="h-4 w-4" />
+                            {candidate.location}
+                          </span>
+                        )}
                         <span className="flex items-center gap-1.5">
                           <Briefcase className="h-4 w-4" />
-                          {candidate.experience}
+                          {candidate.years_of_experience} Jahre Erfahrung
                         </span>
                       </div>
                     </div>
                   </div>
 
                   {/* Skills */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {candidate.skills.map((skill) => (
-                      <span 
-                        key={skill} 
-                        className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-xs font-medium hover:bg-teal-100 transition-colors cursor-default"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
+                  {candidate.skills && candidate.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {candidate.skills.map((skill) => (
+                        <span 
+                          key={skill} 
+                          className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-xs font-medium hover:bg-teal-100 transition-colors cursor-default"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
-                  {/* Strengths and Recommendations */}
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
+                  {/* AI Summary */}
+                  {candidate.summary_ai && (
+                    <div className="bg-slate-50 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="h-4 w-4 text-primary" />
-                        <span className="font-medium text-sm text-primary">Strengths</span>
+                        <Sparkles className="h-4 w-4 text-teal-600" />
+                        <span className="font-medium text-sm text-teal-600">KI-Zusammenfassung</span>
                       </div>
-                      <ul className="space-y-1">
-                        {candidate.strengths.map((strength, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <span className="text-primary mt-1">•</span>
-                            {strength}
-                          </li>
-                        ))}
-                      </ul>
+                      <p className="text-sm text-slate-600">{candidate.summary_ai}</p>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Star className="h-4 w-4 text-amber-500" />
-                        <span className="font-medium text-sm text-amber-500">Recommendations</span>
-                      </div>
-                      <ul className="space-y-1">
-                        {candidate.recommendations.map((rec, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <span className="text-amber-500 mt-1">•</span>
-                            {rec}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Right: Match Score */}
                 <div className="xl:w-64 xl:border-l xl:pl-6 xl:border-border">
                   <div className="text-center xl:text-right mb-4">
-                    <p className={`text-4xl font-bold ${getScoreColor(candidate.matchScore)}`}>
-                      {candidate.matchScore}%
-                    </p>
-                    <p className="text-sm text-muted-foreground">Overall Match</p>
+                    {candidate.match_score ? (
+                      <>
+                        <p className={`text-4xl font-bold ${getScoreColor(candidate.match_score)}`}>
+                          {candidate.match_score}%
+                        </p>
+                        <p className="text-sm text-muted-foreground">Overall Match</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-2xl font-bold text-slate-400">--</p>
+                        <p className="text-sm text-muted-foreground">Match noch nicht berechnet</p>
+                      </>
+                    )}
                   </div>
 
-                  {/* Score Breakdown */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Skills</span>
-                      <div className="flex items-center gap-2">
-                        <Progress value={candidate.skillsScore} className="w-20 h-2" />
-                        <span className="w-10 text-right font-medium">{candidate.skillsScore}%</span>
+                  {/* Score Breakdown (only if scores exist) */}
+                  {candidate.match_score && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Skills</span>
+                        <div className="flex items-center gap-2">
+                          <Progress value={candidate.skills_score || 0} className="w-20 h-2" />
+                          <span className="w-10 text-right font-medium">{candidate.skills_score || 0}%</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Experience</span>
+                        <div className="flex items-center gap-2">
+                          <Progress value={candidate.experience_score || 0} className="w-20 h-2" />
+                          <span className="w-10 text-right font-medium">{candidate.experience_score || 0}%</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Culture</span>
+                        <div className="flex items-center gap-2">
+                          <Progress value={candidate.culture_score || 0} className="w-20 h-2" />
+                          <span className="w-10 text-right font-medium">{candidate.culture_score || 0}%</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Experience</span>
-                      <div className="flex items-center gap-2">
-                        <Progress value={candidate.experienceScore} className="w-20 h-2" />
-                        <span className="w-10 text-right font-medium">{candidate.experienceScore}%</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Education</span>
-                      <div className="flex items-center gap-2">
-                        <Progress value={candidate.educationScore} className="w-20 h-2" />
-                        <span className="w-10 text-right font-medium">{candidate.educationScore}%</span>
-                      </div>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8"
-                      onClick={() => {
-                        setSelectedCandidate(candidate)
-                        setMatchModalOpen(true)
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
                     <Button 
                       size="sm" 
                       className="flex-1 bg-teal-600 hover:bg-teal-700 gap-1"

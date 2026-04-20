@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       location: body.location || null,
     }
 
-    const { data, error } = await supabase
+    const { data: candidate, error } = await supabase
       .from("candidates")
       .insert(candidateData)
       .select()
@@ -50,7 +50,23 @@ export async function POST(req: Request) {
       return Response.json({ error: error.message }, { status: 500 })
     }
 
-    return Response.json({ candidate: data })
+    // If a jobId was provided, create the job_candidates link
+    if (body.jobId && candidate) {
+      const { error: linkError } = await supabase
+        .from("job_candidates")
+        .insert({
+          job_id: body.jobId,
+          candidate_id: candidate.id,
+          status: "new",
+        })
+
+      if (linkError) {
+        console.error("Error linking candidate to job:", linkError)
+        // Don't fail the whole request, candidate was created successfully
+      }
+    }
+
+    return Response.json({ candidate })
   } catch (error) {
     console.error("Error in candidates API:", error)
     return Response.json({ error: "Internal server error" }, { status: 500 })
