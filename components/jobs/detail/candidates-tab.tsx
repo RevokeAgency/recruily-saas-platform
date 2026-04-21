@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import useSWR from "swr"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
 import {
   Select,
   SelectContent,
@@ -17,11 +16,9 @@ import {
 } from "@/components/ui/select"
 import {
   Search,
-  MoreHorizontal,
   Mail,
   MapPin,
   Briefcase,
-  Calendar,
   Filter,
   ArrowUpDown,
   UserPlus,
@@ -311,15 +308,14 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                   )}
                 </div>
 
-                {/* Right: Match Score */}
-                <div className="xl:w-64 xl:border-l xl:pl-6 xl:border-border">
+                {/* Right: Match Score - Only Overall Score */}
+                <div className="xl:w-48 xl:border-l xl:pl-6 xl:border-border flex flex-col items-center xl:items-end">
+                  {/* Score Display */}
                   <div className="text-center xl:text-right mb-4">
-                    {/* Analyzing State - Pulsing Ring */}
                     {candidate.status === "analyzing" ? (
                       <div className="flex flex-col items-center xl:items-end">
                         <div className="relative w-16 h-16 mb-2">
-                          {/* Pulsing dashed circle */}
-                          <svg className="w-16 h-16 animate-pulse" viewBox="0 0 64 64">
+                          <svg className="w-16 h-16" viewBox="0 0 64 64">
                             <circle
                               cx="32"
                               cy="32"
@@ -334,106 +330,36 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                           </svg>
                           <Loader2 className="absolute inset-0 m-auto h-6 w-6 text-teal-600 animate-spin" />
                         </div>
-                        <p className="text-sm font-medium text-teal-600">Wird analysiert...</p>
-                        <p className="text-xs text-muted-foreground mt-1">KI-Analyse läuft...</p>
+                        <p className="text-sm font-medium text-teal-600">Analysiere...</p>
                       </div>
-                    ) : candidate.status === "error" ? (
+                    ) : candidate.match_score !== null && candidate.match_score !== undefined ? (
                       <div className="flex flex-col items-center xl:items-end">
-                        <div className="w-16 h-16 rounded-full border-2 border-dashed border-red-300 flex items-center justify-center mb-2">
-                          <span className="text-red-500 text-xl">!</span>
-                        </div>
-                        <p className="text-sm font-medium text-red-500">Fehler</p>
-                        <p className="text-xs text-muted-foreground mt-1">Analyse fehlgeschlagen</p>
-                      </div>
-                    ) : candidate.match_score ? (
-                      <>
-                        <p className={`text-4xl font-bold ${getScoreColor(candidate.match_score)}`}>
+                        <div className={`text-5xl font-bold ${getScoreColor(candidate.match_score)}`}>
                           {candidate.match_score}%
-                        </p>
-                        <p className="text-sm text-muted-foreground">IMLRS Score</p>
-                        {candidate.career_prognosis && (
-                          <Badge 
-                            variant="outline" 
-                            className={`mt-2 text-xs ${
-                              candidate.career_prognosis === "ascending" 
-                                ? "border-teal-300 text-teal-600 bg-teal-50" 
-                                : candidate.career_prognosis === "stable"
-                                ? "border-amber-300 text-amber-600 bg-amber-50"
-                                : "border-red-300 text-red-600 bg-red-50"
-                            }`}
-                          >
-                            {candidate.career_prognosis === "ascending" ? "Aufsteigend" : 
-                             candidate.career_prognosis === "stable" ? "Stabil" : "Risiko"}
-                          </Badge>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-2xl font-bold text-slate-400">--</p>
-                        <p className="text-sm text-muted-foreground">Kein Score</p>
-                      </>
-                    )}
-                  </div>
-
-                  {/* IMLRS 9-Categories Mini Grid (only if scored) */}
-                  {candidate.status === "scored" && candidate.match_score && (
-                    <div className="grid grid-cols-3 gap-1.5 mt-2">
-                      {[
-                        { label: "Hard", score: candidate.hard_skills_score },
-                        { label: "Exp", score: candidate.experience_score },
-                        { label: "Edu", score: candidate.education_score },
-                        { label: "Soft", score: candidate.soft_skills_score },
-                        { label: "Lang", score: candidate.languages_score },
-                        { label: "Loc", score: candidate.location_score },
-                        { label: "Ind", score: candidate.industry_score },
-                        { label: "Sal", score: candidate.salary_score },
-                        { label: "Cult", score: candidate.culture_score },
-                      ].map((cat) => (
-                        <div key={cat.label} className="text-center">
-                          <div className="text-[10px] text-slate-400 mb-0.5">{cat.label}</div>
-                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full rounded-full ${
-                                (cat.score || 0) >= 80 ? "bg-emerald-500" : 
-                                (cat.score || 0) >= 60 ? "bg-amber-500" : "bg-red-500"
-                              }`}
-                              style={{ width: `${cat.score || 0}%` }}
-                            />
-                          </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
-                    {candidate.status === "scored" && (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="flex-1 gap-1"
-                        onClick={() => {
-                          setSelectedCandidate(candidate)
-                          setMatchModalOpen(true)
-                        }}
-                      >
-                        <Sparkles className="h-4 w-4" />
-                        Details
-                      </Button>
+                        <p className="text-sm text-muted-foreground mt-1">Match Score</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center xl:items-end">
+                        <div className="text-3xl font-bold text-slate-300">--</div>
+                        <p className="text-sm text-muted-foreground mt-1">Kein Score</p>
+                      </div>
                     )}
-                    <Button 
-                      variant={candidate.status === "scored" ? "default" : "outline"} 
-                      size="sm" 
-                      className={`flex-1 ${candidate.status === "scored" ? "bg-teal-600 hover:bg-teal-700" : ""}`}
-                      disabled={candidate.status === "analyzing"}
-                    >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      Interview
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
                   </div>
+
+                  {/* Action Button - View Details */}
+                  <Button 
+                    size="sm" 
+                    className="w-full bg-teal-600 hover:bg-teal-700 gap-2"
+                    onClick={() => {
+                      setSelectedCandidate(candidate)
+                      setMatchModalOpen(true)
+                    }}
+                    disabled={candidate.status === "analyzing"}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {candidate.match_score !== null ? "Details ansehen" : "Profil ansehen"}
+                  </Button>
                 </div>
               </div>
             </CardContent>

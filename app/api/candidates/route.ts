@@ -70,9 +70,13 @@ export async function POST(req: Request) {
         linkId = linkData?.id
       }
 
-      // Fire IMLRS matching in the background (don't await - let it run async)
+      // Fire IMLRS matching - we await to ensure it completes before response
+      // In a production app, this should be done via a queue/background job
       if (linkId) {
-        triggerIMLRSMatch(body.jobId, candidate.id, linkId, candidateData)
+        // Don't await - let it run in background but ensure it starts
+        triggerIMLRSMatch(body.jobId, candidate.id, linkId, candidateData).catch(err => {
+          console.error("[v0] Background IMLRS match failed:", err)
+        })
       }
     }
 
@@ -98,6 +102,8 @@ async function triggerIMLRSMatch(
     summary_ai: string | null
   }
 ) {
+  console.log("[v0] Starting IMLRS match for linkId:", linkId)
+  
   try {
     // Get job data
     const supabase = await createClient()
@@ -180,10 +186,12 @@ async function triggerIMLRSMatch(
       .eq("id", linkId)
 
     if (updateError) {
-      console.error("Error updating match scores:", updateError)
+      console.error("[v0] Error updating match scores:", updateError)
+    } else {
+      console.log("[v0] Successfully updated match scores for linkId:", linkId, "score:", roundScore(matchResult.overallScore))
     }
   } catch (error) {
-    console.error("Error in IMLRS matching:", error)
+    console.error("[v0] Error in IMLRS matching:", error)
     await updateLinkStatus(linkId, "error")
   }
 }
