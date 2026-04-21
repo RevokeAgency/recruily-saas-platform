@@ -375,30 +375,33 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                     )}
                   </div>
 
-                  {/* Score Breakdown (only if scored) */}
+                  {/* IMLRS 9-Categories Mini Grid (only if scored) */}
                   {candidate.status === "scored" && candidate.match_score && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Hard Skills</span>
-                        <div className="flex items-center gap-2">
-                          <Progress value={candidate.hard_skills_score || 0} className="w-16 h-1.5" />
-                          <span className="w-8 text-right font-medium">{candidate.hard_skills_score || 0}%</span>
+                    <div className="grid grid-cols-3 gap-1.5 mt-2">
+                      {[
+                        { label: "Hard", score: candidate.hard_skills_score },
+                        { label: "Exp", score: candidate.experience_score },
+                        { label: "Edu", score: candidate.education_score },
+                        { label: "Soft", score: candidate.soft_skills_score },
+                        { label: "Lang", score: candidate.languages_score },
+                        { label: "Loc", score: candidate.location_score },
+                        { label: "Ind", score: candidate.industry_score },
+                        { label: "Sal", score: candidate.salary_score },
+                        { label: "Cult", score: candidate.culture_score },
+                      ].map((cat) => (
+                        <div key={cat.label} className="text-center">
+                          <div className="text-[10px] text-slate-400 mb-0.5">{cat.label}</div>
+                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full ${
+                                (cat.score || 0) >= 80 ? "bg-emerald-500" : 
+                                (cat.score || 0) >= 60 ? "bg-amber-500" : "bg-red-500"
+                              }`}
+                              style={{ width: `${cat.score || 0}%` }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Erfahrung</span>
-                        <div className="flex items-center gap-2">
-                          <Progress value={candidate.experience_score || 0} className="w-16 h-1.5" />
-                          <span className="w-8 text-right font-medium">{candidate.experience_score || 0}%</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Kultur</span>
-                        <div className="flex items-center gap-2">
-                          <Progress value={candidate.culture_score || 0} className="w-16 h-1.5" />
-                          <span className="w-8 text-right font-medium">{candidate.culture_score || 0}%</span>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   )}
 

@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import {
   Sheet,
   SheetContent,
@@ -16,7 +15,6 @@ import {
   Briefcase,
   CheckCircle2,
   Calendar,
-  Loader2,
   Sparkles,
   TrendingUp,
   TrendingDown,
@@ -32,46 +30,34 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-interface IMLRSCategory {
-  score: number
-  weight: number
-  label: string
-}
-
-interface IMLRSMatch {
-  overallScore: number
-  categories: {
-    hardSkills: IMLRSCategory
-    experience: IMLRSCategory
-    education: IMLRSCategory
-    softSkills: IMLRSCategory
-    languages: IMLRSCategory
-    location: IMLRSCategory
-    industry: IMLRSCategory
-    salary: IMLRSCategory
-    culture: IMLRSCategory
-  }
-  whyTheyFit: string[]
-  potentialConcerns: string[] | null
-  interviewFocus: string
-  careerPrognosis: "ascending" | "stable" | "risk"
-  prognosisReason: string
-}
-
 interface Candidate {
   id: string
-  name?: string
-  full_name?: string
-  initials?: string
-  email?: string | null
-  location?: string | null
-  experience?: string
-  experience_level?: string
-  years_of_experience?: number
-  job_title?: string | null
-  skills?: string[]
-  education?: string | null
-  summary_ai?: string | null
+  linkId: string
+  full_name: string
+  email: string | null
+  phone: string | null
+  job_title: string | null
+  years_of_experience: number
+  experience_level: string
+  skills: string[]
+  education: string | null
+  summary_ai: string | null
+  location: string | null
+  status: string
+  match_score: number | null
+  hard_skills_score: number | null
+  experience_score: number | null
+  education_score: number | null
+  soft_skills_score: number | null
+  languages_score: number | null
+  location_score: number | null
+  industry_score: number | null
+  salary_score: number | null
+  culture_score: number | null
+  career_prognosis: string | null
+  ai_summary: string | null
+  notes: string | null
+  added_at: string
 }
 
 interface Job {
@@ -95,18 +81,18 @@ interface CandidateMatchModalProps {
   onInviteToInterview?: (candidateId: string) => void
 }
 
-// Category icons mapping
-const categoryIcons: Record<string, React.ElementType> = {
-  hardSkills: Target,
-  experience: Briefcase,
-  education: GraduationCap,
-  softSkills: MessageSquare,
-  languages: Globe,
-  location: MapPin,
-  industry: Building,
-  salary: Wallet,
-  culture: Heart,
-}
+// Category config
+const categories = [
+  { key: "hard_skills_score", label: "Hard Skills", weight: 25, icon: Target },
+  { key: "experience_score", label: "Berufserfahrung", weight: 20, icon: Briefcase },
+  { key: "education_score", label: "Ausbildung", weight: 10, icon: GraduationCap },
+  { key: "soft_skills_score", label: "Soft Skills", weight: 10, icon: MessageSquare },
+  { key: "languages_score", label: "Sprachen", weight: 5, icon: Globe },
+  { key: "location_score", label: "Standort", weight: 5, icon: MapPin },
+  { key: "industry_score", label: "Branche", weight: 10, icon: Building },
+  { key: "salary_score", label: "Gehalt", weight: 5, icon: Wallet },
+  { key: "culture_score", label: "Kultur", weight: 10, icon: Heart },
+]
 
 // Get score color based on value
 function getScoreColor(score: number): string {
@@ -169,26 +155,29 @@ function CircularProgress({ value, size = 160 }: { value: number; size?: number 
 }
 
 // Career Prognosis Badge
-function CareerPrognosisBadge({ prognosis, reason }: { prognosis: string; reason: string }) {
+function CareerPrognosisBadge({ prognosis }: { prognosis: string }) {
   const config = {
     ascending: {
       icon: TrendingUp,
       label: "Aufsteigend",
+      description: "Kandidat zeigt starkes Wachstumspotenzial",
       className: "bg-emerald-50 text-emerald-700 border-emerald-200",
     },
     stable: {
       icon: Minus,
       label: "Stabil",
+      description: "Kandidat zeigt konsistente Entwicklung",
       className: "bg-blue-50 text-blue-700 border-blue-200",
     },
     risk: {
       icon: TrendingDown,
       label: "Risiko",
+      description: "Kandidat könnte Herausforderungen haben",
       className: "bg-red-50 text-red-700 border-red-200",
     },
   }
 
-  const { icon: Icon, label, className } = config[prognosis as keyof typeof config] || config.stable
+  const { icon: Icon, label, description, className } = config[prognosis as keyof typeof config] || config.stable
 
   return (
     <div className={`rounded-xl border p-4 ${className}`}>
@@ -196,15 +185,23 @@ function CareerPrognosisBadge({ prognosis, reason }: { prognosis: string; reason
         <Icon className="h-4 w-4" />
         <span className="font-semibold text-sm">Karriereprognose: {label}</span>
       </div>
-      <p className="text-xs opacity-80">{reason}</p>
+      <p className="text-xs opacity-80">{description}</p>
     </div>
   )
 }
 
 // IMLRS Category Bar Component
-function CategoryBar({ category, categoryKey }: { category: IMLRSCategory; categoryKey: string }) {
-  const Icon = categoryIcons[categoryKey] || Target
-  
+function CategoryBar({ 
+  label, 
+  score, 
+  weight, 
+  icon: Icon 
+}: { 
+  label: string
+  score: number
+  weight: number
+  icon: React.ElementType 
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
@@ -212,20 +209,20 @@ function CategoryBar({ category, categoryKey }: { category: IMLRSCategory; categ
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-medium text-slate-700">{category.label}</span>
+          <span className="text-xs font-medium text-slate-700">{label}</span>
           <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
-            {category.weight}%
+            {weight}%
           </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
             <div 
-              className={`h-full rounded-full transition-all duration-700 ease-out ${getScoreBgColor(category.score)}`}
-              style={{ width: `${category.score}%` }}
+              className={`h-full rounded-full transition-all duration-700 ease-out ${getScoreBgColor(score)}`}
+              style={{ width: `${score}%` }}
             />
           </div>
-          <span className={`text-xs font-bold w-8 text-right ${getScoreColor(category.score)}`}>
-            {category.score}
+          <span className={`text-xs font-bold w-8 text-right ${getScoreColor(score)}`}>
+            {score}
           </span>
         </div>
       </div>
@@ -240,58 +237,26 @@ export function CandidateMatchModal({
   job,
   onInviteToInterview,
 }: CandidateMatchModalProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [matchResult, setMatchResult] = useState<IMLRSMatch | null>(null)
-
-  // Calculate match when modal opens
-  useEffect(() => {
-    if (open && candidate && !matchResult) {
-      calculateMatch()
-    }
-  }, [open, candidate])
-
-  // Reset when candidate changes
-  useEffect(() => {
-    setMatchResult(null)
-  }, [candidate?.id])
-
-  const calculateMatch = async () => {
-    if (!candidate) return
-
-    setIsLoading(true)
-    try {
-      const response = await fetch("/api/match", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ candidate, job }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to calculate match")
-      }
-
-      const data = await response.json()
-      setMatchResult(data.match)
-    } catch (error) {
-      console.error("Match calculation error:", error)
-      toast.error("Fehler beim Berechnen des IMLRS Matches")
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleInviteToInterview = () => {
     if (candidate && onInviteToInterview) {
       onInviteToInterview(candidate.id)
-      toast.success(`${candidate.full_name || candidate.name} wurde zum Interview eingeladen`)
+      toast.success(`${candidate.full_name} wurde zum Interview eingeladen`)
       onOpenChange(false)
     }
   }
 
   if (!candidate) return null
 
-  const candidateName = candidate.full_name || candidate.name || "Unbekannt"
-  const initials = candidate.initials || candidateName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
+  const initials = candidate.full_name
+    .split(" ")
+    .map(n => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
+
+  // Parse AI summary into pitch points
+  const pitchPoints = candidate.ai_summary?.split(" | ").filter(Boolean) || []
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -313,7 +278,7 @@ export function CandidateMatchModal({
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-lg text-slate-900">{candidateName}</h3>
+              <h3 className="font-bold text-lg text-slate-900">{candidate.full_name}</h3>
               <p className="text-sm text-slate-500">{candidate.job_title || "Kandidat"}</p>
               <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
                 {candidate.email && (
@@ -339,31 +304,18 @@ export function CandidateMatchModal({
             <p className="text-sm text-slate-500">{job.company}</p>
           </div>
 
-          {/* Loading State */}
-          {isLoading && (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full border-4 border-slate-100 border-t-teal-600 animate-spin" />
-                <Sparkles className="absolute inset-0 m-auto h-8 w-8 text-teal-600 animate-pulse" />
-              </div>
-              <p className="mt-4 text-sm font-medium text-slate-700">IMLRS Analyse läuft...</p>
-              <p className="text-xs text-slate-500">9 Kategorien werden ausgewertet</p>
-            </div>
-          )}
-
-          {/* Match Result */}
-          {matchResult && !isLoading && (
+          {/* Match Result - Show stored data */}
+          {candidate.match_score !== null && (
             <>
               {/* Circular Score */}
               <div className="flex justify-center">
-                <CircularProgress value={matchResult.overallScore} />
+                <CircularProgress value={candidate.match_score} />
               </div>
 
               {/* Career Prognosis */}
-              <CareerPrognosisBadge 
-                prognosis={matchResult.careerPrognosis} 
-                reason={matchResult.prognosisReason}
-              />
+              {candidate.career_prognosis && (
+                <CareerPrognosisBadge prognosis={candidate.career_prognosis} />
+              )}
 
               {/* IMLRS 9 Categories */}
               <Card className="border-slate-200">
@@ -373,48 +325,35 @@ export function CandidateMatchModal({
                     IMLRS 9-Kategorien Breakdown
                   </h4>
                   <div className="space-y-3">
-                    {Object.entries(matchResult.categories).map(([key, category]) => (
-                      <CategoryBar 
-                        key={key} 
-                        category={category} 
-                        categoryKey={key}
-                      />
-                    ))}
+                    {categories.map((cat) => {
+                      const score = candidate[cat.key as keyof Candidate] as number | null
+                      return (
+                        <CategoryBar 
+                          key={cat.key}
+                          label={cat.label}
+                          score={score || 0}
+                          weight={cat.weight}
+                          icon={cat.icon}
+                        />
+                      )
+                    })}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Why They Fit - Contextual Pitch */}
-              <Card className="border-teal-200 bg-teal-50/50">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <CheckCircle2 className="h-5 w-5 text-teal-600" />
-                    <h4 className="font-semibold text-sm text-teal-900">Warum dieser Kandidat passt</h4>
-                  </div>
-                  <ul className="space-y-2">
-                    {matchResult.whyTheyFit.map((reason, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-teal-800">
-                        <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
-                        {reason}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-
-              {/* Potential Concerns */}
-              {matchResult.potentialConcerns && matchResult.potentialConcerns.length > 0 && (
-                <Card className="border-amber-200 bg-amber-50/50">
+              {/* Why They Fit - Contextual Pitch (from ai_summary) */}
+              {pitchPoints.length > 0 && (
+                <Card className="border-teal-200 bg-teal-50/50">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <AlertTriangle className="h-5 w-5 text-amber-600" />
-                      <h4 className="font-semibold text-sm text-amber-900">Mögliche Bedenken</h4>
+                      <CheckCircle2 className="h-5 w-5 text-teal-600" />
+                      <h4 className="font-semibold text-sm text-teal-900">Warum dieser Kandidat passt</h4>
                     </div>
                     <ul className="space-y-2">
-                      {matchResult.potentialConcerns.map((concern, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-amber-800">
-                          <span className="text-amber-500 mt-0.5 flex-shrink-0">•</span>
-                          {concern}
+                      {pitchPoints.map((reason, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm text-teal-800">
+                          <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                          {reason}
                         </li>
                       ))}
                     </ul>
@@ -422,14 +361,63 @@ export function CandidateMatchModal({
                 </Card>
               )}
 
-              {/* Interview Focus */}
-              <Card className="border-blue-200 bg-blue-50/50">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <GraduationCap className="h-5 w-5 text-blue-600" />
-                    <h4 className="font-semibold text-sm text-blue-900">Interview-Fokus</h4>
+              {/* Candidate Summary */}
+              {candidate.summary_ai && !pitchPoints.length && (
+                <Card className="border-slate-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="h-4 w-4 text-teal-600" />
+                      <h4 className="font-semibold text-sm text-slate-900">KI-Zusammenfassung</h4>
+                    </div>
+                    <p className="text-sm text-slate-600">{candidate.summary_ai}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Skills */}
+              {candidate.skills && candidate.skills.length > 0 && (
+                <Card className="border-slate-200">
+                  <CardContent className="p-4">
+                    <h4 className="font-semibold text-sm text-slate-900 mb-3">Skills</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {candidate.skills.map((skill) => (
+                        <span 
+                          key={skill} 
+                          className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-xs font-medium"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Experience & Education */}
+              <Card className="border-slate-200">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                      <Briefcase className="h-4 w-4 text-slate-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500">Erfahrung</p>
+                      <p className="text-sm font-medium text-slate-900">
+                        {candidate.years_of_experience} Jahre ({candidate.experience_level})
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-sm text-blue-800">{matchResult.interviewFocus}</p>
+                  {candidate.education && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <GraduationCap className="h-4 w-4 text-slate-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Ausbildung</p>
+                        <p className="text-sm font-medium text-slate-900">{candidate.education}</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -453,11 +441,12 @@ export function CandidateMatchModal({
             </>
           )}
 
-          {/* Initial State */}
-          {!isLoading && !matchResult && (
+          {/* No Score State */}
+          {candidate.match_score === null && (
             <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 text-teal-600 animate-spin mb-4" />
-              <p className="text-slate-500">Analyse wird gestartet...</p>
+              <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+              <p className="text-slate-700 font-medium">Keine IMLRS-Daten verfügbar</p>
+              <p className="text-sm text-slate-500">Die Analyse wurde nicht abgeschlossen</p>
             </div>
           )}
         </div>
