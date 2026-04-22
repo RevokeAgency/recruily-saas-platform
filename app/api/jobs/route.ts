@@ -5,6 +5,7 @@ export async function GET() {
   try {
     const supabase = await createClient()
     
+    // Get all jobs
     const { data: jobs, error } = await supabase
       .from("jobs")
       .select("*")
@@ -15,7 +16,33 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ jobs })
+    // Get candidate stats for all jobs
+    const { data: allJobCandidates, error: candidatesError } = await supabase
+      .from("job_candidates")
+      .select("job_id, match_score")
+
+    if (candidatesError) {
+      console.error("[v0] Error fetching job candidates:", candidatesError)
+    }
+
+    const candidates = allJobCandidates || []
+
+    // Enrich jobs with candidate stats
+    const enrichedJobs = (jobs || []).map(job => {
+      const jobCandidates = candidates.filter(c => c.job_id === job.id)
+      const candidateCount = jobCandidates.length
+      const topMatchScore = jobCandidates.length > 0 
+        ? Math.max(...jobCandidates.map(c => c.match_score || 0))
+        : 0
+
+      return {
+        ...job,
+        candidate_count: candidateCount,
+        top_match_score: topMatchScore,
+      }
+    })
+
+    return NextResponse.json({ jobs: enrichedJobs })
   } catch (error) {
     console.error("[v0] Error in GET /api/jobs:", error)
     return NextResponse.json({ error: "Fehler beim Laden der Jobs" }, { status: 500 })
