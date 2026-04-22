@@ -1,14 +1,13 @@
 "use client"
 
-import { useSWRConfig } from "swr"
+import { mutate } from "swr"
 import { CandidatesHeader } from "@/components/candidates/candidates-header"
 import { CandidatesList } from "@/components/candidates/candidates-list"
 
 export default function CandidatesPage() {
-  const { mutate } = useSWRConfig()
-
-  const handleRefresh = () => {
-    mutate("/api/candidates")
+  const handleRefresh = async () => {
+    // Force revalidation by passing undefined as data and revalidate: true
+    await mutate("/api/candidates", undefined, { revalidate: true })
   }
 
   return (
