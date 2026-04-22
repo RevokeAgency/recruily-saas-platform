@@ -25,11 +25,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  console.log("[v0] POST /api/candidates called")
   try {
     const supabase = await createClient()
     const body = await req.json()
-    console.log("[v0] Request body jobId:", body.jobId, "name:", body.full_name)
 
     const candidateData = {
       full_name: body.full_name,
@@ -79,8 +77,6 @@ export async function POST(req: Request) {
 
       // Run IMLRS matching directly (no HTTP call)
       if (linkId) {
-        console.log("[v0] Starting IMLRS matching for linkId:", linkId)
-        
         // Get job data
         const { data: job, error: jobError } = await supabase
           .from("jobs")
@@ -129,12 +125,9 @@ export async function POST(req: Request) {
               .eq("id", linkId)
 
             if (updateError) {
-              console.error("[v0] Error updating match scores:", updateError)
-            } else {
-              console.log("[v0] IMLRS match saved successfully, score:", match.overallScore)
+              console.error("Error updating match scores:", updateError)
             }
           } else {
-            console.error("[v0] IMLRS calculation returned null")
             // IMLRS calculation failed
             await supabase
               .from("job_candidates")

@@ -1,5 +1,11 @@
 import { generateText, Output } from "ai"
+import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { z } from "zod"
+
+// Create Google Gemini provider with API key (same as CV parsing)
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+})
 
 // IMLRS 9-Categories Schema
 const imlrsMatchSchema = z.object({
@@ -151,18 +157,14 @@ Ausbildung: ${job.education || "Nicht angegeben"}
 Beschreibung: ${job.description || "Keine"}
 `
 
-    console.log("[v0] Starting IMLRS calculation for:", candidate.full_name || candidate.name)
-    
     const { output } = await generateText({
-      model: "google/gemini-2.5-flash",
+      model: google("gemini-2.5-flash"),
       output: Output.object({
         schema: imlrsMatchSchema,
       }),
       system: systemPrompt,
       prompt: `IMLRS-Analyse:\n\n${candidateInfo}\n\n${jobInfo}`,
     })
-    
-    console.log("[v0] IMLRS calculation complete, output:", output ? "success" : "null")
 
     if (!output) {
       return null
