@@ -55,10 +55,7 @@ interface Candidate {
   salary_score: number | null
   culture_score: number | null
   career_prognosis: string | null
-  prognosis_reason: string | null
   ai_summary: string | null
-  potential_concerns: string | null
-  interview_focus: string | null
   notes: string | null
   added_at: string
 }
@@ -158,29 +155,29 @@ function CircularProgress({ value, size = 160 }: { value: number; size?: number 
 }
 
 // Career Prognosis Badge
-function CareerPrognosisBadge({ prognosis, reason }: { prognosis: string; reason?: string | null }) {
+function CareerPrognosisBadge({ prognosis }: { prognosis: string }) {
   const config = {
     ascending: {
       icon: TrendingUp,
       label: "Aufsteigend",
-      defaultDescription: "Kandidat zeigt starkes Wachstumspotenzial",
+      description: "Kandidat zeigt starkes Wachstumspotenzial",
       className: "bg-emerald-50 text-emerald-700 border-emerald-200",
     },
     stable: {
       icon: Minus,
       label: "Stabil",
-      defaultDescription: "Kandidat zeigt konsistente Entwicklung",
+      description: "Kandidat zeigt konsistente Entwicklung",
       className: "bg-blue-50 text-blue-700 border-blue-200",
     },
     risk: {
       icon: TrendingDown,
       label: "Risiko",
-      defaultDescription: "Kandidat könnte Herausforderungen haben",
+      description: "Kandidat könnte Herausforderungen haben",
       className: "bg-red-50 text-red-700 border-red-200",
     },
   }
 
-  const { icon: Icon, label, defaultDescription, className } = config[prognosis as keyof typeof config] || config.stable
+  const { icon: Icon, label, description, className } = config[prognosis as keyof typeof config] || config.stable
 
   return (
     <div className={`rounded-xl border p-4 ${className}`}>
@@ -188,7 +185,7 @@ function CareerPrognosisBadge({ prognosis, reason }: { prognosis: string; reason
         <Icon className="h-4 w-4" />
         <span className="font-semibold text-sm">Karriereprognose: {label}</span>
       </div>
-      <p className="text-xs opacity-80">{reason || defaultDescription}</p>
+      <p className="text-xs opacity-80">{description}</p>
     </div>
   )
 }
@@ -317,10 +314,7 @@ export function CandidateMatchModal({
 
               {/* Career Prognosis */}
               {candidate.career_prognosis && (
-                <CareerPrognosisBadge 
-                  prognosis={candidate.career_prognosis} 
-                  reason={candidate.prognosis_reason}
-                />
+                <CareerPrognosisBadge prognosis={candidate.career_prognosis} />
               )}
 
               {/* IMLRS 9 Categories */}
@@ -363,39 +357,6 @@ export function CandidateMatchModal({
                         </li>
                       ))}
                     </ul>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Potential Concerns */}
-              {candidate.potential_concerns && (
-                <Card className="border-amber-200 bg-amber-50/50">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <AlertTriangle className="h-5 w-5 text-amber-600" />
-                      <h4 className="font-semibold text-sm text-amber-900">Mögliche Bedenken</h4>
-                    </div>
-                    <ul className="space-y-2">
-                      {candidate.potential_concerns.split(" | ").filter(Boolean).map((concern, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-amber-800">
-                          <span className="text-amber-500 mt-0.5 flex-shrink-0">•</span>
-                          {concern}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Interview Focus */}
-              {candidate.interview_focus && (
-                <Card className="border-blue-200 bg-blue-50/50">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <MessageSquare className="h-5 w-5 text-blue-600" />
-                      <h4 className="font-semibold text-sm text-blue-900">Interview-Empfehlung</h4>
-                    </div>
-                    <p className="text-sm text-blue-800">{candidate.interview_focus}</p>
                   </CardContent>
                 </Card>
               )}

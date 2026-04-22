@@ -86,10 +86,7 @@ interface Candidate {
   salary_score: number | null
   culture_score: number | null
   career_prognosis: string | null
-  prognosis_reason: string | null
   ai_summary: string | null
-  potential_concerns: string | null
-  interview_focus: string | null
   notes: string | null
   added_at: string
 }
@@ -359,8 +356,21 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                   <div className="text-center xl:text-right mb-4">
                     {candidate.status === "analyzing" ? (
                       <div className="flex flex-col items-center xl:items-end">
-                        <div className="w-16 h-16 mb-2 flex items-center justify-center">
-                          <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
+                        <div className="relative w-16 h-16 mb-2">
+                          <svg className="w-16 h-16" viewBox="0 0 64 64">
+                            <circle
+                              cx="32"
+                              cy="32"
+                              r="28"
+                              fill="none"
+                              stroke="#0D9488"
+                              strokeWidth="3"
+                              strokeDasharray="8 4"
+                              className="animate-spin"
+                              style={{ animationDuration: "3s" }}
+                            />
+                          </svg>
+                          <Loader2 className="absolute inset-0 m-auto h-6 w-6 text-teal-600 animate-spin" />
                         </div>
                         <p className="text-sm font-medium text-teal-600">Analysiere...</p>
                       </div>
