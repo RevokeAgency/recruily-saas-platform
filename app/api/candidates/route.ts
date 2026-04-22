@@ -4,6 +4,7 @@ export async function GET() {
   try {
     const supabase = await createClient()
     
+    // Get all candidates
     const { data: candidates, error } = await supabase
       .from("candidates")
       .select("*")
@@ -14,7 +15,29 @@ export async function GET() {
       return Response.json({ error: error.message }, { status: 500 })
     }
 
-    return Response.json({ candidates })
+    // Get job links count for each candidate
+    const { data: jobLinks, error: linksError } = await supabase
+      .from("job_candidates")
+      .select("candidate_id")
+
+    if (linksError) {
+      console.error("Error fetching job links:", linksError)
+    }
+
+    // Count job links per candidate
+    const jobCountMap = new Map<string, number>()
+    for (const link of jobLinks || []) {
+      const count = jobCountMap.get(link.candidate_id) || 0
+      jobCountMap.set(link.candidate_id, count + 1)
+    }
+
+    // Enrich candidates with job_count
+    const enrichedCandidates = (candidates || []).map(candidate => ({
+      ...candidate,
+      job_count: jobCountMap.get(candidate.id) || 0,
+    }))
+
+    return Response.json({ candidates: enrichedCandidates })
   } catch (error) {
     console.error("Error in candidates API:", error)
     return Response.json({ error: "Internal server error" }, { status: 500 })

@@ -48,6 +48,12 @@ interface Candidate {
   summary_ai: string | null
   location: string | null
   created_at: string
+  job_count: number
+}
+
+interface CandidatesListProps {
+  filter: string
+  searchQuery: string
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -67,12 +73,31 @@ function getInitials(name: string): string {
     .slice(0, 2)
 }
 
-export function CandidatesList() {
+export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
   const { data, error, isLoading, mutate } = useSWR<{ candidates: Candidate[] }>(
     "/api/candidates",
     fetcher
   )
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
+
+  // Filter and search candidates
+  const filteredCandidates = (data?.candidates || []).filter(candidate => {
+    // Apply filter
+    if (filter === "matched" && candidate.job_count === 0) return false
+    if (filter === "unmatched" && candidate.job_count > 0) return false
+    
+    // Apply search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      const matchesName = candidate.full_name.toLowerCase().includes(query)
+      const matchesSkills = candidate.skills.some(skill => skill.toLowerCase().includes(query))
+      const matchesLocation = candidate.location?.toLowerCase().includes(query)
+      const matchesJobTitle = candidate.job_title?.toLowerCase().includes(query)
+      if (!matchesName && !matchesSkills && !matchesLocation && !matchesJobTitle) return false
+    }
+    
+    return true
+  })
 
   const handleDelete = async (id: string) => {
     try {
@@ -109,9 +134,7 @@ export function CandidatesList() {
     )
   }
 
-  const candidates = data?.candidates || []
-
-  if (candidates.length === 0) {
+  if (filteredCandidates.length === 0 && !searchQuery && filter === "all") {
     return (
       <EmptyState
         icon={Users}
@@ -123,10 +146,32 @@ export function CandidatesList() {
     )
   }
 
+  if (filteredCandidates.length === 0) {
+    return (
+      <Card className="border-slate-200 bg-slate-50 rounded-xl">
+        <CardContent className="p-8 text-center">
+          <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+          <p className="text-slate-600 font-medium">
+            {searchQuery 
+              ? "Keine Kandidaten gefunden" 
+              : filter === "matched" 
+                ? "Keine gematchten Kandidaten" 
+                : "Keine unverknüpften Kandidaten"}
+          </p>
+          <p className="text-slate-500 text-sm mt-1">
+            {searchQuery 
+              ? "Versuche eine andere Suche" 
+              : "Ändere den Filter um andere Kandidaten zu sehen"}
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <>
       <div className="space-y-3">
-        {candidates.map((candidate) => (
+        {filteredCandidates.map((candidate) => (
           <Card 
             key={candidate.id} 
             className="bg-white border border-slate-200 rounded-xl hover:shadow-md transition-all duration-200 group"

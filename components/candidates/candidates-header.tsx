@@ -8,9 +8,19 @@ import { Plus, Search, RefreshCw } from "lucide-react"
 
 interface CandidatesHeaderProps {
   onRefresh?: () => void
+  filter: string
+  onFilterChange: (filter: string) => void
+  searchQuery: string
+  onSearchChange: (query: string) => void
 }
 
-export function CandidatesHeader({ onRefresh }: CandidatesHeaderProps) {
+export function CandidatesHeader({ 
+  onRefresh, 
+  filter, 
+  onFilterChange,
+  searchQuery,
+  onSearchChange,
+}: CandidatesHeaderProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -47,10 +57,12 @@ export function CandidatesHeader({ onRefresh }: CandidatesHeaderProps) {
           <Input
             placeholder="Kandidaten nach Name, Skills oder Standort suchen..."
             className="pl-11 h-12 bg-white border-slate-200 rounded-xl"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
 
-        <Tabs defaultValue="all" className="w-auto">
+        <Tabs value={filter} onValueChange={onFilterChange} className="w-auto">
           <TabsList className="h-12 bg-slate-100 rounded-xl p-1">
             <TabsTrigger value="all" className="rounded-lg">Alle</TabsTrigger>
             <TabsTrigger value="unmatched" className="rounded-lg">Unverknüpft</TabsTrigger>
