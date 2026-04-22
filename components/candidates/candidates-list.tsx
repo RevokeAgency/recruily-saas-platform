@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import useSWR from "swr"
-import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -33,6 +32,7 @@ import {
   Plus,
 } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
+import { JobMatchModal } from "./job-match-modal"
 import { toast } from "sonner"
 
 interface Candidate {
@@ -79,6 +79,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
     fetcher
   )
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
+  const [matchCandidate, setMatchCandidate] = useState<Candidate | null>(null)
 
   // Filter and search candidates
   const filteredCandidates = (data?.candidates || []).filter(candidate => {
@@ -253,11 +254,9 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="rounded-xl">
-                      <DropdownMenuItem asChild>
-                        <Link href="/jobs">
-                          <Briefcase className="mr-2 h-4 w-4" />
-                          Mit Job matchen
-                        </Link>
+                      <DropdownMenuItem onClick={() => setMatchCandidate(candidate)}>
+                        <Briefcase className="mr-2 h-4 w-4" />
+                        Mit Job matchen
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
@@ -360,17 +359,30 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                 >
                   Schließen
                 </Button>
-                <Button asChild className="flex-1 bg-teal-600 hover:bg-teal-700">
-                  <Link href="/jobs">
-                    <Briefcase className="mr-2 h-4 w-4" />
-                    Mit Job matchen
-                  </Link>
+                <Button 
+                  className="flex-1 bg-teal-600 hover:bg-teal-700"
+                  onClick={() => {
+                    setMatchCandidate(selectedCandidate)
+                    setSelectedCandidate(null)
+                  }}
+                >
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  Mit Job matchen
                 </Button>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Job Match Modal */}
+      <JobMatchModal
+        open={!!matchCandidate}
+        onOpenChange={() => setMatchCandidate(null)}
+        candidateId={matchCandidate?.id || ""}
+        candidateName={matchCandidate?.full_name || ""}
+        onSuccess={() => mutate()}
+      />
     </>
   )
 }
