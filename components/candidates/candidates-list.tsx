@@ -125,108 +125,107 @@ export function CandidatesList() {
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="space-y-3">
         {candidates.map((candidate) => (
           <Card 
             key={candidate.id} 
-            className="bg-white border border-slate-200 rounded-xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
+            className="bg-white border border-slate-200 rounded-xl hover:shadow-md transition-all duration-200 group"
           >
-            <CardContent className="p-5">
-              {/* Header with Avatar, Name, Badge and Actions */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12 ring-2 ring-teal-100">
-                    <AvatarFallback className="bg-teal-100 text-teal-700 font-semibold">
-                      {getInitials(candidate.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold text-slate-900 text-base">
-                      {candidate.full_name}
-                    </p>
-                    <Badge className={`mt-1 text-xs ${experienceLevelConfig[candidate.experience_level].color}`}>
-                      {experienceLevelConfig[candidate.experience_level].label}
-                    </Badge>
-                  </div>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                {/* Avatar */}
+                <Avatar className="h-11 w-11 flex-shrink-0">
+                  <AvatarFallback className="bg-teal-100 text-teal-700 font-semibold text-sm">
+                    {getInitials(candidate.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+
+                {/* Name & Badge - Fixed Width */}
+                <div className="w-44 flex-shrink-0">
+                  <p className="font-semibold text-slate-900 truncate">
+                    {candidate.full_name}
+                  </p>
+                  <Badge className={`mt-1 text-xs ${experienceLevelConfig[candidate.experience_level].color}`}>
+                    {experienceLevelConfig[candidate.experience_level].label}
+                  </Badge>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="rounded-xl">
-                    <DropdownMenuItem onClick={() => setSelectedCandidate(candidate)}>
-                      <Eye className="mr-2 h-4 w-4" />
-                      Profil anzeigen
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/jobs">
-                        <Briefcase className="mr-2 h-4 w-4" />
-                        Mit Job matchen
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      className="text-red-600 focus:text-red-600"
-                      onClick={() => handleDelete(candidate.id)}
+
+                {/* Job Title & Location - Fixed Width */}
+                <div className="w-48 flex-shrink-0 hidden md:block">
+                  {candidate.job_title && (
+                    <p className="text-sm text-slate-700 truncate">{candidate.job_title}</p>
+                  )}
+                  {candidate.location && (
+                    <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                      <MapPin className="h-3 w-3" />
+                      {candidate.location}
+                    </p>
+                  )}
+                </div>
+
+                {/* Skills - Flexible */}
+                <div className="flex-1 hidden lg:flex flex-wrap gap-1.5">
+                  {candidate.skills.slice(0, 4).map((skill) => (
+                    <span
+                      key={skill}
+                      className="bg-teal-50 text-teal-700 px-2.5 py-1 rounded-full text-xs font-medium"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Löschen
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                      {skill}
+                    </span>
+                  ))}
+                  {candidate.skills.length > 4 && (
+                    <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-xs font-medium">
+                      +{candidate.skills.length - 4}
+                    </span>
+                  )}
+                </div>
 
-              {/* Job Title & Location */}
-              <div className="space-y-2 mb-4">
-                {candidate.job_title && (
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <Briefcase className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                    <span className="truncate">{candidate.job_title}</span>
-                  </div>
-                )}
-                {candidate.location && (
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <MapPin className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                    <span>{candidate.location}</span>
-                  </div>
-                )}
-                {candidate.email && (
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <Mail className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                    <span className="truncate">{candidate.email}</span>
-                  </div>
-                )}
-              </div>
+                {/* Email - Hidden on smaller screens */}
+                <div className="w-48 flex-shrink-0 hidden xl:block">
+                  {candidate.email && (
+                    <p className="text-sm text-slate-500 truncate flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5 flex-shrink-0" />
+                      {candidate.email}
+                    </p>
+                  )}
+                </div>
 
-              {/* Skills */}
-              <div className="flex flex-wrap gap-1.5">
-                {candidate.skills.slice(0, 3).map((skill) => (
-                  <span
-                    key={skill}
-                    className="bg-teal-50 text-teal-700 px-2.5 py-1 rounded-full text-xs font-medium"
+                {/* Actions */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-teal-600 border-teal-200 hover:bg-teal-50"
+                    onClick={() => setSelectedCandidate(candidate)}
                   >
-                    {skill}
-                  </span>
-                ))}
-                {candidate.skills.length > 3 && (
-                  <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-xs font-medium">
-                    +{candidate.skills.length - 3}
-                  </span>
-                )}
+                    <Eye className="h-4 w-4 mr-1.5" />
+                    Profil
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-600">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="rounded-xl">
+                      <DropdownMenuItem asChild>
+                        <Link href="/jobs">
+                          <Briefcase className="mr-2 h-4 w-4" />
+                          Mit Job matchen
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        className="text-red-600 focus:text-red-600"
+                        onClick={() => handleDelete(candidate.id)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Löschen
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
-
-              {/* View Profile Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full mt-4 text-teal-600 border-teal-200 hover:bg-teal-50"
-                onClick={() => setSelectedCandidate(candidate)}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                Profil ansehen
-              </Button>
             </CardContent>
           </Card>
         ))}
