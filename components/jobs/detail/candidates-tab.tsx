@@ -86,7 +86,10 @@ interface Candidate {
   salary_score: number | null
   culture_score: number | null
   career_prognosis: string | null
+  prognosis_reason: string | null
   ai_summary: string | null
+  potential_concerns: string | null
+  interview_focus: string | null
   notes: string | null
   added_at: string
 }

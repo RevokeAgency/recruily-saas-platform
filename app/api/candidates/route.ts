@@ -185,7 +185,10 @@ async function triggerIMLRSMatch(
         salary_score: roundScore(categories?.salary?.score),
         culture_score: roundScore(categories?.culture?.score),
         career_prognosis: match?.careerPrognosis,
+        prognosis_reason: match?.prognosisReason,
         ai_summary: match?.whyTheyFit?.join(" | "),
+        potential_concerns: match?.potentialConcerns?.join(" | "),
+        interview_focus: match?.interviewFocus,
       })
       .eq("id", linkId)
 

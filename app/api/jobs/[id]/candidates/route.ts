@@ -25,7 +25,10 @@ export async function GET(
         salary_score,
         culture_score,
         career_prognosis,
+        prognosis_reason,
         ai_summary,
+        potential_concerns,
+        interview_focus,
         notes,
         created_at,
         candidate:candidates(
@@ -76,7 +79,10 @@ export async function GET(
       salary_score: jc.salary_score,
       culture_score: jc.culture_score,
       career_prognosis: jc.career_prognosis,
+      prognosis_reason: jc.prognosis_reason,
       ai_summary: jc.ai_summary,
+      potential_concerns: jc.potential_concerns,
+      interview_focus: jc.interview_focus,
       notes: jc.notes,
       added_at: jc.created_at,
     })) || []
