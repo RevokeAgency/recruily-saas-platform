@@ -70,13 +70,10 @@ export async function POST(req: Request) {
         linkId = linkData?.id
       }
 
-      // Fire IMLRS matching - we await to ensure it completes before response
-      // In a production app, this should be done via a queue/background job
+      // Run IMLRS matching synchronously - must await to complete before response
+      // Serverless functions terminate after response, so background jobs don't work
       if (linkId) {
-        // Don't await - let it run in background but ensure it starts
-        triggerIMLRSMatch(body.jobId, candidate.id, linkId, candidateData).catch(err => {
-          console.error("[v0] Background IMLRS match failed:", err)
-        })
+        await triggerIMLRSMatch(body.jobId, candidate.id, linkId, candidateData)
       }
     }
 
