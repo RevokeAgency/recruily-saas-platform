@@ -1,6 +1,7 @@
 import { generateText, Output } from "ai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { z } from "zod"
+import mammoth from "mammoth"
 
 // Create Google Gemini provider with API key from environment
 const google = createGoogleGenerativeAI({
@@ -57,6 +58,44 @@ export async function POST(req: Request) {
 
     // For file uploads
     if (fileData) {
+      // Check if it's a DOCX file - these need text extraction first
+      const isDocx = mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                     (fileName && fileName.toLowerCase().endsWith(".docx"))
+
+      if (isDocx) {
+        // Extract text from DOCX using mammoth
+        const buffer = Buffer.from(fileData, "base64")
+        const result = await mammoth.extractRawText({ buffer })
+        const extractedText = result.value
+
+        if (!extractedText || extractedText.trim().length === 0) {
+          return Response.json(
+            { error: "Konnte keinen Text aus dem DOCX extrahieren" },
+            { status: 400 }
+          )
+        }
+
+        // Now analyze the extracted text
+        const { output } = await generateText({
+          model: google("gemini-2.5-flash"),
+          output: Output.object({
+            schema: candidateSchema,
+          }),
+          system: systemPrompt,
+          prompt: `CV-Inhalt:\n${extractedText}`,
+        })
+
+        if (!output) {
+          return Response.json(
+            { error: "Konnte keine Daten aus dem CV extrahieren" },
+            { status: 400 }
+          )
+        }
+
+        return Response.json({ data: output })
+      }
+
+      // For PDF files, use direct file upload to Gemini
       const { output } = await generateText({
         model: google("gemini-2.5-flash"),
         output: Output.object({
