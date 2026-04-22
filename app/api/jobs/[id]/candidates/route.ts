@@ -124,3 +124,37 @@ export async function POST(
     return Response.json({ error: "Internal server error" }, { status: 500 })
   }
 }
+
+// Remove a candidate from a job
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: jobId } = await params
+    const supabase = await createClient()
+    const { searchParams } = new URL(req.url)
+    const linkId = searchParams.get("linkId")
+
+    if (!linkId) {
+      return Response.json({ error: "linkId is required" }, { status: 400 })
+    }
+
+    // Delete the job_candidates link (not the candidate itself)
+    const { error } = await supabase
+      .from("job_candidates")
+      .delete()
+      .eq("id", linkId)
+      .eq("job_id", jobId) // Extra safety check
+
+    if (error) {
+      console.error("Error removing candidate from job:", error)
+      return Response.json({ error: error.message }, { status: 500 })
+    }
+
+    return Response.json({ success: true })
+  } catch (error) {
+    console.error("Error in job candidates API:", error)
+    return Response.json({ error: "Internal server error" }, { status: 500 })
+  }
+}

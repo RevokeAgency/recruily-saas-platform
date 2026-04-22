@@ -24,7 +24,19 @@ import {
   UserPlus,
   Sparkles,
   Loader2,
+  Trash2,
 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 import Link from "next/link"
 import { CandidateMatchModal } from "./candidate-match-modal"
 
@@ -91,9 +103,11 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
   const [sortBy, setSortBy] = useState("match")
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
   const [matchModalOpen, setMatchModalOpen] = useState(false)
+  const [deleteCandidate, setDeleteCandidate] = useState<Candidate | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Fetch candidates for this job - refresh every 2s while any candidate is analyzing
-  const { data, error, isLoading } = useSWR<{ candidates: Candidate[] }>(
+  const { data, error, isLoading, mutate } = useSWR<{ candidates: Candidate[] }>(
     `/api/jobs/${jobId}/candidates`,
     fetcher,
     {
@@ -123,6 +137,34 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
       .join("")
       .toUpperCase()
       .slice(0, 2)
+  }
+
+  // Delete candidate from job
+  const handleDeleteCandidate = async () => {
+    if (!deleteCandidate) return
+    
+    setIsDeleting(true)
+    try {
+      const response = await fetch(
+        `/api/jobs/${jobId}/candidates?linkId=${deleteCandidate.linkId}`,
+        { method: "DELETE" }
+      )
+
+      if (!response.ok) {
+        const result = await response.json()
+        toast.error(result.error || "Fehler beim Entfernen des Kandidaten")
+        return
+      }
+
+      toast.success(`${deleteCandidate.full_name} wurde aus dem Job entfernt`)
+      mutate() // Refresh the candidate list
+    } catch (error) {
+      console.error("Error deleting candidate:", error)
+      toast.error("Fehler beim Entfernen des Kandidaten")
+    } finally {
+      setIsDeleting(false)
+      setDeleteCandidate(null)
+    }
   }
 
   if (isLoading) {
@@ -347,19 +389,29 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                     )}
                   </div>
 
-                  {/* Action Button - View Details */}
-                  <Button 
-                    size="sm" 
-                    className="w-full bg-teal-600 hover:bg-teal-700 gap-2"
-                    onClick={() => {
-                      setSelectedCandidate(candidate)
-                      setMatchModalOpen(true)
-                    }}
-                    disabled={candidate.status === "analyzing"}
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    {candidate.match_score !== null ? "Details ansehen" : "Profil ansehen"}
-                  </Button>
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 w-full">
+                    <Button 
+                      size="sm" 
+                      className="flex-1 bg-teal-600 hover:bg-teal-700 gap-2"
+                      onClick={() => {
+                        setSelectedCandidate(candidate)
+                        setMatchModalOpen(true)
+                      }}
+                      disabled={candidate.status === "analyzing"}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      {candidate.match_score !== null ? "Details" : "Profil"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                      onClick={() => setDeleteCandidate(candidate)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -378,6 +430,36 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
           // TODO: Update candidate status in database
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteCandidate} onOpenChange={() => setDeleteCandidate(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Kandidat entfernen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Möchtest du <span className="font-semibold">{deleteCandidate?.full_name}</span> aus diesem Job entfernen? 
+              Der Kandidat bleibt im allgemeinen Kandidatenpool erhalten und kann später wieder hinzugefügt werden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteCandidate}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Entferne...
+                </>
+              ) : (
+                "Entfernen"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
