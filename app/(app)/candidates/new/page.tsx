@@ -62,27 +62,38 @@ export default function NewCandidatePage() {
     setIsProcessing(true)
 
     try {
-      const arrayBuffer = await file.arrayBuffer()
-      const base64 = btoa(
-        new Uint8Array(arrayBuffer).reduce(
-          (data, byte) => data + String.fromCharCode(byte),
-          ""
-        )
-      )
+      // Use FormData for file uploads - more efficient and handles larger files
+      const formData = new FormData()
+      formData.append("file", file)
 
       const response = await fetch("/api/candidates/parse", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileData: base64,
-          fileName: file.name,
-          mimeType: file.type,
-        }),
+        body: formData,
       })
+
+      // Check if response is ok before parsing JSON
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type")
+        if (contentType && contentType.includes("application/json")) {
+          const errorResult = await response.json()
+          toast.error(errorResult.error || "Fehler beim Analysieren des CVs")
+        } else {
+          // Handle non-JSON error responses (e.g., "Request Entity Too Large")
+          const errorText = await response.text()
+          console.error("Server error:", errorText)
+          if (errorText.includes("Request Entity Too Large") || response.status === 413) {
+            toast.error("Die Datei ist zu groß. Bitte verwenden Sie eine kleinere Datei oder den Text-Modus.")
+          } else {
+            toast.error("Fehler beim Analysieren des CVs. Bitte versuchen Sie es erneut.")
+          }
+        }
+        setIsProcessing(false)
+        return
+      }
 
       const result = await response.json()
 
-      if (!response.ok || result.error) {
+      if (result.error) {
         toast.error(result.error || "Fehler beim Analysieren des CVs")
         setIsProcessing(false)
         return

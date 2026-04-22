@@ -2,6 +2,11 @@ import { generateText, Output } from "ai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { z } from "zod"
 import mammoth from "mammoth"
+import { NextRequest } from "next/server"
+
+// App Router route segment config
+export const maxDuration = 60 // Allow up to 60 seconds for AI processing
+export const dynamic = "force-dynamic"
 
 // Create Google Gemini provider with API key from environment
 const google = createGoogleGenerativeAI({
@@ -30,10 +35,35 @@ Wichtig:
 - Erstelle einen kurzen, professionellen 2-Satz-Pitch über den Kandidaten
 - Antworte auf Deutsch`
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { fileData, fileName, mimeType, textContent } = body
+    const contentType = req.headers.get("content-type") || ""
+    
+    let fileData: string | null = null
+    let fileName: string | null = null
+    let mimeType: string | null = null
+    let textContent: string | null = null
+
+    // Handle FormData (file upload)
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData()
+      const file = formData.get("file") as File | null
+      
+      if (file) {
+        const arrayBuffer = await file.arrayBuffer()
+        fileData = Buffer.from(arrayBuffer).toString("base64")
+        fileName = file.name
+        mimeType = file.type
+      }
+    } 
+    // Handle JSON (text content or legacy base64)
+    else if (contentType.includes("application/json")) {
+      const body = await req.json()
+      fileData = body.fileData
+      fileName = body.fileName
+      mimeType = body.mimeType
+      textContent = body.textContent
+    }
 
     // If text content is provided (fallback method)
     if (textContent) {
