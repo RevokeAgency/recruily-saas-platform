@@ -37,6 +37,8 @@ interface Job {
   nice_to_have_skills: string[] | null
   languages: string[] | null
   candidate_count: number
+  application_count: number
+  match_count: number
   top_match_score: number
 }
 
@@ -152,7 +154,7 @@ export default function JobDetailPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Applications</p>
-              <p className="text-2xl font-bold text-foreground">0</p>
+              <p className="text-2xl font-bold text-foreground">{job.application_count || 0}</p>
             </div>
           </CardContent>
         </Card>
@@ -165,7 +167,7 @@ export default function JobDetailPage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Matches</p>
-              <p className="text-2xl font-bold text-foreground">{job.candidate_count}</p>
+              <p className="text-2xl font-bold text-foreground">{job.match_count || 0}</p>
             </div>
           </CardContent>
         </Card>

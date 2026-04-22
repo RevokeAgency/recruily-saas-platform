@@ -9,6 +9,7 @@ export async function GET(
     const { id } = await params
     const supabase = await createClient()
 
+    // Get job data
     const { data: job, error } = await supabase
       .from("jobs")
       .select("*")
@@ -23,7 +24,35 @@ export async function GET(
       )
     }
 
-    return Response.json({ job })
+    // Get candidate statistics for this job
+    const { data: jobCandidates, error: candidatesError } = await supabase
+      .from("job_candidates")
+      .select("id, status, match_score, source")
+      .eq("job_id", id)
+
+    if (candidatesError) {
+      console.error("Error fetching job candidates:", candidatesError)
+    }
+
+    const candidates = jobCandidates || []
+
+    // Calculate stats
+    const totalCandidates = candidates.length
+    const applications = candidates.filter(c => c.source === "application").length
+    const matches = candidates.filter(c => c.match_score !== null && c.match_score > 0).length
+    const topMatchScore = candidates.length > 0 
+      ? Math.max(...candidates.map(c => c.match_score || 0))
+      : 0
+
+    return Response.json({ 
+      job: {
+        ...job,
+        candidate_count: totalCandidates,
+        application_count: applications,
+        match_count: matches,
+        top_match_score: topMatchScore,
+      }
+    })
   } catch (error) {
     console.error("Error:", error)
     return Response.json(
