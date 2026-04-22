@@ -158,6 +158,10 @@ async function triggerIMLRSMatch(
     }
 
     const matchResult = await matchResponse.json()
+    
+    // Extract the match data from the nested structure
+    const match = matchResult.match
+    const categories = match?.categories
 
     // Helper to safely round scores to integers
     const roundScore = (score: number | undefined | null): number | null => {
@@ -170,25 +174,25 @@ async function triggerIMLRSMatch(
       .from("job_candidates")
       .update({
         status: "scored",
-        match_score: roundScore(matchResult.overallScore),
-        hard_skills_score: roundScore(matchResult.scores?.hardSkills),
-        experience_score: roundScore(matchResult.scores?.experience),
-        education_score: roundScore(matchResult.scores?.education),
-        soft_skills_score: roundScore(matchResult.scores?.softSkills),
-        languages_score: roundScore(matchResult.scores?.languages),
-        location_score: roundScore(matchResult.scores?.location),
-        industry_score: roundScore(matchResult.scores?.industry),
-        salary_score: roundScore(matchResult.scores?.salary),
-        culture_score: roundScore(matchResult.scores?.culture),
-        career_prognosis: matchResult.careerPrognosis?.trend,
-        ai_summary: matchResult.contextualPitch?.join(" | "),
+        match_score: roundScore(match?.overallScore),
+        hard_skills_score: roundScore(categories?.hardSkills?.score),
+        experience_score: roundScore(categories?.experience?.score),
+        education_score: roundScore(categories?.education?.score),
+        soft_skills_score: roundScore(categories?.softSkills?.score),
+        languages_score: roundScore(categories?.languages?.score),
+        location_score: roundScore(categories?.location?.score),
+        industry_score: roundScore(categories?.industry?.score),
+        salary_score: roundScore(categories?.salary?.score),
+        culture_score: roundScore(categories?.culture?.score),
+        career_prognosis: match?.careerPrognosis,
+        ai_summary: match?.whyTheyFit?.join(" | "),
       })
       .eq("id", linkId)
 
     if (updateError) {
       console.error("[v0] Error updating match scores:", updateError)
     } else {
-      console.log("[v0] Successfully updated match scores for linkId:", linkId, "score:", roundScore(matchResult.overallScore))
+      console.log("[v0] Successfully updated match scores for linkId:", linkId, "score:", roundScore(match?.overallScore))
     }
   } catch (error) {
     console.error("[v0] Error in IMLRS matching:", error)
