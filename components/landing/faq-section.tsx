@@ -1,11 +1,19 @@
 "use client"
 
+import { motion } from "framer-motion"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.5, ease: "easeOut" }
+}
 
 const faqs = [
   {
@@ -33,22 +41,25 @@ const faqs = [
 export function FAQSection() {
   return (
     <section id="faq" className="py-20 bg-white relative overflow-hidden">
-      {/* Decorative circle on left */}
-      <div className="absolute left-0 bottom-1/4 w-48 h-48">
-        <div className="w-full h-full rounded-full bg-slate-100" style={{ clipPath: "inset(0 50% 0 0)" }} />
-      </div>
+      {/* Minimal arc - left */}
+      <svg className="absolute left-0 bottom-1/4 w-24 h-24 pointer-events-none opacity-20" viewBox="0 0 100 100">
+        <path d="M0 100 Q 0 0, 100 0" fill="none" stroke="#94a3b8" strokeWidth="1" />
+      </svg>
 
-      {/* Large decorative circles on right */}
-      <div className="absolute right-0 top-1/4 w-[300px] h-[300px]">
-        <div className="w-full h-full rounded-full bg-slate-100" style={{ clipPath: "inset(0 0 0 50%)" }} />
+      {/* Subtle gradient shapes - right */}
+      <div className="absolute right-0 top-1/4 w-[250px] h-[250px] pointer-events-none">
+        <div className="w-full h-full rounded-full bg-gradient-to-l from-slate-100 to-transparent" style={{ clipPath: "inset(0 0 0 50%)" }} />
       </div>
-      <div className="absolute right-20 top-1/2 w-[200px] h-[200px]">
-        <div className="w-full h-full rounded-full bg-[#0D9488]/10" style={{ clipPath: "inset(0 0 0 30%)" }} />
+      <div className="absolute right-16 top-1/2 w-[150px] h-[150px] pointer-events-none">
+        <div className="w-full h-full rounded-full bg-gradient-to-l from-teal-50 to-transparent" style={{ clipPath: "inset(0 0 0 30%)" }} />
       </div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
-        <div className="text-center mb-12">
+        <motion.div 
+          className="text-center mb-12"
+          {...fadeInUp}
+        >
           <p className="text-sm font-medium text-[#0D9488] mb-2">Common Questions</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Frequently Asked Questions
@@ -56,25 +67,39 @@ export function FAQSection() {
           <p className="text-lg text-slate-600">
             Find answers to common questions about Recruitify.
           </p>
-        </div>
+        </motion.div>
 
         {/* Accordion */}
-        <Accordion type="single" collapsible defaultValue="item-0" className="space-y-4">
-          {faqs.map((faq, i) => (
-            <AccordionItem
-              key={i}
-              value={`item-${i}`}
-              className="border border-slate-200 rounded-xl px-6 data-[state=open]:border-[#0D9488] data-[state=open]:border-2 bg-white"
-            >
-              <AccordionTrigger className="text-left font-medium text-slate-900 hover:no-underline py-5 [&[data-state=open]>svg]:text-[#0D9488]">
-                {faq.question}
-              </AccordionTrigger>
-              <AccordionContent className="text-slate-600 pb-5">
-                {faq.answer}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <Accordion type="single" collapsible defaultValue="item-0" className="space-y-4">
+            {faqs.map((faq, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <AccordionItem
+                  value={`item-${i}`}
+                  className="border border-slate-200 rounded-xl px-6 data-[state=open]:border-[#0D9488] data-[state=open]:border-2 bg-white"
+                >
+                  <AccordionTrigger className="text-left font-medium text-slate-900 hover:no-underline py-5 [&[data-state=open]>svg]:text-[#0D9488]">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-slate-600 pb-5">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              </motion.div>
+            ))}
+          </Accordion>
+        </motion.div>
       </div>
     </section>
   )

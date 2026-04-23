@@ -1,12 +1,20 @@
 "use client"
 
 import { useState } from "react"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Mail, Phone, MapPin, Send } from "lucide-react"
 import { toast } from "sonner"
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.5, ease: "easeOut" }
+}
 
 export function ContactSection() {
   const [loading, setLoading] = useState(false)
@@ -23,21 +31,22 @@ export function ContactSection() {
 
   return (
     <section id="contact" className="py-20 bg-slate-50 relative overflow-hidden">
-      {/* Decorative wave on top left */}
-      <div className="absolute top-10 left-10 w-32 opacity-20">
-        <svg viewBox="0 0 100 30" className="w-full text-slate-400">
-          <path d="M0,15 Q12.5,0 25,15 T50,15 T75,15 T100,15" fill="none" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      </div>
+      {/* Minimal wave accent - top left */}
+      <svg className="absolute top-8 left-6 w-16 h-8 pointer-events-none opacity-25" viewBox="0 0 60 24">
+        <path d="M0 12 C 15 6, 30 18, 45 12 S 60 6, 60 12" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
 
-      {/* Large decorative circle on right */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[400px] h-[400px]">
-        <div className="w-full h-full rounded-full bg-slate-200/60" style={{ clipPath: "inset(0 0 0 50%)" }} />
+      {/* Subtle gradient arc - right */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[350px] h-[350px] pointer-events-none">
+        <div className="w-full h-full rounded-full bg-gradient-to-l from-slate-200/40 to-transparent" style={{ clipPath: "inset(0 0 0 50%)" }} />
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
-        <div className="text-center mb-12">
+        <motion.div 
+          className="text-center mb-12"
+          {...fadeInUp}
+        >
           <p className="text-sm font-medium text-[#0D9488] mb-2">Support & Inquiries</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Get in Touch
@@ -45,38 +54,52 @@ export function ContactSection() {
           <p className="text-lg text-slate-600">
             {"Have questions or need a personalized demo? We're here to help."}
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Contact Info Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 relative overflow-hidden">
+          <motion.div 
+            className="bg-white rounded-2xl border border-slate-200 p-8 relative overflow-hidden"
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5 }}
+          >
             {/* Decorative gradient */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#0D9488]/10 to-transparent rounded-bl-full" />
             
             <h3 className="text-xl font-semibold text-slate-900 mb-8">Contact Information</h3>
 
             <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0">
-                  <Mail className="h-5 w-5 text-[#0D9488]" />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-900">Email</p>
-                  <p className="text-slate-600">info@recruitify.com</p>
-                </div>
-              </div>
+              {[
+                { icon: Mail, label: "Email", value: "info@recruitify.com" },
+                { icon: Phone, label: "Phone", value: "+49 30 123 456 789" },
+              ].map((item, i) => (
+                <motion.div 
+                  key={i}
+                  className="flex items-start gap-4"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0">
+                    <item.icon className="h-5 w-5 text-[#0D9488]" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-900">{item.label}</p>
+                    <p className="text-slate-600">{item.value}</p>
+                  </div>
+                </motion.div>
+              ))}
 
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0">
-                  <Phone className="h-5 w-5 text-[#0D9488]" />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-900">Phone</p>
-                  <p className="text-slate-600">+49 30 123 456 789</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
+              <motion.div 
+                className="flex items-start gap-4"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+              >
                 <div className="w-10 h-10 rounded-full bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0">
                   <MapPin className="h-5 w-5 text-[#0D9488]" />
                 </div>
@@ -85,15 +108,18 @@ export function ContactSection() {
                   <p className="text-slate-600">Friedrichstraße 123</p>
                   <p className="text-slate-600">10117 Berlin, Germany</p>
                 </div>
-              </div>
+              </motion.div>
             </div>
-
-            {/* Decorative image placeholder */}
-            <div className="absolute bottom-4 left-4 w-24 h-20 bg-slate-100 rounded-lg opacity-50" />
-          </div>
+          </motion.div>
 
           {/* Contact Form Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-8">
+          <motion.div 
+            className="bg-white rounded-2xl border border-slate-200 p-8"
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5 }}
+          >
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <Label htmlFor="name" className="text-slate-700">Full Name</Label>
@@ -145,7 +171,7 @@ export function ContactSection() {
                 {loading ? "Sending..." : "Send Message"}
               </Button>
             </form>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

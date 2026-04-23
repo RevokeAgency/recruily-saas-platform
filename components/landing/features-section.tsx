@@ -1,4 +1,14 @@
+"use client"
+
+import { motion } from "framer-motion"
 import { Sparkles, FileText, BarChart3, Users, Shield, Zap } from "lucide-react"
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.5, ease: "easeOut" }
+}
 
 const features = [
   {
@@ -36,33 +46,44 @@ const features = [
 export function FeaturesSection() {
   return (
     <section id="features" className="py-20 bg-slate-50 relative overflow-hidden">
-      {/* Decorative dot pattern on left */}
-      <div className="absolute bottom-20 left-10 grid grid-cols-4 gap-2 opacity-40">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div key={i} className="w-2 h-2 rounded-full bg-[#0D9488]" />
+      {/* Minimal dot pattern - left */}
+      <div className="absolute bottom-16 left-8 grid grid-cols-3 gap-2 opacity-30 pointer-events-none">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#0D9488]" />
         ))}
       </div>
 
-      {/* Large decorative circle on right */}
-      <div className="absolute right-0 top-1/3 w-[400px] h-[400px]">
-        <div className="w-full h-full rounded-full bg-slate-200/60" style={{ clipPath: "inset(0 0 0 50%)" }} />
-      </div>
+      {/* Subtle arc - right */}
+      <svg className="absolute right-0 top-1/3 w-64 h-64 pointer-events-none opacity-30" viewBox="0 0 200 200">
+        <path d="M200 0 Q 200 200, 0 200" fill="none" stroke="#cbd5e1" strokeWidth="1" />
+        <path d="M200 40 Q 200 200, 40 200" fill="none" stroke="#cbd5e1" strokeWidth="1" />
+      </svg>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
-        <div className="text-center mb-16">
+        <motion.div 
+          className="text-center mb-16"
+          {...fadeInUp}
+        >
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Powerful Features
           </h2>
           <p className="text-lg text-slate-600">
             Everything you need to streamline your recruitment process
           </p>
-        </div>
+        </motion.div>
 
         {/* Features Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, i) => (
-            <div key={i} className="text-center group">
+            <motion.div 
+              key={i} 
+              className="text-center group"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.4, ease: "easeOut", delay: i * 0.1 }}
+            >
               {/* Icon */}
               <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-[#0D9488]/10 flex items-center justify-center group-hover:bg-[#0D9488]/20 transition-colors">
                 <feature.icon className="h-6 w-6 text-[#0D9488]" />
@@ -75,12 +96,7 @@ export function FeaturesSection() {
               <p className="text-sm text-slate-600 leading-relaxed">
                 {feature.description}
               </p>
-
-              {/* Divider line for visual separation */}
-              {i < features.length - 1 && i % 3 !== 2 && (
-                <div className="hidden lg:block absolute right-0 top-1/4 h-1/2 w-px bg-slate-200" />
-              )}
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

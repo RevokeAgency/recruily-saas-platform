@@ -1,9 +1,17 @@
 "use client"
 
 import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.5, ease: "easeOut" }
+}
 
 const testimonials = [
   {
@@ -41,34 +49,43 @@ export function TestimonialsSection() {
 
   return (
     <section className="py-20 bg-white relative overflow-hidden">
-      {/* Decorative lines on right */}
-      <div className="absolute top-20 right-20 flex gap-2 opacity-30">
+      {/* Minimal vertical lines - right */}
+      <div className="absolute top-16 right-16 flex gap-3 opacity-20 pointer-events-none">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="w-1 h-16 bg-slate-300 rounded-full" />
+          <div key={i} className="w-0.5 h-12 bg-slate-400 rounded-full" />
         ))}
       </div>
 
-      {/* Large decorative circle on right */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[400px] h-[400px]">
-        <div className="w-full h-full rounded-full bg-slate-100" style={{ clipPath: "inset(0 0 0 50%)" }} />
+      {/* Subtle gradient arc - right */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[350px] h-[350px] pointer-events-none">
+        <div className="w-full h-full rounded-full bg-gradient-to-l from-slate-100/60 to-transparent" style={{ clipPath: "inset(0 0 0 50%)" }} />
       </div>
 
-      {/* Dark decorative shape on left */}
-      <div className="absolute bottom-0 left-0 w-32 h-48 bg-slate-700 rounded-tr-full opacity-90" />
+      {/* Dark accent shape - left */}
+      <div className="absolute bottom-0 left-0 w-24 h-36 bg-slate-700/80 rounded-tr-full pointer-events-none" />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
-        <div className="text-center mb-16">
+        <motion.div 
+          className="text-center mb-16"
+          {...fadeInUp}
+        >
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Why HR Teams Love Recruitify
           </h2>
           <p className="text-lg text-slate-600">
             See what our customers have to say about Recruitify.
           </p>
-        </div>
+        </motion.div>
 
         {/* Testimonial Card */}
-        <div className="relative">
+        <motion.div 
+          className="relative"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
           {/* Navigation Buttons */}
           <Button
             variant="outline"
@@ -102,21 +119,31 @@ export function TestimonialsSection() {
               ))}
             </div>
 
-            {/* Quote */}
-            <blockquote className="text-xl sm:text-2xl text-slate-900 italic leading-relaxed mb-8">
-              "{current.quote}"
-            </blockquote>
+            {/* Quote with animation */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentIndex}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <blockquote className="text-xl sm:text-2xl text-slate-900 italic leading-relaxed mb-8">
+                  "{current.quote}"
+                </blockquote>
 
-            {/* Author */}
-            <div className="flex flex-col items-center">
-              <Avatar className="h-14 w-14 mb-4 bg-slate-200">
-                <AvatarFallback className="text-slate-500 text-sm">
-                  {current.initials}
-                </AvatarFallback>
-              </Avatar>
-              <p className="font-semibold text-slate-900">{current.name}</p>
-              <p className="text-sm text-slate-500">{current.role}</p>
-            </div>
+                {/* Author */}
+                <div className="flex flex-col items-center">
+                  <Avatar className="h-14 w-14 mb-4 bg-slate-200">
+                    <AvatarFallback className="text-slate-500 text-sm">
+                      {current.initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p className="font-semibold text-slate-900">{current.name}</p>
+                  <p className="text-sm text-slate-500">{current.role}</p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Mobile Navigation */}
@@ -128,16 +155,22 @@ export function TestimonialsSection() {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Company logos placeholder */}
-        <div className="flex justify-center gap-8 mt-16">
+        <motion.div 
+          className="flex justify-center gap-8 mt-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="w-24 h-28 bg-slate-100 rounded-lg flex items-center justify-center">
               <div className="w-3 h-3 rounded-full bg-slate-300" />
             </div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )

@@ -2,10 +2,18 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Check } from "lucide-react"
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.5, ease: "easeOut" }
+}
 
 const plans = [
   {
@@ -63,29 +71,39 @@ export function PricingSection() {
 
   return (
     <section id="pricing" className="py-20 bg-slate-50 relative overflow-hidden">
-      {/* Decorative circle on left */}
-      <div className="absolute left-0 bottom-1/4 w-48 h-48">
-        <div className="w-full h-full rounded-full bg-slate-200/60" style={{ clipPath: "inset(0 50% 0 0)" }} />
-      </div>
+      {/* Minimal arc - left */}
+      <svg className="absolute left-0 bottom-1/4 w-32 h-32 pointer-events-none opacity-20" viewBox="0 0 100 100">
+        <path d="M0 100 Q 0 0, 100 0" fill="none" stroke="#94a3b8" strokeWidth="1" />
+        <path d="M0 100 Q 0 20, 80 0" fill="none" stroke="#94a3b8" strokeWidth="1" />
+      </svg>
 
-      {/* Large decorative circle on right */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[400px] h-[400px]">
-        <div className="w-full h-full rounded-full bg-slate-200/60" style={{ clipPath: "inset(0 0 0 50%)" }} />
+      {/* Subtle gradient blob - right */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[350px] h-[350px] pointer-events-none">
+        <div className="w-full h-full rounded-full bg-gradient-to-l from-slate-200/50 to-transparent" style={{ clipPath: "inset(0 0 0 50%)" }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
-        <div className="text-center mb-12">
+        <motion.div 
+          className="text-center mb-12"
+          {...fadeInUp}
+        >
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Simple, Transparent Pricing
           </h2>
           <p className="text-lg text-slate-600">
             Choose the plan that works best for your business.
           </p>
-        </div>
+        </motion.div>
 
         {/* Toggle */}
-        <div className="flex items-center justify-center gap-4 mb-12">
+        <motion.div 
+          className="flex items-center justify-center gap-4 mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
           <span className={`text-sm ${!annual ? "text-slate-900 font-medium" : "text-slate-500"}`}>
             Monthly
           </span>
@@ -102,18 +120,22 @@ export function PricingSection() {
               Save 20%
             </Badge>
           )}
-        </div>
+        </motion.div>
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan) => (
-            <div
+          {plans.map((plan, i) => (
+            <motion.div
               key={plan.name}
               className={`bg-white rounded-2xl p-8 ${
                 plan.popular
                   ? "border-2 border-[#0D9488] shadow-lg relative"
                   : "border border-slate-200"
               }`}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.4, ease: "easeOut", delay: i * 0.1 }}
             >
               {plan.popular && (
                 <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0D9488] text-white">
@@ -134,11 +156,18 @@ export function PricingSection() {
               </div>
 
               <ul className="space-y-3 mb-8">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3">
+                {plan.features.map((feature, j) => (
+                  <motion.li 
+                    key={j} 
+                    className="flex items-start gap-3"
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.2 + j * 0.05 }}
+                  >
                     <Check className="h-5 w-5 text-[#0D9488] flex-shrink-0 mt-0.5" />
                     <span className="text-sm text-slate-600">{feature}</span>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
 
@@ -154,7 +183,7 @@ export function PricingSection() {
                   {plan.current ? "Current Plan" : "Choose Plan"}
                 </Link>
               </Button>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

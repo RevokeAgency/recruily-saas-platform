@@ -1,24 +1,50 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.5, ease: "easeOut" }
+}
 
 export function DashboardPreviewSection() {
   return (
     <section className="py-20 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
+      {/* Minimal dot pattern - left */}
+      <div className="absolute top-16 left-6 grid grid-cols-3 gap-2 opacity-25 pointer-events-none">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <div key={i} className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+        ))}
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
+        <motion.div 
+          className="text-center mb-12"
+          {...fadeInUp}
+        >
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Your Dashboard at a Glance
           </h2>
           <p className="text-lg text-slate-600">
             See all jobs, candidates, and matching scores in one clean view.
           </p>
-        </div>
+        </motion.div>
 
         {/* Dashboard Preview */}
-        <div className="relative">
+        <motion.div 
+          className="relative"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           {/* Browser frame */}
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
             {/* Browser header */}
@@ -47,10 +73,16 @@ export function DashboardPreviewSection() {
               <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Description */}
-        <div className="mt-12 text-center max-w-2xl mx-auto">
+        <motion.div 
+          className="mt-12 text-center max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
           <p className="text-slate-600 mb-6">
             Our intuitive dashboard gives your HR team a complete overview of all job postings, candidates, and matches in one place. Track progress, collaborate with team members, and make data-driven hiring decisions.
           </p>
@@ -60,7 +92,7 @@ export function DashboardPreviewSection() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-        </div>
+        </motion.div>
       </div>
     </section>
   )
