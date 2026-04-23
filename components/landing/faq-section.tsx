@@ -14,15 +14,19 @@ const faqs = [
   },
   {
     question: "Can I integrate Recruitify with my existing ATS?",
-    answer: "Yes, Recruitify offers seamless integration with most popular Applicant Tracking Systems. Our API allows you to connect your existing tools and workflows without disruption.",
+    answer: "Yes, Recruitify offers API integration with most popular Applicant Tracking Systems. Our team can help you set up a seamless connection to ensure data flows smoothly between systems.",
   },
   {
     question: "How long does the free trial last?",
-    answer: "Our free trial lasts 14 days and gives you full access to all features. No credit card required to start.",
+    answer: "Our free trial lasts for 14 days with full access to all features. No credit card is required to start, and you can cancel anytime.",
   },
   {
     question: "Is my data secure with Recruitify?",
-    answer: "Absolutely. We use enterprise-grade encryption and are fully GDPR compliant. Your candidate data is stored securely in EU-based data centers with strict access controls.",
+    answer: "Absolutely. We use enterprise-grade encryption and comply with GDPR, CCPA, and other data protection regulations. Your data is stored securely and never shared with third parties without your explicit consent.",
+  },
+  {
+    question: "Can I upgrade or downgrade my plan later?",
+    answer: "Yes, you can change your subscription plan at any time. Changes take effect at the start of your next billing cycle, and we'll prorate any difference in cost.",
   },
 ]
 
@@ -45,6 +49,7 @@ export function FAQSection() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
         <div className="text-center mb-12">
+          <p className="text-sm font-medium text-[#0D9488] mb-2">Common Questions</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Frequently Asked Questions
           </h2>

@@ -74,8 +74,18 @@ export function PricingSection() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+            Simple, Transparent Pricing
+          </h2>
+          <p className="text-lg text-slate-600">
+            Choose the plan that works best for your business.
+          </p>
+        </div>
+
         {/* Toggle */}
-        <div className="flex items-center justify-center gap-4 mb-16">
+        <div className="flex items-center justify-center gap-4 mb-12">
           <span className={`text-sm ${!annual ? "text-slate-900 font-medium" : "text-slate-500"}`}>
             Monthly
           </span>

@@ -38,6 +38,7 @@ export function ContactSection() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
         <div className="text-center mb-12">
+          <p className="text-sm font-medium text-[#0D9488] mb-2">Support & Inquiries</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Get in Touch
           </h2>
