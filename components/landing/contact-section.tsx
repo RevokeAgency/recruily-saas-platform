@@ -176,9 +176,9 @@ export function ContactSection() {
         </div>
       </div>
       
-      {/* Wave divider into slate-900 (footer) */}
+      {/* Wave divider into teal (footer) */}
       <div className="mt-20">
-        <WaveDivider fillColor="#0f172a" direction="down" />
+        <WaveDivider fillColor="#0D9488" direction="down" />
       </div>
     </section>
   )

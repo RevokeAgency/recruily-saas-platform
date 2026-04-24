@@ -102,9 +102,9 @@ export function FeaturesSection() {
         </div>
       </div>
       
-      {/* Wave divider into dark section (Dashboard/IMLRS) */}
+      {/* Wave divider into teal section (Dashboard/IMLRS) */}
       <div className="mt-20">
-        <WaveDivider fillColor="#0f172a" direction="up" />
+        <WaveDivider fillColor="#0D9488" direction="up" />
       </div>
     </section>
   )

@@ -16,9 +16,9 @@ const fadeInUp = {
 
 export function DashboardPreviewSection() {
   return (
-    <section className="pt-20 pb-0 bg-slate-900 relative overflow-hidden">
+    <section className="pt-20 pb-0 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #0D9488 0%, #0B7C72 100%)" }}>
       {/* Subtle geometric accents */}
-      <div className="absolute top-16 right-12 opacity-10 pointer-events-none">
+      <div className="absolute top-16 right-12 opacity-20 pointer-events-none">
         <svg width="100" height="100" viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="40" fill="none" stroke="white" strokeWidth="0.5" />
           <circle cx="50" cy="50" r="30" fill="none" stroke="white" strokeWidth="0.5" />
@@ -32,11 +32,11 @@ export function DashboardPreviewSection() {
           className="text-center mb-12"
           {...fadeInUp}
         >
-          <p className="text-sm font-medium text-[#2DD4BF] mb-2">IMLRS Technology</p>
+          <p className="text-sm font-medium text-white/80 mb-2">IMLRS Technology</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             Your Dashboard at a Glance
           </h2>
-          <p className="text-lg text-slate-300">
+          <p className="text-lg text-white/80">
             See all jobs, candidates, and matching scores in one clean view.
           </p>
         </motion.div>
@@ -50,23 +50,23 @@ export function DashboardPreviewSection() {
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           {/* Browser frame */}
-          <div className="bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl border border-teal-200 overflow-hidden">
             {/* Browser header */}
-            <div className="bg-slate-800 px-4 py-3 flex items-center gap-3 border-b border-slate-700">
+            <div className="bg-slate-100 px-4 py-3 flex items-center gap-3 border-b border-slate-200">
               <div className="flex gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-400" />
                 <div className="w-3 h-3 rounded-full bg-yellow-400" />
                 <div className="w-3 h-3 rounded-full bg-green-400" />
               </div>
               <div className="flex-1 flex justify-center">
-                <div className="bg-slate-700 rounded-lg px-4 py-1.5 text-sm text-slate-300 border border-slate-600">
+                <div className="bg-white rounded-lg px-4 py-1.5 text-sm text-slate-600 border border-slate-200">
                   app.recruitify.io/dashboard
                 </div>
               </div>
             </div>
             
             {/* Dashboard content placeholder */}
-            <div className="aspect-[16/9] bg-slate-700 relative">
+            <div className="aspect-[16/9] bg-slate-50 relative">
               <Image
                 src="/images/dashboard-preview.png"
                 alt="Recruitify Dashboard"
@@ -74,7 +74,7 @@ export function DashboardPreviewSection() {
                 className="object-cover object-top"
               />
               {/* Fallback gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent" />
             </div>
           </div>
         </motion.div>
@@ -87,10 +87,10 @@ export function DashboardPreviewSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <p className="text-slate-300 mb-6">
+          <p className="text-white/80 mb-6">
             Our intuitive dashboard gives your HR team a complete overview of all job postings, candidates, and matches in one place. Track progress, collaborate with team members, and make data-driven hiring decisions.
           </p>
-          <Button asChild className="bg-[#0D9488] hover:bg-[#0B7C72] text-white rounded-lg px-6">
+          <Button asChild className="bg-white hover:bg-slate-100 text-[#0D9488] rounded-lg px-6">
             <Link href="/auth/register">
               See the full dashboard
               <ArrowRight className="ml-2 h-4 w-4" />
