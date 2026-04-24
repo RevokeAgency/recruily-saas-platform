@@ -204,7 +204,7 @@ export function UseCasesSection() {
       
       {/* Wave divider into white */}
       <div className="mt-20">
-        <WaveDivider fillColor="#ffffff" direction="down" />
+        <WaveDivider fillColor="#0D9488" direction="down" />
       </div>
     </section>
   )

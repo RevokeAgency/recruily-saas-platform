@@ -105,7 +105,7 @@ export function FAQSection() {
       
       {/* Wave divider into white (contact) */}
       <div className="mt-20">
-        <WaveDivider fillColor="#ffffff" direction="up" />
+        <WaveDivider fillColor="#0D9488" direction="up" />
       </div>
     </section>
   )

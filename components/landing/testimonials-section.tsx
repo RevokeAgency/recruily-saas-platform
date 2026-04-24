@@ -176,7 +176,7 @@ export function TestimonialsSection() {
       
       {/* Wave divider into white (pricing) */}
       <div className="mt-20">
-        <WaveDivider fillColor="#ffffff" direction="up" />
+        <WaveDivider fillColor="#0D9488" direction="up" />
       </div>
     </section>
   )

@@ -134,7 +134,7 @@ export function HeroSection() {
       
       {/* Wave divider into teal-50 */}
       <div className="mt-16 lg:mt-24">
-        <WaveDivider fillColor="#f0fdfa" direction="up" />
+        <WaveDivider fillColor="#0D9488" direction="up" />
       </div>
     </section>
   )

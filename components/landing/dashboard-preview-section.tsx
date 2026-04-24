@@ -101,7 +101,7 @@ export function DashboardPreviewSection() {
 
       {/* Wave divider into teal-50 (testimonials) */}
       <div className="mt-20">
-        <WaveDivider fillColor="#f0fdfa" direction="down" />
+        <WaveDivider fillColor="#0D9488" direction="down" />
       </div>
     </section>
   )
