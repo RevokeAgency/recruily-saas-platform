@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -48,7 +49,7 @@ export function TestimonialsSection() {
   const current = testimonials[currentIndex]
 
   return (
-    <section className="py-20 bg-white relative overflow-hidden">
+    <section className="pt-0 pb-0 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #f0fdfa 0%, #e6faf6 50%, #f0fdfa 100%)" }}>
       {/* Minimal vertical lines - right */}
       <div className="absolute top-16 right-16 flex gap-3 opacity-20 pointer-events-none">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -166,11 +167,16 @@ export function TestimonialsSection() {
           transition={{ duration: 0.4, delay: 0.2 }}
         >
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="w-24 h-28 bg-slate-100 rounded-lg flex items-center justify-center">
+            <div key={i} className="w-24 h-28 bg-white/60 rounded-lg flex items-center justify-center border border-teal-100">
               <div className="w-3 h-3 rounded-full bg-slate-300" />
             </div>
           ))}
         </motion.div>
+      </div>
+      
+      {/* Wave divider into white (pricing) */}
+      <div className="mt-20">
+        <WaveDivider fillColor="#ffffff" direction="up" />
       </div>
     </section>
   )

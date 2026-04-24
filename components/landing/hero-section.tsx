@@ -5,6 +5,7 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ExternalLink } from "lucide-react"
+import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -14,7 +15,7 @@ const fadeInUp = {
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-teal-50/40 via-white to-white pt-8 pb-16 lg:pt-16 lg:pb-24">
+    <section className="relative overflow-hidden bg-white pt-8 pb-0 lg:pt-16">
       {/* Minimal blob - right edge */}
       <div className="absolute right-0 top-1/3 translate-x-1/3 w-[500px] h-[500px] bg-gradient-to-br from-slate-100 to-slate-200/50 rounded-full blur-sm pointer-events-none" />
       
@@ -129,6 +130,11 @@ export function HeroSection() {
             </div>
           </motion.div>
         </div>
+      </div>
+      
+      {/* Wave divider into teal-50 */}
+      <div className="mt-16 lg:mt-24">
+        <WaveDivider fillColor="#f0fdfa" direction="up" />
       </div>
     </section>
   )

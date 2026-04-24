@@ -7,6 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -40,7 +41,7 @@ const faqs = [
 
 export function FAQSection() {
   return (
-    <section id="faq" className="py-20 bg-white relative overflow-hidden">
+    <section id="faq" className="pt-0 pb-0 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #f0fdfa 0%, #e6faf6 50%, #f0fdfa 100%)" }}>
       {/* Minimal arc - left */}
       <svg className="absolute left-0 bottom-1/4 w-24 h-24 pointer-events-none opacity-20" viewBox="0 0 100 100">
         <path d="M0 100 Q 0 0, 100 0" fill="none" stroke="#94a3b8" strokeWidth="1" />
@@ -100,6 +101,11 @@ export function FAQSection() {
             ))}
           </Accordion>
         </motion.div>
+      </div>
+      
+      {/* Wave divider into white (contact) */}
+      <div className="mt-20">
+        <WaveDivider fillColor="#ffffff" direction="up" />
       </div>
     </section>
   )

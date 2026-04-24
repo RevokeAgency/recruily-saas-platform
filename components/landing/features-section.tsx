@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Sparkles, FileText, BarChart3, Users, Shield, Zap } from "lucide-react"
+import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -45,7 +46,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-20 bg-slate-50 relative overflow-hidden">
+    <section id="features" className="pt-20 pb-0 bg-white relative overflow-hidden">
       {/* Minimal dot pattern - left */}
       <div className="absolute bottom-16 left-8 grid grid-cols-3 gap-2 opacity-30 pointer-events-none">
         {Array.from({ length: 12 }).map((_, i) => (
@@ -97,8 +98,13 @@ export function FeaturesSection() {
                 {feature.description}
               </p>
             </motion.div>
-          ))}
+            ))}
         </div>
+      </div>
+      
+      {/* Wave divider into dark section (Dashboard/IMLRS) */}
+      <div className="mt-20">
+        <WaveDivider fillColor="#0f172a" direction="up" />
       </div>
     </section>
   )

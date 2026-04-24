@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Check } from "lucide-react"
+import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -70,7 +71,7 @@ export function PricingSection() {
   const [annual, setAnnual] = useState(false)
 
   return (
-    <section id="pricing" className="py-20 bg-slate-50 relative overflow-hidden">
+    <section id="pricing" className="pt-20 pb-0 bg-white relative overflow-hidden">
       {/* Minimal arc - left */}
       <svg className="absolute left-0 bottom-1/4 w-32 h-32 pointer-events-none opacity-20" viewBox="0 0 100 100">
         <path d="M0 100 Q 0 0, 100 0" fill="none" stroke="#94a3b8" strokeWidth="1" />
@@ -186,6 +187,11 @@ export function PricingSection() {
             </motion.div>
           ))}
         </div>
+      </div>
+      
+      {/* Wave divider into teal-50 (FAQ) */}
+      <div className="mt-20">
+        <WaveDivider fillColor="#f0fdfa" direction="down" />
       </div>
     </section>
   )

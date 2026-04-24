@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Clock, TrendingUp, CheckCircle, Users } from "lucide-react"
+import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -58,7 +59,7 @@ export function UseCasesSection() {
   const activeCase = useCases[activeTab]
 
   return (
-    <section id="use-cases" className="py-20 bg-white relative overflow-hidden">
+    <section id="use-cases" className="pt-0 pb-0 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #f0fdfa 0%, #e6faf6 50%, #f0fdfa 100%)" }}>
       {/* Minimal wave accent - top left */}
       <svg className="absolute top-8 left-4 w-20 h-10 pointer-events-none opacity-30" viewBox="0 0 80 30">
         <path d="M0 15 C 20 8, 40 22, 60 15 S 80 8, 80 15" fill="none" stroke="#14b8a6" strokeWidth="1.5" strokeLinecap="round" />
@@ -199,6 +200,11 @@ export function UseCasesSection() {
             </div>
           </motion.div>
         </AnimatePresence>
+      </div>
+      
+      {/* Wave divider into white */}
+      <div className="mt-20">
+        <WaveDivider fillColor="#ffffff" direction="down" />
       </div>
     </section>
   )

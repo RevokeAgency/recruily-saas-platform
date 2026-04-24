@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Mail, Phone, MapPin, Send } from "lucide-react"
 import { toast } from "sonner"
+import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -30,7 +31,7 @@ export function ContactSection() {
   }
 
   return (
-    <section id="contact" className="py-20 bg-slate-50 relative overflow-hidden">
+    <section id="contact" className="pt-20 pb-0 bg-white relative overflow-hidden">
       {/* Minimal wave accent - top left */}
       <svg className="absolute top-8 left-6 w-16 h-8 pointer-events-none opacity-25" viewBox="0 0 60 24">
         <path d="M0 12 C 15 6, 30 18, 45 12 S 60 6, 60 12" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" />
@@ -173,6 +174,11 @@ export function ContactSection() {
             </form>
           </motion.div>
         </div>
+      </div>
+      
+      {/* Wave divider into slate-900 (footer) */}
+      <div className="mt-20">
+        <WaveDivider fillColor="#0f172a" direction="down" />
       </div>
     </section>
   )
