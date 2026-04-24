@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Clock, TrendingUp, CheckCircle, Users } from "lucide-react"
+import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -58,7 +59,7 @@ export function UseCasesSection() {
   const activeCase = useCases[activeTab]
 
   return (
-    <section id="use-cases" className="pt-0 pb-0 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #f0fdfa 0%, #e6faf6 50%, #f0fdfa 100%)" }}>
+    <section id="use-cases" className="pt-0 pb-0 relative overflow-hidden bg-[#0D9488]">
       {/* Minimal wave accent - top left */}
       <svg className="absolute top-8 left-4 w-20 h-10 pointer-events-none opacity-30" viewBox="0 0 80 30">
         <path d="M0 15 C 20 8, 40 22, 60 15 S 80 8, 80 15" fill="none" stroke="#14b8a6" strokeWidth="1.5" strokeLinecap="round" />
@@ -76,10 +77,10 @@ export function UseCasesSection() {
           className="text-center mb-12"
           {...fadeInUp}
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             Streamline Your Recruitment Process
           </h2>
-          <p className="text-lg text-slate-600">
+          <p className="text-lg text-white/80">
             Reduce time-to-hire and improve candidate quality with our intelligent platform
           </p>
         </motion.div>
@@ -92,14 +93,14 @@ export function UseCasesSection() {
           transition={{ duration: 0.4, delay: 0.1 }}
         >
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="mb-12">
-            <TabsList className="w-full max-w-2xl mx-auto h-14 bg-slate-100 rounded-xl p-1.5 grid grid-cols-3">
-              <TabsTrigger value="time" className="rounded-lg text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <TabsList className="w-full max-w-2xl mx-auto h-14 bg-white/20 rounded-xl p-1.5 grid grid-cols-3">
+              <TabsTrigger value="time" className="rounded-lg text-sm text-white/80 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">
                 Time Savings
               </TabsTrigger>
-              <TabsTrigger value="quality" className="rounded-lg text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsTrigger value="quality" className="rounded-lg text-sm text-white/80 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">
                 Quality Improvement
               </TabsTrigger>
-              <TabsTrigger value="cost" className="rounded-lg text-sm data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsTrigger value="cost" className="rounded-lg text-sm text-white/80 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">
                 Cost Reduction
               </TabsTrigger>
             </TabsList>
@@ -118,10 +119,10 @@ export function UseCasesSection() {
           >
             {/* Left Content */}
             <div className="space-y-8">
-              <h3 className="text-2xl sm:text-3xl font-bold text-slate-900">
+              <h3 className="text-2xl sm:text-3xl font-bold text-white">
                 {activeCase.title}
               </h3>
-              <p className="text-slate-600">
+              <p className="text-white/80">
                 {activeCase.description}
               </p>
 
@@ -134,18 +135,18 @@ export function UseCasesSection() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
                   >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#0D9488]/10 flex items-center justify-center">
-                      <feature.icon className="h-5 w-5 text-[#0D9488]" />
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                      <feature.icon className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-slate-900">{feature.title}</h4>
-                      <p className="text-sm text-slate-600">{feature.description}</p>
+                      <h4 className="font-semibold text-white">{feature.title}</h4>
+                      <p className="text-sm text-white/70">{feature.description}</p>
                     </div>
                   </motion.div>
                 ))}
               </div>
 
-              <Button className="bg-[#0D9488] hover:bg-[#0B7C72] text-white rounded-lg px-6">
+              <Button className="bg-white hover:bg-slate-100 text-[#0D9488] rounded-lg px-6">
                 {activeCase.button}
               </Button>
             </div>
@@ -200,7 +201,11 @@ export function UseCasesSection() {
           </motion.div>
         </AnimatePresence>
       </div>
-      <div className="mt-20" />
+      
+      {/* Wave divider into white (Features) */}
+      <div className="mt-20">
+        <WaveDivider fillColor="#ffffff" direction="down" />
+      </div>
     </section>
   )
 }

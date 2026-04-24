@@ -7,6 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -40,7 +41,7 @@ const faqs = [
 
 export function FAQSection() {
   return (
-    <section id="faq" className="pt-0 pb-0 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #f0fdfa 0%, #e6faf6 50%, #f0fdfa 100%)" }}>
+    <section id="faq" className="pt-0 pb-0 relative overflow-hidden bg-[#0D9488]">
       {/* Minimal arc - left */}
       <svg className="absolute left-0 bottom-1/4 w-24 h-24 pointer-events-none opacity-20" viewBox="0 0 100 100">
         <path d="M0 100 Q 0 0, 100 0" fill="none" stroke="#94a3b8" strokeWidth="1" />
@@ -60,11 +61,11 @@ export function FAQSection() {
           className="text-center mb-12"
           {...fadeInUp}
         >
-          <p className="text-sm font-medium text-[#0D9488] mb-2">Common Questions</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+          <p className="text-sm font-medium text-white/80 mb-2">Common Questions</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-lg text-slate-600">
+          <p className="text-lg text-white/80">
             Find answers to common questions about Recruitify.
           </p>
         </motion.div>
@@ -101,7 +102,11 @@ export function FAQSection() {
           </Accordion>
         </motion.div>
       </div>
-      <div className="mt-20" />
+      
+      {/* Wave divider into white (Contact) */}
+      <div className="mt-20">
+        <WaveDivider fillColor="#ffffff" direction="down" />
+      </div>
     </section>
   )
 }

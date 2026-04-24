@@ -46,7 +46,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="pt-20 pb-0 bg-white relative overflow-hidden">
+    <section id="features" className="pt-0 pb-0 bg-white relative overflow-hidden">
       {/* Minimal dot pattern - left */}
       <div className="absolute bottom-16 left-8 grid grid-cols-3 gap-2 opacity-30 pointer-events-none">
         {Array.from({ length: 12 }).map((_, i) => (

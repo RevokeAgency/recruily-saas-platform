@@ -5,6 +5,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
+import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -97,7 +98,11 @@ export function DashboardPreviewSection() {
           </Button>
         </motion.div>
       </div>
-      <div className="mt-20" />
+      
+      {/* Wave divider into white (Testimonials) */}
+      <div className="mt-20">
+        <WaveDivider fillColor="#ffffff" direction="down" />
+      </div>
     </section>
   )
 }

@@ -48,7 +48,7 @@ export function TestimonialsSection() {
   const current = testimonials[currentIndex]
 
   return (
-    <section className="pt-0 pb-0 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #f0fdfa 0%, #e6faf6 50%, #f0fdfa 100%)" }}>
+    <section className="pt-20 pb-20 relative overflow-hidden bg-white">
       {/* Minimal vertical lines - right */}
       <div className="absolute top-16 right-16 flex gap-3 opacity-20 pointer-events-none">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -166,13 +166,12 @@ export function TestimonialsSection() {
           transition={{ duration: 0.4, delay: 0.2 }}
         >
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="w-24 h-28 bg-white/60 rounded-lg flex items-center justify-center border border-teal-100">
+            <div key={i} className="w-24 h-28 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-200">
               <div className="w-3 h-3 rounded-full bg-slate-300" />
             </div>
           ))}
         </motion.div>
       </div>
-      <div className="mt-20" />
     </section>
   )
 }

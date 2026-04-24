@@ -71,7 +71,7 @@ export function PricingSection() {
   const [annual, setAnnual] = useState(false)
 
   return (
-    <section id="pricing" className="pt-20 pb-0 bg-white relative overflow-hidden">
+    <section id="pricing" className="pt-0 pb-0 bg-white relative overflow-hidden">
       {/* Minimal arc - left */}
       <svg className="absolute left-0 bottom-1/4 w-32 h-32 pointer-events-none opacity-20" viewBox="0 0 100 100">
         <path d="M0 100 Q 0 0, 100 0" fill="none" stroke="#94a3b8" strokeWidth="1" />

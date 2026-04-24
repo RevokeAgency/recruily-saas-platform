@@ -31,7 +31,7 @@ export function ContactSection() {
   }
 
   return (
-    <section id="contact" className="pt-20 pb-0 bg-white relative overflow-hidden">
+    <section id="contact" className="pt-0 pb-0 bg-white relative overflow-hidden">
       {/* Minimal wave accent - top left */}
       <svg className="absolute top-8 left-6 w-16 h-8 pointer-events-none opacity-25" viewBox="0 0 60 24">
         <path d="M0 12 C 15 6, 30 18, 45 12 S 60 6, 60 12" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" />
