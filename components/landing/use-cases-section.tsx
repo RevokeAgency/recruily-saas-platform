@@ -60,17 +60,6 @@ export function UseCasesSection() {
 
   return (
     <section id="use-cases" className="pt-0 pb-0 relative overflow-hidden bg-[#0D9488]">
-      {/* Minimal wave accent - top left */}
-      <svg className="absolute top-8 left-4 w-20 h-10 pointer-events-none opacity-30" viewBox="0 0 80 30">
-        <path d="M0 15 C 20 8, 40 22, 60 15 S 80 8, 80 15" fill="none" stroke="#14b8a6" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M0 22 C 20 15, 40 29, 60 22 S 80 15, 80 22" fill="none" stroke="#14b8a6" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-      
-      {/* Subtle gradient arc - right */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[400px] h-[400px] pointer-events-none">
-        <div className="w-full h-full rounded-full bg-gradient-to-l from-slate-100/80 to-transparent" style={{ clipPath: "inset(0 0 0 50%)" }} />
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
         <motion.div 

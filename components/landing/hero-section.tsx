@@ -16,35 +16,6 @@ const fadeInUp = {
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-white pt-8 pb-0 lg:pt-16">
-      {/* Minimal blob - right edge */}
-      <div className="absolute right-0 top-1/3 translate-x-1/3 w-[500px] h-[500px] bg-gradient-to-br from-slate-100 to-slate-200/50 rounded-full blur-sm pointer-events-none" />
-      
-      {/* Geometric accent - top right */}
-      <svg className="absolute top-16 right-[15%] w-24 h-24 pointer-events-none opacity-20" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="48" fill="none" stroke="#94a3b8" strokeWidth="0.5" />
-        <circle cx="50" cy="50" r="36" fill="none" stroke="#94a3b8" strokeWidth="0.5" />
-        <circle cx="50" cy="50" r="24" fill="none" stroke="#94a3b8" strokeWidth="0.5" />
-        <circle cx="50" cy="50" r="12" fill="none" stroke="#94a3b8" strokeWidth="0.5" />
-      </svg>
-
-      {/* Subtle wave accent - top left */}
-      <svg className="absolute top-20 left-6 w-24 h-12 pointer-events-none opacity-40" viewBox="0 0 100 40">
-        <path d="M0 20 C 20 10, 40 30, 60 20 S 100 10, 100 20" fill="none" stroke="#14b8a6" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M0 28 C 20 18, 40 38, 60 28 S 100 18, 100 28" fill="none" stroke="#14b8a6" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-
-      {/* Dot grid - bottom left */}
-      <div className="absolute bottom-24 left-6 grid grid-cols-4 gap-3 pointer-events-none opacity-50">
-        {Array.from({ length: 16 }).map((_, i) => (
-          <div key={i} className="w-1.5 h-1.5 rounded-full bg-teal-400" />
-        ))}
-      </div>
-
-      {/* Small accent line - bottom left */}
-      <svg className="absolute bottom-16 left-10 w-12 h-6 pointer-events-none opacity-40" viewBox="0 0 50 20">
-        <path d="M0 10 Q 12 5, 25 10 T 50 10" fill="none" stroke="#14b8a6" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Content */}
@@ -96,10 +67,6 @@ export function HeroSection() {
               </Button>
             </motion.div>
 
-            {/* Small decorative dot */}
-            <motion.div variants={fadeInUp} className="pt-4">
-              <div className="w-2 h-2 rounded-full bg-teal-300/60" />
-            </motion.div>
           </motion.div>
 
           {/* Right Column - Image */}
