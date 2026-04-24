@@ -142,9 +142,9 @@ export function AppSidebar() {
             <Image 
               src="/images/recruily-logo.png" 
               alt="Recruily" 
-              width={160} 
-              height={40} 
-              className="h-9 w-auto object-contain"
+              width={280} 
+              height={70} 
+              className="h-14 w-auto object-contain"
             />
           </Link>
         )}
