@@ -22,15 +22,15 @@ const faqs = [
     answer: "Our AI analyzes both job descriptions and candidate resumes to identify matching skills, experience, and qualifications. It goes beyond keyword matching by understanding context and semantic meaning to provide more accurate matches.",
   },
   {
-    question: "Can I integrate Recruitify with my existing ATS?",
-    answer: "Yes, Recruitify offers API integration with most popular Applicant Tracking Systems. Our team can help you set up a seamless connection to ensure data flows smoothly between systems.",
+    question: "Can I integrate Recruily with my existing ATS?",
+    answer: "Yes, Recruily offers API integration with most popular Applicant Tracking Systems. Our team can help you set up a seamless connection to ensure data flows smoothly between systems.",
   },
   {
     question: "How long does the free trial last?",
     answer: "Our free trial lasts for 14 days with full access to all features. No credit card is required to start, and you can cancel anytime.",
   },
   {
-    question: "Is my data secure with Recruitify?",
+    question: "Is my data secure with Recruily?",
     answer: "Absolutely. We use enterprise-grade encryption and comply with GDPR, CCPA, and other data protection regulations. Your data is stored securely and never shared with third parties without your explicit consent.",
   },
   {
@@ -66,7 +66,7 @@ export function FAQSection() {
             Frequently Asked Questions
           </h2>
           <p className="text-lg text-white/80">
-            Find answers to common questions about Recruitify.
+            Find answers to common questions about Recruily.
           </p>
         </motion.div>
 

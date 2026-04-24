@@ -21,7 +21,7 @@ const testimonials = [
     initials: "ER",
   },
   {
-    quote: "Recruitify has transformed how we hire. We've cut our time-to-hire in half and the quality of candidates has improved significantly.",
+    quote: "Recruily has transformed how we hire. We've cut our time-to-hire in half and the quality of candidates has improved significantly.",
     name: "Michael Chen",
     role: "HR Director, TechStart GmbH",
     initials: "MC",
@@ -70,10 +70,10 @@ export function TestimonialsSection() {
           {...fadeInUp}
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Why HR Teams Love Recruitify
+            Why HR Teams Love Recruily
           </h2>
           <p className="text-lg text-slate-600">
-            See what our customers have to say about Recruitify.
+            See what our customers have to say about Recruily.
           </p>
         </motion.div>
 

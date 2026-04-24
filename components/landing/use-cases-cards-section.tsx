@@ -52,7 +52,7 @@ export function UseCasesCardsSection() {
             Use Cases
           </h2>
           <p className="text-lg text-slate-600">
-            See how different organizations benefit from Recruitify
+            See how different organizations benefit from Recruily
           </p>
         </motion.div>
 

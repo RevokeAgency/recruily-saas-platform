@@ -33,7 +33,7 @@ export function CTASection() {
             Ready to Match Smarter?
           </h2>
           <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of companies that have streamlined their recruitment process with Recruitify.
+            Join thousands of companies that have streamlined their recruitment process with Recruily.
           </p>
         </motion.div>
         

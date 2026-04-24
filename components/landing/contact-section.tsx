@@ -73,7 +73,7 @@ export function ContactSection() {
 
             <div className="space-y-6">
               {[
-                { icon: Mail, label: "Email", value: "info@recruitify.com" },
+                { icon: Mail, label: "Email", value: "info@recruily.com" },
                 { icon: Phone, label: "Phone", value: "+49 30 123 456 789" },
               ].map((item, i) => (
                 <motion.div 

@@ -60,7 +60,7 @@ export function DashboardPreviewSection() {
               </div>
               <div className="flex-1 flex justify-center">
                 <div className="bg-white rounded-lg px-4 py-1.5 text-sm text-slate-600 border border-slate-200">
-                  app.recruitify.io/dashboard
+                  app.recruily.io/dashboard
                 </div>
               </div>
             </div>
@@ -69,7 +69,7 @@ export function DashboardPreviewSection() {
             <div className="aspect-[16/9] bg-slate-50 relative">
               <Image
                 src="/images/dashboard-preview.png"
-                alt="Recruitify Dashboard"
+                alt="Recruily Dashboard"
                 fill
                 className="object-cover object-top"
               />

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Globe, ChevronDown, Menu, X } from "lucide-react"
 import {
@@ -39,9 +40,14 @@ export function Navbar({ onLoginClick }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#0D9488]" />
-            <span className="text-xl font-bold text-slate-900">Recruitify</span>
+          <Link href="/" className="flex items-center">
+            <Image 
+              src="/images/recruily-logo.png" 
+              alt="Recruily" 
+              width={150} 
+              height={40} 
+              className="h-8 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}

@@ -61,7 +61,7 @@ export function HeroSection() {
               </Button>
               <Button asChild size="lg" className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg px-6 h-12 text-base font-medium shadow-sm">
                 <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">
-                  How Recruitify Works
+                  How Recruily Works
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </a>
               </Button>

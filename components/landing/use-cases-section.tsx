@@ -160,7 +160,7 @@ export function UseCasesSection() {
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-slate-600">With Recruitify: {activeCase.metric.recruitify}</span>
+                      <span className="text-sm text-slate-600">With Recruily: {activeCase.metric.recruitify}</span>
                     </div>
                     <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                       <motion.div 

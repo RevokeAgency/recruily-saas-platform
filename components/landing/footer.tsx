@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 
 export function Footer() {
   return (
@@ -7,9 +8,14 @@ export function Footer() {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div className="md:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-full bg-white" />
-              <span className="text-xl font-bold">Recruitify</span>
+            <Link href="/" className="flex items-center mb-4">
+              <Image 
+                src="/images/recruily-logo.png" 
+                alt="Recruily" 
+                width={150} 
+                height={40} 
+                className="h-8 w-auto brightness-0 invert"
+              />
             </Link>
             <p className="text-white/70 text-sm max-w-sm">
               AI-powered recruitment platform that helps you find the perfect candidates faster than ever.
@@ -40,7 +46,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-white/20 mt-12 pt-8 text-center text-sm text-white/60">
-          <p>&copy; {new Date().getFullYear()} Recruitify. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Recruily. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -57,9 +58,14 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-[#0D9488]" />
-            <span className="text-xl font-bold text-slate-900">Recruitify</span>
+          <div className="flex items-center mb-2">
+            <Image 
+              src="/images/recruily-logo.png" 
+              alt="Recruily" 
+              width={150} 
+              height={40} 
+              className="h-8 w-auto"
+            />
           </div>
           <DialogTitle className="text-2xl font-bold text-slate-900">
             Welcome back
