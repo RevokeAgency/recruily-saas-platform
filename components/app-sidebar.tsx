@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import {
@@ -137,11 +138,14 @@ export function AppSidebar() {
       {/* Logo & Menu Toggle */}
       <div className="flex items-center justify-between p-5 border-b border-slate-200">
         {!collapsed && (
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-bold text-base">R</span>
-            </div>
-            <span className="font-bold text-xl text-slate-900 tracking-tight">Recruily</span>
+          <Link href="/dashboard" className="flex items-center">
+            <Image 
+              src="/images/recruily-logo.png" 
+              alt="Recruily" 
+              width={200} 
+              height={50} 
+              className="h-10 w-auto"
+            />
           </Link>
         )}
         <Button
