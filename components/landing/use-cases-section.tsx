@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Clock, TrendingUp, CheckCircle, Users } from "lucide-react"
-import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -201,11 +200,7 @@ export function UseCasesSection() {
           </motion.div>
         </AnimatePresence>
       </div>
-      
-      {/* Wave divider into white */}
-      <div className="mt-20">
-        <WaveDivider fillColor="#0D9488" direction="down" />
-      </div>
+      <div className="mt-20" />
     </section>
   )
 }

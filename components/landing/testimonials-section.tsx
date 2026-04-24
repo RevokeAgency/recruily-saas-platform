@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -173,11 +172,7 @@ export function TestimonialsSection() {
           ))}
         </motion.div>
       </div>
-      
-      {/* Wave divider into white (pricing) */}
-      <div className="mt-20">
-        <WaveDivider fillColor="#0D9488" direction="up" />
-      </div>
+      <div className="mt-20" />
     </section>
   )
 }

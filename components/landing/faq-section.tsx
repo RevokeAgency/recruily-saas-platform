@@ -7,7 +7,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { WaveDivider } from "./wave-divider"
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -102,11 +101,7 @@ export function FAQSection() {
           </Accordion>
         </motion.div>
       </div>
-      
-      {/* Wave divider into white (contact) */}
-      <div className="mt-20">
-        <WaveDivider fillColor="#0D9488" direction="up" />
-      </div>
+      <div className="mt-20" />
     </section>
   )
 }
