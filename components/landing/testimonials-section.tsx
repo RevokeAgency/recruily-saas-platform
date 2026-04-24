@@ -61,8 +61,7 @@ export function TestimonialsSection() {
         <div className="w-full h-full rounded-full bg-gradient-to-l from-slate-100/60 to-transparent" style={{ clipPath: "inset(0 0 0 50%)" }} />
       </div>
 
-      {/* Dark accent shape - left */}
-      <div className="absolute bottom-0 left-0 w-24 h-36 bg-slate-700/80 rounded-tr-full pointer-events-none" />
+      
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
