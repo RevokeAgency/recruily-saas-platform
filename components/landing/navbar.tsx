@@ -44,9 +44,9 @@ export function Navbar({ onLoginClick }: NavbarProps) {
             <Image 
               src="/images/recruily-logo.png" 
               alt="Recruily" 
-              width={280} 
-              height={70} 
-              className="h-16 w-auto"
+              width={320} 
+              height={80} 
+              className="h-20 w-auto"
             />
           </Link>
 
