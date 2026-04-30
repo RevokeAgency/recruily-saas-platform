@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "sonner"
 
 interface LoginModalProps {
@@ -25,31 +27,33 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        toast.error(data.error || "Login failed")
+      if (error) {
+        toast.error(error.message === "Invalid login credentials" 
+          ? "Ungültige Anmeldedaten" 
+          : error.message)
         setLoading(false)
         return
       }
 
-      toast.success("Login successful!")
+      toast.success("Erfolgreich angemeldet!")
       onOpenChange(false)
       router.push("/dashboard")
+      router.refresh()
     } catch (error) {
-      toast.error("Something went wrong")
+      toast.error("Ein Fehler ist aufgetreten")
       setLoading(false)
     }
   }
@@ -68,20 +72,20 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             />
           </div>
           <DialogTitle className="text-2xl font-bold text-slate-900">
-            Welcome back
+            Willkommen zurück
           </DialogTitle>
           <p className="text-slate-600 text-sm">
-            Sign in to your account to continue
+            Melden Sie sich an, um fortzufahren
           </p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div>
-            <Label htmlFor="login-email" className="text-slate-700">Email</Label>
+            <Label htmlFor="login-email" className="text-slate-700">E-Mail</Label>
             <Input
               id="login-email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="max@beispiel.de"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -90,7 +94,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           </div>
 
           <div>
-            <Label htmlFor="login-password" className="text-slate-700">Password</Label>
+            <Label htmlFor="login-password" className="text-slate-700">Passwort</Label>
             <Input
               id="login-password"
               type="password"
@@ -102,23 +106,43 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             />
           </div>
 
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+              />
+              <Label htmlFor="remember" className="text-sm text-slate-600 cursor-pointer">
+                Angemeldet bleiben
+              </Label>
+            </div>
+            <Link
+              href="/auth/reset"
+              className="text-sm text-[#0D9488] hover:underline"
+              onClick={() => onOpenChange(false)}
+            >
+              Passwort vergessen?
+            </Link>
+          </div>
+
           <Button
             type="submit"
             disabled={loading}
             className="w-full bg-[#0D9488] hover:bg-[#0B7C72] text-white rounded-lg"
           >
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "Wird angemeldet..." : "Anmelden"}
           </Button>
         </form>
 
         <div className="text-center text-sm text-slate-600 mt-4">
-          {"Don't have an account? "}
+          {"Noch kein Konto? "}
           <Link
             href="/auth/register"
             className="text-[#0D9488] font-medium hover:underline"
             onClick={() => onOpenChange(false)}
           >
-            Sign up
+            Registrieren
           </Link>
         </div>
       </DialogContent>

@@ -1,7 +1,10 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import Image from "next/image"
+import { usePathname, useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import {
   LayoutDashboard,
   Briefcase,
@@ -12,11 +15,12 @@ import {
   HelpCircle,
   Bell,
   Menu,
+  Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useState } from "react"
+import { toast } from "sonner"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -34,15 +38,95 @@ const navigation = [
   { name: "Einstellungen", href: "/settings", icon: Settings },
 ]
 
-const mockUser = {
-  name: "Max Mustermann",
-  email: "max@recruily.de",
-  initials: "MM",
+interface UserProfile {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  email: string
+  plan: string
+  matches_used: number
+  matches_limit: number
 }
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadUser() {
+      const supabase = createClient()
+      
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      
+      if (!authUser) {
+        setLoading(false)
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single()
+
+      if (profile) {
+        setUser({
+          id: authUser.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          email: authUser.email || '',
+          plan: profile.plan,
+          matches_used: profile.matches_used,
+          matches_limit: profile.matches_limit,
+        })
+      } else {
+        // Fallback if profile doesn't exist yet
+        setUser({
+          id: authUser.id,
+          first_name: authUser.user_metadata?.first_name || null,
+          last_name: authUser.user_metadata?.last_name || null,
+          email: authUser.email || '',
+          plan: 'free',
+          matches_used: 0,
+          matches_limit: 10,
+        })
+      }
+      
+      setLoading(false)
+    }
+
+    loadUser()
+  }, [])
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    toast.success("Erfolgreich abgemeldet")
+    router.push("/")
+    router.refresh()
+  }
+
+  // Calculate match usage percentage and color
+  const matchPercentage = user ? (user.matches_used / user.matches_limit) * 100 : 0
+  const remainingPercentage = 100 - matchPercentage
+  
+  const getProgressColor = () => {
+    if (remainingPercentage <= 0) return "bg-red-500"
+    if (remainingPercentage <= 20) return "bg-amber-500"
+    return "bg-[#0D9488]"
+  }
+
+  // Get user display name and initials
+  const displayName = user 
+    ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Benutzer'
+    : 'Benutzer'
+  
+  const initials = user
+    ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase() || 'U'
+    : 'U'
 
   return (
     <aside
@@ -54,11 +138,14 @@ export function AppSidebar() {
       {/* Logo & Menu Toggle */}
       <div className="flex items-center justify-between p-5 border-b border-slate-200">
         {!collapsed && (
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-bold text-base">R</span>
-            </div>
-            <span className="font-bold text-xl text-slate-900 tracking-tight">Recruily</span>
+          <Link href="/dashboard" className="flex items-center">
+            <Image 
+              src="/images/recruily-logo.png" 
+              alt="Recruily" 
+              width={280} 
+              height={70} 
+              className="h-14 w-auto object-contain"
+            />
           </Link>
         )}
         <Button
@@ -99,7 +186,36 @@ export function AppSidebar() {
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-3 border-t border-sidebar-border space-y-2">
+      <div className="p-3 border-t border-sidebar-border space-y-3">
+        {/* Match Counter Widget */}
+        {!collapsed && user && (
+          <div className="bg-slate-50 rounded-xl p-3 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2 text-slate-600">
+                <Sparkles className="h-4 w-4 text-[#0D9488]" />
+                <span>KI-Matches</span>
+              </div>
+              <span className="font-medium text-slate-900">
+                {user.matches_used}/{user.matches_limit}
+              </span>
+            </div>
+            <div className="relative h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div 
+                className={cn("absolute inset-y-0 left-0 rounded-full transition-all", getProgressColor())}
+                style={{ width: `${Math.min(matchPercentage, 100)}%` }}
+              />
+            </div>
+            {remainingPercentage <= 20 && (
+              <p className="text-xs text-amber-600">
+                {remainingPercentage <= 0 
+                  ? "Limit erreicht - Upgrade erforderlich"
+                  : `Nur noch ${user.matches_limit - user.matches_used} Matches übrig`
+                }
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Quick Actions */}
         {!collapsed && (
           <div className="flex items-center justify-center gap-1 pb-2">
@@ -124,13 +240,17 @@ export function AppSidebar() {
             >
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  {mockUser.initials}
+                  {initials}
                 </AvatarFallback>
               </Avatar>
               {!collapsed && (
                 <div className="flex-1 text-left min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{mockUser.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{mockUser.email}</p>
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {loading ? "Lädt..." : displayName}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user?.email || ""}
+                  </p>
                 </div>
               )}
             </button>
@@ -147,7 +267,10 @@ export function AppSidebar() {
               Hilfe & Support
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem 
+              className="text-destructive cursor-pointer"
+              onClick={handleLogout}
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Abmelden
             </DropdownMenuItem>
