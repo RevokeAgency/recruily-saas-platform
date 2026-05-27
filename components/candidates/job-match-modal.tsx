@@ -23,6 +23,8 @@ import {
   AlertCircle,
 } from "lucide-react"
 import { toast } from "sonner"
+import { PaywallModal } from "@/components/ui/paywall-modal"
+import { useProfile } from "@/lib/hooks/useProfile"
 
 interface Job {
   id: string
@@ -61,6 +63,8 @@ export function JobMatchModal({
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [isMatching, setIsMatching] = useState(false)
   const [matchStatus, setMatchStatus] = useState<"idle" | "success" | "error">("idle")
+  const [paywallOpen, setPaywallOpen] = useState(false)
+  const { profile } = useProfile()
 
   const { data, isLoading } = useSWR<{ jobs: Job[] }>(
     open ? "/api/jobs" : null,
@@ -93,6 +97,11 @@ export function JobMatchModal({
       })
 
       const result = await response.json()
+
+      if (response.status === 403 && result.error === "match_limit_reached") {
+        setPaywallOpen(true)
+        return
+      }
 
       if (!response.ok) {
         toast.error(result.error || "Fehler beim Matching")
@@ -129,6 +138,12 @@ export function JobMatchModal({
   }
 
   return (
+    <>
+    <PaywallModal
+      isOpen={paywallOpen}
+      onClose={() => setPaywallOpen(false)}
+      matchesUsed={profile?.matches_used ?? 0}
+    />
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl flex flex-col">
         <DialogHeader>
@@ -258,5 +273,6 @@ export function JobMatchModal({
         )}
       </DialogContent>
     </Dialog>
+    </>
   )
 }

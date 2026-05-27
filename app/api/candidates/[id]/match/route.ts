@@ -14,6 +14,35 @@ export async function POST(
       return Response.json({ error: "jobId is required" }, { status: 400 })
     }
 
+    // Check match limit
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("matches_used, matches_limit")
+      .eq("id", user.id)
+      .single()
+
+    if (profileError || !profile) {
+      return Response.json({ error: "Profil nicht gefunden" }, { status: 404 })
+    }
+
+    if (profile.matches_used >= profile.matches_limit) {
+      return Response.json(
+        { error: "match_limit_reached", used: profile.matches_used, limit: profile.matches_limit },
+        { status: 403 }
+      )
+    }
+
+    // Increment matches_used before proceeding
+    await supabase
+      .from("profiles")
+      .update({ matches_used: profile.matches_used + 1 })
+      .eq("id", user.id)
+
     // Check if candidate exists
     const { data: candidate, error: candidateError } = await supabase
       .from("candidates")
