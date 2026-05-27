@@ -21,7 +21,7 @@ export async function POST(
     }
 
     const { data: profile, error: profileError } = await supabase
-      .from("profiles")
+      .from("user_profiles")
       .select("matches_used, matches_limit")
       .eq("id", user.id)
       .single()
@@ -39,7 +39,7 @@ export async function POST(
 
     // Increment matches_used before proceeding
     await supabase
-      .from("profiles")
+      .from("user_profiles")
       .update({ matches_used: profile.matches_used + 1 })
       .eq("id", user.id)
 
