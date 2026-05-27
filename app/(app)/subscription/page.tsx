@@ -9,92 +9,48 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Check, Zap, Crown, Sparkles, Building } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useProfile } from "@/lib/hooks/useProfile"
+import { PLANS, type PlanId } from "@/lib/plans"
 
-const currentPlan = {
-  name: "Starter",
-  matchesUsed: 47,
-  matchesTotal: 100,
-  activeJobs: 3,
-  activeJobsLimit: 5,
-  renewalDate: "1. April 2024",
+const planIcons: Record<PlanId, React.ElementType> = {
+  free: Zap,
+  starter: Sparkles,
+  growth: Crown,
+  pro: Building,
 }
 
-const plans = [
-  {
-    id: "free",
-    name: "Free",
-    description: "Perfekt zum Ausprobieren",
-    price: { monthly: 0, annual: 0 },
-    features: [
-      "10 Matches pro Monat",
-      "1 aktiver Job",
-      "Basis-Matching",
-      "E-Mail Support",
-    ],
-    icon: Zap,
-    popular: false,
-  },
-  {
-    id: "starter",
-    name: "Starter",
-    description: "Für kleine Teams",
-    price: { monthly: 49, annual: 39 },
-    features: [
-      "100 Matches pro Monat",
-      "5 aktive Jobs",
-      "Vollständiges 9-Kategorien Matching",
-      "E-Mail Support",
-      "CV-Parsing mit AI",
-    ],
-    icon: Sparkles,
-    popular: false,
-    current: true,
-  },
-  {
-    id: "growth",
-    name: "Growth",
-    description: "Für wachsende Unternehmen",
-    price: { monthly: 149, annual: 119 },
-    features: [
-      "500 Matches pro Monat",
-      "20 aktive Jobs",
-      "Prioritäts-Matching",
-      "AI Screening Calls (V1.5)",
-      "Priority Support",
-      "Erweiterte Analysen",
-    ],
-    icon: Crown,
-    popular: true,
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    description: "Für Enterprise",
-    price: { monthly: 299, annual: 239 },
-    features: [
-      "Unbegrenzte Matches",
-      "Unbegrenzte Jobs",
-      "Alle Features",
-      "Dedicated Support",
-      "Custom Integrations",
-      "API Zugang",
-      "SSO",
-    ],
-    icon: Building,
-    popular: false,
-  },
-]
+const planDescriptions: Record<PlanId, string> = {
+  free: 'Perfekt zum Ausprobieren',
+  starter: 'Für kleine Teams',
+  growth: 'Für wachsende Unternehmen',
+  pro: 'Für Enterprise',
+}
 
 export default function SubscriptionPage() {
   const [isAnnual, setIsAnnual] = useState(false)
+  const { profile, loading } = useProfile()
 
-  const matchPercentage = (currentPlan.matchesUsed / currentPlan.matchesTotal) * 100
+  const currentPlanId = profile?.plan || 'free'
+  const matchesUsed = profile?.matches_used || 0
+  const matchesLimit = profile?.matches_limit || 10
+  const matchPercentage = (matchesUsed / matchesLimit) * 100
+
+  // Format renewal date
+  const renewalDate = profile?.billing_period_end 
+    ? new Date(profile.billing_period_end).toLocaleDateString('de-DE', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      })
+    : null
+
+  const planOrder: PlanId[] = ['free', 'starter', 'growth', 'pro']
 
   return (
     <div className="p-6 lg:p-8 space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Subscription</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Abonnement</h1>
         <p className="text-muted-foreground mt-1">
           Verwalte dein Abo und deine Nutzung
         </p>
@@ -105,12 +61,18 @@ export default function SubscriptionPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Aktueller Plan: {currentPlan.name}</CardTitle>
+              <CardTitle className="text-lg">
+                Aktueller Plan: {PLANS[currentPlanId].label}
+              </CardTitle>
               <CardDescription>
-                Verlängert sich am {currentPlan.renewalDate}
+                {renewalDate && currentPlanId !== 'free' 
+                  ? `Verlängert sich am ${renewalDate}`
+                  : currentPlanId === 'free' 
+                  ? 'Kostenloser Plan - kein Ablaufdatum'
+                  : 'Plan aktiv'}
               </CardDescription>
             </div>
-            <Badge className="bg-primary text-primary-foreground">Aktiv</Badge>
+            <Badge className="bg-[#0D9488] text-white">Aktiv</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -120,29 +82,33 @@ export default function SubscriptionPage() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Matches verwendet</span>
                 <span className="font-medium text-foreground">
-                  {currentPlan.matchesUsed} / {currentPlan.matchesTotal}
+                  {loading ? '...' : `${matchesUsed} / ${matchesLimit}`}
                 </span>
               </div>
               <Progress value={matchPercentage} className="h-2" />
               <p className="text-xs text-muted-foreground">
-                Noch {currentPlan.matchesTotal - currentPlan.matchesUsed} Matches verfügbar
+                {loading ? 'Lädt...' : `Noch ${matchesLimit - matchesUsed} Matches verfügbar`}
               </p>
             </div>
 
             {/* Active Jobs */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Aktive Jobs</span>
+                <span className="text-muted-foreground">Aktive Jobs Limit</span>
                 <span className="font-medium text-foreground">
-                  {currentPlan.activeJobs} / {currentPlan.activeJobsLimit}
+                  {loading ? '...' : profile?.active_jobs_limit === 999 
+                    ? 'Unbegrenzt' 
+                    : `${profile?.active_jobs_limit || 1} Jobs`}
                 </span>
               </div>
               <Progress
-                value={(currentPlan.activeJobs / currentPlan.activeJobsLimit) * 100}
+                value={profile?.active_jobs_limit === 999 ? 5 : 50}
                 className="h-2"
               />
               <p className="text-xs text-muted-foreground">
-                Noch {currentPlan.activeJobsLimit - currentPlan.activeJobs} Jobs verfügbar
+                {PLANS[currentPlanId].active_jobs === 999 
+                  ? 'Unbegrenzte aktive Stellenanzeigen'
+                  : `Bis zu ${PLANS[currentPlanId].active_jobs} aktive Stellenanzeigen`}
               </p>
             </div>
           </div>
@@ -173,34 +139,46 @@ export default function SubscriptionPage() {
           )}
         >
           Jährlich
-          <Badge variant="secondary" className="bg-success/10 text-success text-xs">
-            -20%
+          <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+            2 Mo. gratis
           </Badge>
         </Label>
       </div>
 
       {/* Pricing Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {plans.map((plan) => {
-          const price = isAnnual ? plan.price.annual : plan.price.monthly
-          const isCurrent = plan.current
+        {planOrder.map((planId) => {
+          const plan = PLANS[planId]
+          const price = isAnnual 
+            ? Math.round(plan.price_yearly / 12) 
+            : plan.price_monthly
+          const isCurrent = planId === currentPlanId
+          const Icon = planIcons[planId]
 
           return (
             <Card
-              key={plan.id}
+              key={planId}
               className={cn(
                 "relative border transition-shadow hover:shadow-md",
-                plan.popular
-                  ? "border-primary shadow-sm"
+                plan.featured
+                  ? "border-[#0D9488] shadow-sm"
                   : isCurrent
-                  ? "border-primary/50"
+                  ? "border-[#0D9488]/50"
                   : "border-border"
               )}
             >
-              {plan.popular && (
+              {plan.featured && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground">
+                  <Badge className="bg-[#0D9488] text-white">
                     Beliebteste Wahl
+                  </Badge>
+                </div>
+              )}
+              
+              {isCurrent && !plan.featured && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <Badge variant="outline" className="border-[#0D9488] text-[#0D9488] bg-white">
+                    Dein aktueller Plan
                   </Badge>
                 </div>
               )}
@@ -209,19 +187,19 @@ export default function SubscriptionPage() {
                 <div
                   className={cn(
                     "w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2",
-                    plan.popular ? "bg-primary/10" : "bg-muted"
+                    plan.featured ? "bg-[#0D9488]/10" : "bg-muted"
                   )}
                 >
-                  <plan.icon
+                  <Icon
                     className={cn(
                       "h-6 w-6",
-                      plan.popular ? "text-primary" : "text-muted-foreground"
+                      plan.featured ? "text-[#0D9488]" : "text-muted-foreground"
                     )}
                   />
                 </div>
-                <CardTitle className="text-lg">{plan.name}</CardTitle>
+                <CardTitle className="text-lg">{plan.label}</CardTitle>
                 <CardDescription className="text-xs">
-                  {plan.description}
+                  {planDescriptions[planId]}
                 </CardDescription>
               </CardHeader>
 
@@ -235,17 +213,29 @@ export default function SubscriptionPage() {
                     <span className="text-muted-foreground text-sm">/Monat</span>
                   )}
                   {isAnnual && price > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Jährlich abgerechnet
+                    <p className="text-xs text-green-600 mt-1">
+                      €{plan.price_yearly}/Jahr — 2 Mo. gratis
                     </p>
                   )}
                 </div>
 
+                {/* Match info */}
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-[#0D9488]">
+                    {plan.matches_label}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {plan.active_jobs === 999 
+                      ? 'Unbegrenzte Jobs' 
+                      : `${plan.active_jobs} aktive Jobs`}
+                  </p>
+                </div>
+
                 {/* Features */}
                 <ul className="space-y-2">
-                  {plan.features.map((feature) => (
+                  {plan.features.slice(2, 7).map((feature) => (
                     <li key={feature} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
+                      <Check className="h-4 w-4 text-[#0D9488] flex-shrink-0 mt-0.5" />
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -253,8 +243,15 @@ export default function SubscriptionPage() {
 
                 {/* CTA */}
                 <Button
-                  className="w-full"
-                  variant={isCurrent ? "outline" : plan.popular ? "default" : "outline"}
+                  className={cn(
+                    "w-full",
+                    isCurrent 
+                      ? "border-[#0D9488] text-[#0D9488]" 
+                      : plan.featured 
+                      ? "bg-[#0D9488] hover:bg-[#0B7C72] text-white"
+                      : ""
+                  )}
+                  variant={isCurrent ? "outline" : plan.featured ? "default" : "outline"}
                   disabled={isCurrent}
                 >
                   {isCurrent ? "Aktueller Plan" : "Auswählen"}

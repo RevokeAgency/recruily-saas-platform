@@ -1,67 +1,102 @@
 // Plan definitions for Recruily subscription tiers
-// Used for displaying plan info and will be integrated with Stripe later
+// Used for displaying plan info and integrated with Stripe
 
 export const PLANS = {
   free: {
-    id: 'free',
-    name: 'Free',
-    nameDE: 'Kostenlos',
-    matchesLimit: 10,
-    price: 0,
-    priceId: null, // Stripe price ID will be added later
+    label: 'Free',
+    price_monthly: 0,
+    price_yearly: 0,
+    matches: 10,
+    matches_label: '10 Matches gesamt',
+    active_jobs: 1,
+    featured: false,
+    email_feature: false,
     features: [
-      '10 KI-Matches pro Monat',
-      'Basis-Kandidatensuche',
-      'E-Mail-Support',
+      '10 Matches gesamt',
+      '1 aktiver Job',
+      'IMLRS God Mode Score',
+      'KI-Zusammenfassung',
+      'Kandidaten-Pool',
+      'Kein CC erforderlich',
     ],
   },
   starter: {
-    id: 'starter',
-    name: 'Starter',
-    nameDE: 'Starter',
-    matchesLimit: 50,
-    price: 49,
-    priceId: null,
+    label: 'Starter',
+    price_monthly: 49,
+    price_yearly: 490,
+    matches: 50,
+    matches_label: '50 Matches/Monat',
+    active_jobs: 3,
+    featured: false,
+    email_feature: false,
     features: [
-      '50 KI-Matches pro Monat',
-      'Erweiterte Filteroptionen',
-      'Kandidaten-Export',
-      'Prioritäts-Support',
+      '50 Matches/Monat',
+      '3 aktive Jobs',
+      'IMLRS God Mode Score',
+      'KI-Zusammenfassung',
+      'Analytics Dashboard',
+      'CSV Export',
+      'E-Mail Support',
     ],
   },
   growth: {
-    id: 'growth',
-    name: 'Growth',
-    nameDE: 'Growth',
-    matchesLimit: 200,
-    price: 99,
-    priceId: null,
+    label: 'Growth',
+    price_monthly: 149,
+    price_yearly: 1490,
+    matches: 200,
+    matches_label: '200 Matches/Monat',
+    active_jobs: 10,
+    featured: true,
+    email_feature: true,
     features: [
-      '200 KI-Matches pro Monat',
-      'Team-Kollaboration (3 Nutzer)',
-      'API-Zugang',
-      'Dedizierter Account Manager',
+      '200 Matches/Monat',
+      '10 aktive Jobs',
+      'IMLRS God Mode Score',
+      'KI-Zusammenfassung',
+      'Analytics Dashboard',
+      'Custom KO-Kriterien',
+      'Branded Absage-Emails',
+      'Priority E-Mail Support',
     ],
   },
   pro: {
-    id: 'pro',
-    name: 'Pro',
-    nameDE: 'Pro',
-    matchesLimit: 500,
-    price: 199,
-    priceId: null,
+    label: 'Pro',
+    price_monthly: 299,
+    price_yearly: 2990,
+    matches: 500,
+    matches_label: '500 Matches/Monat',
+    active_jobs: 999,
+    featured: false,
+    email_feature: true,
     features: [
-      '500 KI-Matches pro Monat',
-      'Unbegrenzte Team-Mitglieder',
-      'White-Label-Option',
-      'Custom Integrationen',
-      '24/7 Premium-Support',
+      '500 Matches/Monat',
+      'Unbegrenzte aktive Jobs',
+      'IMLRS God Mode Score',
+      'KI-Zusammenfassung',
+      'Analytics Dashboard',
+      'Custom KO-Kriterien',
+      'Branded Absage-Emails',
+      'Eigene Absender-Domain',
+      'Priority Phone Support',
+      'Dedicated Onboarding Call',
     ],
   },
 } as const
 
 export type PlanId = keyof typeof PLANS
 export type Plan = typeof PLANS[PlanId]
+
+export const getPlanByPriceId = (priceId: string): PlanId | null => {
+  const map: Record<string, PlanId> = {
+    [process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY_PRICE_ID || '']: 'starter',
+    [process.env.NEXT_PUBLIC_STRIPE_STARTER_YEARLY_PRICE_ID || '']: 'starter',
+    [process.env.NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY_PRICE_ID || '']: 'growth',
+    [process.env.NEXT_PUBLIC_STRIPE_GROWTH_YEARLY_PRICE_ID || '']: 'growth',
+    [process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID || '']: 'pro',
+    [process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID || '']: 'pro',
+  }
+  return map[priceId] ?? null
+}
 
 export function getPlanByMatchLimit(limit: number): Plan {
   if (limit >= 500) return PLANS.pro
@@ -71,5 +106,5 @@ export function getPlanByMatchLimit(limit: number): Plan {
 }
 
 export function getMatchLimitByPlan(planId: PlanId): number {
-  return PLANS[planId].matchesLimit
+  return PLANS[planId].matches
 }
