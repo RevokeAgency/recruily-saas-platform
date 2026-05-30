@@ -12,7 +12,7 @@ export async function checkAndIncrementMatch(): Promise<MatchResult> {
   if (!user) throw new Error('Not authenticated')
 
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('user_profiles')
     .select('matches_used, matches_limit')
     .eq('id', user.id)
     .single()
@@ -29,7 +29,7 @@ export async function checkAndIncrementMatch(): Promise<MatchResult> {
   }
 
   await supabase
-    .from('profiles')
+    .from('user_profiles')
     .update({ matches_used: profile.matches_used + 1 })
     .eq('id', user.id)
 
@@ -48,7 +48,7 @@ export async function getMatchStatus() {
   if (!user) return null
 
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('user_profiles')
     .select('matches_used, matches_limit, plan')
     .eq('id', user.id)
     .single()

@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     // Check plan — only growth and pro can send emails
     const { data: profile } = await supabase
-      .from('profiles')
+      .from('user_profiles')
       .select('plan')
       .eq('id', user.id)
       .single()

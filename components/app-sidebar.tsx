@@ -66,7 +66,7 @@ export function AppSidebar() {
       }
 
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .select('*')
         .eq('id', authUser.id)
         .single()
