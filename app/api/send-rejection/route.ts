@@ -2,10 +2,16 @@ import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function POST(req: Request) {
   try {
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json(
+        { error: 'Email service not configured' },
+        { status: 503 }
+      )
+    }
+    const resend = new Resend(process.env.RESEND_API_KEY)
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     

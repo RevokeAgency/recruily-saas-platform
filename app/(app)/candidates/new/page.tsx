@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -46,7 +46,7 @@ const experienceLevelConfig = {
   senior: { label: "Senior", color: "bg-emerald-100 text-emerald-700", years: "6+ Jahre" },
 }
 
-export default function NewCandidatePage() {
+function NewCandidateContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const jobId = searchParams.get("jobId")
@@ -273,6 +273,20 @@ export default function NewCandidatePage() {
         />
       )}
     </div>
+  )
+}
+
+export default function NewCandidatePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center p-16">
+          <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
+        </div>
+      }
+    >
+      <NewCandidateContent />
+    </Suspense>
   )
 }
 
