@@ -27,7 +27,7 @@ export async function GET(
     // Get candidate statistics for this job
     const { data: jobCandidates, error: candidatesError } = await supabase
       .from("job_candidates")
-      .select("id, status, match_score, source")
+      .select("id, status, match_score")
       .eq("job_id", id)
 
     if (candidatesError) {
@@ -38,7 +38,6 @@ export async function GET(
 
     // Calculate stats
     const totalCandidates = candidates.length
-    const applications = candidates.filter(c => c.source === "application").length
     const matches = candidates.filter(c => c.match_score !== null && c.match_score > 0).length
     const topMatchScore = candidates.length > 0 
       ? Math.max(...candidates.map(c => c.match_score || 0))
@@ -48,7 +47,7 @@ export async function GET(
       job: {
         ...job,
         candidate_count: totalCandidates,
-        application_count: applications,
+        application_count: totalCandidates,
         match_count: matches,
         top_match_score: topMatchScore,
       }

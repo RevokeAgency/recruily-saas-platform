@@ -153,7 +153,10 @@ async function triggerIMLRSMatch(
 
     const matchResponse = await fetch(`${baseUrl}/api/match`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-vercel-protection-bypass": process.env.VERCEL_AUTOMATION_BYPASS_SECRET ?? "",
+      },
       body: JSON.stringify({
         candidate: {
           id: candidate.id,
