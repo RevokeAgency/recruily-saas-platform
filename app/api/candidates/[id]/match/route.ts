@@ -38,10 +38,16 @@ export async function POST(
     }
 
     // Increment matches_used before proceeding
-    await supabase
+    const { error: updateError } = await supabase
       .from("user_profiles")
       .update({ matches_used: profile.matches_used + 1 })
       .eq("id", user.id)
+
+    if (updateError) {
+      console.error("INCREMENT FAILED:", updateError)
+    } else {
+      console.log("INCREMENT SUCCESS — new value:", profile.matches_used + 1)
+    }
 
     // Check if candidate exists
     const { data: candidate, error: candidateError } = await supabase
