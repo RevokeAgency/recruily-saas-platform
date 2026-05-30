@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { runIMLRSMatch } from "@/lib/matching/imlrs"
 
 export async function GET() {
   try {
@@ -142,48 +143,30 @@ async function triggerIMLRSMatch(
       return
     }
 
-    // Call the match API
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    // Run the IMLRS match directly (no HTTP fetch — avoids Vercel auth on preview URLs)
+    const match = await runIMLRSMatch(
+      {
+        id: candidateId,
+        name: candidateData.full_name,
+        skills: candidateData.skills,
+        experience: `${candidateData.years_of_experience} years`,
+        experienceLevel: candidateData.experience_level,
+        education: candidateData.education,
+        location: candidateData.location,
+      },
+      {
+        id: job.id,
+        title: job.title,
+        company: job.company,
+        required_skills: job.required_skills || [],
+        nice_to_have_skills: job.nice_to_have_skills || [],
+        years_experience: job.years_experience,
+        education: job.education,
+        location: job.location,
+        description: job.description,
+      }
+    )
 
-    const matchResponse = await fetch(`${baseUrl}/api/match`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        candidate: {
-          id: candidateId,
-          name: candidateData.full_name,
-          skills: candidateData.skills,
-          experience: `${candidateData.years_of_experience} years`,
-          experienceLevel: candidateData.experience_level,
-          education: candidateData.education,
-          location: candidateData.location,
-        },
-        job: {
-          id: job.id,
-          title: job.title,
-          company: job.company,
-          required_skills: job.required_skills || [],
-          nice_to_have_skills: job.nice_to_have_skills || [],
-          years_experience: job.years_experience,
-          education: job.education,
-          location: job.location,
-          description: job.description,
-        },
-      }),
-    })
-
-    if (!matchResponse.ok) {
-      console.error("Match API failed:", await matchResponse.text())
-      await updateLinkStatus(linkId, "error")
-      return
-    }
-
-    const matchResult = await matchResponse.json()
-    
-    // Extract the match data from the nested structure
-    const match = matchResult.match
     const categories = match?.categories
 
     // Helper to safely round scores to integers
