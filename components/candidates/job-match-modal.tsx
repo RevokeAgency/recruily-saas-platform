@@ -111,6 +111,9 @@ export function JobMatchModal({
 
       setMatchStatus("success")
       toast.success(`${candidateName} wird mit "${selectedJob.title}" gematcht`)
+
+      // Notify the match counter (and any other listeners) to refresh
+      window.dispatchEvent(new Event("match-completed"))
       
       // Wait a moment to show success state, then close
       setTimeout(() => {

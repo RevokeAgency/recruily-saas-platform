@@ -192,10 +192,22 @@ function NewCandidateContent() {
 
       const result = await response.json()
 
+      if (response.status === 403 && result.error === "match_limit_reached") {
+        toast.error("Match-Limit erreicht. Bitte upgrade deinen Plan.")
+        router.push("/subscription")
+        setIsSaving(false)
+        return
+      }
+
       if (!response.ok || result.error) {
         toast.error(result.error || "Fehler beim Speichern")
         setIsSaving(false)
         return
+      }
+
+      // If a match was triggered, notify the counter to refresh
+      if (jobId) {
+        window.dispatchEvent(new Event("match-completed"))
       }
 
       setStep("success")

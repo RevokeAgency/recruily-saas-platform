@@ -55,7 +55,28 @@ export function useProfile() {
     setLoading(false)
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+
+    // Poll every 30s so the counter stays fresh
+    const interval = setInterval(load, 30_000)
+
+    // Refresh immediately when a match completes anywhere in the app
+    const onMatchCompleted = () => load()
+    window.addEventListener('match-completed', onMatchCompleted)
+
+    // Refresh when the tab regains focus
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') load()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('match-completed', onMatchCompleted)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [load])
 
   return { profile, loading, refreshProfile: load }
 }
