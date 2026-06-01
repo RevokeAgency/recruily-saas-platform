@@ -1,14 +1,27 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { createClient } from "@/lib/supabase/client"
 import {
   Mail,
   MapPin,
@@ -238,12 +251,41 @@ export function CandidateMatchModal({
   onInviteToInterview,
 }: CandidateMatchModalProps) {
 
-  const handleInviteToInterview = () => {
-    if (candidate && onInviteToInterview) {
-      onInviteToInterview(candidate.id)
-      toast.success(`${candidate.full_name} wurde zum Interview eingeladen`)
-      onOpenChange(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [inviteDate, setInviteDate] = useState("")
+  const [inviteTime, setInviteTime] = useState("")
+  const [inviteFormat, setInviteFormat] = useState("remote")
+  const [inviteNote, setInviteNote] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [invited, setInvited] = useState(false)
+
+  // Reflect any already-saved "Eingeladen" status when the candidate changes
+  useEffect(() => {
+    setInvited(candidate?.status === "Eingeladen")
+  }, [candidate])
+
+  const handleSubmitInvite = async () => {
+    if (!candidate) return
+    setIsSubmitting(true)
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from("job_candidates")
+      .update({ status: "Eingeladen" })
+      .eq("id", candidate.linkId)
+
+    if (error) {
+      console.error("[v0] Interview invite update failed:", error)
+      toast.error("Einladung konnte nicht gespeichert werden")
+      setIsSubmitting(false)
+      return
     }
+
+    setIsSubmitting(false)
+    setInviteOpen(false)
+    setInvited(true)
+    toast.success("Interview-Einladung gespeichert ✓")
+    onInviteToInterview?.(candidate.id)
   }
 
   if (!candidate) return null
@@ -259,6 +301,7 @@ export function CandidateMatchModal({
   const pitchPoints = candidate.ai_summary?.split(" | ").filter(Boolean) || []
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
         <SheetHeader className="pb-4 border-b">
@@ -430,13 +473,23 @@ export function CandidateMatchModal({
                 >
                   Schliessen
                 </Button>
-                <Button
-                  onClick={handleInviteToInterview}
-                  className="flex-1 bg-teal-600 hover:bg-teal-700"
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  Zum Interview einladen
-                </Button>
+                {invited ? (
+                  <Button
+                    disabled
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-600 disabled:opacity-100 text-white"
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Einladung gesendet ✓
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setInviteOpen(true)}
+                    className="flex-1 bg-teal-600 hover:bg-teal-700"
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Zum Interview einladen
+                  </Button>
+                )}
               </div>
             </>
           )}
@@ -452,5 +505,88 @@ export function CandidateMatchModal({
         </div>
       </SheetContent>
     </Sheet>
+
+    {/* Interview Invite Dialog */}
+    <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-teal-600" />
+            Zum Interview einladen
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="invite-candidate">Kandidat</Label>
+            <Input id="invite-candidate" value={candidate.full_name} readOnly className="bg-slate-50" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="invite-date">Datum</Label>
+              <Input
+                id="invite-date"
+                type="date"
+                value={inviteDate}
+                onChange={(e) => setInviteDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invite-time">Uhrzeit</Label>
+              <Input
+                id="invite-time"
+                type="time"
+                value={inviteTime}
+                onChange={(e) => setInviteTime(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Format</Label>
+            <RadioGroup
+              value={inviteFormat}
+              onValueChange={setInviteFormat}
+              className="flex gap-6"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="remote" id="format-remote" />
+                <Label htmlFor="format-remote" className="font-normal cursor-pointer">Remote</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="onsite" id="format-onsite" />
+                <Label htmlFor="format-onsite" className="font-normal cursor-pointer">Vor Ort</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="invite-note">Optionale Notiz</Label>
+            <Textarea
+              id="invite-note"
+              placeholder="z.B. Bitte Portfolio mitbringen"
+              value={inviteNote}
+              onChange={(e) => setInviteNote(e.target.value)}
+              rows={3}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setInviteOpen(false)} disabled={isSubmitting}>
+            Abbrechen
+          </Button>
+          <Button
+            onClick={handleSubmitInvite}
+            disabled={isSubmitting}
+            className="bg-teal-600 hover:bg-teal-700"
+          >
+            {isSubmitting ? "Wird gespeichert..." : "Einladung senden"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
