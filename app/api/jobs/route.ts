@@ -54,6 +54,45 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const body = await req.json()
 
+    // Enforce the active-job limit only when creating an ACTIVE job.
+    // Drafts (isActive === false) are always allowed.
+    const willBeActive = body.isActive ?? true
+    if (willBeActive) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 })
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from("user_profiles")
+        .select("active_jobs_limit")
+        .eq("id", user.id)
+        .single()
+
+      if (profileError || !profile) {
+        return NextResponse.json({ error: "Profil nicht gefunden" }, { status: 404 })
+      }
+
+      const limit = profile.active_jobs_limit ?? 1
+
+      const { count, error: countError } = await supabase
+        .from("jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("is_active", true)
+
+      if (countError) {
+        console.error("[v0] Error counting active jobs:", countError)
+        return NextResponse.json({ error: countError.message }, { status: 500 })
+      }
+
+      if ((count ?? 0) >= limit) {
+        return NextResponse.json(
+          { error: "job_limit_reached", limit },
+          { status: 403 }
+        )
+      }
+    }
+
     // Transform camelCase to snake_case for database
     const jobData = {
       title: body.title,

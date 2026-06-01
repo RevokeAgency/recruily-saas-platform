@@ -20,6 +20,8 @@ import {
 import { useState } from "react"
 import { toast } from "sonner"
 import type { JobFormData } from "@/app/(app)/jobs/new/page"
+import { PaywallModal } from "@/components/ui/paywall-modal"
+import { useProfile } from "@/lib/hooks/useProfile"
 
 interface Step3Props {
   formData: JobFormData
@@ -30,6 +32,8 @@ interface Step3Props {
 export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [paywallOpen, setPaywallOpen] = useState(false)
+  const { profile } = useProfile()
 
   const handleSubmit = async (asDraft: boolean = false) => {
     setIsSubmitting(true)
@@ -45,6 +49,12 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
       })
 
       const result = await response.json()
+
+      if (response.status === 403 && result.error === "job_limit_reached") {
+        setPaywallOpen(true)
+        setIsSubmitting(false)
+        return
+      }
 
       if (!response.ok || result.error) {
         toast.error(result.error || "Fehler beim Speichern des Jobs")
@@ -72,6 +82,12 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
   }
 
   return (
+    <>
+    <PaywallModal
+      isOpen={paywallOpen}
+      onClose={() => setPaywallOpen(false)}
+      matchesUsed={profile?.matches_used ?? 0}
+    />
     <div className="space-y-6">
       {/* Job Summary Card */}
       <Card className="border border-border">
@@ -237,5 +253,6 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
         </div>
       </div>
     </div>
+    </>
   )
 }
