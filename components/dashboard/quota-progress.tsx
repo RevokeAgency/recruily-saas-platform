@@ -2,10 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Zap } from "lucide-react"
 
-export function QuotaProgress() {
-  const used = 47
-  const total = 100
-  const percentage = (used / total) * 100
+export function QuotaProgress({ used, total }: { used: number; total: number }) {
+  const percentage = total > 0 ? (used / total) * 100 : 0
+  const remaining = Math.max(total - used, 0)
 
   return (
     <Card className="border border-border shadow-sm">
@@ -25,7 +24,7 @@ export function QuotaProgress() {
           </div>
           <Progress value={percentage} className="h-2" />
           <p className="text-xs text-muted-foreground">
-            Noch {total - used} Matches verfügbar in diesem Monat. Erneuert sich am 1. des Monats.
+            Noch {remaining} Matches verfügbar in diesem Monat. Erneuert sich am 1. des Monats.
           </p>
         </div>
       </CardContent>

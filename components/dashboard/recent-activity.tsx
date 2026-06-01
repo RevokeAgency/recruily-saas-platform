@@ -3,53 +3,15 @@ import { Badge } from "@/components/ui/badge"
 import { Briefcase, Clock } from "lucide-react"
 import Link from "next/link"
 
-const recentJobs = [
-  {
-    id: "1",
-    title: "Senior Frontend Developer",
-    company: "TechCorp GmbH",
-    status: "active" as const,
-    candidates: 24,
-    topScore: 92,
-    createdAt: "vor 2 Stunden",
-  },
-  {
-    id: "2",
-    title: "Product Manager",
-    company: "StartupXYZ",
-    status: "active" as const,
-    candidates: 18,
-    topScore: 87,
-    createdAt: "vor 1 Tag",
-  },
-  {
-    id: "3",
-    title: "UX Designer",
-    company: "DesignStudio",
-    status: "draft" as const,
-    candidates: 0,
-    topScore: 0,
-    createdAt: "vor 2 Tagen",
-  },
-  {
-    id: "4",
-    title: "Backend Engineer",
-    company: "CloudServices AG",
-    status: "active" as const,
-    candidates: 31,
-    topScore: 89,
-    createdAt: "vor 3 Tagen",
-  },
-  {
-    id: "5",
-    title: "Data Scientist",
-    company: "Analytics Pro",
-    status: "archived" as const,
-    candidates: 15,
-    topScore: 78,
-    createdAt: "vor 1 Woche",
-  },
-]
+export interface RecentJob {
+  id: string
+  title: string
+  company: string
+  status: "active" | "draft" | "archived"
+  candidates: number
+  topScore: number
+  createdAt: string
+}
 
 const statusConfig = {
   active: { label: "Aktiv", variant: "default" as const, className: "bg-success text-success-foreground" },
@@ -57,7 +19,7 @@ const statusConfig = {
   archived: { label: "Archiviert", variant: "outline" as const, className: "bg-muted/50 text-muted-foreground" },
 }
 
-export function RecentActivity() {
+export function RecentActivity({ jobs }: { jobs: RecentJob[] }) {
   return (
     <Card className="border border-border shadow-sm">
       <CardHeader className="pb-3">
@@ -68,38 +30,44 @@ export function RecentActivity() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {recentJobs.map((job) => (
-            <Link
-              key={job.id}
-              href={`/jobs/${job.id}`}
-              className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Briefcase className="h-5 w-5 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                    {job.title}
-                  </p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {job.company} · {job.createdAt}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <Badge className={statusConfig[job.status].className}>
-                  {statusConfig[job.status].label}
-                </Badge>
-                {job.status === "active" && (
-                  <div className="text-right hidden sm:block">
-                    <p className="text-sm font-medium text-foreground">{job.candidates} Kandidaten</p>
-                    <p className="text-xs text-muted-foreground">Top: {job.topScore}%</p>
+          {jobs.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              Noch keine Aktivitäten. Erstelle deinen ersten Job, um loszulegen.
+            </p>
+          ) : (
+            jobs.map((job) => (
+              <Link
+                key={job.id}
+                href={`/jobs/${job.id}`}
+                className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Briefcase className="h-5 w-5 text-primary" />
                   </div>
-                )}
-              </div>
-            </Link>
-          ))}
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                      {job.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {job.company} · {job.createdAt}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <Badge className={statusConfig[job.status].className}>
+                    {statusConfig[job.status].label}
+                  </Badge>
+                  {job.status === "active" && (
+                    <div className="text-right hidden sm:block">
+                      <p className="text-sm font-medium text-foreground">{job.candidates} Kandidaten</p>
+                      <p className="text-xs text-muted-foreground">Top: {job.topScore}%</p>
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))
+          )}
         </div>
       </CardContent>
     </Card>
