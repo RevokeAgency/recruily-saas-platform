@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { runIMLRSMatch } from "@/lib/matching/imlrs"
+import { checkAndIncrementMatch } from "@/app/actions/match"
 
 export async function GET() {
   try {
@@ -78,6 +79,15 @@ export async function POST(req: Request) {
 
     // If a jobId was provided, create the job_candidates link with "analyzing" status
     if (body.jobId && candidate) {
+      // Check and increment the match counter before running the match
+      const matchCheck = await checkAndIncrementMatch()
+      if (!matchCheck.allowed) {
+        return Response.json(
+          { error: "match_limit_reached", used: matchCheck.used, limit: matchCheck.limit, candidate },
+          { status: 403 }
+        )
+      }
+
       const { data: linkData, error: linkError } = await supabase
         .from("job_candidates")
         .insert({
