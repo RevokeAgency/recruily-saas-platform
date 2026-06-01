@@ -51,6 +51,12 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const body = await req.json()
 
+    // Every candidate belongs to the authenticated user (multi-tenant scoping)
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    }
+
     const candidateData = {
       full_name: body.full_name,
       email: body.email || null,
@@ -62,6 +68,7 @@ export async function POST(req: Request) {
       education: body.education || null,
       summary_ai: body.summary_ai || null,
       location: body.location || null,
+      user_id: user.id,
     }
 
     const { data: candidate, error } = await supabase
@@ -94,6 +101,7 @@ export async function POST(req: Request) {
           job_id: body.jobId,
           candidate_id: candidate.id,
           status: "analyzing", // Start in analyzing state
+          user_id: user.id,
         })
         .select("id")
         .single()

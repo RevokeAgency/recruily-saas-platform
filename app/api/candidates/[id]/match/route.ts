@@ -91,6 +91,7 @@ export async function POST(
         job_id: jobId,
         candidate_id: candidateId,
         status: "analyzing",
+        user_id: user.id,
       })
       .select("id")
       .single()

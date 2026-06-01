@@ -54,15 +54,16 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const body = await req.json()
 
+    // Every job belongs to the authenticated user (multi-tenant scoping)
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    }
+
     // Enforce the active-job limit only when creating an ACTIVE job.
     // Drafts (isActive === false) are always allowed.
     const willBeActive = body.isActive ?? true
     if (willBeActive) {
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) {
-        return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 })
-      }
-
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")
         .select("active_jobs_limit")
@@ -79,6 +80,7 @@ export async function POST(req: Request) {
         .from("jobs")
         .select("id", { count: "exact", head: true })
         .eq("is_active", true)
+        .eq("user_id", user.id)
 
       if (countError) {
         console.error("[v0] Error counting active jobs:", countError)
@@ -107,6 +109,7 @@ export async function POST(req: Request) {
       education: body.education || null,
       languages: body.languages || [],
       is_active: body.isActive ?? true,
+      user_id: user.id,
     }
 
     const { data: job, error } = await supabase
