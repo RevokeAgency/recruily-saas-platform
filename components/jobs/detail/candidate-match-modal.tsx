@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { createClient } from "@/lib/supabase/client"
+import { RejectionModal } from "@/components/ui/rejection-modal"
 import {
   Mail,
   MapPin,
@@ -252,6 +253,8 @@ export function CandidateMatchModal({
 }: CandidateMatchModalProps) {
 
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [rejectionOpen, setRejectionOpen] = useState(false)
+  const [rejected, setRejected] = useState(false)
   const [inviteDate, setInviteDate] = useState("")
   const [inviteTime, setInviteTime] = useState("")
   const [inviteFormat, setInviteFormat] = useState("remote")
@@ -259,26 +262,57 @@ export function CandidateMatchModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [invited, setInvited] = useState(false)
 
-  // Reflect any already-saved "Eingeladen" status when the candidate changes
+  // Reflect already-saved statuses when the candidate changes
   useEffect(() => {
     setInvited(candidate?.status === "Eingeladen")
+    setRejected(candidate?.status === "Abgesagt")
   }, [candidate])
 
   const handleSubmitInvite = async () => {
     if (!candidate) return
     setIsSubmitting(true)
 
+    // 1. Update status in job_candidates
     const supabase = createClient()
-    const { error } = await supabase
+    const { error: dbError } = await supabase
       .from("job_candidates")
       .update({ status: "Eingeladen" })
       .eq("id", candidate.linkId)
 
-    if (error) {
-      console.error("[v0] Interview invite update failed:", error)
+    if (dbError) {
+      console.error("[v0] Interview invite update failed:", dbError)
       toast.error("Einladung konnte nicht gespeichert werden")
       setIsSubmitting(false)
       return
+    }
+
+    // 2. Send email with .ics attachment if candidate has an email address
+    if (candidate.email) {
+      try {
+        await fetch("/api/send-interview-invite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            candidateName: candidate.full_name,
+            candidateEmail: candidate.email,
+            jobTitle: job.title,
+            companyName: job.company,
+            date: inviteDate,
+            time: inviteTime,
+            format: inviteFormat,
+            note: inviteNote,
+          }),
+        })
+      } catch (emailError) {
+        console.error("[v0] Interview invite email failed:", emailError)
+        // Non-fatal: status was already updated, just warn
+        toast.warning("Status aktualisiert, E-Mail konnte nicht gesendet werden")
+        setIsSubmitting(false)
+        setInviteOpen(false)
+        setInvited(true)
+        onInviteToInterview?.(candidate.id)
+        return
+      }
     }
 
     setIsSubmitting(false)
@@ -465,29 +499,51 @@ export function CandidateMatchModal({
               </Card>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                  className="flex-1"
-                >
-                  Schliessen
-                </Button>
-                {invited ? (
+              <div className="flex flex-col gap-2 pt-4 border-t">
+                <div className="flex gap-3">
                   <Button
-                    disabled
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-600 disabled:opacity-100 text-white"
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                    className="flex-1"
                   >
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Einladung gesendet ✓
+                    Schliessen
+                  </Button>
+                  {invited ? (
+                    <Button
+                      disabled
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-600 disabled:opacity-100 text-white"
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Einladung gesendet ✓
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setInviteOpen(true)}
+                      className="flex-1 bg-teal-600 hover:bg-teal-700"
+                      disabled={rejected}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Zum Interview einladen
+                    </Button>
+                  )}
+                </div>
+                {!rejected ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRejectionOpen(true)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 w-full"
+                  >
+                    Absage senden
                   </Button>
                 ) : (
                   <Button
-                    onClick={() => setInviteOpen(true)}
-                    className="flex-1 bg-teal-600 hover:bg-teal-700"
+                    variant="ghost"
+                    size="sm"
+                    disabled
+                    className="text-slate-400 w-full"
                   >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Zum Interview einladen
+                    Abgesagt
                   </Button>
                 )}
               </div>
@@ -587,6 +643,24 @@ export function CandidateMatchModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <RejectionModal
+      isOpen={rejectionOpen}
+      onClose={() => setRejectionOpen(false)}
+      candidateName={candidate.full_name}
+      candidateEmail={candidate.email ?? ""}
+      jobTitle={job.title}
+      companyName={job.company}
+      onSuccess={async () => {
+        const supabase = createClient()
+        await supabase
+          .from("job_candidates")
+          .update({ status: "Abgesagt" })
+          .eq("id", candidate.linkId)
+        setRejected(true)
+        toast.success("Absage wurde gesendet ✓")
+      }}
+    />
     </>
   )
 }

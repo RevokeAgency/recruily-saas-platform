@@ -25,6 +25,7 @@ import {
   Sparkles,
   Loader2,
   Trash2,
+  X,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -39,6 +40,8 @@ import {
 import { toast } from "sonner"
 import Link from "next/link"
 import { CandidateMatchModal } from "./candidate-match-modal"
+import { RejectionModal } from "@/components/ui/rejection-modal"
+import { createClient } from "@/lib/supabase/client"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -105,6 +108,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
   const [matchModalOpen, setMatchModalOpen] = useState(false)
   const [deleteCandidate, setDeleteCandidate] = useState<Candidate | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [rejectionCandidate, setRejectionCandidate] = useState<Candidate | null>(null)
 
   // Fetch candidates for this job - refresh every 2s while any candidate is analyzing
   const { data, error, isLoading, mutate } = useSWR<{ candidates: Candidate[] }>(
@@ -377,27 +381,44 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-2 w-full">
-                    <Button 
-                      size="sm" 
-                      className="flex-1 bg-teal-600 hover:bg-teal-700 gap-2"
-                      onClick={() => {
-                        setSelectedCandidate(candidate)
-                        setMatchModalOpen(true)
-                      }}
-                      disabled={candidate.status === "analyzing"}
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      {candidate.match_score !== null ? "Details" : "Profil"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                      onClick={() => setDeleteCandidate(candidate)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div className="flex flex-col gap-2 w-full">
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        className="flex-1 bg-teal-600 hover:bg-teal-700 gap-2"
+                        onClick={() => {
+                          setSelectedCandidate(candidate)
+                          setMatchModalOpen(true)
+                        }}
+                        disabled={candidate.status === "analyzing"}
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        {candidate.match_score !== null ? "Details" : "Profil"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                        onClick={() => setDeleteCandidate(candidate)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {candidate.status !== "Abgesagt" ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setRejectionCandidate(candidate)}
+                        className="w-full text-red-500 hover:text-red-700 hover:bg-red-50 text-xs"
+                      >
+                        <X className="h-3 w-3 mr-1" />
+                        Absage senden
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="ghost" disabled className="w-full text-slate-400 text-xs">
+                        Abgesagt
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -405,6 +426,28 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
           </Card>
         ))}
       </div>
+
+      {/* Rejection Modal */}
+      {rejectionCandidate && (
+        <RejectionModal
+          isOpen={!!rejectionCandidate}
+          onClose={() => setRejectionCandidate(null)}
+          candidateName={rejectionCandidate.full_name}
+          candidateEmail={rejectionCandidate.email ?? ""}
+          jobTitle={jobTitle}
+          companyName={job.company}
+          onSuccess={async () => {
+            const supabase = createClient()
+            await supabase
+              .from("job_candidates")
+              .update({ status: "Abgesagt" })
+              .eq("id", rejectionCandidate.linkId)
+            toast.success("Absage wurde gesendet ✓")
+            mutate()
+            setRejectionCandidate(null)
+          }}
+        />
+      )}
 
       {/* Godlike Matcher Modal */}
       <CandidateMatchModal
