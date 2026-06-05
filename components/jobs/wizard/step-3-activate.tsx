@@ -22,6 +22,7 @@ import { toast } from "sonner"
 import type { JobFormData } from "@/app/(app)/jobs/new/page"
 import { PaywallModal } from "@/components/ui/paywall-modal"
 import { useProfile } from "@/lib/hooks/useProfile"
+import { JobChannelsModal } from "@/components/jobs/job-channels-modal"
 
 interface Step3Props {
   formData: JobFormData
@@ -33,6 +34,7 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [paywallOpen, setPaywallOpen] = useState(false)
+  const [channelsJobId, setChannelsJobId] = useState<string | null>(null)
   const { profile } = useProfile()
 
   const handleSubmit = async (asDraft: boolean = false) => {
@@ -66,13 +68,11 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
         toast.success("Job als Entwurf gespeichert", {
           description: "Du kannst ihn jederzeit aktivieren.",
         })
+        router.push("/jobs")
       } else {
-        toast.success("Job erfolgreich erstellt!", {
-          description: "Das Kandidaten-Matching kann jetzt starten.",
-        })
+        // Show the channels modal before navigating away
+        setChannelsJobId(result.job.id)
       }
-      
-      router.push("/jobs")
     } catch (error) {
       console.error("Error saving job:", error)
       toast.error("Fehler beim Speichern des Jobs")
@@ -88,6 +88,13 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
       onClose={() => setPaywallOpen(false)}
       matchesUsed={profile?.matches_used ?? 0}
     />
+    {channelsJobId && (
+      <JobChannelsModal
+        isOpen={!!channelsJobId}
+        onClose={() => { setChannelsJobId(null); router.push("/jobs") }}
+        jobId={channelsJobId}
+      />
+    )}
     <div className="space-y-6">
       {/* Job Summary Card */}
       <Card className="border border-border">
