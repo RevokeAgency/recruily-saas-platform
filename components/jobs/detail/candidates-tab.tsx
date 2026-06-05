@@ -77,7 +77,7 @@ interface Candidate {
   education: string | null
   summary_ai: string | null
   location: string | null
-  status: "analyzing" | "scored" | "error" | "stale" | "new" | "shortlisted" | "interviewed"
+  status: "analyzing" | "scored" | "error" | "stale" | "new" | "shortlisted" | "interviewed" | "Eingeladen" | "Abgesagt"
   match_score: number | null
   hard_skills_score: number | null
   experience_score: number | null
@@ -436,15 +436,17 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
           candidateEmail={rejectionCandidate.email ?? ""}
           jobTitle={jobTitle}
           companyName={job.company}
-          onSuccess={async () => {
+          onSuccess={() => {
             const supabase = createClient()
-            await supabase
+            supabase
               .from("job_candidates")
               .update({ status: "Abgesagt" })
               .eq("id", rejectionCandidate.linkId)
-            toast.success("Absage wurde gesendet ✓")
-            mutate()
-            setRejectionCandidate(null)
+              .then(() => {
+                toast.success("Absage wurde gesendet ✓")
+                mutate()
+                setRejectionCandidate(null)
+              })
           }}
         />
       )}
