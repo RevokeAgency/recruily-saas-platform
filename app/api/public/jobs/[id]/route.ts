@@ -1,11 +1,7 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextRequest } from "next/server"
 
-// Public, unauthenticated route — uses anon key, RLS read-only
-const supabasePublic = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+export const dynamic = "force-dynamic"
 
 export async function GET(
   _req: NextRequest,
@@ -13,6 +9,14 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+
+    // Public, unauthenticated route — uses anon key, RLS read-only.
+    // Created inside the handler so build-time page-data collection
+    // does not require the env vars to be present.
+    const supabasePublic = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
 
     const { data: job, error } = await supabasePublic
       .from("jobs")

@@ -15,11 +15,13 @@ import {
   Calendar,
   Clock,
   Loader2,
+  Share2,
 } from "lucide-react"
 import { JobOverviewTab } from "@/components/jobs/detail/overview-tab"
 import { JobCandidatesTab } from "@/components/jobs/detail/candidates-tab"
 import { JobApplicationsTab } from "@/components/jobs/detail/applications-tab"
 import { JobAnalyticsTab } from "@/components/jobs/detail/analytics-tab"
+import { JobChannelsModal } from "@/components/jobs/job-channels-modal"
 
 interface Job {
   id: string
@@ -58,6 +60,7 @@ export default function JobDetailPage() {
   const params = useParams()
   const jobId = params.id as string
   const [activeTab, setActiveTab] = useState("candidates")
+  const [channelsOpen, setChannelsOpen] = useState(false)
 
   const { data, error, isLoading } = useSWR<{ job: Job }>(
     jobId ? `/api/jobs/${jobId}` : null,
@@ -130,10 +133,16 @@ export default function JobDetailPage() {
             Back to Jobs
           </Link>
         </Button>
-        <Button variant="outline" size="sm">
-          <Settings className="mr-2 h-4 w-4" />
-          Settings
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setChannelsOpen(true)}>
+            <Share2 className="mr-2 h-4 w-4" />
+            Kanäle & Bewerbungslink
+          </Button>
+          <Button variant="outline" size="sm">
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+          </Button>
+        </div>
       </div>
 
       {/* Job Title Section */}
@@ -259,6 +268,12 @@ export default function JobDetailPage() {
           <JobAnalyticsTab jobId={jobId} />
         </TabsContent>
       </Tabs>
+
+      <JobChannelsModal
+        isOpen={channelsOpen}
+        onClose={() => setChannelsOpen(false)}
+        jobId={jobId}
+      />
     </div>
   )
 }
