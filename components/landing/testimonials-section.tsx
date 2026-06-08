@@ -1,71 +1,175 @@
 "use client"
 
-import { useReveal } from "@/lib/hooks/useReveal"
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
-const TESTIMONIALS = [
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.5, ease: "easeOut" }
+}
+
+const testimonials = [
   {
-    quote: "We stopped drowning in CVs. REVETLY reads them, scores them, and tells us exactly who to talk to. The rest takes care of itself.",
-    name: "Sarah M.",
-    role: "HR Manager",
-    company: "Personalleasing Firm, Vienna",
+    quote: "Setup was quick and the interface is intuitive. Our entire HR team was able to start using it immediately with minimal training.",
+    name: "Emma Rodriguez",
+    role: "Head of People, Future Finance",
+    initials: "ER",
   },
   {
-    quote: "Setup took 4 minutes. First application was in our pipeline before I even finished my coffee. I didn't believe it until I saw it.",
-    name: "Thomas K.",
-    role: "Head of Recruiting",
-    company: "Tech Startup, Munich",
+    quote: "Recruily has transformed how we hire. We've cut our time-to-hire in half and the quality of candidates has improved significantly.",
+    name: "Michael Chen",
+    role: "HR Director, TechStart GmbH",
+    initials: "MC",
   },
   {
-    quote: "The iFrame alone is worth the subscription. Our careers page now feeds directly into REVETLY. Candidates, scored, waiting for us.",
-    name: "Julia P.",
-    role: "Talent Acquisition Lead",
-    company: "Staffing Agency, Zürich",
+    quote: "The AI matching is incredibly accurate. It understands the nuances of our job requirements and finds candidates we would have missed.",
+    name: "Sarah Weber",
+    role: "Talent Acquisition Lead, InnovateCo",
+    initials: "SW",
   },
 ]
 
 export function TestimonialsSection() {
-  const ref = useReveal()
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  const prev = () => {
+    setCurrentIndex((i) => (i === 0 ? testimonials.length - 1 : i - 1))
+  }
+
+  const next = () => {
+    setCurrentIndex((i) => (i === testimonials.length - 1 ? 0 : i + 1))
+  }
+
+  const current = testimonials[currentIndex]
 
   return (
-    <section ref={ref} style={{ background: "#0D1F14", padding: "96px 24px" }}>
-      <div style={{ maxWidth: 1160, margin: "0 auto" }}>
-        <div className="reveal" style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "#1DB954", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 600, marginBottom: 16, textAlign: "center" }}>
-          What Teams Say
-        </div>
-        <h2 className="reveal" style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(26px,3.2vw,42px)", fontWeight: 700, color: "#FFFFFF", lineHeight: 1.2, textAlign: "center", marginBottom: 56 }}>
-          Recruiting teams across DACH<br />use REVETLY every day.
-        </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px,1fr))", gap: 20 }}>
-          {TESTIMONIALS.map((t, i) => (
-            <div
-              key={t.name}
-              className="reveal"
-              style={{
-                background: "#1A2E1F",
-                border: "1px solid #2D4A35",
-                borderRadius: 12,
-                padding: "32px 28px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 20,
-                transitionDelay: `${i * 0.15}s`,
-              }}
-            >
-              <div style={{ fontFamily: "var(--font-fraunces)", fontSize: 56, color: "#1DB954", lineHeight: 0.7, userSelect: "none" }}>&ldquo;</div>
-              <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: 16, color: "#FFFFFF", lineHeight: 1.7, margin: 0, flex: 1 }}>{t.quote}</p>
-              <div style={{ display: "flex", gap: 3 }}>
-                {Array.from({ length: 5 }).map((_, si) => (
-                  <span key={si} style={{ color: "#1DB954", fontSize: 16 }}>&#9733;</span>
-                ))}
-              </div>
-              <div>
-                <div style={{ fontFamily: "var(--font-syne)", fontSize: 14, fontWeight: 700, color: "#FFFFFF" }}>{t.name}</div>
-                <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 13, color: "#A8C4B0", marginTop: 2 }}>{t.role}</div>
-                <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: 12, color: "#A8C4B0", marginTop: 1 }}>{t.company}</div>
-              </div>
+    <section className="pt-20 pb-20 relative overflow-hidden bg-white">
+      {/* Minimal vertical lines - right */}
+      <div className="absolute top-16 right-16 flex gap-3 opacity-20 pointer-events-none">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="w-0.5 h-12 bg-slate-400 rounded-full" />
+        ))}
+      </div>
+
+      {/* Subtle gradient arc - right */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[350px] h-[350px] pointer-events-none">
+        <div className="w-full h-full rounded-full bg-gradient-to-l from-slate-100/60 to-transparent" style={{ clipPath: "inset(0 0 0 50%)" }} />
+      </div>
+
+      
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        {/* Header */}
+        <motion.div 
+          className="text-center mb-16"
+          {...fadeInUp}
+        >
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+            Why HR Teams Love Recruily
+          </h2>
+          <p className="text-lg text-slate-600">
+            See what our customers have to say about Recruily.
+          </p>
+        </motion.div>
+
+        {/* Testimonial Card */}
+        <motion.div 
+          className="relative"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          {/* Navigation Buttons */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={prev}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 hidden lg:flex rounded-lg border-slate-200"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={next}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 hidden lg:flex rounded-lg border-slate-200"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-sm">
+            {/* Indicator dots */}
+            <div className="flex justify-center gap-2 mb-8">
+              {testimonials.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentIndex(i)}
+                  className={`w-8 h-1 rounded-full transition-colors ${
+                    i === currentIndex ? "bg-[#0D9488]" : "bg-slate-200"
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Quote with animation */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentIndex}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <blockquote className="text-xl sm:text-2xl text-slate-900 italic leading-relaxed mb-8">
+                  "{current.quote}"
+                </blockquote>
+
+                {/* Author */}
+                <div className="flex flex-col items-center">
+                  <Avatar className="h-14 w-14 mb-4 bg-slate-200">
+                    <AvatarFallback className="text-slate-500 text-sm">
+                      {current.initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p className="font-semibold text-slate-900">{current.name}</p>
+                  <p className="text-sm text-slate-500">{current.role}</p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Mobile Navigation */}
+          <div className="flex justify-center gap-4 mt-6 lg:hidden">
+            <Button variant="outline" size="icon" onClick={prev} className="rounded-lg border-slate-200">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={next} className="rounded-lg border-slate-200">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Company logos placeholder */}
+        <motion.div 
+          className="flex justify-center gap-8 mt-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="w-24 h-28 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-200">
+              <div className="w-3 h-3 rounded-full bg-slate-300" />
             </div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )
