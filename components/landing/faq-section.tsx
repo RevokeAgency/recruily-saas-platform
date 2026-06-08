@@ -1,111 +1,83 @@
 "use client"
 
-import { motion } from "framer-motion"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import { WaveDivider } from "./wave-divider"
+import { useState } from "react"
+import { useReveal } from "@/lib/hooks/useReveal"
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 30 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-100px" },
-  transition: { duration: 0.5, ease: "easeOut" }
-}
-
-const faqs = [
+const FAQS = [
   {
-    question: "How does the AI matching technology work?",
-    answer: "Our AI analyzes both job descriptions and candidate resumes to identify matching skills, experience, and qualifications. It goes beyond keyword matching by understanding context and semantic meaning to provide more accurate matches.",
+    q: "How does the email inbound work?",
+    a: "Every job you create in REVETLY gets a unique email address. Add it to your job posting — every application sent there automatically appears in your REVETLY pipeline, CV parsed, scored, and ready.",
   },
   {
-    question: "Can I integrate Recruily with my existing ATS?",
-    answer: "Yes, Recruily offers API integration with most popular Applicant Tracking Systems. Our team can help you set up a seamless connection to ensure data flows smoothly between systems.",
+    q: "Is REVETLY DSGVO-compliant?",
+    a: "100%. All data is processed and stored on EU servers in Frankfurt. We provide AVV documentation, candidate deletion tools, and full DSGVO-ready infrastructure out of the box.",
   },
   {
-    question: "How long does the free trial last?",
-    answer: "Our free trial lasts for 14 days with full access to all features. No credit card is required to start, and you can cancel anytime.",
+    q: "Can I embed it on my careers page?",
+    a: "Yes. Every job gets a shareable apply link and an embeddable iFrame widget. One line of code on your website. Your branding, your domain, REVETLY power.",
   },
   {
-    question: "Is my data secure with Recruily?",
-    answer: "Absolutely. We use enterprise-grade encryption and comply with GDPR, CCPA, and other data protection regulations. Your data is stored securely and never shared with third parties without your explicit consent.",
+    q: "How accurate is the AI matching?",
+    a: "REVETLY scores across 9 weighted categories — not just keywords. Hard skills, experience, languages, location, culture fit and more. You see a full breakdown per candidate so you understand exactly why they scored that way.",
   },
   {
-    question: "Can I upgrade or downgrade my plan later?",
-    answer: "Yes, you can change your subscription plan at any time. Changes take effect at the start of your next billing cycle, and we'll prorate any difference in cost.",
+    q: "What happens after the interview is confirmed?",
+    a: "REVETLY sends calendar invites, confirmation emails, and reminders to both sides automatically. After that — it's all you.",
+  },
+  {
+    q: "Can I cancel anytime?",
+    a: "Yes. No contracts, no lock-in. Cancel from your dashboard in under 60 seconds.",
   },
 ]
 
 export function FAQSection() {
+  const [open, setOpen] = useState<number | null>(null)
+  const ref = useReveal()
+
   return (
-    <section id="faq" className="pt-0 pb-0 relative overflow-hidden bg-[#0D9488]">
-      {/* Minimal arc - left */}
-      <svg className="absolute left-0 bottom-1/4 w-24 h-24 pointer-events-none opacity-20" viewBox="0 0 100 100">
-        <path d="M0 100 Q 0 0, 100 0" fill="none" stroke="#94a3b8" strokeWidth="1" />
-      </svg>
+    <section id="faq" ref={ref} style={{ background: "#FFFFFF", padding: "96px 24px" }}>
+      <div style={{ maxWidth: 760, margin: "0 auto" }}>
+        <h2 className="reveal" style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(26px,3vw,38px)", fontWeight: 700, color: "#0A0A0A", textAlign: "center", marginBottom: 56 }}>
+          Questions? Answered.
+        </h2>
 
-      {/* Subtle gradient shapes - right */}
-      <div className="absolute right-0 top-1/4 w-[250px] h-[250px] pointer-events-none">
-        <div className="w-full h-full rounded-full bg-gradient-to-l from-slate-100 to-transparent" style={{ clipPath: "inset(0 0 0 50%)" }} />
-      </div>
-      <div className="absolute right-16 top-1/2 w-[150px] h-[150px] pointer-events-none">
-        <div className="w-full h-full rounded-full bg-gradient-to-l from-teal-50 to-transparent" style={{ clipPath: "inset(0 0 0 30%)" }} />
-      </div>
-
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        {/* Header */}
-        <motion.div 
-          className="text-center mb-12"
-          {...fadeInUp}
-        >
-          <p className="text-sm font-medium text-white/80 mb-2">Common Questions</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-lg text-white/80">
-            Find answers to common questions about Recruily.
-          </p>
-        </motion.div>
-
-        {/* Accordion */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          <Accordion type="single" collapsible defaultValue="item-0" className="space-y-4">
-            {faqs.map((faq, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {FAQS.map((faq, i) => (
+            <div
+              key={i}
+              className="reveal"
+              style={{ borderBottom: "1px solid #E8E8E8", transitionDelay: `${i * 0.06}s` }}
+            >
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                style={{
+                  width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+                  padding: "22px 0", background: "none", border: "none", cursor: "pointer", textAlign: "left",
+                  gap: 16,
+                }}
               >
-                <AccordionItem
-                  value={`item-${i}`}
-                  className="border border-slate-200 rounded-xl px-6 data-[state=open]:border-[#0D9488] data-[state=open]:border-2 bg-white"
-                >
-                  <AccordionTrigger className="text-left font-medium text-slate-900 hover:no-underline py-5 [&[data-state=open]>svg]:text-[#0D9488]">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-slate-600 pb-5">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              </motion.div>
-            ))}
-          </Accordion>
-        </motion.div>
-      </div>
-      
-      {/* Wave divider into white (Contact) */}
-      <div className="mt-20">
-        <WaveDivider fillColor="#ffffff" direction="down" />
+                <span style={{ fontFamily: "var(--font-syne)", fontSize: 17, fontWeight: 600, color: "#0A0A0A", lineHeight: 1.4 }}>{faq.q}</span>
+                <span style={{
+                  flexShrink: 0, width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "#1DB954", fontSize: 18, fontWeight: 300,
+                  transform: open === i ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "transform 0.3s ease",
+                }}>
+                  &#8964;
+                </span>
+              </button>
+              <div style={{
+                maxHeight: open === i ? 300 : 0,
+                overflow: "hidden",
+                transition: "max-height 0.35s ease",
+              }}>
+                <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: 16, color: "#4A4A4A", lineHeight: 1.7, margin: 0, paddingBottom: 20 }}>
+                  {faq.a}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )
