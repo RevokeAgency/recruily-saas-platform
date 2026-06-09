@@ -1,135 +1,111 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Globe, ChevronDown, Menu, X } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Menu, X } from "lucide-react"
+import { RevetlyLogo } from "./revetly-logo"
 
-interface NavbarProps {
-  onLoginClick: () => void
-}
+const navLinks = [
+  { label: "Features", href: "#features" },
+  { label: "How it Works", href: "#how-it-works" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "FAQ", href: "#faq" },
+]
 
-export function Navbar({ onLoginClick }: NavbarProps) {
+export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
-  const navLinks = [
-    { label: "Features", href: "#features" },
-    { label: "Use Cases", href: "#use-cases" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "FAQ", href: "#faq" },
-    { label: "Contact", href: "#contact" },
-  ]
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12)
+    window.addEventListener("scroll", onScroll)
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
 
   const scrollToSection = (href: string) => {
-    const element = document.querySelector(href)
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
-    }
+    document.querySelector(href)?.scrollIntoView({ behavior: "smooth" })
     setMobileMenuOpen(false)
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <Image 
-              src="/images/recruily-logo.png" 
-              alt="Recruily" 
-              width={320} 
-              height={80} 
-              className="h-20 w-auto"
-            />
+    <nav
+      className="sticky top-0 z-50 rv-fade-down border-b transition-colors"
+      style={{
+        backgroundColor: scrolled ? "rgba(13,31,20,0.92)" : "#0D1F14",
+        borderColor: "#2D4A35",
+        backdropFilter: scrolled ? "blur(10px)" : "none",
+      }}
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          <Link href="/" aria-label="REVETLY home">
+            <RevetlyLogo />
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Center nav */}
+          <div className="hidden items-center gap-9 md:flex">
             {navLinks.map((link) => (
               <button
                 key={link.href}
                 onClick={() => scrollToSection(link.href)}
-                className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                className="group relative font-dm-sans text-sm text-white/80 transition-colors hover:text-white"
               >
                 {link.label}
+                <span className="absolute -bottom-1 left-0 h-px w-0 bg-[#1DB954] transition-all duration-300 group-hover:w-full" />
               </button>
             ))}
           </div>
 
-          {/* Right Side */}
-          <div className="hidden md:flex items-center gap-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1.5 text-slate-600">
-                  <Globe className="h-4 w-4" />
-                  EN
-                  <ChevronDown className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>English</DropdownMenuItem>
-                <DropdownMenuItem>Deutsch</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <button
-              onClick={onLoginClick}
-              className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+          {/* Right */}
+          <div className="hidden items-center gap-5 md:flex">
+            <Link
+              href="/auth/login"
+              className="font-dm-sans text-sm text-white/90 transition-colors hover:text-white"
             >
               Log in
-            </button>
-
-            <Button asChild className="bg-[#0D9488] hover:bg-[#0B7C72] text-white rounded-lg">
-              <Link href="/auth/register">Sign up</Link>
-            </Button>
+            </Link>
+            <Link
+              href="/auth/register"
+              className="rounded-[6px] px-4 py-2 font-dm-sans text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.03]"
+              style={{ backgroundColor: "#1DB954" }}
+            >
+              Get Started Free
+            </Link>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile button */}
           <button
-            className="md:hidden p-2"
+            className="p-2 text-white md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
           >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6 text-slate-600" />
-            ) : (
-              <Menu className="h-6 w-6 text-slate-600" />
-            )}
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-slate-100">
+          <div className="border-t py-4 md:hidden" style={{ borderColor: "#2D4A35" }}>
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <button
                   key={link.href}
                   onClick={() => scrollToSection(link.href)}
-                  className="text-left text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                  className="text-left font-dm-sans text-sm text-white/80 hover:text-white"
                 >
                   {link.label}
                 </button>
               ))}
-              <div className="flex flex-col gap-2 pt-4 border-t border-slate-100">
-                <button
-                  onClick={() => {
-                    onLoginClick()
-                    setMobileMenuOpen(false)
-                  }}
-                  className="text-left text-sm text-slate-600 hover:text-slate-900"
-                >
+              <div className="flex flex-col gap-3 border-t pt-4" style={{ borderColor: "#2D4A35" }}>
+                <Link href="/auth/login" className="font-dm-sans text-sm text-white/90">
                   Log in
-                </button>
-                <Button asChild className="bg-[#0D9488] hover:bg-[#0B7C72] text-white rounded-lg">
-                  <Link href="/auth/register">Sign up</Link>
-                </Button>
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="rounded-[6px] px-4 py-2 text-center font-dm-sans text-sm font-semibold text-white"
+                  style={{ backgroundColor: "#1DB954" }}
+                >
+                  Get Started Free
+                </Link>
               </div>
             </div>
           </div>

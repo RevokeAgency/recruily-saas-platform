@@ -89,7 +89,10 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-fraunces: var(--font-fraunces), Georgia, serif;
+  --font-syne: var(--font-syne), system-ui, sans-serif;
+  --font-dm-sans: var(--font-dm-sans), system-ui, sans-serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
@@ -336,3 +339,71 @@
     animation: pulse-subtle 1.5s ease-in-out infinite;
   }
 }
+
+/* ─────────────────────────────────────────────
+   REVETLY Landing Page — fonts & utilities
+   ───────────────────────────────────────────── */
+.font-fraunces { font-family: var(--font-fraunces), Georgia, serif; }
+.font-syne { font-family: var(--font-syne), system-ui, sans-serif; }
+.font-dm-sans { font-family: var(--font-dm-sans), system-ui, sans-serif; }
+
+html { scroll-behavior: smooth; }
+
+/* Scroll-triggered reveals (IntersectionObserver toggles .visible) */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-48px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(48px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+/* Hero entrance animations */
+@keyframes rv-fade-down {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rv-fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rv-scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes rv-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes rv-pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(29,185,84,0); }
+  50% { box-shadow: 0 0 32px 4px rgba(29,185,84,0.35); }
+}
+
+.rv-fade-down { opacity: 0; animation: rv-fade-down 0.5s ease forwards; }
+.rv-fade-up { opacity: 0; animation: rv-fade-up 0.6s ease forwards; }
+.rv-scale-in { opacity: 0; animation: rv-scale-in 0.5s ease forwards; }
+.rv-float { animation: rv-float 4s ease-in-out infinite; }
+.rv-float-slow { animation: rv-float 6s ease-in-out infinite; }
+.rv-pulse-glow { animation: rv-pulse-glow 4s ease-in-out infinite; }
+
+.rv-delay-1 { animation-delay: 0.1s; }
+.rv-delay-2 { animation-delay: 0.2s; }
+.rv-delay-3 { animation-delay: 0.3s; }
+.rv-delay-4 { animation-delay: 0.45s; }
+.rv-delay-5 { animation-delay: 0.6s; }
+.rv-delay-6 { animation-delay: 0.8s; }
+.rv-delay-7 { animation-delay: 1s; }
