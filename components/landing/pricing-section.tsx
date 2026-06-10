@@ -2,196 +2,188 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
 import { Check } from "lucide-react"
-import { WaveDivider } from "./wave-divider"
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 30 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-100px" },
-  transition: { duration: 0.5, ease: "easeOut" }
-}
-
-const plans = [
-  {
-    name: "Starter",
-    monthlyPrice: 49,
-    annualPrice: 39,
-    matches: "250 Matches",
-    features: [
-      "250 matches per month",
-      "Basic candidate filtering",
-      "Email support",
-      "1 user account",
-    ],
-    popular: false,
-    current: false,
-  },
-  {
-    name: "Professional",
-    monthlyPrice: 129,
-    annualPrice: 103,
-    matches: "1000 Matches",
-    features: [
-      "1000 matches per month",
-      "Advanced filtering",
-      "Priority email support",
-      "5 user accounts",
-      "Custom job templates",
-      "Analytics dashboard",
-    ],
-    popular: true,
-    current: true,
-  },
-  {
-    name: "Scale-Up",
-    monthlyPrice: 249,
-    annualPrice: 199,
-    matches: "3000 Matches",
-    features: [
-      "3000 matches per month",
-      "Advanced filtering",
-      "Priority phone & email support",
-      "Unlimited user accounts",
-      "Custom job templates",
-      "Advanced analytics",
-      "API access",
-      "Dedicated account manager",
-    ],
-    popular: false,
-    current: false,
-  },
-]
+import { useReveal } from "@/lib/hooks/useReveal"
 
 export function PricingSection() {
   const [annual, setAnnual] = useState(false)
+  const { ref, visible } = useReveal<HTMLDivElement>()
+
+  const proPrice = annual ? 199 : 249
+  const starterPrice = annual ? 79 : 99
+  const agencyPrice = annual ? 399 : 499
 
   return (
-    <section id="pricing" className="pt-0 pb-0 bg-white relative overflow-hidden">
-      {/* Minimal arc - left */}
-      <svg className="absolute left-0 bottom-1/4 w-32 h-32 pointer-events-none opacity-20" viewBox="0 0 100 100">
-        <path d="M0 100 Q 0 0, 100 0" fill="none" stroke="#94a3b8" strokeWidth="1" />
-        <path d="M0 100 Q 0 20, 80 0" fill="none" stroke="#94a3b8" strokeWidth="1" />
-      </svg>
-
-      {/* Subtle gradient blob - right */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[350px] h-[350px] pointer-events-none">
-        <div className="w-full h-full rounded-full bg-gradient-to-l from-slate-200/50 to-transparent" style={{ clipPath: "inset(0 0 0 50%)" }} />
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        {/* Header */}
-        <motion.div 
-          className="text-center mb-12"
-          {...fadeInUp}
-        >
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-            Simple, Transparent Pricing
+    <section
+      id="pricing"
+      ref={ref}
+      className="px-4 py-24 sm:px-6 lg:px-8"
+      style={{ backgroundColor: "#F8F7F4" }}
+    >
+      <div className="mx-auto max-w-7xl">
+        <div className="text-center">
+          <h2 className={`reveal ${visible ? "visible" : ""} font-syne text-4xl font-bold sm:text-5xl`} style={{ color: "#0A0A0A" }}>
+            Simple pricing. No surprises.
           </h2>
-          <p className="text-lg text-slate-600">
-            Choose the plan that works best for your business.
+          <p className={`reveal ${visible ? "visible" : ""} mt-4 font-dm-sans text-lg`} style={{ color: "#4A4A4A", transitionDelay: "0.05s" }}>
+            Start free. Scale when you&apos;re ready. Cancel anytime.
           </p>
-        </motion.div>
 
-        {/* Toggle */}
-        <motion.div 
-          className="flex items-center justify-center gap-4 mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          <span className={`text-sm ${!annual ? "text-slate-900 font-medium" : "text-slate-500"}`}>
-            Monthly
-          </span>
-          <Switch
-            checked={annual}
-            onCheckedChange={setAnnual}
-            className="data-[state=checked]:bg-[#0D9488]"
-          />
-          <span className={`text-sm ${annual ? "text-slate-900 font-medium" : "text-slate-500"}`}>
-            Annual
-          </span>
-          {annual && (
-            <Badge variant="secondary" className="bg-slate-200 text-slate-700 text-xs">
-              Save 20%
-            </Badge>
-          )}
-        </motion.div>
-
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan, i) => (
-            <motion.div
-              key={plan.name}
-              className={`bg-white rounded-2xl p-8 ${
-                plan.popular
-                  ? "border-2 border-[#0D9488] shadow-lg relative"
-                  : "border border-slate-200"
-              }`}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.4, ease: "easeOut", delay: i * 0.1 }}
+          {/* Toggle */}
+          <div className={`reveal ${visible ? "visible" : ""} mt-8 inline-flex items-center gap-3 rounded-full border bg-white p-1.5`} style={{ borderColor: "#E8E8E8", transitionDelay: "0.1s" }}>
+            <button
+              onClick={() => setAnnual(false)}
+              className="rounded-full px-5 py-2 font-dm-sans text-sm font-medium transition-colors"
+              style={{ backgroundColor: !annual ? "#1DB954" : "transparent", color: !annual ? "#FFFFFF" : "#4A4A4A" }}
             >
-              {plan.popular && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0D9488] text-white">
-                  Most Popular
-                </Badge>
-              )}
+              Monthly
+            </button>
+            <button
+              onClick={() => setAnnual(true)}
+              className="flex items-center gap-2 rounded-full px-5 py-2 font-dm-sans text-sm font-medium transition-colors"
+              style={{ backgroundColor: annual ? "#1DB954" : "transparent", color: annual ? "#FFFFFF" : "#4A4A4A" }}
+            >
+              Annual
+              <span
+                className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                style={{ backgroundColor: annual ? "rgba(255,255,255,0.25)" : "#F0FAF4", color: annual ? "#FFFFFF" : "#158A3E" }}
+              >
+                Save 20%
+              </span>
+            </button>
+          </div>
+        </div>
 
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">{plan.name}</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-slate-900">
-                    €{annual ? plan.annualPrice : plan.monthlyPrice}
+        {/* Cards: featured left, two stacked right */}
+        <div className="mt-16 grid grid-cols-1 gap-6 lg:grid-cols-12">
+          {/* Professional — featured */}
+          <div
+            className={`reveal-left ${visible ? "visible" : ""} flex flex-col rounded-2xl bg-white p-9 shadow-lg lg:col-span-6`}
+            style={{ borderTop: "3px solid #1DB954", transitionDelay: "0.15s" }}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="font-syne text-2xl font-bold" style={{ color: "#0A0A0A" }}>
+                Professional
+              </h3>
+              <span className="rounded-full px-3 py-1 font-dm-sans text-xs font-semibold" style={{ backgroundColor: "#F0FAF4", color: "#158A3E" }}>
+                Most Popular
+              </span>
+            </div>
+            <p className="mt-2 font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
+              For growing recruiting teams who need the full REVETLY experience.
+            </p>
+            <div className="mt-6 flex items-baseline gap-1">
+              <span className="font-syne text-5xl font-bold" style={{ color: "#0A0A0A" }}>
+                €{proPrice}
+              </span>
+              <span className="font-dm-sans text-base" style={{ color: "#4A4A4A" }}>
+                /mo
+              </span>
+            </div>
+            <ul className="mt-8 grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+              {[
+                "Up to 10 active job containers",
+                "Email inbound automation",
+                "AI CV matching + scoring",
+                "Voice screening",
+                "Auto-scheduling & reminders",
+                "Shareable apply link",
+                "Priority support",
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2.5">
+                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: "#1DB954" }} />
+                  <span className="font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
+                    {f}
                   </span>
-                  <span className="text-slate-500">/month</span>
-                </div>
-                <p className="text-sm text-slate-500 mt-1">Monatlich abgerechnet</p>
-                <p className="text-[#0D9488] font-semibold mt-2">{plan.matches}</p>
-              </div>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/auth/register"
+              className="mt-8 rounded-[8px] px-6 py-3.5 text-center font-dm-sans text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
+              style={{ backgroundColor: "#1DB954" }}
+            >
+              Start Free Trial
+            </Link>
+          </div>
 
-              <ul className="space-y-3 mb-8">
-                {plan.features.map((feature, j) => (
-                  <motion.li 
-                    key={j} 
-                    className="flex items-start gap-3"
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.2 + j * 0.05 }}
-                  >
-                    <Check className="h-5 w-5 text-[#0D9488] flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-slate-600">{feature}</span>
-                  </motion.li>
+          {/* Right column */}
+          <div className="flex flex-col gap-6 lg:col-span-6">
+            {/* Starter */}
+            <div
+              className={`reveal-right ${visible ? "visible" : ""} flex flex-1 flex-col rounded-2xl border bg-white p-8`}
+              style={{ borderColor: "#E8E8E8", transitionDelay: "0.2s" }}
+            >
+              <div className="flex items-baseline justify-between">
+                <h3 className="font-syne text-xl font-bold" style={{ color: "#0A0A0A" }}>
+                  Starter
+                </h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="font-syne text-3xl font-bold" style={{ color: "#0A0A0A" }}>
+                    €{starterPrice}
+                  </span>
+                  <span className="font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
+                    /mo
+                  </span>
+                </div>
+              </div>
+              <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
+                {["Up to 3 active jobs", "Email inbound", "AI matching", "Apply link"].map((f) => (
+                  <li key={f} className="flex items-center gap-2">
+                    <Check className="h-4 w-4 flex-shrink-0" style={{ color: "#1DB954" }} />
+                    <span className="font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
+                      {f}
+                    </span>
+                  </li>
                 ))}
               </ul>
-
-              <Button
-                asChild
-                className={`w-full rounded-lg ${
-                  plan.current
-                    ? "bg-[#0D9488] hover:bg-[#0B7C72] text-white"
-                    : "bg-slate-900 hover:bg-slate-800 text-white"
-                }`}
+              <Link
+                href="/auth/register"
+                className="mt-6 rounded-[8px] border px-6 py-3 text-center font-dm-sans text-sm font-semibold transition-colors"
+                style={{ borderColor: "#1DB954", color: "#158A3E" }}
               >
-                <Link href="/auth/register">
-                  {plan.current ? "Current Plan" : "Choose Plan"}
-                </Link>
-              </Button>
-            </motion.div>
-          ))}
+                Start Free
+              </Link>
+            </div>
+
+            {/* Agency */}
+            <div
+              className={`reveal-right ${visible ? "visible" : ""} flex flex-1 flex-col rounded-2xl border bg-white p-8`}
+              style={{ borderColor: "#E8E8E8", transitionDelay: "0.28s" }}
+            >
+              <div className="flex items-baseline justify-between">
+                <h3 className="font-syne text-xl font-bold" style={{ color: "#0A0A0A" }}>
+                  Agency
+                </h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="font-syne text-3xl font-bold" style={{ color: "#0A0A0A" }}>
+                    €{agencyPrice}
+                  </span>
+                  <span className="font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
+                    /mo
+                  </span>
+                </div>
+              </div>
+              <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
+                {["Unlimited jobs", "iFrame embed", "White label", "Account manager"].map((f) => (
+                  <li key={f} className="flex items-center gap-2">
+                    <Check className="h-4 w-4 flex-shrink-0" style={{ color: "#1DB954" }} />
+                    <span className="font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
+                      {f}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/contact"
+                className="mt-6 rounded-[8px] border px-6 py-3 text-center font-dm-sans text-sm font-semibold transition-colors"
+                style={{ borderColor: "#1DB954", color: "#158A3E" }}
+              >
+                Contact Sales
+              </Link>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      {/* Wave divider into teal-50 (FAQ) */}
-      <div className="mt-20">
-        <WaveDivider fillColor="#0D9488" direction="down" />
       </div>
     </section>
   )
