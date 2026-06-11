@@ -12,7 +12,7 @@ const navLinks = [
   { label: "FAQ", href: "#faq" },
 ]
 
-export function Navbar() {
+export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -58,12 +58,12 @@ export function Navbar() {
 
           {/* Right */}
           <div className="hidden items-center gap-5 md:flex">
-            <Link
-              href="/auth/login"
+            <button
+              onClick={onLoginClick}
               className="font-dm-sans text-sm text-white/90 transition-colors hover:text-white"
             >
               Log in
-            </Link>
+            </button>
             <Link
               href="/auth/register"
               className="rounded-[6px] px-4 py-2 font-dm-sans text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.03]"
@@ -96,9 +96,15 @@ export function Navbar() {
                 </button>
               ))}
               <div className="flex flex-col gap-3 border-t pt-4" style={{ borderColor: "#2D4A35" }}>
-                <Link href="/auth/login" className="font-dm-sans text-sm text-white/90">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    onLoginClick?.()
+                  }}
+                  className="text-left font-dm-sans text-sm text-white/90"
+                >
                   Log in
-                </Link>
+                </button>
                 <Link
                   href="/auth/register"
                   className="rounded-[6px] px-4 py-2 text-center font-dm-sans text-sm font-semibold text-white"

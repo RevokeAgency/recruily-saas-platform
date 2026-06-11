@@ -1,111 +1,79 @@
 "use client"
 
-import { motion } from "framer-motion"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import { WaveDivider } from "./wave-divider"
+import { useState } from "react"
+import { Plus, Minus } from "lucide-react"
+import { useReveal } from "@/lib/hooks/useReveal"
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 30 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-100px" },
-  transition: { duration: 0.5, ease: "easeOut" }
-}
-
-const faqs = [
+const FAQS = [
   {
-    question: "How does the AI matching technology work?",
-    answer: "Our AI analyzes both job descriptions and candidate resumes to identify matching skills, experience, and qualifications. It goes beyond keyword matching by understanding context and semantic meaning to provide more accurate matches.",
+    q: "How fast can I get started with REVETLY?",
+    a: "Under 5 minutes. No IT department, no data migration. Post your first job and scored candidates start arriving automatically — often before your next coffee break.",
   },
   {
-    question: "Can I integrate Recruily with my existing ATS?",
-    answer: "Yes, Recruily offers API integration with most popular Applicant Tracking Systems. Our team can help you set up a seamless connection to ensure data flows smoothly between systems.",
+    q: "Is REVETLY DSGVO compliant?",
+    a: "Yes. All data is processed and stored on EU servers in Frankfurt, encrypted at rest and in transit with AES-256. Full AVV documentation is included with every plan.",
   },
   {
-    question: "How long does the free trial last?",
-    answer: "Our free trial lasts for 14 days with full access to all features. No credit card is required to start, and you can cancel anytime.",
+    q: "Where do my candidates come from?",
+    a: "REVETLY connects to where candidates already are — Karriere.at, Indeed, LinkedIn, Xing, StepStone — plus an embeddable apply link for your own website. No more manual imports.",
   },
   {
-    question: "Is my data secure with Recruily?",
-    answer: "Absolutely. We use enterprise-grade encryption and comply with GDPR, CCPA, and other data protection regulations. Your data is stored securely and never shared with third parties without your explicit consent.",
+    q: "How does the AI scoring work?",
+    a: "Every application is automatically read and scored across 9 categories. REVETLY surfaces the best matches with clear recommendations, so you spend time on conversations, not documents.",
   },
   {
-    question: "Can I upgrade or downgrade my plan later?",
-    answer: "Yes, you can change your subscription plan at any time. Changes take effect at the start of your next billing cycle, and we'll prorate any difference in cost.",
+    q: "Can my whole team use one pipeline?",
+    a: "Absolutely. Your entire team sees the same pipeline with the same data. No double work, no lost candidates, no confusion.",
+  },
+  {
+    q: "What if I want to cancel?",
+    a: "Cancel anytime, no questions asked. There is no long-term contract and no credit card required to start your free trial.",
   },
 ]
 
-export function FAQSection() {
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false)
   return (
-    <section id="faq" className="pt-0 pb-0 relative overflow-hidden bg-[#0D9488]">
-      {/* Minimal arc - left */}
-      <svg className="absolute left-0 bottom-1/4 w-24 h-24 pointer-events-none opacity-20" viewBox="0 0 100 100">
-        <path d="M0 100 Q 0 0, 100 0" fill="none" stroke="#94a3b8" strokeWidth="1" />
-      </svg>
-
-      {/* Subtle gradient shapes - right */}
-      <div className="absolute right-0 top-1/4 w-[250px] h-[250px] pointer-events-none">
-        <div className="w-full h-full rounded-full bg-gradient-to-l from-slate-100 to-transparent" style={{ clipPath: "inset(0 0 0 50%)" }} />
+    <div className="border-b border-[#E8E8E8]">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-4 py-6 text-left"
+        aria-expanded={open}
+      >
+        <span className="font-syne text-lg font-bold text-[#0A0A0A]">{q}</span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#F0FAF4] text-[#1DB954]">
+          {open ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+        </span>
+      </button>
+      <div
+        className={`grid overflow-hidden transition-all duration-300 ease-out ${
+          open ? "grid-rows-[1fr] pb-6 opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <p className="font-dm-sans overflow-hidden text-[15px] leading-relaxed text-[#4A4A4A]">
+          {a}
+        </p>
       </div>
-      <div className="absolute right-16 top-1/2 w-[150px] h-[150px] pointer-events-none">
-        <div className="w-full h-full rounded-full bg-gradient-to-l from-teal-50 to-transparent" style={{ clipPath: "inset(0 0 0 30%)" }} />
-      </div>
+    </div>
+  )
+}
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        {/* Header */}
-        <motion.div 
-          className="text-center mb-12"
-          {...fadeInUp}
-        >
-          <p className="text-sm font-medium text-white/80 mb-2">Common Questions</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-lg text-white/80">
-            Find answers to common questions about Recruily.
-          </p>
-        </motion.div>
-
-        {/* Accordion */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          <Accordion type="single" collapsible defaultValue="item-0" className="space-y-4">
-            {faqs.map((faq, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <AccordionItem
-                  value={`item-${i}`}
-                  className="border border-slate-200 rounded-xl px-6 data-[state=open]:border-[#0D9488] data-[state=open]:border-2 bg-white"
-                >
-                  <AccordionTrigger className="text-left font-medium text-slate-900 hover:no-underline py-5 [&[data-state=open]>svg]:text-[#0D9488]">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-slate-600 pb-5">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              </motion.div>
-            ))}
-          </Accordion>
-        </motion.div>
-      </div>
-      
-      {/* Wave divider into white (Contact) */}
-      <div className="mt-20">
-        <WaveDivider fillColor="#ffffff" direction="down" />
+export function FAQSection() {
+  const ref = useReveal<HTMLDivElement>()
+  return (
+    <section id="faq" className="bg-[#F8F7F4] px-6 py-24">
+      <div ref={ref} className="reveal mx-auto max-w-3xl">
+        <p className="font-dm-sans text-center text-xs font-semibold uppercase tracking-[0.1em] text-[#1DB954]">
+          FAQ
+        </p>
+        <h2 className="font-syne mt-3 text-center text-4xl font-bold text-[#0A0A0A] text-balance md:text-5xl">
+          Questions? Answered.
+        </h2>
+        <div className="mt-12">
+          {FAQS.map((f) => (
+            <FaqItem key={f.q} {...f} />
+          ))}
+        </div>
       </div>
     </section>
   )
