@@ -31,7 +31,7 @@ export function FinalCta({ onGetStarted }: FinalCtaProps) {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/auth/register"
-              className="inline-flex items-center gap-2 rounded-full bg-[#1DB954] px-6 py-3.5 font-sans text-sm font-semibold text-white transition-all duration-200 hover:bg-[#158A3E]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#4EB0BE] px-6 py-3.5 font-sans text-sm font-semibold text-white transition-all duration-200 hover:bg-[#3A8F9C]"
             >
               Start Free
               <ArrowRight className="h-4 w-4" />

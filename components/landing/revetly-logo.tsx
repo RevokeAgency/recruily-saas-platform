@@ -3,7 +3,7 @@ export function RevetlyLogo({ dark = false }: { dark?: boolean }) {
     <span className="flex items-center gap-2">
       <span
         className="relative inline-flex h-7 w-7 items-center justify-center rounded-[7px]"
-        style={{ backgroundColor: "#1DB954" }}
+        style={{ backgroundColor: "#4EB0BE" }}
         aria-hidden="true"
       >
         <span className="h-2.5 w-2.5 rounded-[2px] bg-white" />

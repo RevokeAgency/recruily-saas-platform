@@ -34,19 +34,19 @@ export function PricingSection() {
             <button
               onClick={() => setAnnual(false)}
               className="rounded-full px-5 py-2 font-dm-sans text-sm font-medium transition-colors"
-              style={{ backgroundColor: !annual ? "#1DB954" : "transparent", color: !annual ? "#FFFFFF" : "#4A4A4A" }}
+              style={{ backgroundColor: !annual ? "#4EB0BE" : "transparent", color: !annual ? "#FFFFFF" : "#4A4A4A" }}
             >
               Monthly
             </button>
             <button
               onClick={() => setAnnual(true)}
               className="flex items-center gap-2 rounded-full px-5 py-2 font-dm-sans text-sm font-medium transition-colors"
-              style={{ backgroundColor: annual ? "#1DB954" : "transparent", color: annual ? "#FFFFFF" : "#4A4A4A" }}
+              style={{ backgroundColor: annual ? "#4EB0BE" : "transparent", color: annual ? "#FFFFFF" : "#4A4A4A" }}
             >
               Annual
               <span
                 className="rounded-full px-2 py-0.5 text-[10px] font-bold"
-                style={{ backgroundColor: annual ? "rgba(255,255,255,0.25)" : "#F0FAF4", color: annual ? "#FFFFFF" : "#158A3E" }}
+                style={{ backgroundColor: annual ? "rgba(255,255,255,0.25)" : "#EBF7F9", color: annual ? "#FFFFFF" : "#3A8F9C" }}
               >
                 Save 20%
               </span>
@@ -59,13 +59,13 @@ export function PricingSection() {
           {/* Professional — featured */}
           <div
             className={`reveal-left ${visible ? "visible" : ""} flex flex-col rounded-2xl bg-white p-9 shadow-lg lg:col-span-6`}
-            style={{ borderTop: "3px solid #1DB954", transitionDelay: "0.15s" }}
+            style={{ borderTop: "3px solid #4EB0BE", transitionDelay: "0.15s" }}
           >
             <div className="flex items-center justify-between">
               <h3 className="font-syne text-2xl font-bold" style={{ color: "#0A0A0A" }}>
                 Professional
               </h3>
-              <span className="rounded-full px-3 py-1 font-dm-sans text-xs font-semibold" style={{ backgroundColor: "#F0FAF4", color: "#158A3E" }}>
+              <span className="rounded-full px-3 py-1 font-dm-sans text-xs font-semibold" style={{ backgroundColor: "#EBF7F9", color: "#3A8F9C" }}>
                 Most Popular
               </span>
             </div>
@@ -91,7 +91,7 @@ export function PricingSection() {
                 "Priority support",
               ].map((f) => (
                 <li key={f} className="flex items-start gap-2.5">
-                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: "#1DB954" }} />
+                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: "#4EB0BE" }} />
                   <span className="font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
                     {f}
                   </span>
@@ -101,7 +101,7 @@ export function PricingSection() {
             <Link
               href="/auth/register"
               className="mt-8 rounded-[8px] px-6 py-3.5 text-center font-dm-sans text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
-              style={{ backgroundColor: "#1DB954" }}
+              style={{ backgroundColor: "#4EB0BE" }}
             >
               Start Free Trial
             </Link>
@@ -130,7 +130,7 @@ export function PricingSection() {
               <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
                 {["Up to 3 active jobs", "Email inbound", "AI matching", "Apply link"].map((f) => (
                   <li key={f} className="flex items-center gap-2">
-                    <Check className="h-4 w-4 flex-shrink-0" style={{ color: "#1DB954" }} />
+                    <Check className="h-4 w-4 flex-shrink-0" style={{ color: "#4EB0BE" }} />
                     <span className="font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
                       {f}
                     </span>
@@ -140,7 +140,7 @@ export function PricingSection() {
               <Link
                 href="/auth/register"
                 className="mt-6 rounded-[8px] border px-6 py-3 text-center font-dm-sans text-sm font-semibold transition-colors"
-                style={{ borderColor: "#1DB954", color: "#158A3E" }}
+                style={{ borderColor: "#4EB0BE", color: "#3A8F9C" }}
               >
                 Start Free
               </Link>
@@ -167,7 +167,7 @@ export function PricingSection() {
               <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
                 {["Unlimited jobs", "iFrame embed", "White label", "Account manager"].map((f) => (
                   <li key={f} className="flex items-center gap-2">
-                    <Check className="h-4 w-4 flex-shrink-0" style={{ color: "#1DB954" }} />
+                    <Check className="h-4 w-4 flex-shrink-0" style={{ color: "#4EB0BE" }} />
                     <span className="font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
                       {f}
                     </span>
@@ -177,7 +177,7 @@ export function PricingSection() {
               <Link
                 href="/contact"
                 className="mt-6 rounded-[8px] border px-6 py-3 text-center font-dm-sans text-sm font-semibold transition-colors"
-                style={{ borderColor: "#1DB954", color: "#158A3E" }}
+                style={{ borderColor: "#4EB0BE", color: "#3A8F9C" }}
               >
                 Contact Sales
               </Link>

@@ -19,7 +19,7 @@ export function AboutSection() {
           <div className={`reveal-left ${visible ? "visible" : ""} md:col-span-4`}>
             <p
               className="font-dm-sans text-xs font-semibold uppercase tracking-[0.1em]"
-              style={{ color: "#1DB954" }}
+              style={{ color: "#4EB0BE" }}
             >
               About
             </p>
@@ -33,12 +33,12 @@ export function AboutSection() {
             className={`reveal ${visible ? "visible" : ""} space-y-6 md:col-span-8`}
             style={{ transitionDelay: "0.1s" }}
           >
-            <p className="font-dm-sans text-lg leading-relaxed" style={{ color: "#A8C4B0" }}>
+            <p className="font-dm-sans text-lg leading-relaxed" style={{ color: "#A8D4DB" }}>
               REVETLY was built by a team that spent years watching recruiters drown
               in CVs, inboxes, and scheduling chaos. We saw great candidates slip
               through the cracks simply because no one had time to read fast enough.
             </p>
-            <p className="font-dm-sans text-lg leading-relaxed" style={{ color: "#A8C4B0" }}>
+            <p className="font-dm-sans text-lg leading-relaxed" style={{ color: "#A8D4DB" }}>
               Today REVETLY serves growing recruiting teams across Europe with a single
               AI layer that reads, scores, and schedules — so people can get back to
               the part of the job that actually matters: the conversations.
@@ -49,11 +49,11 @@ export function AboutSection() {
         {/* Integration logos strip */}
         <div
           className={`reveal ${visible ? "visible" : ""} mt-20 border-t pt-12`}
-          style={{ borderColor: "#2D4A35", transitionDelay: "0.2s" }}
+          style={{ borderColor: "#1A3D45", transitionDelay: "0.2s" }}
         >
           <p
             className="mb-8 text-center font-dm-sans text-xs font-semibold uppercase tracking-[0.1em]"
-            style={{ color: "#A8C4B0" }}
+            style={{ color: "#A8D4DB" }}
           >
             Connects with where candidates already are
           </p>

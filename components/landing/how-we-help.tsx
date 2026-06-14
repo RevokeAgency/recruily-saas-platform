@@ -35,7 +35,7 @@ export function HowWeHelp() {
     <section ref={ref} className="rv bg-[#F4F7F5] py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="reveal rv-eyebrow inline-block rounded-full border border-[#E5E9E7] bg-white px-3 py-1 text-[#1DB954]">
+          <span className="reveal rv-eyebrow inline-block rounded-full border border-[#E5E9E7] bg-white px-3 py-1 text-[#4EB0BE]">
             How we help
           </span>
           <h2 className="reveal mt-5 font-sans text-3xl font-bold leading-tight tracking-tight text-[#0F3D2C] text-balance sm:text-4xl">
@@ -51,14 +51,14 @@ export function HowWeHelp() {
               data-delay={i * 110}
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EAF8EF] text-[#1DB954]">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EAF8EF] text-[#4EB0BE]">
                   <c.icon className="h-5 w-5" />
                 </span>
                 <ScoreRing value={c.score} size={58} stroke={5} />
               </div>
               <h3 className="mt-6 font-sans text-lg font-bold text-[#0F3D2C]">{c.title}</h3>
               <p className="mt-2 font-sans text-sm leading-relaxed text-[#6B7280]">{c.body}</p>
-              <span className="mt-4 font-sans text-xs font-medium uppercase tracking-[0.08em] text-[#1DB954]">
+              <span className="mt-4 font-sans text-xs font-medium uppercase tracking-[0.08em] text-[#4EB0BE]">
                 {c.metric}
               </span>
             </div>

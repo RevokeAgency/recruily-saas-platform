@@ -63,7 +63,7 @@ export function PlatformSection() {
               className="reveal group rounded-2xl border border-[#E5E9E7] bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               data-delay={i * 90}
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EAF8EF] text-[#1DB954] transition-colors group-hover:bg-[#1DB954] group-hover:text-white">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EAF8EF] text-[#4EB0BE] transition-colors group-hover:bg-[#4EB0BE] group-hover:text-white">
                 <f.icon className="h-5 w-5" />
               </span>
               <h3 className="mt-5 font-sans text-lg font-bold text-[#0F3D2C]">{f.title}</h3>

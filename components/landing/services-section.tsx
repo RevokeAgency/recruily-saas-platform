@@ -42,7 +42,7 @@ export function ServicesSection() {
         aria-hidden="true"
       />
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <span className="reveal rv-eyebrow inline-block rounded-full border border-[#E5E9E7] bg-[#F4F7F5] px-3 py-1 text-[#1DB954]">
+        <span className="reveal rv-eyebrow inline-block rounded-full border border-[#E5E9E7] bg-[#F4F7F5] px-3 py-1 text-[#4EB0BE]">
           Our services
         </span>
         <h2 className="reveal mt-5 max-w-2xl font-sans text-3xl font-bold leading-tight tracking-tight text-[#0F3D2C] text-balance sm:text-4xl">
@@ -63,7 +63,7 @@ export function ServicesSection() {
               className={`rounded-full px-5 py-2.5 font-sans text-sm font-semibold transition-all duration-200 ${
                 active === tab.id
                   ? "bg-[#0F3D2C] text-white shadow-sm"
-                  : "border border-[#E5E9E7] bg-white text-[#3F4A45] hover:border-[#1DB954] hover:text-[#1DB954]"
+                  : "border border-[#E5E9E7] bg-white text-[#3F4A45] hover:border-[#4EB0BE] hover:text-[#4EB0BE]"
               }`}
             >
               {tab.label}
@@ -79,7 +79,7 @@ export function ServicesSection() {
             <ul className="mt-6 space-y-3">
               {current.bullets.map((b) => (
                 <li key={b} className="flex items-center gap-3">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#EAF8EF] text-[#1DB954]">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#EAF8EF] text-[#4EB0BE]">
                     <Check className="h-3 w-3" strokeWidth={3} />
                   </span>
                   <span className="font-sans text-sm font-medium text-[#0F3D2C]">{b}</span>
@@ -88,7 +88,7 @@ export function ServicesSection() {
             </ul>
             <a
               href="#pricing"
-              className="mt-7 inline-flex items-center gap-2 font-sans text-sm font-semibold text-[#1DB954] hover:text-[#158A3E]"
+              className="mt-7 inline-flex items-center gap-2 font-sans text-sm font-semibold text-[#4EB0BE] hover:text-[#3A8F9C]"
             >
               See plans
               <ArrowUpRight className="h-4 w-4" />

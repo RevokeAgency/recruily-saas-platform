@@ -23,13 +23,13 @@ export function HeroSection() {
         {/* Left copy */}
         <div>
           <span className="rv-fade-up inline-flex items-center gap-2 rounded-full border border-[#E5E9E7] bg-[#F4F7F5] px-4 py-1.5 font-sans text-xs font-medium text-[#3F4A45]">
-            <span className="h-2 w-2 rounded-full bg-[#1DB954]" />
+            <span className="h-2 w-2 rounded-full bg-[#4EB0BE]" />
             250+ recruiting teams trust REVETLY
           </span>
 
           <h1 className="rv-fade-up rv-delay-1 mt-6 font-sans text-4xl font-bold leading-[1.08] tracking-tight text-[#0F3D2C] text-balance sm:text-5xl lg:text-6xl">
             Recruitment process with{" "}
-            <span className="text-[#1DB954]">smart AI solutions.</span>
+            <span className="text-[#4EB0BE]">smart AI solutions.</span>
           </h1>
 
           <p className="rv-fade-up rv-delay-2 mt-6 max-w-md font-sans text-base leading-relaxed text-[#3F4A45]">
@@ -40,14 +40,14 @@ export function HeroSection() {
           <div className="rv-fade-up rv-delay-3 mt-8 flex flex-wrap items-center gap-3">
             <Link
               href="/auth/register"
-              className="inline-flex items-center gap-2 rounded-full bg-[#1DB954] px-6 py-3.5 font-sans text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#158A3E] hover:shadow-md"
+              className="inline-flex items-center gap-2 rounded-full bg-[#4EB0BE] px-6 py-3.5 font-sans text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#3A8F9C] hover:shadow-md"
             >
               Start Free
               <ArrowRight className="h-4 w-4" />
             </Link>
             <a
               href="#how-it-works"
-              className="inline-flex items-center gap-2 rounded-full border border-[#E5E9E7] bg-white px-6 py-3.5 font-sans text-sm font-semibold text-[#0F3D2C] transition-all duration-200 hover:border-[#1DB954] hover:text-[#1DB954]"
+              className="inline-flex items-center gap-2 rounded-full border border-[#E5E9E7] bg-white px-6 py-3.5 font-sans text-sm font-semibold text-[#0F3D2C] transition-all duration-200 hover:border-[#4EB0BE] hover:text-[#4EB0BE]"
             >
               See How it Works
               <MessageSquare className="h-4 w-4" />
@@ -78,7 +78,7 @@ export function HeroSection() {
                 className="h-56 w-full object-cover"
               />
               <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 font-sans text-[10px] font-semibold text-[#0F3D2C] shadow-sm">
-                <Star className="h-3 w-3 fill-[#1DB954] text-[#1DB954]" />
+                <Star className="h-3 w-3 fill-[#4EB0BE] text-[#4EB0BE]" />
                 Top rated platform
               </span>
             </div>

@@ -340,11 +340,11 @@
 
 /* ─────────────────────────────────────────────
    REVETLY Landing — HR-Pro inspired design system
-   Light & airy, green accent #1DB954, Montserrat
+   Light & airy, green accent #4EB0BE, Montserrat
    ───────────────────────────────────────────── */
 .rv {
-  --rv-green: #1DB954;
-  --rv-green-dark: #158A3E;
+  --rv-green: #4EB0BE;
+  --rv-green-dark: #3A8F9C;
   --rv-green-soft: #EAF8EF;
   --rv-dark: #0F3D2C;        /* deep forest green for dark sections */
   --rv-dark-2: #0B3023;

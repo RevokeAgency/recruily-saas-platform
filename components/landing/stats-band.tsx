@@ -13,19 +13,19 @@ export function StatsBand() {
     <section
       ref={ref}
       className="px-4 py-16 sm:px-6 lg:px-8"
-      style={{ backgroundColor: "#0D1F14" }}
+      style={{ backgroundColor: "#0D2B30" }}
     >
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:grid-rows-2 md:gap-5">
           {/* Stat 1 — candidates processed */}
           <div
             className={`reveal ${visible ? "visible" : ""} flex flex-col justify-between rounded-2xl border p-7 md:col-span-3 md:row-span-1`}
-            style={{ backgroundColor: "#1A2E1E", borderColor: "#2D4A35" }}
+            style={{ backgroundColor: "#0F2226", borderColor: "#1A3D45" }}
           >
             <p className="font-syne text-5xl font-bold text-white">
               {candidates}k
             </p>
-            <p className="mt-3 font-dm-sans text-sm" style={{ color: "#A8C4B0" }}>
+            <p className="mt-3 font-dm-sans text-sm" style={{ color: "#A8D4DB" }}>
               Candidates Processed
             </p>
           </div>
@@ -52,7 +52,7 @@ export function StatsBand() {
           {/* Stat 2 — less admin time */}
           <div
             className={`reveal ${visible ? "visible" : ""} flex flex-col justify-between rounded-2xl border p-7 md:col-span-3 md:row-span-1`}
-            style={{ backgroundColor: "#1DB954", borderColor: "#1DB954", transitionDelay: "0.15s" }}
+            style={{ backgroundColor: "#4EB0BE", borderColor: "#4EB0BE", transitionDelay: "0.15s" }}
           >
             <p className="font-syne text-5xl font-bold text-white">{adminTime}%</p>
             <p className="mt-3 font-dm-sans text-sm text-white/90">Less Admin Time</p>

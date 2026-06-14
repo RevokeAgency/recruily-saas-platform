@@ -32,7 +32,7 @@ export function Footer() {
                 <li key={link}>
                   <a
                     href="#"
-                    className="font-sans text-sm text-[#6B7280] transition-colors hover:text-[#1DB954]"
+                    className="font-sans text-sm text-[#6B7280] transition-colors hover:text-[#4EB0BE]"
                   >
                     {link}
                   </a>
@@ -49,7 +49,7 @@ export function Footer() {
                 <li key={label}>
                   <a
                     href="#"
-                    className="inline-flex items-center gap-2 font-sans text-sm text-[#6B7280] transition-colors hover:text-[#1DB954]"
+                    className="inline-flex items-center gap-2 font-sans text-sm text-[#6B7280] transition-colors hover:text-[#4EB0BE]"
                   >
                     <Icon className="h-4 w-4" />
                     {label}
@@ -66,7 +66,7 @@ export function Footer() {
               <li>
                 <a
                   href="mailto:hello@revetly.ai"
-                  className="font-sans text-sm text-[#6B7280] transition-colors hover:text-[#1DB954]"
+                  className="font-sans text-sm text-[#6B7280] transition-colors hover:text-[#4EB0BE]"
                 >
                   hello@revetly.ai
                 </a>
@@ -75,7 +75,7 @@ export function Footer() {
                 <li key={link}>
                   <a
                     href="#"
-                    className="font-sans text-sm text-[#6B7280] transition-colors hover:text-[#1DB954]"
+                    className="font-sans text-sm text-[#6B7280] transition-colors hover:text-[#4EB0BE]"
                   >
                     {link}
                   </a>

@@ -41,7 +41,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         aria-expanded={open}
       >
         <span className="font-syne text-lg font-bold text-[#0A0A0A]">{q}</span>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#F0FAF4] text-[#1DB954]">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#EBF7F9] text-[#4EB0BE]">
           {open ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </span>
       </button>
@@ -63,7 +63,7 @@ export function FAQSection() {
   return (
     <section id="faq" className="bg-[#F8F7F4] px-6 py-24">
       <div ref={ref} className="reveal mx-auto max-w-3xl">
-        <p className="font-dm-sans text-center text-xs font-semibold uppercase tracking-[0.1em] text-[#1DB954]">
+        <p className="font-dm-sans text-center text-xs font-semibold uppercase tracking-[0.1em] text-[#4EB0BE]">
           FAQ
         </p>
         <h2 className="font-syne mt-3 text-center text-4xl font-bold text-[#0A0A0A] text-balance md:text-5xl">

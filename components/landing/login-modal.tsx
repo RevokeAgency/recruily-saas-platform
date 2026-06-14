@@ -113,7 +113,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             </div>
             <Link
               href="/auth/reset"
-              className="text-sm text-[#1DB954] hover:underline"
+              className="text-sm text-[#4EB0BE] hover:underline"
               onClick={() => onOpenChange(false)}
             >
               Passwort vergessen?
@@ -123,7 +123,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#1DB954] hover:bg-[#158A3E] text-white rounded-lg"
+            className="w-full bg-[#4EB0BE] hover:bg-[#3A8F9C] text-white rounded-lg"
           >
             {loading ? "Wird angemeldet..." : "Anmelden"}
           </Button>
@@ -133,7 +133,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           {"Noch kein Konto? "}
           <Link
             href="/auth/register"
-            className="text-[#1DB954] font-medium hover:underline"
+            className="text-[#4EB0BE] font-medium hover:underline"
             onClick={() => onOpenChange(false)}
           >
             Registrieren

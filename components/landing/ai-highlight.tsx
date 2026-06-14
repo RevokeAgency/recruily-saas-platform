@@ -15,7 +15,7 @@ export function AiHighlight() {
       <div className="mx-auto max-w-3xl text-center">
         <p
           className={`reveal ${visible ? "visible" : ""} font-dm-sans text-xs font-semibold uppercase tracking-[0.1em]`}
-          style={{ color: "#1DB954" }}
+          style={{ color: "#4EB0BE" }}
         >
           REVETLY AI
         </p>
@@ -47,7 +47,7 @@ export function AiHighlight() {
           </span>
           <button
             className="flex items-center gap-2 rounded-xl px-4 py-2.5 font-dm-sans text-sm font-semibold text-white transition-transform hover:scale-[1.03]"
-            style={{ backgroundColor: "#1DB954" }}
+            style={{ backgroundColor: "#4EB0BE" }}
           >
             Search
           </button>
@@ -57,7 +57,7 @@ export function AiHighlight() {
         <div className="mt-4 flex items-center gap-4 rounded-2xl border bg-white p-5 shadow-sm" style={{ borderColor: "#E8E8E8" }}>
           <div
             className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full font-syne text-lg font-bold text-white"
-            style={{ backgroundColor: "#1DB954" }}
+            style={{ backgroundColor: "#4EB0BE" }}
           >
             94
           </div>
@@ -71,7 +71,7 @@ export function AiHighlight() {
           </div>
           <span
             className="rounded-full px-3 py-1 font-dm-sans text-xs font-semibold"
-            style={{ backgroundColor: "#F0FAF4", color: "#158A3E" }}
+            style={{ backgroundColor: "#EBF7F9", color: "#3A8F9C" }}
           >
             Top Match
           </span>
@@ -80,7 +80,7 @@ export function AiHighlight() {
         <div className="mt-8 flex justify-center">
           <button
             className="group flex items-center gap-2 font-dm-sans text-base font-semibold transition-colors"
-            style={{ color: "#158A3E" }}
+            style={{ color: "#3A8F9C" }}
           >
             Try It Free
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

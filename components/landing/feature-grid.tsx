@@ -45,7 +45,7 @@ function MiniMock({ type }: { type: string }) {
               <span className="font-semibold text-slate-700">{r.val}%</span>
             </div>
             <div className="mt-1 h-1.5 w-full rounded-full bg-slate-100">
-              <div className="h-full rounded-full" style={{ width: `${r.val}%`, backgroundColor: "#1DB954" }} />
+              <div className="h-full rounded-full" style={{ width: `${r.val}%`, backgroundColor: "#4EB0BE" }} />
             </div>
           </div>
         ))}
@@ -62,7 +62,7 @@ function MiniMock({ type }: { type: string }) {
         {["Anna K. — 92%", "Mehmet Y. — 89%", "Lisa R. — 84%"].map((c) => (
           <div key={c} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
             <span className="font-dm-sans text-[11px] text-slate-700">{c.split(" — ")[0]}</span>
-            <span className="font-dm-sans text-[11px] font-semibold" style={{ color: "#1DB954" }}>
+            <span className="font-dm-sans text-[11px] font-semibold" style={{ color: "#4EB0BE" }}>
               {c.split(" — ")[1]}
             </span>
           </div>
@@ -77,7 +77,7 @@ function MiniMock({ type }: { type: string }) {
           <div key={c} className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
             <span
               className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
-              style={{ backgroundColor: i === 2 ? "#1DB954" : "#A8C4B0" }}
+              style={{ backgroundColor: i === 2 ? "#4EB0BE" : "#A8D4DB" }}
             >
               {i + 1}
             </span>
@@ -119,7 +119,7 @@ export function FeatureGrid() {
           </h2>
           <p
             className={`reveal ${visible ? "visible" : ""} mt-3 font-syne text-xl font-bold`}
-            style={{ color: "#1DB954", transitionDelay: "0.05s" }}
+            style={{ color: "#4EB0BE", transitionDelay: "0.05s" }}
           >
             Powered by AI.
           </p>
@@ -136,9 +136,9 @@ export function FeatureGrid() {
               >
                 <div
                   className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: "#F0FAF4" }}
+                  style={{ backgroundColor: "#EBF7F9" }}
                 >
-                  <Icon className="h-5 w-5" style={{ color: "#1DB954" }} />
+                  <Icon className="h-5 w-5" style={{ color: "#4EB0BE" }} />
                 </div>
                 <h3 className="font-syne text-2xl font-bold" style={{ color: "#0A0A0A" }}>
                   {f.title}

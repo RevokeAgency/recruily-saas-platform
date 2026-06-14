@@ -27,7 +27,7 @@ export function ChannelsTrust() {
   const { ref, visible } = useReveal<HTMLDivElement>()
 
   return (
-    <section ref={ref} className="px-4 py-24 sm:px-6 lg:px-8" style={{ backgroundColor: "#0D1F14" }}>
+    <section ref={ref} className="px-4 py-24 sm:px-6 lg:px-8" style={{ backgroundColor: "#0D2B30" }}>
       <div className="mx-auto max-w-7xl">
         {/* Channels */}
         <div className="text-center">
@@ -40,8 +40,8 @@ export function ChannelsTrust() {
                 key={c}
                 className={`reveal ${visible ? "visible" : ""} rounded-full border px-6 py-3 font-dm-sans text-sm font-medium text-white`}
                 style={{
-                  backgroundColor: "#1A2E1E",
-                  borderColor: "#2D4A35",
+                  backgroundColor: "#0F2226",
+                  borderColor: "#1A3D45",
                   transitionDelay: `${0.1 + i * 0.1}s`,
                 }}
               >
@@ -55,7 +55,7 @@ export function ChannelsTrust() {
         <div className="mt-24">
           <p
             className={`reveal ${visible ? "visible" : ""} text-center font-dm-sans text-xs font-semibold uppercase tracking-[0.1em]`}
-            style={{ color: "#1DB954" }}
+            style={{ color: "#4EB0BE" }}
           >
             Compliance
           </p>
@@ -67,19 +67,19 @@ export function ChannelsTrust() {
                   key={t.title}
                   className={`reveal ${visible ? "visible" : ""} rounded-2xl border p-8 transition-all duration-300 hover:-translate-y-1`}
                   style={{
-                    backgroundColor: "#1A2E1E",
-                    borderColor: "#2D4A35",
+                    backgroundColor: "#0F2226",
+                    borderColor: "#1A3D45",
                     transitionDelay: `${0.15 + i * 0.12}s`,
                   }}
                 >
                   <div
                     className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: "rgba(29,185,84,0.12)" }}
+                    style={{ backgroundColor: "rgba(78,176,190,0.12)" }}
                   >
-                    <Icon className="h-5 w-5" style={{ color: "#1DB954" }} />
+                    <Icon className="h-5 w-5" style={{ color: "#4EB0BE" }} />
                   </div>
                   <h3 className="font-syne text-xl font-bold text-white">{t.title}</h3>
-                  <p className="mt-3 font-dm-sans text-sm leading-relaxed" style={{ color: "#A8C4B0" }}>
+                  <p className="mt-3 font-dm-sans text-sm leading-relaxed" style={{ color: "#A8D4DB" }}>
                     {t.body}
                   </p>
                 </div>

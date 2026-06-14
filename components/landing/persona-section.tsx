@@ -34,7 +34,7 @@ export function PersonaSection() {
     <section
       ref={ref}
       className="px-4 py-24 sm:px-6 lg:px-8"
-      style={{ backgroundColor: "#0D1F14" }}
+      style={{ backgroundColor: "#0D2B30" }}
     >
       <div className="mx-auto max-w-7xl">
         <div className="mx-auto max-w-3xl text-center">
@@ -43,7 +43,7 @@ export function PersonaSection() {
           </h2>
           <p
             className={`reveal ${visible ? "visible" : ""} mt-5 font-dm-sans text-lg`}
-            style={{ color: "#A8C4B0", transitionDelay: "0.1s" }}
+            style={{ color: "#A8D4DB", transitionDelay: "0.1s" }}
           >
             One platform that adapts to how your team already works — whether you
             run an agency, hunt solo, or build a department.
@@ -56,8 +56,8 @@ export function PersonaSection() {
               key={p.title}
               className={`reveal ${visible ? "visible" : ""} group flex flex-col overflow-hidden rounded-2xl border transition-all duration-300 hover:-translate-y-1`}
               style={{
-                backgroundColor: "#1A2E1E",
-                borderColor: "#2D4A35",
+                backgroundColor: "#0F2226",
+                borderColor: "#1A3D45",
                 transitionDelay: `${0.15 + i * 0.15}s`,
               }}
             >
@@ -71,12 +71,12 @@ export function PersonaSection() {
               </div>
               <div className="flex flex-1 flex-col p-7">
                 <h3 className="font-syne text-xl font-bold text-white">{p.title}</h3>
-                <p className="mt-1 font-dm-sans text-sm" style={{ color: "#1DB954" }}>
+                <p className="mt-1 font-dm-sans text-sm" style={{ color: "#4EB0BE" }}>
                   {p.subtitle}
                 </p>
                 <blockquote
                   className="mt-5 border-l-2 pl-4 font-dm-sans text-base italic leading-relaxed"
-                  style={{ borderColor: "#1DB954", color: "#A8C4B0" }}
+                  style={{ borderColor: "#4EB0BE", color: "#A8D4DB" }}
                 >
                   {`"${p.quote}"`}
                 </blockquote>

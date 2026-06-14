@@ -35,7 +35,7 @@ export function TestimonialsSection() {
     <section id="testimonials" ref={ref} className="rv bg-white py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="reveal rv-eyebrow inline-block rounded-full border border-[#E5E9E7] bg-[#F4F7F5] px-3 py-1 text-[#1DB954]">
+          <span className="reveal rv-eyebrow inline-block rounded-full border border-[#E5E9E7] bg-[#F4F7F5] px-3 py-1 text-[#4EB0BE]">
             Testimonials
           </span>
           <h2 className="reveal mt-5 font-sans text-3xl font-bold leading-tight tracking-tight text-[#0F3D2C] text-balance sm:text-4xl">
@@ -55,7 +55,7 @@ export function TestimonialsSection() {
             >
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, s) => (
-                  <Star key={s} className="h-4 w-4 fill-[#1DB954] text-[#1DB954]" />
+                  <Star key={s} className="h-4 w-4 fill-[#4EB0BE] text-[#4EB0BE]" />
                 ))}
               </div>
               <blockquote className="mt-4 flex-1 font-sans text-base leading-relaxed text-[#0F3D2C]">

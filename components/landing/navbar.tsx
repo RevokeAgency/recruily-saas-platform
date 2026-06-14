@@ -49,7 +49,7 @@ export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
                 className="group relative font-sans text-sm font-medium text-[#3F4A45] transition-colors hover:text-[#0F3D2C]"
               >
                 {link.label}
-                <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-[#1DB954] transition-all duration-300 group-hover:w-full" />
+                <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-[#4EB0BE] transition-all duration-300 group-hover:w-full" />
               </button>
             ))}
           </div>
@@ -64,7 +64,7 @@ export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
             </button>
             <Link
               href="/auth/register"
-              className="rounded-full bg-[#1DB954] px-5 py-2.5 font-sans text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#158A3E] hover:shadow-md"
+              className="rounded-full bg-[#4EB0BE] px-5 py-2.5 font-sans text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#3A8F9C] hover:shadow-md"
             >
               Get Started Free
             </Link>
@@ -104,7 +104,7 @@ export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
                 </button>
                 <Link
                   href="/auth/register"
-                  className="rounded-full bg-[#1DB954] px-5 py-2.5 text-center font-sans text-sm font-semibold text-white"
+                  className="rounded-full bg-[#4EB0BE] px-5 py-2.5 text-center font-sans text-sm font-semibold text-white"
                 >
                   Get Started Free
                 </Link>
