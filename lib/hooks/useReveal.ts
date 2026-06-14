@@ -13,7 +13,7 @@ export function useReveal() {
   useEffect(() => {
     const root = ref.current ?? document
     const els = Array.from(
-      root.querySelectorAll<HTMLElement>(".reveal, .reveal-scale, .reveal-left, .reveal-right"),
+      root.querySelectorAll<HTMLElement>(".reveal, .reveal-left, .reveal-right"),
     )
 
     const observer = new IntersectionObserver(

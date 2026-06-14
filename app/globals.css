@@ -341,64 +341,21 @@
 }
 
 /* ─────────────────────────────────────────────
-   REVETLY Landing Page — Dayos-style design system
-   white / black / grey, green ONLY as accent
+   REVETLY Landing Page — fonts & utilities
    ───────────────────────────────────────────── */
+.font-fraunces { font-family: var(--font-fraunces), Georgia, serif; }
 .font-syne { font-family: var(--font-syne), system-ui, sans-serif; }
 .font-dm-sans { font-family: var(--font-dm-sans), system-ui, sans-serif; }
 
-.rv {
-  /* palette */
-  --rv-white: #FFFFFF;
-  --rv-alt: #F2F2F0;
-  --rv-dark: #0A0A0A;
-  --rv-shape-light: #E8E8E4;
-  --rv-shape-dark: #111111;
-  --rv-green: #1DB954;
-  --rv-green-dark: #158A3E;
-  --rv-text: #0A0A0A;
-  --rv-text-2: #6B6B6B;
-  --rv-on-dark: #FFFFFF;
-  --rv-muted-dark: #A0A0A0;
-  --rv-border-light: #E0E0DC;
-  --rv-border-dark: #2A2A2A;
-}
-
-/* Display headline helper — ALL CAPS, Syne ExtraBold */
-.rv-display {
-  font-family: var(--font-syne), system-ui, sans-serif;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-  line-height: 0.98;
-}
-.rv-eyebrow {
-  font-family: var(--font-dm-sans), system-ui, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
 html { scroll-behavior: smooth; }
-
-/* Soft shadow used by rounded shape containers */
-.rv-soft-shadow { box-shadow: 0 8px 40px rgba(0,0,0,0.08); }
 
 /* Scroll-triggered reveals (IntersectionObserver toggles .visible) */
 .reveal {
   opacity: 0;
-  transform: translateY(50px);
-  transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1);
+  transform: translateY(40px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
 }
 .reveal.visible { opacity: 1; transform: translateY(0); }
-
-.reveal-scale {
-  opacity: 0;
-  transform: scale(0.97);
-  transition: opacity 0.55s ease, transform 0.55s ease;
-}
-.reveal-scale.visible { opacity: 1; transform: scale(1); }
 
 .reveal-left {
   opacity: 0;
@@ -420,16 +377,16 @@ html { scroll-behavior: smooth; }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes rv-fade-up {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes rv-scale-in {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.92); }
   to { opacity: 1; transform: scale(1); }
 }
 @keyframes rv-float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
+  50% { transform: translateY(-10px); }
 }
 @keyframes rv-pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(29,185,84,0); }
@@ -437,11 +394,11 @@ html { scroll-behavior: smooth; }
 }
 
 .rv-fade-down { opacity: 0; animation: rv-fade-down 0.5s ease forwards; }
-.rv-fade-up { opacity: 0; animation: rv-fade-up 0.7s cubic-bezier(0.22,1,0.36,1) forwards; }
-.rv-scale-in { opacity: 0; animation: rv-scale-in 0.6s ease forwards; }
-.rv-float { animation: rv-float 5s ease-in-out infinite; }
-.rv-float-slow { animation: rv-float 7s ease-in-out infinite; }
-.rv-pulse-glow { animation: rv-pulse-glow 5s ease-in-out infinite; }
+.rv-fade-up { opacity: 0; animation: rv-fade-up 0.6s ease forwards; }
+.rv-scale-in { opacity: 0; animation: rv-scale-in 0.5s ease forwards; }
+.rv-float { animation: rv-float 4s ease-in-out infinite; }
+.rv-float-slow { animation: rv-float 6s ease-in-out infinite; }
+.rv-pulse-glow { animation: rv-pulse-glow 4s ease-in-out infinite; }
 
 .rv-delay-1 { animation-delay: 0.1s; }
 .rv-delay-2 { animation-delay: 0.2s; }
@@ -450,15 +407,3 @@ html { scroll-behavior: smooth; }
 .rv-delay-5 { animation-delay: 0.6s; }
 .rv-delay-6 { animation-delay: 0.8s; }
 .rv-delay-7 { animation-delay: 1s; }
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal, .reveal-scale, .reveal-left, .reveal-right {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-  .rv-fade-down, .rv-fade-up, .rv-scale-in, .rv-float, .rv-float-slow, .rv-pulse-glow {
-    animation: none !important;
-    opacity: 1 !important;
-  }
-}

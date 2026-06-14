@@ -1,15 +1,11 @@
 import type { Metadata, Viewport } from 'next'
-import { Syne, DM_Sans } from 'next/font/google'
+import { Fraunces, Syne, DM_Sans } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 
-const syne = Syne({
-  subsets: ['latin'],
-  variable: '--font-syne',
-  weight: ['600', '700', '800'],
-  display: 'swap',
-})
+const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-fraunces', display: 'swap' })
+const syne = Syne({ subsets: ['latin'], variable: '--font-syne', display: 'swap' })
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans', display: 'swap' })
 
 export const metadata: Metadata = {
@@ -31,7 +27,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#FFFFFF',
+  themeColor: '#0D1F14',
 }
 
 export default function RootLayout({
@@ -42,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${syne.variable} ${dmSans.variable} bg-background`}
+      className={`${fraunces.variable} ${syne.variable} ${dmSans.variable} bg-background`}
     >
       <body className="font-dm-sans antialiased">
         {children}
