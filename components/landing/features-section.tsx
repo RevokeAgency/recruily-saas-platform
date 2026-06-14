@@ -50,7 +50,7 @@ export function FeaturesSection() {
       {/* Minimal dot pattern - left */}
       <div className="absolute bottom-16 left-8 grid grid-cols-3 gap-2 opacity-30 pointer-events-none">
         {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#0D9488]" />
+          <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#4EB0BE]" />
         ))}
       </div>
 
@@ -86,8 +86,8 @@ export function FeaturesSection() {
               transition={{ duration: 0.4, ease: "easeOut", delay: i * 0.1 }}
             >
               {/* Icon */}
-              <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-[#0D9488]/10 flex items-center justify-center group-hover:bg-[#0D9488]/20 transition-colors">
-                <feature.icon className="h-6 w-6 text-[#0D9488]" />
+              <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-[#4EB0BE]/10 flex items-center justify-center group-hover:bg-[#4EB0BE]/20 transition-colors">
+                <feature.icon className="h-6 w-6 text-[#4EB0BE]" />
               </div>
               
               {/* Content */}
@@ -104,7 +104,7 @@ export function FeaturesSection() {
       
       {/* Wave divider into teal section (Dashboard/IMLRS) */}
       <div className="mt-20">
-        <WaveDivider fillColor="#0D9488" direction="up" />
+        <WaveDivider fillColor="#4EB0BE" direction="up" />
       </div>
     </section>
   )

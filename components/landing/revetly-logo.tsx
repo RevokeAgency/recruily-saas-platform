@@ -10,7 +10,7 @@ export function RevetlyLogo({ dark = false }: { dark?: boolean }) {
       </span>
       <span
         className="font-sans text-xl font-extrabold tracking-tight"
-        style={{ color: dark ? "#FFFFFF" : "#0F3D2C" }}
+        style={{ color: dark ? "#FFFFFF" : "#081314" }}
       >
         REVETLY
       </span>

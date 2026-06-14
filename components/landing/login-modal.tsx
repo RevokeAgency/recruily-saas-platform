@@ -123,7 +123,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#4EB0BE] hover:bg-[#3A8F9C] text-white rounded-lg"
+            className="w-full bg-[#4EB0BE] hover:bg-[#2B6169] text-white rounded-lg"
           >
             {loading ? "Wird angemeldet..." : "Anmelden"}
           </Button>

@@ -13,7 +13,7 @@ const legal = ["Privacy", "Terms", "DSGVO"]
 
 export function Footer() {
   return (
-    <footer className="rv border-t border-[#E5E9E7] bg-[#F4F7F5] px-5 pt-16 pb-8 sm:px-6 lg:px-8">
+    <footer className="rv border-t border-[#E5E9E7] bg-[#EBF7F9] px-5 pt-16 pb-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
           {/* Logo + tagline */}
@@ -26,7 +26,7 @@ export function Footer() {
 
           {/* Navigate */}
           <div>
-            <h3 className="font-sans text-sm font-bold text-[#0F3D2C]">Navigate</h3>
+            <h3 className="font-sans text-sm font-bold text-[#081314]">Navigate</h3>
             <ul className="mt-4 flex flex-col gap-3">
               {navigate.map((link) => (
                 <li key={link}>
@@ -43,7 +43,7 @@ export function Footer() {
 
           {/* Follow */}
           <div>
-            <h3 className="font-sans text-sm font-bold text-[#0F3D2C]">Follow</h3>
+            <h3 className="font-sans text-sm font-bold text-[#081314]">Follow</h3>
             <ul className="mt-4 flex flex-col gap-3">
               {follow.map(({ label, icon: Icon }) => (
                 <li key={label}>
@@ -61,7 +61,7 @@ export function Footer() {
 
           {/* Contact + Legal */}
           <div>
-            <h3 className="font-sans text-sm font-bold text-[#0F3D2C]">Contact</h3>
+            <h3 className="font-sans text-sm font-bold text-[#081314]">Contact</h3>
             <ul className="mt-4 flex flex-col gap-3">
               <li>
                 <a

@@ -16,7 +16,7 @@ const fadeInUp = {
 
 export function DashboardPreviewSection() {
   return (
-    <section className="pt-20 pb-0 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #0D9488 0%, #0B7C72 100%)" }}>
+    <section className="pt-20 pb-0 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #4EB0BE 0%, #2B6169 100%)" }}>
       {/* Subtle geometric accents */}
       <div className="absolute top-16 right-12 opacity-20 pointer-events-none">
         <svg width="100" height="100" viewBox="0 0 100 100">
@@ -90,7 +90,7 @@ export function DashboardPreviewSection() {
           <p className="text-white/80 mb-6">
             Our intuitive dashboard gives your HR team a complete overview of all job postings, candidates, and matches in one place. Track progress, collaborate with team members, and make data-driven hiring decisions.
           </p>
-          <Button asChild className="bg-white hover:bg-slate-100 text-[#0D9488] rounded-lg px-6">
+          <Button asChild className="bg-white hover:bg-slate-100 text-[#4EB0BE] rounded-lg px-6">
             <Link href="/auth/register">
               See the full dashboard
               <ArrowRight className="ml-2 h-4 w-4" />

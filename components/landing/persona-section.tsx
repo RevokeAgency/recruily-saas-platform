@@ -34,7 +34,7 @@ export function PersonaSection() {
     <section
       ref={ref}
       className="px-4 py-24 sm:px-6 lg:px-8"
-      style={{ backgroundColor: "#0D2B30" }}
+      style={{ backgroundColor: "#081314" }}
     >
       <div className="mx-auto max-w-7xl">
         <div className="mx-auto max-w-3xl text-center">
@@ -43,7 +43,7 @@ export function PersonaSection() {
           </h2>
           <p
             className={`reveal ${visible ? "visible" : ""} mt-5 font-dm-sans text-lg`}
-            style={{ color: "#A8D4DB", transitionDelay: "0.1s" }}
+            style={{ color: "#7AABB2", transitionDelay: "0.1s" }}
           >
             One platform that adapts to how your team already works — whether you
             run an agency, hunt solo, or build a department.
@@ -56,8 +56,8 @@ export function PersonaSection() {
               key={p.title}
               className={`reveal ${visible ? "visible" : ""} group flex flex-col overflow-hidden rounded-2xl border transition-all duration-300 hover:-translate-y-1`}
               style={{
-                backgroundColor: "#0F2226",
-                borderColor: "#1A3D45",
+                backgroundColor: "#0F1F21",
+                borderColor: "#1A3438",
                 transitionDelay: `${0.15 + i * 0.15}s`,
               }}
             >
@@ -76,7 +76,7 @@ export function PersonaSection() {
                 </p>
                 <blockquote
                   className="mt-5 border-l-2 pl-4 font-dm-sans text-base italic leading-relaxed"
-                  style={{ borderColor: "#4EB0BE", color: "#A8D4DB" }}
+                  style={{ borderColor: "#4EB0BE", color: "#7AABB2" }}
                 >
                   {`"${p.quote}"`}
                 </blockquote>

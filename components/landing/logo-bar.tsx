@@ -16,8 +16,8 @@ export function LogoBar() {
         <div className="reveal mt-8 flex flex-wrap items-center justify-center gap-x-12 gap-y-6 opacity-60">
           {logos.map((logo, i) => (
             <div key={i} className="flex items-center gap-2">
-              <span className="h-5 w-5 rounded-full bg-[#0F3D2C]/30" aria-hidden="true" />
-              <span className="font-sans text-lg font-semibold text-[#0F3D2C]/50">{logo}</span>
+              <span className="h-5 w-5 rounded-full bg-[#081314]/30" aria-hidden="true" />
+              <span className="font-sans text-lg font-semibold text-[#081314]/50">{logo}</span>
             </div>
           ))}
         </div>

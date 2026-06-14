@@ -80,7 +80,7 @@ export function ScoreRing({
           strokeDashoffset={offset}
         />
       </svg>
-      <span className="absolute font-sans text-sm font-bold text-[#0F3D2C]">
+      <span className="absolute font-sans text-sm font-bold text-[#081314]">
         {Math.round(progress)}
         {label ?? "%"}
       </span>

@@ -15,7 +15,7 @@ export function FinalCta({ onGetStarted }: FinalCtaProps) {
 
   return (
     <section ref={ref} className="rv bg-white px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
-      <div className="reveal mx-auto grid max-w-7xl overflow-hidden rounded-[2rem] bg-[#0F3D2C] lg:grid-cols-2">
+      <div className="reveal mx-auto grid max-w-7xl overflow-hidden rounded-[2rem] bg-[#081314] lg:grid-cols-2">
         {/* Copy */}
         <div className="flex flex-col justify-center p-9 sm:p-12 lg:p-14">
           <div className="mb-8">
@@ -24,14 +24,14 @@ export function FinalCta({ onGetStarted }: FinalCtaProps) {
           <h2 className="font-sans text-3xl font-bold leading-tight text-white text-balance sm:text-4xl">
             Take the first step toward faster, smarter hiring.
           </h2>
-          <p className="mt-5 max-w-md font-sans text-base leading-relaxed text-[#B8CCC2]">
+          <p className="mt-5 max-w-md font-sans text-base leading-relaxed text-[#7AABB2]">
             Start using REVETLY today and confirm your first interview before the
             week is out.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/auth/register"
-              className="inline-flex items-center gap-2 rounded-full bg-[#4EB0BE] px-6 py-3.5 font-sans text-sm font-semibold text-white transition-all duration-200 hover:bg-[#3A8F9C]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#4EB0BE] px-6 py-3.5 font-sans text-sm font-semibold text-white transition-all duration-200 hover:bg-[#2B6169]"
             >
               Start Free
               <ArrowRight className="h-4 w-4" />
@@ -43,7 +43,7 @@ export function FinalCta({ onGetStarted }: FinalCtaProps) {
               Book a Demo
             </button>
           </div>
-          <p className="mt-7 font-sans text-xs text-[#8FB3A2]">
+          <p className="mt-7 font-sans text-xs text-[#7AABB2]">
             DSGVO-compliant · EU servers · Cancel anytime · No credit card
           </p>
         </div>

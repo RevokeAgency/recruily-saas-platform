@@ -27,7 +27,7 @@ export function ChannelsTrust() {
   const { ref, visible } = useReveal<HTMLDivElement>()
 
   return (
-    <section ref={ref} className="px-4 py-24 sm:px-6 lg:px-8" style={{ backgroundColor: "#0D2B30" }}>
+    <section ref={ref} className="px-4 py-24 sm:px-6 lg:px-8" style={{ backgroundColor: "#081314" }}>
       <div className="mx-auto max-w-7xl">
         {/* Channels */}
         <div className="text-center">
@@ -40,8 +40,8 @@ export function ChannelsTrust() {
                 key={c}
                 className={`reveal ${visible ? "visible" : ""} rounded-full border px-6 py-3 font-dm-sans text-sm font-medium text-white`}
                 style={{
-                  backgroundColor: "#0F2226",
-                  borderColor: "#1A3D45",
+                  backgroundColor: "#0F1F21",
+                  borderColor: "#1A3438",
                   transitionDelay: `${0.1 + i * 0.1}s`,
                 }}
               >
@@ -67,8 +67,8 @@ export function ChannelsTrust() {
                   key={t.title}
                   className={`reveal ${visible ? "visible" : ""} rounded-2xl border p-8 transition-all duration-300 hover:-translate-y-1`}
                   style={{
-                    backgroundColor: "#0F2226",
-                    borderColor: "#1A3D45",
+                    backgroundColor: "#0F1F21",
+                    borderColor: "#1A3438",
                     transitionDelay: `${0.15 + i * 0.12}s`,
                   }}
                 >
@@ -79,7 +79,7 @@ export function ChannelsTrust() {
                     <Icon className="h-5 w-5" style={{ color: "#4EB0BE" }} />
                   </div>
                   <h3 className="font-syne text-xl font-bold text-white">{t.title}</h3>
-                  <p className="mt-3 font-dm-sans text-sm leading-relaxed" style={{ color: "#A8D4DB" }}>
+                  <p className="mt-3 font-dm-sans text-sm leading-relaxed" style={{ color: "#7AABB2" }}>
                     {t.body}
                   </p>
                 </div>

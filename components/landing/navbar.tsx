@@ -46,7 +46,7 @@ export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
               <button
                 key={link.href}
                 onClick={() => scrollToSection(link.href)}
-                className="group relative font-sans text-sm font-medium text-[#3F4A45] transition-colors hover:text-[#0F3D2C]"
+                className="group relative font-sans text-sm font-medium text-[#3F4A45] transition-colors hover:text-[#081314]"
               >
                 {link.label}
                 <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-[#4EB0BE] transition-all duration-300 group-hover:w-full" />
@@ -58,13 +58,13 @@ export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
           <div className="hidden items-center gap-4 lg:flex">
             <button
               onClick={onLoginClick}
-              className="font-sans text-sm font-medium text-[#3F4A45] transition-colors hover:text-[#0F3D2C]"
+              className="font-sans text-sm font-medium text-[#3F4A45] transition-colors hover:text-[#081314]"
             >
               Log in
             </button>
             <Link
               href="/auth/register"
-              className="rounded-full bg-[#4EB0BE] px-5 py-2.5 font-sans text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#3A8F9C] hover:shadow-md"
+              className="rounded-full bg-[#4EB0BE] px-5 py-2.5 font-sans text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#2B6169] hover:shadow-md"
             >
               Get Started Free
             </Link>
@@ -72,7 +72,7 @@ export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
 
           {/* Mobile button */}
           <button
-            className="p-2 text-[#0F3D2C] lg:hidden"
+            className="p-2 text-[#081314] lg:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >

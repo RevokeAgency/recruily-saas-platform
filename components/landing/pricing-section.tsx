@@ -22,7 +22,7 @@ export function PricingSection() {
     >
       <div className="mx-auto max-w-7xl">
         <div className="text-center">
-          <h2 className={`reveal ${visible ? "visible" : ""} font-syne text-4xl font-bold sm:text-5xl`} style={{ color: "#0A0A0A" }}>
+          <h2 className={`reveal ${visible ? "visible" : ""} font-syne text-4xl font-bold sm:text-5xl`} style={{ color: "#081314" }}>
             Simple pricing. No surprises.
           </h2>
           <p className={`reveal ${visible ? "visible" : ""} mt-4 font-dm-sans text-lg`} style={{ color: "#4A4A4A", transitionDelay: "0.05s" }}>
@@ -46,7 +46,7 @@ export function PricingSection() {
               Annual
               <span
                 className="rounded-full px-2 py-0.5 text-[10px] font-bold"
-                style={{ backgroundColor: annual ? "rgba(255,255,255,0.25)" : "#EBF7F9", color: annual ? "#FFFFFF" : "#3A8F9C" }}
+                style={{ backgroundColor: annual ? "rgba(255,255,255,0.25)" : "#EBF7F9", color: annual ? "#FFFFFF" : "#2B6169" }}
               >
                 Save 20%
               </span>
@@ -62,10 +62,10 @@ export function PricingSection() {
             style={{ borderTop: "3px solid #4EB0BE", transitionDelay: "0.15s" }}
           >
             <div className="flex items-center justify-between">
-              <h3 className="font-syne text-2xl font-bold" style={{ color: "#0A0A0A" }}>
+              <h3 className="font-syne text-2xl font-bold" style={{ color: "#081314" }}>
                 Professional
               </h3>
-              <span className="rounded-full px-3 py-1 font-dm-sans text-xs font-semibold" style={{ backgroundColor: "#EBF7F9", color: "#3A8F9C" }}>
+              <span className="rounded-full px-3 py-1 font-dm-sans text-xs font-semibold" style={{ backgroundColor: "#EBF7F9", color: "#2B6169" }}>
                 Most Popular
               </span>
             </div>
@@ -73,7 +73,7 @@ export function PricingSection() {
               For growing recruiting teams who need the full REVETLY experience.
             </p>
             <div className="mt-6 flex items-baseline gap-1">
-              <span className="font-syne text-5xl font-bold" style={{ color: "#0A0A0A" }}>
+              <span className="font-syne text-5xl font-bold" style={{ color: "#081314" }}>
                 €{proPrice}
               </span>
               <span className="font-dm-sans text-base" style={{ color: "#4A4A4A" }}>
@@ -115,11 +115,11 @@ export function PricingSection() {
               style={{ borderColor: "#E8E8E8", transitionDelay: "0.2s" }}
             >
               <div className="flex items-baseline justify-between">
-                <h3 className="font-syne text-xl font-bold" style={{ color: "#0A0A0A" }}>
+                <h3 className="font-syne text-xl font-bold" style={{ color: "#081314" }}>
                   Starter
                 </h3>
                 <div className="flex items-baseline gap-1">
-                  <span className="font-syne text-3xl font-bold" style={{ color: "#0A0A0A" }}>
+                  <span className="font-syne text-3xl font-bold" style={{ color: "#081314" }}>
                     €{starterPrice}
                   </span>
                   <span className="font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
@@ -140,7 +140,7 @@ export function PricingSection() {
               <Link
                 href="/auth/register"
                 className="mt-6 rounded-[8px] border px-6 py-3 text-center font-dm-sans text-sm font-semibold transition-colors"
-                style={{ borderColor: "#4EB0BE", color: "#3A8F9C" }}
+                style={{ borderColor: "#4EB0BE", color: "#2B6169" }}
               >
                 Start Free
               </Link>
@@ -152,11 +152,11 @@ export function PricingSection() {
               style={{ borderColor: "#E8E8E8", transitionDelay: "0.28s" }}
             >
               <div className="flex items-baseline justify-between">
-                <h3 className="font-syne text-xl font-bold" style={{ color: "#0A0A0A" }}>
+                <h3 className="font-syne text-xl font-bold" style={{ color: "#081314" }}>
                   Agency
                 </h3>
                 <div className="flex items-baseline gap-1">
-                  <span className="font-syne text-3xl font-bold" style={{ color: "#0A0A0A" }}>
+                  <span className="font-syne text-3xl font-bold" style={{ color: "#081314" }}>
                     €{agencyPrice}
                   </span>
                   <span className="font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
@@ -177,7 +177,7 @@ export function PricingSection() {
               <Link
                 href="/contact"
                 className="mt-6 rounded-[8px] border px-6 py-3 text-center font-dm-sans text-sm font-semibold transition-colors"
-                style={{ borderColor: "#4EB0BE", color: "#3A8F9C" }}
+                style={{ borderColor: "#4EB0BE", color: "#2B6169" }}
               >
                 Contact Sales
               </Link>

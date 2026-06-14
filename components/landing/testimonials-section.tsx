@@ -35,10 +35,10 @@ export function TestimonialsSection() {
     <section id="testimonials" ref={ref} className="rv bg-white py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="reveal rv-eyebrow inline-block rounded-full border border-[#E5E9E7] bg-[#F4F7F5] px-3 py-1 text-[#4EB0BE]">
+          <span className="reveal rv-eyebrow inline-block rounded-full border border-[#E5E9E7] bg-[#EBF7F9] px-3 py-1 text-[#4EB0BE]">
             Testimonials
           </span>
-          <h2 className="reveal mt-5 font-sans text-3xl font-bold leading-tight tracking-tight text-[#0F3D2C] text-balance sm:text-4xl">
+          <h2 className="reveal mt-5 font-sans text-3xl font-bold leading-tight tracking-tight text-[#081314] text-balance sm:text-4xl">
             You&apos;re in good company.
           </h2>
           <p className="reveal mt-3 font-sans text-base text-[#6B7280]">
@@ -58,7 +58,7 @@ export function TestimonialsSection() {
                   <Star key={s} className="h-4 w-4 fill-[#4EB0BE] text-[#4EB0BE]" />
                 ))}
               </div>
-              <blockquote className="mt-4 flex-1 font-sans text-base leading-relaxed text-[#0F3D2C]">
+              <blockquote className="mt-4 flex-1 font-sans text-base leading-relaxed text-[#081314]">
                 {`"${t.quote}"`}
               </blockquote>
               <div className="mt-6 flex items-center gap-3">
@@ -70,7 +70,7 @@ export function TestimonialsSection() {
                   className="h-11 w-11 rounded-full object-cover"
                 />
                 <div>
-                  <p className="font-sans text-sm font-bold text-[#0F3D2C]">{t.name}</p>
+                  <p className="font-sans text-sm font-bold text-[#081314]">{t.name}</p>
                   <p className="font-sans text-xs text-[#6B7280]">{t.role}</p>
                 </div>
               </div>

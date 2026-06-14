@@ -43,7 +43,7 @@ export function CTASection() {
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <Button asChild size="lg" className="bg-[#0D9488] hover:bg-[#0B7C72] text-white rounded-lg px-8 py-6 text-lg">
+          <Button asChild size="lg" className="bg-[#4EB0BE] hover:bg-[#2B6169] text-white rounded-lg px-8 py-6 text-lg">
             <Link href="/auth/register">
               Start for Free – No Credit Card Required
               <ArrowRight className="ml-2 h-5 w-5" />

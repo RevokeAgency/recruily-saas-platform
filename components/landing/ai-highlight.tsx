@@ -21,7 +21,7 @@ export function AiHighlight() {
         </p>
         <h2
           className={`reveal ${visible ? "visible" : ""} mt-4 font-syne text-4xl font-bold sm:text-5xl`}
-          style={{ color: "#0A0A0A", transitionDelay: "0.05s" }}
+          style={{ color: "#081314", transitionDelay: "0.05s" }}
         >
           Simply post a job and get your best candidates. Automatically.
         </h2>
@@ -62,7 +62,7 @@ export function AiHighlight() {
             94
           </div>
           <div className="flex-1 text-left">
-            <p className="font-syne text-base font-bold" style={{ color: "#0A0A0A" }}>
+            <p className="font-syne text-base font-bold" style={{ color: "#081314" }}>
               Anna Kovač
             </p>
             <p className="font-dm-sans text-sm" style={{ color: "#4A4A4A" }}>
@@ -71,7 +71,7 @@ export function AiHighlight() {
           </div>
           <span
             className="rounded-full px-3 py-1 font-dm-sans text-xs font-semibold"
-            style={{ backgroundColor: "#EBF7F9", color: "#3A8F9C" }}
+            style={{ backgroundColor: "#EBF7F9", color: "#2B6169" }}
           >
             Top Match
           </span>
@@ -80,7 +80,7 @@ export function AiHighlight() {
         <div className="mt-8 flex justify-center">
           <button
             className="group flex items-center gap-2 font-dm-sans text-base font-semibold transition-colors"
-            style={{ color: "#3A8F9C" }}
+            style={{ color: "#2B6169" }}
           >
             Try It Free
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

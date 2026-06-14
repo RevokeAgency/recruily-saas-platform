@@ -48,7 +48,7 @@ export function ContactSection() {
           className="text-center mb-12"
           {...fadeInUp}
         >
-          <p className="text-sm font-medium text-[#0D9488] mb-2">Support & Inquiries</p>
+          <p className="text-sm font-medium text-[#4EB0BE] mb-2">Support & Inquiries</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Get in Touch
           </h2>
@@ -67,7 +67,7 @@ export function ContactSection() {
             transition={{ duration: 0.5 }}
           >
             {/* Decorative gradient */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#0D9488]/10 to-transparent rounded-bl-full" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#4EB0BE]/10 to-transparent rounded-bl-full" />
             
             <h3 className="text-xl font-semibold text-slate-900 mb-8">Contact Information</h3>
 
@@ -84,8 +84,8 @@ export function ContactSection() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                 >
-                  <div className="w-10 h-10 rounded-full bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0">
-                    <item.icon className="h-5 w-5 text-[#0D9488]" />
+                  <div className="w-10 h-10 rounded-full bg-[#4EB0BE]/10 flex items-center justify-center flex-shrink-0">
+                    <item.icon className="h-5 w-5 text-[#4EB0BE]" />
                   </div>
                   <div>
                     <p className="font-medium text-slate-900">{item.label}</p>
@@ -101,8 +101,8 @@ export function ContactSection() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
               >
-                <div className="w-10 h-10 rounded-full bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="h-5 w-5 text-[#0D9488]" />
+                <div className="w-10 h-10 rounded-full bg-[#4EB0BE]/10 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="h-5 w-5 text-[#4EB0BE]" />
                 </div>
                 <div>
                   <p className="font-medium text-slate-900">Address</p>
@@ -166,7 +166,7 @@ export function ContactSection() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#0D9488] hover:bg-[#0B7C72] text-white rounded-lg"
+                className="w-full bg-[#4EB0BE] hover:bg-[#2B6169] text-white rounded-lg"
               >
                 <Send className="mr-2 h-4 w-4" />
                 {loading ? "Sending..." : "Send Message"}
@@ -178,7 +178,7 @@ export function ContactSection() {
       
       {/* Wave divider into teal (footer) */}
       <div className="mt-20">
-        <WaveDivider fillColor="#0D9488" direction="down" />
+        <WaveDivider fillColor="#4EB0BE" direction="down" />
       </div>
     </section>
   )

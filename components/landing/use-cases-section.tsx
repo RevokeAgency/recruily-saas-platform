@@ -59,7 +59,7 @@ export function UseCasesSection() {
   const activeCase = useCases[activeTab]
 
   return (
-    <section id="use-cases" className="pt-0 pb-0 relative overflow-hidden bg-[#0D9488]">
+    <section id="use-cases" className="pt-0 pb-0 relative overflow-hidden bg-[#4EB0BE]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
         <motion.div 
@@ -135,7 +135,7 @@ export function UseCasesSection() {
                 ))}
               </div>
 
-              <Button className="bg-white hover:bg-slate-100 text-[#0D9488] rounded-lg px-6">
+              <Button className="bg-white hover:bg-slate-100 text-[#4EB0BE] rounded-lg px-6">
                 {activeCase.button}
               </Button>
             </div>
@@ -164,7 +164,7 @@ export function UseCasesSection() {
                     </div>
                     <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                       <motion.div 
-                        className="h-full bg-[#0D9488] rounded-full"
+                        className="h-full bg-[#4EB0BE] rounded-full"
                         initial={{ width: 0 }}
                         animate={{ width: activeCase.metric.recruitifyWidth }}
                         transition={{ duration: 0.5, delay: 0.2 }}

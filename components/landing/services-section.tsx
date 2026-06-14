@@ -38,14 +38,14 @@ export function ServicesSection() {
     <section id="services" ref={ref} className="rv relative overflow-hidden bg-white py-20 lg:py-28">
       <div
         className="pointer-events-none absolute -right-32 top-20 h-[400px] w-[400px] rounded-full opacity-50 blur-3xl"
-        style={{ background: "radial-gradient(circle, #EAF8EF 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, #EBF7F9 0%, transparent 70%)" }}
         aria-hidden="true"
       />
       <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <span className="reveal rv-eyebrow inline-block rounded-full border border-[#E5E9E7] bg-[#F4F7F5] px-3 py-1 text-[#4EB0BE]">
+        <span className="reveal rv-eyebrow inline-block rounded-full border border-[#E5E9E7] bg-[#EBF7F9] px-3 py-1 text-[#4EB0BE]">
           Our services
         </span>
-        <h2 className="reveal mt-5 max-w-2xl font-sans text-3xl font-bold leading-tight tracking-tight text-[#0F3D2C] text-balance sm:text-4xl">
+        <h2 className="reveal mt-5 max-w-2xl font-sans text-3xl font-bold leading-tight tracking-tight text-[#081314] text-balance sm:text-4xl">
           Platform that matches businesses with top-tier talent.
         </h2>
         <p className="reveal mt-4 max-w-xl font-sans text-base leading-relaxed text-[#3F4A45]">
@@ -62,7 +62,7 @@ export function ServicesSection() {
               onClick={() => setActive(tab.id)}
               className={`rounded-full px-5 py-2.5 font-sans text-sm font-semibold transition-all duration-200 ${
                 active === tab.id
-                  ? "bg-[#0F3D2C] text-white shadow-sm"
+                  ? "bg-[#081314] text-white shadow-sm"
                   : "border border-[#E5E9E7] bg-white text-[#3F4A45] hover:border-[#4EB0BE] hover:text-[#4EB0BE]"
               }`}
             >
@@ -74,21 +74,21 @@ export function ServicesSection() {
         {/* Panel */}
         <div className="reveal mt-6 grid items-center gap-6 rounded-3xl border border-[#E5E9E7] bg-white p-6 shadow-sm lg:grid-cols-2 lg:p-8">
           <div key={current.id} className="rv-fade-up">
-            <h3 className="font-sans text-2xl font-bold text-[#0F3D2C]">{current.heading}</h3>
+            <h3 className="font-sans text-2xl font-bold text-[#081314]">{current.heading}</h3>
             <p className="mt-4 font-sans text-sm leading-relaxed text-[#3F4A45]">{current.body}</p>
             <ul className="mt-6 space-y-3">
               {current.bullets.map((b) => (
                 <li key={b} className="flex items-center gap-3">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#EAF8EF] text-[#4EB0BE]">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#EBF7F9] text-[#4EB0BE]">
                     <Check className="h-3 w-3" strokeWidth={3} />
                   </span>
-                  <span className="font-sans text-sm font-medium text-[#0F3D2C]">{b}</span>
+                  <span className="font-sans text-sm font-medium text-[#081314]">{b}</span>
                 </li>
               ))}
             </ul>
             <a
               href="#pricing"
-              className="mt-7 inline-flex items-center gap-2 font-sans text-sm font-semibold text-[#4EB0BE] hover:text-[#3A8F9C]"
+              className="mt-7 inline-flex items-center gap-2 font-sans text-sm font-semibold text-[#4EB0BE] hover:text-[#2B6169]"
             >
               See plans
               <ArrowUpRight className="h-4 w-4" />

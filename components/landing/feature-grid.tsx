@@ -77,7 +77,7 @@ function MiniMock({ type }: { type: string }) {
           <div key={c} className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
             <span
               className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
-              style={{ backgroundColor: i === 2 ? "#4EB0BE" : "#A8D4DB" }}
+              style={{ backgroundColor: i === 2 ? "#4EB0BE" : "#7AABB2" }}
             >
               {i + 1}
             </span>
@@ -114,7 +114,7 @@ export function FeatureGrid() {
     >
       <div className="mx-auto max-w-7xl">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className={`reveal ${visible ? "visible" : ""} font-syne text-4xl font-bold sm:text-[42px]`} style={{ color: "#0A0A0A" }}>
+          <h2 className={`reveal ${visible ? "visible" : ""} font-syne text-4xl font-bold sm:text-[42px]`} style={{ color: "#081314" }}>
             What REVETLY Does For You &amp; Your Team
           </h2>
           <p
@@ -140,7 +140,7 @@ export function FeatureGrid() {
                 >
                   <Icon className="h-5 w-5" style={{ color: "#4EB0BE" }} />
                 </div>
-                <h3 className="font-syne text-2xl font-bold" style={{ color: "#0A0A0A" }}>
+                <h3 className="font-syne text-2xl font-bold" style={{ color: "#081314" }}>
                   {f.title}
                 </h3>
                 <p className="mt-3 font-dm-sans text-base leading-relaxed" style={{ color: "#4A4A4A" }}>

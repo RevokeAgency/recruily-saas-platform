@@ -68,8 +68,8 @@ export function UseCasesCardsSection() {
             >
               <Card className="border border-slate-200 rounded-2xl hover:shadow-lg transition-shadow h-full">
                 <CardContent className="p-8 text-center">
-                  <div className="w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center mx-auto mb-6">
-                    <useCase.icon className="h-7 w-7 text-[#0D9488]" />
+                  <div className="w-14 h-14 rounded-full bg-[#4EB0BE]/10 flex items-center justify-center mx-auto mb-6">
+                    <useCase.icon className="h-7 w-7 text-[#4EB0BE]" />
                   </div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-3">
                     {useCase.title}
