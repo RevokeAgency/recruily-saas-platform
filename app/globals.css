@@ -89,10 +89,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
-  --font-fraunces: var(--font-fraunces), Georgia, serif;
-  --font-syne: var(--font-syne), system-ui, sans-serif;
-  --font-dm-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-sans: var(--font-montserrat), system-ui, sans-serif;
+  --font-montserrat: var(--font-montserrat), system-ui, sans-serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
@@ -341,37 +339,55 @@
 }
 
 /* ─────────────────────────────────────────────
-   REVETLY Landing Page — fonts & utilities
+   REVETLY Landing — HR-Pro inspired design system
+   Light & airy, green accent #1DB954, Montserrat
    ───────────────────────────────────────────── */
-.font-fraunces { font-family: var(--font-fraunces), Georgia, serif; }
-.font-syne { font-family: var(--font-syne), system-ui, sans-serif; }
-.font-dm-sans { font-family: var(--font-dm-sans), system-ui, sans-serif; }
+.rv {
+  --rv-green: #1DB954;
+  --rv-green-dark: #158A3E;
+  --rv-green-soft: #EAF8EF;
+  --rv-dark: #0F3D2C;        /* deep forest green for dark sections */
+  --rv-dark-2: #0B3023;
+  --rv-ink: #1A1A1A;
+  --rv-text: #3F4A45;
+  --rv-muted: #6B7280;
+  --rv-alt: #F4F7F5;         /* subtle off-white green-grey */
+  --rv-border: #E5E9E7;
+  --rv-on-dark: #FFFFFF;
+  --rv-muted-dark: #B8CCC2;
+}
+
+.rv-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
 
 html { scroll-behavior: smooth; }
 
 /* Scroll-triggered reveals (IntersectionObserver toggles .visible) */
 .reveal {
   opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transform: translateY(34px);
+  transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1);
 }
 .reveal.visible { opacity: 1; transform: translateY(0); }
 
 .reveal-left {
   opacity: 0;
-  transform: translateX(-48px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transform: translateX(-42px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
 }
 .reveal-left.visible { opacity: 1; transform: translateX(0); }
 
 .reveal-right {
   opacity: 0;
-  transform: translateX(48px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transform: translateX(42px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
 }
 .reveal-right.visible { opacity: 1; transform: translateX(0); }
 
-/* Hero entrance animations */
 @keyframes rv-fade-down {
   from { opacity: 0; transform: translateY(-16px); }
   to { opacity: 1; transform: translateY(0); }
@@ -380,25 +396,15 @@ html { scroll-behavior: smooth; }
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@keyframes rv-scale-in {
-  from { opacity: 0; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
-}
 @keyframes rv-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
-@keyframes rv-pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(29,185,84,0); }
-  50% { box-shadow: 0 0 32px 4px rgba(29,185,84,0.35); }
-}
 
-.rv-fade-down { opacity: 0; animation: rv-fade-down 0.5s ease forwards; }
-.rv-fade-up { opacity: 0; animation: rv-fade-up 0.6s ease forwards; }
-.rv-scale-in { opacity: 0; animation: rv-scale-in 0.5s ease forwards; }
-.rv-float { animation: rv-float 4s ease-in-out infinite; }
-.rv-float-slow { animation: rv-float 6s ease-in-out infinite; }
-.rv-pulse-glow { animation: rv-pulse-glow 4s ease-in-out infinite; }
+.rv-fade-down { opacity: 0; animation: rv-fade-down 0.6s ease forwards; }
+.rv-fade-up { opacity: 0; animation: rv-fade-up 0.7s cubic-bezier(0.22,1,0.36,1) forwards; }
+.rv-float { animation: rv-float 5s ease-in-out infinite; }
+.rv-float-slow { animation: rv-float 7s ease-in-out infinite; }
 
 .rv-delay-1 { animation-delay: 0.1s; }
 .rv-delay-2 { animation-delay: 0.2s; }
@@ -406,4 +412,15 @@ html { scroll-behavior: smooth; }
 .rv-delay-4 { animation-delay: 0.45s; }
 .rv-delay-5 { animation-delay: 0.6s; }
 .rv-delay-6 { animation-delay: 0.8s; }
-.rv-delay-7 { animation-delay: 1s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-left, .reveal-right {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .rv-fade-down, .rv-fade-up, .rv-float, .rv-float-slow {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

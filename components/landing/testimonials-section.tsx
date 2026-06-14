@@ -1,107 +1,77 @@
 "use client"
 
-import { useReveal } from "@/lib/hooks/useReveal"
+import Image from "next/image"
 import { Star } from "lucide-react"
+import { useReveal } from "@/lib/hooks/useReveal"
 
 const testimonials = [
   {
     quote:
-      "We stopped drowning in CVs. REVETLY reads them, scores them, and tells us who to call. The rest takes care of itself.",
-    name: "Sarah M.",
-    role: "HR Manager, Vienna",
-    initials: "SM",
+      "The AI matching saved us so much time. We found the right candidates faster than ever before.",
+    name: "Emily C.",
+    role: "HR Manager",
+    avatar: "/images/hr-avatar-emily.png",
   },
   {
     quote:
-      "Setup took 4 minutes. First candidates arrived before I finished my coffee. I didn't believe it until I saw it.",
+      "Setup took 4 minutes. Applications were flowing in before I finished my coffee.",
     name: "Thomas K.",
-    role: "Head of Recruiting, Munich",
-    initials: "TK",
+    role: "Head of Recruiting",
+    avatar: "/images/hr-avatar-thomas.png",
   },
   {
     quote:
-      "The iFrame widget alone is worth the subscription. Our careers page feeds directly into REVETLY.",
+      "The iFrame widget alone is worth the subscription. Game changer.",
     name: "Julia P.",
-    role: "Talent Lead, Zürich",
-    initials: "JP",
-  },
-  {
-    quote:
-      "I used to spend every Monday morning reading CVs. Now I spend it talking to candidates.",
-    name: "Michael B.",
-    role: "Headhunter, Frankfurt",
-    initials: "MB",
-  },
-  {
-    quote:
-      "REVETLY is incredibly simple and saves our team hours every single week.",
-    name: "Anna L.",
-    role: "HR Director, Graz",
-    initials: "AL",
-  },
-  {
-    quote:
-      "We now have instant visibility into every application. Our time-to-hire dropped by 60%.",
-    name: "Stefan W.",
-    role: "Founder, Berlin",
-    initials: "SW",
+    role: "Talent Lead",
+    avatar: "/images/hr-avatar-julia.png",
   },
 ]
 
 export function TestimonialsSection() {
-  const { ref, visible } = useReveal<HTMLDivElement>()
+  const ref = useReveal()
 
   return (
-    <section
-      ref={ref}
-      className="px-4 py-24 sm:px-6 lg:px-8"
-      style={{ backgroundColor: "#F8F7F4" }}
-    >
-      <div className="mx-auto max-w-7xl">
-        <div className="text-center">
-          <p
-            className={`reveal ${visible ? "visible" : ""} font-dm-sans text-xs font-semibold uppercase tracking-[0.1em]`}
-            style={{ color: "#1DB954" }}
-          >
-            Reviews
-          </p>
-          <h2
-            className={`reveal ${visible ? "visible" : ""} mt-3 font-syne text-4xl font-bold sm:text-5xl`}
-            style={{ color: "#0A0A0A", transitionDelay: "0.05s" }}
-          >
-            Don&apos;t just take our word for it.
+    <section id="testimonials" ref={ref} className="rv bg-white py-20 lg:py-28">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="reveal rv-eyebrow inline-block rounded-full border border-[#E5E9E7] bg-[#F4F7F5] px-3 py-1 text-[#1DB954]">
+            Testimonials
+          </span>
+          <h2 className="reveal mt-5 font-sans text-3xl font-bold leading-tight tracking-tight text-[#0F3D2C] text-balance sm:text-4xl">
+            You&apos;re in good company.
           </h2>
+          <p className="reveal mt-3 font-sans text-base text-[#6B7280]">
+            You don&apos;t have to take our word for it.
+          </p>
         </div>
 
-        <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-5 md:grid-cols-3">
           {testimonials.map((t, i) => (
             <div
               key={t.name}
-              className={`reveal ${visible ? "visible" : ""} flex flex-col rounded-2xl border bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md`}
-              style={{ borderColor: "#E8E8E8", transitionDelay: `${0.1 + (i % 3) * 0.1}s` }}
+              className="reveal flex flex-col rounded-2xl border border-[#E5E9E7] bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              data-delay={i * 110}
             >
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, s) => (
-                  <Star key={s} className="h-4 w-4" style={{ color: "#1DB954", fill: "#1DB954" }} />
+                  <Star key={s} className="h-4 w-4 fill-[#1DB954] text-[#1DB954]" />
                 ))}
               </div>
-              <blockquote className="mt-4 flex-1 font-dm-sans text-base leading-relaxed" style={{ color: "#0A0A0A" }}>
+              <blockquote className="mt-4 flex-1 font-sans text-base leading-relaxed text-[#0F3D2C]">
                 {`"${t.quote}"`}
               </blockquote>
               <div className="mt-6 flex items-center gap-3">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-full font-syne text-sm font-bold text-white"
-                  style={{ backgroundColor: "#1DB954" }}
-                >
-                  {t.initials}
-                </div>
+                <Image
+                  src={t.avatar || "/placeholder.svg"}
+                  alt={t.name}
+                  width={44}
+                  height={44}
+                  className="h-11 w-11 rounded-full object-cover"
+                />
                 <div>
-                  <p className="font-dm-sans text-sm font-semibold" style={{ color: "#0A0A0A" }}>
-                    {t.name}
-                  </p>
-                  <p className="font-dm-sans text-xs" style={{ color: "#4A4A4A" }}>
-                    {t.role}
-                  </p>
+                  <p className="font-sans text-sm font-bold text-[#0F3D2C]">{t.name}</p>
+                  <p className="font-sans text-xs text-[#6B7280]">{t.role}</p>
                 </div>
               </div>
             </div>

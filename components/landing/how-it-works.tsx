@@ -1,62 +1,89 @@
 "use client"
 
+import Link from "next/link"
+import Image from "next/image"
 import { useReveal } from "@/lib/hooks/useReveal"
 
 const steps = [
-  { num: "01", title: "Post your job", body: "Add your requirements and publish your apply link in under a minute." },
-  { num: "02", title: "AI reads every CV", body: "Each application is scored across 9 categories the moment it arrives." },
-  { num: "03", title: "Review ranked matches", body: "Open REVETLY to a pipeline that's already read, scored, and ranked." },
-  { num: "04", title: "Invite & schedule", body: "Send interview invites and confirmations — emails go out automatically." },
+  {
+    n: "1",
+    title: "Create a Job",
+    body: "Add title and requirements. REVETLY generates your unique application inbox instantly.",
+  },
+  {
+    n: "2",
+    title: "Applications Flow In",
+    body: "Via email, apply link, or iFrame — every CV lands automatically in the right container.",
+  },
+  {
+    n: "3",
+    title: "Interview Confirmed",
+    body: "AI scores candidates, contacts the best ones, schedules interviews. You show up. Nothing else.",
+  },
 ]
 
 export function HowItWorks() {
-  const { ref, visible } = useReveal<HTMLDivElement>()
+  const ref = useReveal()
 
   return (
-    <section
-      id="how-it-works"
-      ref={ref}
-      className="px-4 py-24 sm:px-6 lg:px-8"
-      style={{ backgroundColor: "#111A13" }}
-    >
-      <div className="mx-auto max-w-7xl">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:gap-10">
-          <div className={`reveal-left ${visible ? "visible" : ""} md:col-span-5`}>
-            <p className="font-dm-sans text-xs font-semibold uppercase tracking-[0.1em]" style={{ color: "#1DB954" }}>
-              Recruiting Flow
-            </p>
-            <h2 className="mt-4 font-syne text-4xl font-bold leading-tight text-white sm:text-5xl">
-              Ever spent a whole morning on CV screening instead of actually recruiting?
-            </h2>
-            <p className="mt-6 font-dm-sans text-lg leading-relaxed" style={{ color: "#A8C4B0" }}>
-              Now you just open REVETLY. Every application is already read, scored, and
-              ranked. Your team sees the same data, works the same pipeline, and never
-              loses a great candidate again.
-            </p>
-          </div>
+    <section id="how-it-works" ref={ref} className="rv relative overflow-hidden bg-[#0F3D2C] py-20 lg:py-28">
+      {/* subtle grid texture */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage:
+            "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }}
+        aria-hidden="true"
+      />
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        <span className="reveal rv-eyebrow inline-block rounded-full border border-white/20 px-3 py-1 text-[#7FE3A1]">
+          How it works
+        </span>
+        <h2 className="reveal mt-5 max-w-2xl font-sans text-3xl font-bold leading-tight tracking-tight text-white text-balance sm:text-4xl">
+          Efficient process from application to confirmed interview.
+        </h2>
+        <p className="reveal mt-4 max-w-xl font-sans text-base leading-relaxed text-[#B8CCC2]">
+          We tailor an automated recruiting flow around your roles — so the
+          right candidates surface and the busywork disappears.
+        </p>
 
-          <div className="md:col-span-7">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {steps.map((s, i) => (
-                <div
-                  key={s.num}
-                  className={`reveal ${visible ? "visible" : ""} rounded-2xl border p-7`}
-                  style={{
-                    backgroundColor: "#1A2E1E",
-                    borderColor: "#2D4A35",
-                    transitionDelay: `${0.1 + i * 0.1}s`,
-                  }}
-                >
-                  <span className="font-syne text-3xl font-bold" style={{ color: "#1DB954" }}>
-                    {s.num}
-                  </span>
-                  <h3 className="mt-4 font-syne text-lg font-bold text-white">{s.title}</h3>
-                  <p className="mt-2 font-dm-sans text-sm leading-relaxed" style={{ color: "#A8C4B0" }}>
-                    {s.body}
-                  </p>
-                </div>
-              ))}
+        {/* Steps */}
+        <div className="mt-14 grid gap-10 md:grid-cols-3">
+          {steps.map((s, i) => (
+            <div key={s.n} className="reveal" data-delay={i * 120}>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 font-sans text-sm font-bold text-white">
+                {s.n}
+              </span>
+              <div className="mt-5 h-px w-full bg-white/15" />
+              <h3 className="mt-5 font-sans text-lg font-bold text-white">{s.title}</h3>
+              <p className="mt-2 font-sans text-sm leading-relaxed text-[#B8CCC2]">{s.body}</p>
             </div>
+          ))}
+        </div>
+
+        {/* Wide image card with overlay CTA */}
+        <div className="reveal relative mt-14 overflow-hidden rounded-3xl">
+          <Image
+            src="/images/hr-howitworks-man.png"
+            alt="Recruiter working with REVETLY"
+            width={1200}
+            height={520}
+            className="h-80 w-full object-cover sm:h-96"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B3023]/85 via-[#0B3023]/40 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 flex flex-col items-center px-6 pb-10 text-center">
+            <h3 className="max-w-xl font-sans text-2xl font-bold text-white text-balance sm:text-3xl">
+              Get started with REVETLY today and discover a smarter, faster way
+              to hire.
+            </h3>
+            <Link
+              href="/auth/register"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-sans text-sm font-semibold text-[#0F3D2C] transition-transform hover:scale-[1.03]"
+            >
+              Find your talent
+            </Link>
           </div>
         </div>
       </div>

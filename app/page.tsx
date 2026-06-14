@@ -4,16 +4,12 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/landing/navbar"
 import { HeroSection } from "@/components/landing/hero-section"
-import { StatsBand } from "@/components/landing/stats-band"
-import { AboutSection } from "@/components/landing/about-section"
-import { PersonaSection } from "@/components/landing/persona-section"
+import { LogoBar } from "@/components/landing/logo-bar"
+import { PlatformSection } from "@/components/landing/platform-section"
+import { ServicesSection } from "@/components/landing/services-section"
 import { HowItWorks } from "@/components/landing/how-it-works"
-import { AiHighlight } from "@/components/landing/ai-highlight"
-import { ChannelsTrust } from "@/components/landing/channels-trust"
-import { FeatureGrid } from "@/components/landing/feature-grid"
-import { PricingSection } from "@/components/landing/pricing-section"
+import { HowWeHelp } from "@/components/landing/how-we-help"
 import { TestimonialsSection } from "@/components/landing/testimonials-section"
-import { FAQSection } from "@/components/landing/faq-section"
 import { FinalCta } from "@/components/landing/final-cta"
 import { Footer } from "@/components/landing/footer"
 import { LoginModal } from "@/components/landing/login-modal"
@@ -23,35 +19,27 @@ export default function LandingPage() {
   const router = useRouter()
 
   return (
-    <div className="min-h-screen bg-[#0D1F14] font-dm-sans">
+    <div className="rv min-h-screen bg-white font-sans">
       <Navbar onLoginClick={() => setLoginOpen(true)} />
       <main>
-        {/* Hero — dark */}
+        {/* 1. Hero */}
         <HeroSection />
-        {/* Stats / photo collage band — light */}
-        <StatsBand />
-        {/* About + integration logos — dark */}
-        <AboutSection />
-        {/* 3 Recruiting Profiles personas — dark */}
-        <PersonaSection />
-        {/* How it works / recruiting flow — dark */}
+        {/* 2. Logo bar */}
+        <LogoBar />
+        {/* 3. Platform / features */}
+        <PlatformSection />
+        {/* 4. Services tabs */}
+        <ServicesSection />
+        {/* 5. How it works — dark green */}
         <HowItWorks />
-        {/* AI highlight w/ search mockup — light */}
-        <AiHighlight />
-        {/* Channels + compliance trust — dark */}
-        <ChannelsTrust />
-        {/* Feature cards 2x2 grid — light */}
-        <FeatureGrid />
-        {/* Pricing — light */}
-        <PricingSection />
-        {/* Testimonials — light */}
+        {/* 6. How we help — score rings */}
+        <HowWeHelp />
+        {/* 7. Testimonials */}
         <TestimonialsSection />
-        {/* FAQ — light */}
-        <FAQSection />
-        {/* Final CTA — dark */}
+        {/* 8. Final CTA — dark green */}
         <FinalCta onGetStarted={() => router.push("/auth/register")} />
       </main>
-      {/* Footer — near-black */}
+      {/* 9. Footer */}
       <Footer />
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
     </div>

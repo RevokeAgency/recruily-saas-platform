@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { RevetlyLogo } from "@/components/landing/revetly-logo"
 import {
   Dialog,
   DialogContent,
@@ -62,14 +62,8 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="flex items-center mb-2">
-            <Image 
-              src="/images/recruily-logo.png" 
-              alt="Recruily" 
-              width={150} 
-              height={40} 
-              className="h-8 w-auto"
-            />
+          <div className="mb-2 flex items-center">
+            <RevetlyLogo />
           </div>
           <DialogTitle className="text-2xl font-bold text-slate-900">
             Willkommen zurück
@@ -119,7 +113,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             </div>
             <Link
               href="/auth/reset"
-              className="text-sm text-[#0D9488] hover:underline"
+              className="text-sm text-[#1DB954] hover:underline"
               onClick={() => onOpenChange(false)}
             >
               Passwort vergessen?
@@ -129,7 +123,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#0D9488] hover:bg-[#0B7C72] text-white rounded-lg"
+            className="w-full bg-[#1DB954] hover:bg-[#158A3E] text-white rounded-lg"
           >
             {loading ? "Wird angemeldet..." : "Anmelden"}
           </Button>
@@ -139,7 +133,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           {"Noch kein Konto? "}
           <Link
             href="/auth/register"
-            className="text-[#0D9488] font-medium hover:underline"
+            className="text-[#1DB954] font-medium hover:underline"
             onClick={() => onOpenChange(false)}
           >
             Registrieren

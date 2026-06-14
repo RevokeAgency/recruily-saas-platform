@@ -8,8 +8,8 @@ import { RevetlyLogo } from "./revetly-logo"
 const navLinks = [
   { label: "Features", href: "#features" },
   { label: "How it Works", href: "#how-it-works" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
+  { label: "Services", href: "#services" },
+  { label: "Reviews", href: "#testimonials" },
 ]
 
 export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
@@ -18,7 +18,8 @@ export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
-    window.addEventListener("scroll", onScroll)
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
@@ -29,45 +30,41 @@ export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
 
   return (
     <nav
-      className="sticky top-0 z-50 rv-fade-down border-b transition-colors"
-      style={{
-        backgroundColor: scrolled ? "rgba(13,31,20,0.92)" : "#0D1F14",
-        borderColor: "#2D4A35",
-        backdropFilter: scrolled ? "blur(10px)" : "none",
-      }}
+      className={`rv-fade-down fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        scrolled ? "bg-white/90 shadow-sm backdrop-blur-md" : "bg-transparent"
+      }`}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        <div className="flex h-[72px] items-center justify-between">
           <Link href="/" aria-label="REVETLY home">
             <RevetlyLogo />
           </Link>
 
           {/* Center nav */}
-          <div className="hidden items-center gap-9 md:flex">
+          <div className="hidden items-center gap-8 lg:flex">
             {navLinks.map((link) => (
               <button
                 key={link.href}
                 onClick={() => scrollToSection(link.href)}
-                className="group relative font-dm-sans text-sm text-white/80 transition-colors hover:text-white"
+                className="group relative font-sans text-sm font-medium text-[#3F4A45] transition-colors hover:text-[#0F3D2C]"
               >
                 {link.label}
-                <span className="absolute -bottom-1 left-0 h-px w-0 bg-[#1DB954] transition-all duration-300 group-hover:w-full" />
+                <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-[#1DB954] transition-all duration-300 group-hover:w-full" />
               </button>
             ))}
           </div>
 
           {/* Right */}
-          <div className="hidden items-center gap-5 md:flex">
+          <div className="hidden items-center gap-4 lg:flex">
             <button
               onClick={onLoginClick}
-              className="font-dm-sans text-sm text-white/90 transition-colors hover:text-white"
+              className="font-sans text-sm font-medium text-[#3F4A45] transition-colors hover:text-[#0F3D2C]"
             >
               Log in
             </button>
             <Link
               href="/auth/register"
-              className="rounded-[6px] px-4 py-2 font-dm-sans text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.03]"
-              style={{ backgroundColor: "#1DB954" }}
+              className="rounded-full bg-[#1DB954] px-5 py-2.5 font-sans text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#158A3E] hover:shadow-md"
             >
               Get Started Free
             </Link>
@@ -75,7 +72,7 @@ export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
 
           {/* Mobile button */}
           <button
-            className="p-2 text-white md:hidden"
+            className="p-2 text-[#0F3D2C] lg:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -84,31 +81,30 @@ export function Navbar({ onLoginClick }: { onLoginClick?: () => void }) {
         </div>
 
         {mobileMenuOpen && (
-          <div className="border-t py-4 md:hidden" style={{ borderColor: "#2D4A35" }}>
+          <div className="mb-4 rounded-2xl border border-[#E5E9E7] bg-white p-5 shadow-lg lg:hidden">
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <button
                   key={link.href}
                   onClick={() => scrollToSection(link.href)}
-                  className="text-left font-dm-sans text-sm text-white/80 hover:text-white"
+                  className="text-left font-sans text-sm font-medium text-[#3F4A45]"
                 >
                   {link.label}
                 </button>
               ))}
-              <div className="flex flex-col gap-3 border-t pt-4" style={{ borderColor: "#2D4A35" }}>
+              <div className="flex flex-col gap-3 border-t border-[#E5E9E7] pt-4">
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false)
                     onLoginClick?.()
                   }}
-                  className="text-left font-dm-sans text-sm text-white/90"
+                  className="text-left font-sans text-sm font-medium text-[#3F4A45]"
                 >
                   Log in
                 </button>
                 <Link
                   href="/auth/register"
-                  className="rounded-[6px] px-4 py-2 text-center font-dm-sans text-sm font-semibold text-white"
-                  style={{ backgroundColor: "#1DB954" }}
+                  className="rounded-full bg-[#1DB954] px-5 py-2.5 text-center font-sans text-sm font-semibold text-white"
                 >
                   Get Started Free
                 </Link>

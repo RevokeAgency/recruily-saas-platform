@@ -1,79 +1,94 @@
 "use client"
 
-import { Linkedin, Twitter } from "lucide-react"
+import { Linkedin, Twitter, Instagram } from "lucide-react"
 import { RevetlyLogo } from "./revetly-logo"
 
-const COLUMNS = [
-  {
-    title: "Product",
-    links: ["Features", "Pricing", "How it Works", "Changelog"],
-  },
-  {
-    title: "Company",
-    links: ["About", "Blog", "Careers", "Press"],
-  },
-  {
-    title: "Legal",
-    links: ["Privacy", "Terms", "DSGVO", "Imprint"],
-  },
-  {
-    title: "Support",
-    links: ["FAQ", "Contact", "hello@revetly.ai"],
-  },
+const navigate = ["Home", "About", "Features", "Pricing", "FAQ"]
+const follow = [
+  { label: "LinkedIn", icon: Linkedin },
+  { label: "X", icon: Twitter },
+  { label: "Instagram", icon: Instagram },
 ]
+const legal = ["Privacy", "Terms", "DSGVO"]
 
 export function Footer() {
   return (
-    <footer className="bg-[#0A0F0C] px-6 pt-16 pb-8">
-      <div className="mx-auto max-w-6xl">
-        <div className="grid grid-cols-2 gap-10 md:grid-cols-5">
+    <footer className="rv border-t border-[#E5E9E7] bg-[#F4F7F5] px-5 pt-16 pb-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
           {/* Logo + tagline */}
           <div className="col-span-2 md:col-span-1">
             <RevetlyLogo />
-            <p className="font-dm-sans mt-4 max-w-[200px] text-sm leading-relaxed text-[#A8C4B0]">
+            <p className="mt-4 max-w-[220px] font-sans text-sm leading-relaxed text-[#6B7280]">
               More time for what matters.
             </p>
           </div>
 
-          {COLUMNS.map((col) => (
-            <div key={col.title}>
-              <h3 className="font-syne text-sm font-bold text-white">{col.title}</h3>
-              <ul className="mt-4 flex flex-col gap-3">
-                {col.links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
-                      className="font-dm-sans text-sm text-[#A8C4B0] transition-colors hover:text-[#1DB954]"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Navigate */}
+          <div>
+            <h3 className="font-sans text-sm font-bold text-[#0F3D2C]">Navigate</h3>
+            <ul className="mt-4 flex flex-col gap-3">
+              {navigate.map((link) => (
+                <li key={link}>
+                  <a
+                    href="#"
+                    className="font-sans text-sm text-[#6B7280] transition-colors hover:text-[#1DB954]"
+                  >
+                    {link}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Follow */}
+          <div>
+            <h3 className="font-sans text-sm font-bold text-[#0F3D2C]">Follow</h3>
+            <ul className="mt-4 flex flex-col gap-3">
+              {follow.map(({ label, icon: Icon }) => (
+                <li key={label}>
+                  <a
+                    href="#"
+                    className="inline-flex items-center gap-2 font-sans text-sm text-[#6B7280] transition-colors hover:text-[#1DB954]"
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact + Legal */}
+          <div>
+            <h3 className="font-sans text-sm font-bold text-[#0F3D2C]">Contact</h3>
+            <ul className="mt-4 flex flex-col gap-3">
+              <li>
+                <a
+                  href="mailto:hello@revetly.ai"
+                  className="font-sans text-sm text-[#6B7280] transition-colors hover:text-[#1DB954]"
+                >
+                  hello@revetly.ai
+                </a>
+              </li>
+              {legal.map((link) => (
+                <li key={link}>
+                  <a
+                    href="#"
+                    className="font-sans text-sm text-[#6B7280] transition-colors hover:text-[#1DB954]"
+                  >
+                    {link}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[#2D4A35] pt-6 sm:flex-row">
-          <p className="font-dm-sans text-sm text-[#A8C4B0]">
-            © 2026 REVETLY · Built in Austria · Trusted across Europe
+        <div className="mt-12 border-t border-[#E5E9E7] pt-6">
+          <p className="font-sans text-sm text-[#6B7280]">
+            © 2026 REVETLY. Built in Austria.
           </p>
-          <div className="flex items-center gap-3">
-            <a
-              href="#"
-              aria-label="LinkedIn"
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-[#2D4A35] text-[#A8C4B0] transition-colors hover:border-[#1DB954] hover:text-[#1DB954]"
-            >
-              <Linkedin className="h-4 w-4" />
-            </a>
-            <a
-              href="#"
-              aria-label="X"
-              className="flex h-9 w-9 items-center justify-center rounded-md border border-[#2D4A35] text-[#A8C4B0] transition-colors hover:border-[#1DB954] hover:text-[#1DB954]"
-            >
-              <Twitter className="h-4 w-4" />
-            </a>
-          </div>
         </div>
       </div>
     </footer>
