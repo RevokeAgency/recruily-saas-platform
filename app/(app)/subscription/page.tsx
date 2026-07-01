@@ -72,7 +72,7 @@ export default function SubscriptionPage() {
                   : 'Plan aktiv'}
               </CardDescription>
             </div>
-            <Badge className="bg-[var(--rv-green)] text-white">Aktiv</Badge>
+            <Badge>Aktiv</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -85,7 +85,7 @@ export default function SubscriptionPage() {
                   {loading ? '...' : `${matchesUsed} / ${matchesLimit}`}
                 </span>
               </div>
-              <Progress value={matchPercentage} className="h-2" />
+              <Progress value={matchPercentage} gradient />
               <p className="text-xs text-muted-foreground">
                 {loading ? 'Lädt...' : `Noch ${matchesLimit - matchesUsed} Matches verfügbar`}
               </p>
@@ -103,7 +103,7 @@ export default function SubscriptionPage() {
               </div>
               <Progress
                 value={profile?.active_jobs_limit === 999 ? 5 : 50}
-                className="h-2"
+                gradient
               />
               <p className="text-xs text-muted-foreground">
                 {PLANS[currentPlanId].active_jobs === 999 
@@ -139,7 +139,7 @@ export default function SubscriptionPage() {
           )}
         >
           Jährlich
-          <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+          <Badge variant="secondary" className="bg-[var(--app-green-wash)] text-[var(--rv-green-deep)] text-xs">
             2 Mo. gratis
           </Badge>
         </Label>
@@ -169,7 +169,7 @@ export default function SubscriptionPage() {
             >
               {plan.featured && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-[var(--rv-green)] text-white">
+                  <Badge className="bg-[image:var(--rv-gradient)] text-[#0C1A16] border-transparent">
                     Beliebteste Wahl
                   </Badge>
                 </div>
@@ -213,7 +213,7 @@ export default function SubscriptionPage() {
                     <span className="text-muted-foreground text-sm">/Monat</span>
                   )}
                   {isAnnual && price > 0 && (
-                    <p className="text-xs text-green-600 mt-1">
+                    <p className="text-xs text-[var(--rv-green-deep)] mt-1">
                       €{plan.price_yearly}/Jahr — 2 Mo. gratis
                     </p>
                   )}
@@ -243,14 +243,7 @@ export default function SubscriptionPage() {
 
                 {/* CTA */}
                 <Button
-                  className={cn(
-                    "w-full",
-                    isCurrent 
-                      ? "border-[var(--rv-green)] text-[var(--rv-green)]" 
-                      : plan.featured 
-                      ? "bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)] text-white"
-                      : ""
-                  )}
+                  className={cn("w-full", isCurrent && "border-[var(--rv-green)] text-[var(--rv-green)]")}
                   variant={isCurrent ? "outline" : plan.featured ? "default" : "outline"}
                   disabled={isCurrent}
                 >
