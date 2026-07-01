@@ -64,9 +64,9 @@
   --accent-foreground: var(--rv-cyan-deep);
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  /* Borders — tinted ink, never pure grey */
-  --border: rgba(12, 26, 22, 0.10);
-  --input: rgba(12, 26, 22, 0.10);
+  /* Borders — tinted ink, never pure grey (== --line, see product tokens below) */
+  --border: rgba(12, 26, 22, 0.08);
+  --input: rgba(12, 26, 22, 0.08);
   --ring: var(--rv-green);
   /* Charts */
   --chart-1: var(--rv-cyan);
@@ -90,6 +90,19 @@
   --success-foreground: #FFFFFF;
   --warning: #F59E0B;
   --warning-foreground: #FFFFFF;
+
+  /* ── Product-UI tokens (Dashboard/Auth) ──────────────────────────
+     Own radius/density scale, deliberately NOT the landing's 20-38px
+     marketing radii — see reference/revetly-landing/DASHBOARD_AUTH_REDESIGN.md.
+     Product UI is a daily-use tool (Linear/Vercel/Stripe reference),
+     not cinematic marketing: quieter, denser, precise. */
+  --app-radius-card: 16px;
+  --app-radius-control: 10px;
+  --app-radius-pill: 999px;
+  --app-line: rgba(12, 26, 22, 0.08);
+  --app-shadow-card: 0 1px 2px rgba(12, 26, 22, 0.04), 0 8px 24px -12px rgba(12, 26, 22, 0.08);
+  --app-focus-ring: 0 0 0 3px rgba(22, 199, 124, 0.25);
+  --app-green-wash: rgba(22, 199, 124, 0.10);
 }
 
 .dark {
@@ -170,6 +183,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --shadow-card: var(--app-shadow-card);
 }
 
 @layer base {
