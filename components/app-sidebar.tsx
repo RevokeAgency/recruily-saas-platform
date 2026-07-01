@@ -127,7 +127,7 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-200",
+        "flex flex-col bg-sidebar border-r border-sidebar-border transition-[width] duration-200 ease-out",
         collapsed ? "w-16" : "w-64"
       )}
     >
@@ -182,10 +182,10 @@ export function AppSidebar() {
             <div className="relative h-1.5 bg-[rgba(12,26,22,.08)] rounded-full overflow-hidden">
               <div
                 className={cn(
-                  "absolute inset-y-0 left-0 rounded-full transition-all",
+                  "absolute inset-0 w-full rounded-full transition-transform duration-200 ease-out",
                   isExhausted ? "bg-red-500" : isLow ? "bg-amber-500" : "bg-[image:var(--rv-gradient)]",
                 )}
-                style={{ width: `${Math.min(matchPercentage, 100)}%` }}
+                style={{ transform: `scaleX(${Math.min(matchPercentage, 100) / 100})`, transformOrigin: "left" }}
               />
             </div>
             {isLow && (
