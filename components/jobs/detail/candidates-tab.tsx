@@ -213,7 +213,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
           <Badge variant="secondary" className="text-sm">
             {filteredCandidates.length} Total
           </Badge>
-          <Button asChild className="bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm">
+          <Button asChild>
             <Link href={`/candidates/new?jobId=${jobId}`}>
               <UserPlus className="mr-2 h-4 w-4" />
               Kandidat hinzufügen
@@ -276,7 +276,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
             <p className="text-slate-500 mb-6">
               Füge den ersten Kandidaten zu diesem Job hinzu um das Matching zu starten.
             </p>
-            <Button asChild className="bg-teal-600 hover:bg-teal-700">
+            <Button asChild>
               <Link href={`/candidates/new?jobId=${jobId}`}>
                 <UserPlus className="mr-2 h-4 w-4" />
                 Kandidat hinzufügen
@@ -291,7 +291,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
         {filteredCandidates.map((candidate) => (
           <Card 
             key={candidate.id} 
-            className="border border-slate-200 bg-white rounded-xl hover:shadow-lg transition-all duration-300"
+            className="rounded-xl transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]"
           >
             <CardContent className="p-6">
               <div className="flex flex-col xl:flex-row gap-6">
@@ -299,8 +299,11 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                 <div className="flex-1 min-w-0">
                   {/* Header */}
                   <div className="flex items-start gap-4 mb-4">
-                    <Avatar className="h-12 w-12 bg-teal-600 text-white">
-                      <AvatarFallback className="bg-teal-600 text-white font-semibold">
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback
+                        className="text-[#0C1A16] font-semibold"
+                        style={{ backgroundImage: "var(--rv-gradient)" }}
+                      >
                         {getInitials(candidate.full_name)}
                       </AvatarFallback>
                     </Avatar>
@@ -395,9 +398,9 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                   {/* Action Buttons */}
                   <div className="flex flex-col gap-2 w-full">
                     <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        className="flex-1 bg-teal-600 hover:bg-teal-700 gap-2"
+                      <Button
+                        size="sm"
+                        className="flex-1 gap-2"
                         onClick={() => {
                           setSelectedCandidate(candidate)
                           setMatchModalOpen(true)

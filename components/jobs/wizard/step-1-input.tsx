@@ -69,7 +69,7 @@ export function JobWizardStep1({
           <Card
             key={method.id}
             className={cn(
-              "cursor-pointer transition-all hover:shadow-md",
+              "cursor-pointer transition-[border-color,box-shadow] duration-150 ease-out hover:shadow-md",
               formData.inputMethod === method.id
                 ? `border-2 ${method.borderColor} shadow-sm`
                 : "border border-border"

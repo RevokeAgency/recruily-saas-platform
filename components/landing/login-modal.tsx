@@ -70,7 +70,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             Willkommen zurück
           </DialogTitle>
           <p className="text-muted-foreground text-sm">
-            Melden Sie sich an, um fortzufahren
+            Melde dich an, um fortzufahren
           </p>
         </DialogHeader>
 

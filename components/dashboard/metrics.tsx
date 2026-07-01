@@ -42,7 +42,8 @@ export function DashboardMetrics({ data }: { data: DashboardMetricsData }) {
       label: "Ø Match Score",
       value: `${data.avgMatchScore}%`,
       icon: TrendingUp,
-      context: "Top-Kandidaten",
+      context: "im Schnitt über alle Matches",
+      accent: true,
     },
   ]
 

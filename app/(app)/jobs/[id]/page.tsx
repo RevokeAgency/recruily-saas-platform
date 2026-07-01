@@ -147,8 +147,8 @@ export default function JobDetailPage() {
 
       {/* Job Title Section */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">{job.title}</h1>
-        <p className="text-slate-500">
+        <h1 className="text-2xl font-bold text-foreground mb-1">{job.title}</h1>
+        <p className="text-muted-foreground">
           {job.company} {shortDescription && `• ${shortDescription}`}
         </p>
       </div>
@@ -156,35 +156,35 @@ export default function JobDetailPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* Applications */}
-        <Card className="border border-slate-200 bg-white rounded-xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+        <Card className="rounded-xl transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center transition-transform duration-300 hover:scale-110">
+            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
               <Users className="h-6 w-6 text-blue-600" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Applications</p>
-              <p className="text-2xl font-bold text-foreground">{job.application_count || 0}</p>
+              <p className="text-2xl font-bold text-foreground tabular-nums">{job.application_count || 0}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Matches */}
-        <Card className="border border-slate-200 bg-white rounded-xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+        <Card className="rounded-xl transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center transition-transform duration-300 hover:scale-110">
-              <BarChart3 className="h-6 w-6 text-emerald-600" />
+            <div className="w-12 h-12 rounded-xl bg-[var(--app-green-wash)] flex items-center justify-center">
+              <BarChart3 className="h-6 w-6 text-[var(--rv-green-deep)]" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Matches</p>
-              <p className="text-2xl font-bold text-foreground">{job.match_count || 0}</p>
+              <p className="text-2xl font-bold text-foreground tabular-nums">{job.match_count || 0}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Posted */}
-        <Card className="border border-slate-200 bg-white rounded-xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+        <Card className="rounded-xl transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center transition-transform duration-300 hover:scale-110">
+            <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center">
               <Calendar className="h-6 w-6 text-pink-600" />
             </div>
             <div>
@@ -195,9 +195,9 @@ export default function JobDetailPage() {
         </Card>
 
         {/* Type */}
-        <Card className="border border-slate-200 bg-white rounded-xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+        <Card className="rounded-xl transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center transition-transform duration-300 hover:scale-110">
+            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
               <Clock className="h-6 w-6 text-orange-600" />
             </div>
             <div>

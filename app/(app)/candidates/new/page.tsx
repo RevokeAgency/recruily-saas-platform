@@ -82,9 +82,9 @@ function NewCandidateContent() {
           const errorText = await response.text()
           console.error("Server error:", errorText)
           if (errorText.includes("Request Entity Too Large") || response.status === 413) {
-            toast.error("Die Datei ist zu groß. Bitte verwenden Sie eine kleinere Datei oder den Text-Modus.")
+            toast.error("Die Datei ist zu groß. Bitte verwende eine kleinere Datei oder den Text-Modus.")
           } else {
-            toast.error("Fehler beim Analysieren des CVs. Bitte versuchen Sie es erneut.")
+            toast.error("Fehler beim Analysieren des CVs. Bitte versuche es erneut.")
           }
         }
         setIsProcessing(false)
@@ -113,7 +113,7 @@ function NewCandidateContent() {
   // Handle text paste fallback
   const handleTextSubmit = async (text: string) => {
     if (!text.trim()) {
-      toast.error("Bitte fügen Sie CV-Text ein")
+      toast.error("Bitte füge CV-Text ein")
       return
     }
 
@@ -392,7 +392,7 @@ function UploadSection({
                 CV-Text einfügen
               </label>
               <Textarea
-                placeholder="Kopieren Sie den CV-Text hier hinein..."
+                placeholder="Kopiere den CV-Text hier hinein..."
                 value={cvText}
                 onChange={(e) => setCvText(e.target.value)}
                 rows={10}
@@ -401,7 +401,7 @@ function UploadSection({
             </div>
             <Button
               onClick={() => onTextSubmit(cvText)}
-              className="w-full bg-teal-600 hover:bg-teal-700"
+              className="w-full"
               disabled={!cvText.trim()}
             >
               <Sparkles className="mr-2 h-4 w-4" />
@@ -549,10 +549,10 @@ function PreviewSection({
                   <button
                     key={level}
                     onClick={() => onSetExperienceLevel(level)}
-                    className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all ${
+                    className={`flex-1 py-3 px-4 rounded-xl border-2 transition-[border-color,background-color] duration-150 ease-out ${
                       data.experience_level === level
-                        ? "border-teal-500 bg-teal-50"
-                        : "border-slate-200 hover:border-slate-300"
+                        ? "border-primary bg-[var(--app-green-wash)]"
+                        : "border-border hover:border-muted-foreground/30"
                     }`}
                   >
                     <Badge className={experienceLevelConfig[level].color}>
@@ -637,7 +637,7 @@ function PreviewSection({
         <Button
           onClick={onSave}
           disabled={isSaving}
-          className="flex-1 bg-teal-600 hover:bg-teal-700"
+          className="flex-1"
         >
           {isSaving ? (
             <>
@@ -701,7 +701,7 @@ function SuccessSection({
           </Button>
           <Button
             onClick={() => router.push(jobId ? `/jobs/${jobId}` : "/jobs")}
-            className="bg-teal-600 hover:bg-teal-700 gap-2"
+            className="gap-2"
           >
             <Sparkles className="h-4 w-4" />
             {jobId ? "Zum Candidate Pool" : "Direkt mit Jobs matchen"}

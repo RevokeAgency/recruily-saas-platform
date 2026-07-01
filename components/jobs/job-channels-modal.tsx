@@ -48,7 +48,7 @@ export function JobChannelsModal({ isOpen, onClose, jobId }: JobChannelsModalPro
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl">
-            Ihr Job ist bereit!
+            Dein Job ist bereit!
           </DialogTitle>
           <p className="text-sm text-muted-foreground mt-1">
             So können Bewerbungen reinkommen:
@@ -117,11 +117,11 @@ export function JobChannelsModal({ isOpen, onClose, jobId }: JobChannelsModalPro
 
           {/* Footer hint */}
           <p className="text-xs text-muted-foreground text-center leading-relaxed px-2">
-            Füge den Link in deine Stellenausschreibung auf Karriere.at, LinkedIn oder deiner Website ein — Bewerbungen landen automatisch in REVETLY.
+            Füge den Link in deine Stellenausschreibung auf Karriere.at, LinkedIn oder deiner Website ein — Bewerbungen landen automatisch in Revetly.
           </p>
         </div>
 
-        <Button onClick={onClose} className="w-full bg-teal-600 hover:bg-teal-700">
+        <Button onClick={onClose} className="w-full">
           Fertig
         </Button>
       </DialogContent>

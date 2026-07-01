@@ -42,7 +42,7 @@ export default function RegisterPage() {
     }
 
     if (!formData.agbAccepted) {
-      toast.error("Bitte akzeptieren Sie die AGB")
+      toast.error("Bitte akzeptiere die AGB")
       return
     }
 
@@ -90,8 +90,8 @@ export default function RegisterPage() {
           </div>
           <h1 className="text-xl font-bold text-foreground mb-2.5">E-Mail bestätigen</h1>
           <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
-            Wir haben Ihnen eine Bestätigungs-E-Mail an <strong className="text-foreground">{formData.email}</strong> gesendet.
-            Bitte klicken Sie auf den Link in der E-Mail, um Ihr Konto zu aktivieren.
+            Wir haben dir eine Bestätigungs-E-Mail an <strong className="text-foreground">{formData.email}</strong> gesendet.
+            Bitte klicke auf den Link in der E-Mail, um dein Konto zu aktivieren.
           </p>
           <Link href="/">
             <Button variant="outline" className="w-full">
@@ -113,7 +113,7 @@ export default function RegisterPage() {
         Konto erstellen
       </h1>
       <p className="text-muted-foreground text-center text-sm mb-8">
-        Starten Sie kostenlos mit 10 KI-Matches pro Monat
+        Starte kostenlos mit 10 KI-Matches pro Monat
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">

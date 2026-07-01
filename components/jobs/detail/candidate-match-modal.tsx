@@ -155,7 +155,7 @@ function CircularProgress({ value, size = 160 }: { value: number; size?: number 
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          className="transition-all duration-1000 ease-out"
+          className="transition-[stroke-dashoffset] duration-1000 ease-out"
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -231,7 +231,7 @@ function CategoryBar({
         <div className="flex items-center gap-2">
           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
             <div 
-              className={`h-full rounded-full transition-all duration-700 ease-out ${getScoreBgColor(score)}`}
+              className={`h-full rounded-full transition-[width] duration-700 ease-out ${getScoreBgColor(score)}`}
               style={{ width: `${score}%` }}
             />
           </div>
@@ -349,8 +349,11 @@ export function CandidateMatchModal({
         <div className="py-6 space-y-6">
           {/* Candidate Header */}
           <div className="flex items-center gap-4">
-            <Avatar className="h-14 w-14 bg-teal-600 text-white">
-              <AvatarFallback className="bg-teal-600 text-white text-lg font-semibold">
+            <Avatar className="h-14 w-14">
+              <AvatarFallback
+                className="text-[#0C1A16] text-lg font-semibold"
+                style={{ backgroundImage: "var(--rv-gradient)" }}
+              >
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -519,7 +522,7 @@ export function CandidateMatchModal({
                   ) : (
                     <Button
                       onClick={() => setInviteOpen(true)}
-                      className="flex-1 bg-teal-600 hover:bg-teal-700"
+                      className="flex-1"
                       disabled={rejected}
                     >
                       <Calendar className="mr-2 h-4 w-4" />
@@ -636,7 +639,7 @@ export function CandidateMatchModal({
           <Button
             onClick={handleSubmitInvite}
             disabled={isSubmitting}
-            className="bg-teal-600 hover:bg-teal-700"
+           
           >
             {isSubmitting ? "Wird gespeichert..." : "Einladung senden"}
           </Button>

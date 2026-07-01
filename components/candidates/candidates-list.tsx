@@ -375,7 +375,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                   Schließen
                 </Button>
                 <Button 
-                  className="flex-1 bg-teal-600 hover:bg-teal-700"
+                  className="flex-1"
                   onClick={() => {
                     setMatchCandidate(selectedCandidate)
                     setSelectedCandidate(null)

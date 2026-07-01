@@ -23,7 +23,7 @@ export default function AuthErrorPage() {
         </h1>
         <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
           Es gab ein Problem bei der Authentifizierung. Der Link ist möglicherweise abgelaufen
-          oder ungültig. Bitte versuchen Sie es erneut.
+          oder ungültig. Bitte versuche es erneut.
         </p>
 
         <div className="space-y-3">

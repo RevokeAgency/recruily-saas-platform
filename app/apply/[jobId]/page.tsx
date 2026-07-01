@@ -228,7 +228,7 @@ export default function ApplyPage() {
             <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center">
               <span className="text-white font-bold text-sm">R</span>
             </div>
-            <span className="font-semibold text-slate-900 text-lg">REVETLY</span>
+            <span className="font-semibold text-slate-900 text-lg">Revetly</span>
           </div>
           <span className="text-sm text-slate-500">Stellenbewerbung</span>
         </div>
@@ -434,7 +434,7 @@ export default function ApplyPage() {
             </Button>
 
             <p className="text-center text-xs text-slate-400">
-              Powered by <span className="font-semibold">REVETLY</span> — Intelligentes Recruiting
+              Powered by <span className="font-semibold">Revetly</span> — Intelligentes Recruiting
             </p>
           </form>
         </div>

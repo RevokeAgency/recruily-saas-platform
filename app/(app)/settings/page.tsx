@@ -218,7 +218,7 @@ export default function SettingsPage() {
               <CardTitle className="text-lg">API & Integrationen</CardTitle>
             </div>
             <CardDescription>
-              Verbinde REVETLY mit deinen bestehenden Tools
+              Verbinde Revetly mit deinen bestehenden Tools
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -238,7 +238,7 @@ export default function SettingsPage() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Verwende diesen Key, um die REVETLY API zu nutzen.
+                Verwende diesen Key, um die Revetly API zu nutzen.
               </p>
             </div>
 

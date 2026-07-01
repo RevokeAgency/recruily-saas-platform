@@ -49,8 +49,8 @@ export default function ResetPasswordPage() {
           </div>
           <h1 className="text-xl font-bold text-foreground mb-2.5">E-Mail gesendet</h1>
           <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
-            Wir haben Ihnen einen Link zum Zurücksetzen Ihres Passworts an <strong className="text-foreground">{email}</strong> gesendet.
-            Bitte überprüfen Sie Ihren Posteingang.
+            Wir haben dir einen Link zum Zurücksetzen deines Passworts an <strong className="text-foreground">{email}</strong> gesendet.
+            Bitte überprüfe deinen Posteingang.
           </p>
           <Link href="/">
             <Button variant="outline" className="w-full">
@@ -72,7 +72,7 @@ export default function ResetPasswordPage() {
         Passwort zurücksetzen
       </h1>
       <p className="text-muted-foreground text-center text-sm mb-8">
-        Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen.
+        Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">

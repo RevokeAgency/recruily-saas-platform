@@ -151,11 +151,11 @@ export function JobMatchModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-slate-900">
+          <DialogTitle className="text-xl font-bold text-foreground">
             Job auswählen
           </DialogTitle>
           <DialogDescription>
-            Wähle einen Job aus, um <span className="font-semibold text-slate-700">{candidateName}</span> zu matchen
+            Wähle einen Job aus, um <span className="font-semibold text-foreground">{candidateName}</span> zu matchen
           </DialogDescription>
         </DialogHeader>
 
@@ -164,8 +164,8 @@ export function JobMatchModal({
             <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
               <CheckCircle2 className="h-8 w-8 text-emerald-600" />
             </div>
-            <p className="text-lg font-semibold text-slate-900">Matching gestartet!</p>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-lg font-semibold text-foreground">Matching gestartet!</p>
+            <p className="text-sm text-muted-foreground mt-1">
               Der IMLRS-Score wird berechnet...
             </p>
           </div>
@@ -173,7 +173,7 @@ export function JobMatchModal({
           <>
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Jobs suchen..."
                 className="pl-10"
@@ -197,8 +197,8 @@ export function JobMatchModal({
                   </Card>
                 ))
               ) : filteredJobs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                  <Briefcase className="h-10 w-10 text-slate-300 mb-3" />
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <Briefcase className="h-10 w-10 text-muted-foreground/40 mb-3" />
                   <p className="font-medium">Keine Jobs gefunden</p>
                   <p className="text-sm">
                     {searchQuery ? "Versuche eine andere Suche" : "Erstelle zuerst einen Job"}
@@ -208,27 +208,27 @@ export function JobMatchModal({
                 filteredJobs.map((job) => (
                   <Card
                     key={job.id}
-                    className={`cursor-pointer transition-all duration-200 ${
+                    className={`cursor-pointer transition-[border-color,box-shadow,background-color] duration-150 ease-out ${
                       selectedJob?.id === job.id
-                        ? "border-teal-500 bg-teal-50 ring-1 ring-teal-500"
-                        : "border-slate-200 hover:border-slate-300 hover:shadow-sm"
+                        ? "border-primary bg-[var(--app-green-wash)] ring-1 ring-primary"
+                        : "border-border hover:border-muted-foreground/30 hover:shadow-sm"
                     }`}
                     onClick={() => setSelectedJob(job)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          selectedJob?.id === job.id ? "bg-teal-100" : "bg-slate-100"
+                          selectedJob?.id === job.id ? "bg-[var(--app-green-wash)]" : "bg-muted"
                         }`}>
                           <Briefcase className={`h-5 w-5 ${
-                            selectedJob?.id === job.id ? "text-teal-600" : "text-slate-500"
+                            selectedJob?.id === job.id ? "text-primary" : "text-muted-foreground"
                           }`} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-slate-900 truncate">
+                          <p className="font-semibold text-foreground truncate">
                             {job.title}
                           </p>
-                          <div className="flex items-center gap-3 text-sm text-slate-500 mt-0.5">
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
                             <span className="flex items-center gap-1">
                               <Building2 className="h-3.5 w-3.5" />
                               {job.company}
@@ -254,7 +254,7 @@ export function JobMatchModal({
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4 border-t border-slate-200">
+            <div className="flex gap-3 pt-4 border-t border-border">
               <Button
                 variant="outline"
                 className="flex-1"
@@ -264,7 +264,7 @@ export function JobMatchModal({
                 Abbrechen
               </Button>
               <Button
-                className="flex-1 bg-teal-600 hover:bg-teal-700"
+                className="flex-1"
                 onClick={handleMatch}
                 disabled={!selectedJob || isMatching}
               >
