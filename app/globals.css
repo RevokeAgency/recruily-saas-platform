@@ -3,6 +3,24 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Dashboard components (jobs/candidates/subscription/etc.) lean on Tailwind's
+   built-in `teal-*` scale for badges/buttons/icons (bg-teal-50 text-teal-700,
+   bg-teal-600 hover:bg-teal-700, ...). Overriding the palette itself here
+   rebrands every one of those ~150 call sites to Revetly green without
+   touching each component individually. */
+@theme {
+  --color-teal-50: #EAFBF3;
+  --color-teal-100: #D3F5E4;
+  --color-teal-200: #A9EBCB;
+  --color-teal-300: #7EDDB0;
+  --color-teal-400: #45CB8D;
+  --color-teal-500: #16C77C;
+  --color-teal-600: #0E9F62;
+  --color-teal-700: #0C7F50;
+  --color-teal-800: #0A6440;
+  --color-teal-900: #084F34;
+}
+
 :root {
   /* Revetly Design System — cyan/green brand, applies to landing, auth and dashboard */
   /* Brand ramp (source of truth: reference/revetly-landing/index.html) */

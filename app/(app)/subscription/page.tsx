@@ -72,7 +72,7 @@ export default function SubscriptionPage() {
                   : 'Plan aktiv'}
               </CardDescription>
             </div>
-            <Badge className="bg-[#0D9488] text-white">Aktiv</Badge>
+            <Badge className="bg-[var(--rv-green)] text-white">Aktiv</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -161,15 +161,15 @@ export default function SubscriptionPage() {
               className={cn(
                 "relative border transition-shadow hover:shadow-md",
                 plan.featured
-                  ? "border-[#0D9488] shadow-sm"
+                  ? "border-[var(--rv-green)] shadow-sm"
                   : isCurrent
-                  ? "border-[#0D9488]/50"
+                  ? "border-[rgba(22,199,124,.5)]"
                   : "border-border"
               )}
             >
               {plan.featured && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-[#0D9488] text-white">
+                  <Badge className="bg-[var(--rv-green)] text-white">
                     Beliebteste Wahl
                   </Badge>
                 </div>
@@ -177,7 +177,7 @@ export default function SubscriptionPage() {
               
               {isCurrent && !plan.featured && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge variant="outline" className="border-[#0D9488] text-[#0D9488] bg-white">
+                  <Badge variant="outline" className="border-[var(--rv-green)] text-[var(--rv-green)] bg-white">
                     Dein aktueller Plan
                   </Badge>
                 </div>
@@ -187,13 +187,13 @@ export default function SubscriptionPage() {
                 <div
                   className={cn(
                     "w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2",
-                    plan.featured ? "bg-[#0D9488]/10" : "bg-muted"
+                    plan.featured ? "bg-[rgba(22,199,124,.1)]" : "bg-muted"
                   )}
                 >
                   <Icon
                     className={cn(
                       "h-6 w-6",
-                      plan.featured ? "text-[#0D9488]" : "text-muted-foreground"
+                      plan.featured ? "text-[var(--rv-green)]" : "text-muted-foreground"
                     )}
                   />
                 </div>
@@ -221,7 +221,7 @@ export default function SubscriptionPage() {
 
                 {/* Match info */}
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-[#0D9488]">
+                  <p className="text-sm font-semibold text-[var(--rv-green)]">
                     {plan.matches_label}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -235,7 +235,7 @@ export default function SubscriptionPage() {
                 <ul className="space-y-2">
                   {plan.features.slice(2, 7).map((feature) => (
                     <li key={feature} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-[#0D9488] flex-shrink-0 mt-0.5" />
+                      <Check className="h-4 w-4 text-[var(--rv-green)] flex-shrink-0 mt-0.5" />
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -246,9 +246,9 @@ export default function SubscriptionPage() {
                   className={cn(
                     "w-full",
                     isCurrent 
-                      ? "border-[#0D9488] text-[#0D9488]" 
+                      ? "border-[var(--rv-green)] text-[var(--rv-green)]" 
                       : plan.featured 
-                      ? "bg-[#0D9488] hover:bg-[#0B7C72] text-white"
+                      ? "bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)] text-white"
                       : ""
                   )}
                   variant={isCurrent ? "outline" : plan.featured ? "default" : "outline"}

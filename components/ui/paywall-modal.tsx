@@ -27,7 +27,7 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
             <X className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-full bg-[#0D9488] flex items-center justify-center">
+            <div className="w-7 h-7 rounded-full bg-[var(--rv-green)] flex items-center justify-center">
               <Zap className="w-3.5 h-3.5 text-white" />
             </div>
             <span className="text-[#14B8A6] text-sm font-semibold">
@@ -49,7 +49,7 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
                 onClick={() => setInterval(i)}
                 className={`text-sm font-medium px-4 py-1.5 rounded-full transition-colors ${
                   interval === i
-                    ? 'bg-[#0D9488] text-white'
+                    ? 'bg-[var(--rv-green)] text-white'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -77,13 +77,13 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
                 key={planId}
                 className={`relative rounded-xl border-2 p-5 flex flex-col ${
                   plan.featured
-                    ? 'border-[#0D9488] shadow-lg'
+                    ? 'border-[var(--rv-green)] shadow-lg'
                     : 'border-slate-200'
                 }`}
               >
                 {plan.featured && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                    <span className="bg-[#0D9488] text-white text-xs font-bold px-3 py-1 rounded-full">
+                    <span className="bg-[var(--rv-green)] text-white text-xs font-bold px-3 py-1 rounded-full">
                       Beliebteste Wahl
                     </span>
                   </div>
@@ -101,7 +101,7 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
                     €{plan.price_yearly}/Jahr — 2 Mo. gratis
                   </p>
                 )}
-                <p className="text-[#0D9488] font-semibold text-sm mt-2">
+                <p className="text-[var(--rv-green)] font-semibold text-sm mt-2">
                   {plan.matches_label}
                 </p>
                 <p className="text-slate-400 text-xs mt-0.5 mb-3">
@@ -116,7 +116,7 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
                       key={f}
                       className="flex items-start gap-2 text-xs text-slate-600"
                     >
-                      <Check className="w-3.5 h-3.5 text-[#0D9488] flex-shrink-0 mt-0.5" />
+                      <Check className="w-3.5 h-3.5 text-[var(--rv-green)] flex-shrink-0 mt-0.5" />
                       {f}
                     </li>
                   ))}
@@ -126,7 +126,7 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
                   href="/subscription"
                   className={`w-full py-2.5 rounded-lg text-sm font-semibold text-center transition-colors block ${
                     plan.featured
-                      ? 'bg-[#0D9488] hover:bg-[#0B7C72] text-white'
+                      ? 'bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)] text-white'
                       : 'bg-slate-900 hover:bg-slate-800 text-white'
                   }`}
                 >

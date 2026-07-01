@@ -94,18 +94,18 @@ ${companyName}`
           {!canSendEmail ? (
             /* Upsell for free/starter */
             <div className="text-center py-6">
-              <div className="w-12 h-12 rounded-full bg-[#0D9488]/10 flex items-center justify-center mx-auto mb-3">
-                <Lock className="w-6 h-6 text-[#0D9488]" />
+              <div className="w-12 h-12 rounded-full bg-[rgba(22,199,124,.1)] flex items-center justify-center mx-auto mb-3">
+                <Lock className="w-6 h-6 text-[var(--rv-green)]" />
               </div>
               <p className="font-semibold text-slate-900 mb-1">
                 Branded Emails ab Growth Plan
               </p>
               <p className="text-sm text-slate-500 mb-4">
-                Schicke professionelle, gebrandete Absage-Emails direkt aus Recruily heraus.
+                Schicke professionelle, gebrandete Absage-Emails direkt aus Revetly heraus.
               </p>
               <a 
                 href="/subscription"
-                className="inline-block bg-[#0D9488] hover:bg-[#0B7C72] text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors"
+                className="inline-block bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)] text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors"
               >
                 Auf Growth upgraden
               </a>
@@ -128,7 +128,7 @@ ${companyName}`
                 value={text || defaultText}
                 onChange={(e) => setText(e.target.value)}
                 rows={10}
-                className="w-full border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-700 leading-relaxed resize-none focus:border-[#0D9488] focus:ring-1 focus:ring-[#0D9488] outline-none"
+                className="w-full border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-700 leading-relaxed resize-none focus:border-[var(--rv-green)] focus:ring-1 focus:ring-[var(--rv-green)] outline-none"
               />
               <p className="text-xs text-slate-400 mt-2">
                 Von: karriere@revetly.ai · An: {candidateEmail}
@@ -137,7 +137,7 @@ ${companyName}`
               <button
                 onClick={handleSend}
                 disabled={sending}
-                className="mt-4 w-full flex items-center justify-center gap-2 bg-[#0D9488] hover:bg-[#0B7C72] disabled:opacity-60 text-white font-semibold py-3 rounded-lg transition-colors"
+                className="mt-4 w-full flex items-center justify-center gap-2 bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)] disabled:opacity-60 text-white font-semibold py-3 rounded-lg transition-colors"
               >
                 <Send className="w-4 h-4" />
                 {sending ? 'Wird gesendet...' : 'Absage senden'}

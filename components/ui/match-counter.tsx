@@ -19,13 +19,13 @@ export function MatchCounter() {
     ? 'bg-red-500'
     : isLow 
     ? 'bg-amber-400'
-    : 'bg-[#0D9488]'
+    : 'bg-[var(--rv-green)]'
 
   return (
     <div className="mx-3 mb-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
-          <Zap className="w-3.5 h-3.5 text-[#0D9488]" />
+          <Zap className="w-3.5 h-3.5 text-[var(--rv-green)]" />
           <span className="text-xs font-semibold text-slate-600">
             {planLabel} Plan
           </span>
@@ -33,7 +33,7 @@ export function MatchCounter() {
         <span className={`text-xs font-bold ${
           isEmpty ? 'text-red-500'
           : isLow ? 'text-amber-500'
-          : 'text-[#0D9488]'
+          : 'text-[var(--rv-green)]'
         }`}>
           {remaining} übrig
         </span>
@@ -56,7 +56,7 @@ export function MatchCounter() {
           className={`mt-2.5 flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg text-xs font-semibold text-white transition-colors ${
             isEmpty
               ? 'bg-red-500 hover:bg-red-600'
-              : 'bg-[#0D9488] hover:bg-[#0B7C72]'
+              : 'bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)]'
           }`}
         >
           <Zap className="w-3 h-3" />

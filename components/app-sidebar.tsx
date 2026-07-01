@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { RvBrandMark } from "@/components/landing/rv-brand-mark"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
@@ -115,7 +116,7 @@ export function AppSidebar() {
   const getProgressColor = () => {
     if (remainingPercentage <= 0) return "bg-red-500"
     if (remainingPercentage <= 20) return "bg-amber-500"
-    return "bg-[#0D9488]"
+    return "bg-[var(--rv-green)]"
   }
 
   // Get user display name and initials
@@ -138,10 +139,7 @@ export function AppSidebar() {
       <div className="flex items-center justify-between p-5 border-b border-slate-200">
         {!collapsed && (
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-bold text-base">R</span>
-            </div>
-            <span className="font-bold text-xl text-slate-900 tracking-tight">Recruily</span>
+            <RvBrandMark />
           </Link>
         )}
         <Button
@@ -188,7 +186,7 @@ export function AppSidebar() {
           <div className="bg-slate-50 rounded-xl p-3 space-y-2">
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2 text-slate-600">
-                <Sparkles className="h-4 w-4 text-[#0D9488]" />
+                <Sparkles className="h-4 w-4 text-[var(--rv-green)]" />
                 <span>KI-Matches</span>
               </div>
               <span className="font-medium text-slate-900">
