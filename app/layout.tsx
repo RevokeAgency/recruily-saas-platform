@@ -1,13 +1,18 @@
 import type { Metadata, Viewport } from 'next'
-import { Montserrat } from 'next/font/google'
+import localFont from 'next/font/local'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  variable: '--font-montserrat',
-  weight: ['400', '500', '600', '700', '800'],
+// Self-hosted, no Google-Fonts hotlink (DSGVO). Latin subset covers German
+// (äöüß live in Latin-1 Supplement); latin-ext is not wired since it only
+// adds Central/Eastern-European diacritics outside the DACH target market.
+const plusJakartaSans = localFont({
+  src: [
+    { path: './fonts/pjs-normal-latin.woff2', weight: '400 800', style: 'normal' },
+    { path: './fonts/pjs-italic-latin.woff2', weight: '400 800', style: 'italic' },
+  ],
+  variable: '--font-plus-jakarta-sans',
   display: 'swap',
 })
 
@@ -41,7 +46,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${montserrat.variable} bg-background`}
+      className={`${plusJakartaSans.variable} bg-background`}
     >
       <body className="font-sans antialiased">
         {children}

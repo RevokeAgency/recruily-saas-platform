@@ -89,8 +89,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-montserrat), system-ui, sans-serif;
-  --font-montserrat: var(--font-montserrat), system-ui, sans-serif;
+  --font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
