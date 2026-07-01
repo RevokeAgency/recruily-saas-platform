@@ -16,10 +16,13 @@ const plusJakartaSans = localFont({
   display: 'swap',
 })
 
+const title = 'Revetly — Die besten Kandidaten, sofort sichtbar'
+const description =
+  'Revetly ist KI-gestütztes Recruiting für den DACH-Markt. Matching, Absagen-Mails und Bewerberverwaltung – automatisiert, erklärbar, DSGVO-konform.'
+
 export const metadata: Metadata = {
-  title: 'REVETLY — More time for what matters.',
-  description:
-    'REVETLY automates your entire recruiting pipeline — from the first application to the confirmed interview. AI reads, scores, and ranks every candidate so your team can focus on building relationships.',
+  title,
+  description,
   generator: 'v0.app',
   icons: {
     icon: [
@@ -29,13 +32,28 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-icon.png',
   },
+  openGraph: {
+    type: 'website',
+    siteName: 'Revetly',
+    title,
+    description:
+      'KI-gestütztes Recruiting für den DACH-Markt. CV und Anschreiben gemeinsam analysiert, erklärbarer Score, DSGVO-konform auf EU-Servern.',
+    images: [{ url: '/revetly/og-image.jpg', width: 1200, height: 630 }],
+    locale: 'de_DE',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title,
+    description: 'KI-gestütztes Recruiting für den DACH-Markt. Erklärbarer Score, DSGVO-konform auf EU-Servern.',
+    images: ['/revetly/og-image.jpg'],
+  },
 }
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#FFFFFF',
+  themeColor: '#16C77C',
 }
 
 export default function RootLayout({
@@ -45,7 +63,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="de"
       className={`${plusJakartaSans.variable} bg-background`}
     >
       <body className="font-sans antialiased">
