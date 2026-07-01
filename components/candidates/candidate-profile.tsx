@@ -224,7 +224,7 @@ export function CandidateProfile({ candidate }: CandidateProfileProps) {
                       {match.score}%
                     </span>
                   </div>
-                  <Progress value={match.score} className="h-1.5" />
+                  <Progress value={match.score} gradient />
                 </div>
               ))}
             </CardContent>

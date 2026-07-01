@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { 
   Search, 
   Briefcase, 
@@ -175,7 +176,7 @@ export function JobMatchModal({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 placeholder="Jobs suchen..."
-                className="pl-10 bg-slate-50 border-slate-200"
+                className="pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -184,9 +185,17 @@ export function JobMatchModal({
             {/* Job List */}
             <div className="flex-1 overflow-y-auto min-h-0 space-y-2 py-2">
               {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 text-teal-600 animate-spin" />
-                </div>
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i}>
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <Skeleton className="h-10 w-10 rounded-lg flex-none" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-1/2" />
+                        <Skeleton className="h-3.5 w-1/3" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
               ) : filteredJobs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-slate-500">
                   <Briefcase className="h-10 w-10 text-slate-300 mb-3" />

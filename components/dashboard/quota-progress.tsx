@@ -22,7 +22,7 @@ export function QuotaProgress({ used, total }: { used: number; total: number }) 
             </span>
             <span className="text-sm text-muted-foreground">Matches verwendet</span>
           </div>
-          <Progress value={percentage} />
+          <Progress value={percentage} gradient />
           <p className="text-xs text-muted-foreground tabular-nums">
             Noch {remaining} Matches verfügbar in diesem Monat. Erneuert sich am 1. des Monats.
           </p>

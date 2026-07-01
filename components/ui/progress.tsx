@@ -7,9 +7,15 @@ import { cn } from '@/lib/utils'
 
 function Progress({
   className,
+  /** Opt into the brand-gradient fill (quota/usage widgets). Default is a plain
+   *  bg-primary indicator so existing `[&>div]:bg-*` color overrides (pipeline
+   *  funnels, score-distribution bars with per-band semantic colors) keep working —
+   *  an unconditional gradient background-image can't be un-set by a color-only
+   *  override, so it's opt-in rather than the default. */
+  gradient = false,
   value,
   ...props
-}: React.ComponentProps<typeof ProgressPrimitive.Root>) {
+}: React.ComponentProps<typeof ProgressPrimitive.Root> & { gradient?: boolean }) {
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
@@ -21,7 +27,10 @@ function Progress({
     >
       <ProgressPrimitive.Indicator
         data-slot="progress-indicator"
-        className="h-full w-full flex-1 bg-[image:var(--rv-gradient)] transition-all duration-300 ease-out"
+        className={cn(
+          'h-full w-full flex-1 transition-all duration-300 ease-out',
+          gradient ? 'bg-[image:var(--rv-gradient)]' : 'bg-primary',
+        )}
         style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
       />
     </ProgressPrimitive.Root>

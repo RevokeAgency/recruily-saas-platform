@@ -147,7 +147,7 @@ export function JobMatchesTab() {
                   <span className="font-medium text-foreground">{item.skill}</span>
                   <span className="text-muted-foreground">{item.percentage}%</span>
                 </div>
-                <Progress value={item.percentage} className="h-2" />
+                <Progress value={item.percentage} gradient />
               </div>
             ))}
           </CardContent>

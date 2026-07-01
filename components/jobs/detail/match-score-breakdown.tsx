@@ -79,9 +79,9 @@ const scoreCategories = [
 ]
 
 function getScoreColor(score: number) {
-  if (score >= 80) return "bg-success"
-  if (score >= 60) return "bg-warning"
-  return "bg-destructive"
+  if (score >= 80) return "[&>div]:bg-success"
+  if (score >= 60) return "[&>div]:bg-warning"
+  return "[&>div]:bg-destructive"
 }
 
 function getScoreTextColor(score: number) {
@@ -147,7 +147,7 @@ export function MatchScoreBreakdown({ candidate }: MatchScoreBreakdownProps) {
               </div>
               <Progress
                 value={category.score}
-                className={`h-2 ${getScoreColor(category.score)}`}
+                className={getScoreColor(category.score)}
               />
               <p className="text-sm text-muted-foreground">{category.reason}</p>
             </div>

@@ -25,24 +25,20 @@ export function CandidatesHeader({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Kandidaten</h1>
-          <p className="text-slate-500 mt-1.5">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Kandidaten</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
             Verwalte deinen Kandidatenpool
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {onRefresh && (
-            <Button 
-              variant="outline" 
-              onClick={onRefresh}
-              className="border-slate-200 text-slate-600 hover:bg-slate-50"
-            >
+            <Button variant="outline" onClick={onRefresh}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Aktualisieren
             </Button>
           )}
-          <Button asChild className="bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm">
+          <Button asChild>
             <Link href="/candidates/new">
               <Plus className="mr-2 h-4 w-4" />
               Kandidat hinzufügen
@@ -53,20 +49,20 @@ export function CandidatesHeader({
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Kandidaten nach Name, Skills oder Standort suchen..."
-            className="pl-11 h-12 bg-white border-slate-200 rounded-xl"
+            className="pl-11"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
 
         <Tabs value={filter} onValueChange={onFilterChange} className="w-auto">
-          <TabsList className="h-12 bg-slate-100 rounded-xl p-1">
-            <TabsTrigger value="all" className="rounded-lg">Alle</TabsTrigger>
-            <TabsTrigger value="unmatched" className="rounded-lg">Unverknüpft</TabsTrigger>
-            <TabsTrigger value="matched" className="rounded-lg">Gematcht</TabsTrigger>
+          <TabsList className="h-11 bg-[var(--rv-mist)] rounded-[10px] p-1">
+            <TabsTrigger value="all" className="rounded-[7px]">Alle</TabsTrigger>
+            <TabsTrigger value="unmatched" className="rounded-[7px]">Unverknüpft</TabsTrigger>
+            <TabsTrigger value="matched" className="rounded-[7px]">Gematcht</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

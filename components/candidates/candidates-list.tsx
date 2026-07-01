@@ -27,11 +27,11 @@ import {
   Trash2,
   Mail,
   MapPin,
-  Loader2,
   GraduationCap,
   Plus,
 } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
+import { Skeleton } from "@/components/ui/skeleton"
 import { JobMatchModal } from "./job-match-modal"
 import { toast } from "sonner"
 
@@ -119,8 +119,23 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Card key={i}>
+            <CardContent className="p-4 flex items-center gap-4">
+              <Skeleton className="h-11 w-11 rounded-full flex-none" />
+              <div className="w-44 flex-none space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2 rounded-full" />
+              </div>
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-3.5 w-1/3" />
+                <Skeleton className="h-3.5 w-1/4" />
+              </div>
+              <Skeleton className="h-8 w-20 flex-none" />
+            </CardContent>
+          </Card>
+        ))}
       </div>
     )
   }
@@ -149,19 +164,19 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
 
   if (filteredCandidates.length === 0) {
     return (
-      <Card className="border-slate-200 bg-slate-50 rounded-xl">
+      <Card className="bg-[var(--rv-mist)]">
         <CardContent className="p-8 text-center">
-          <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-600 font-medium">
-            {searchQuery 
-              ? "Keine Kandidaten gefunden" 
-              : filter === "matched" 
-                ? "Keine gematchten Kandidaten" 
+          <Users className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" strokeWidth={1.5} />
+          <p className="text-foreground font-medium">
+            {searchQuery
+              ? "Keine Kandidaten gefunden"
+              : filter === "matched"
+                ? "Keine gematchten Kandidaten"
                 : "Keine unverknüpften Kandidaten"}
           </p>
-          <p className="text-slate-500 text-sm mt-1">
-            {searchQuery 
-              ? "Versuche eine andere Suche" 
+          <p className="text-muted-foreground text-sm mt-1">
+            {searchQuery
+              ? "Versuche eine andere Suche"
               : "Ändere den Filter um andere Kandidaten zu sehen"}
           </p>
         </CardContent>
@@ -173,9 +188,9 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
     <>
       <div className="space-y-3">
         {filteredCandidates.map((candidate) => (
-          <Card 
-            key={candidate.id} 
-            className="bg-white border border-slate-200 rounded-xl hover:shadow-md transition-all duration-200 group"
+          <Card
+            key={candidate.id}
+            className="group transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]"
           >
             <CardContent className="p-4">
               <div className="flex items-center gap-4">
@@ -188,7 +203,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
 
                 {/* Name & Badge - Fixed Width */}
                 <div className="w-44 flex-shrink-0">
-                  <p className="font-semibold text-slate-900 truncate">
+                  <p className="font-semibold text-foreground truncate">
                     {candidate.full_name}
                   </p>
                   <Badge className={`mt-1 text-xs ${experienceLevelConfig[candidate.experience_level].color}`}>
@@ -202,7 +217,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                     <p className="text-sm text-slate-700 truncate">{candidate.job_title}</p>
                   )}
                   {candidate.location && (
-                    <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                       <MapPin className="h-3 w-3" />
                       {candidate.location}
                     </p>
@@ -229,7 +244,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                 {/* Email - Hidden on smaller screens */}
                 <div className="w-48 flex-shrink-0 hidden xl:block">
                   {candidate.email && (
-                    <p className="text-sm text-slate-500 truncate flex items-center gap-1.5">
+                    <p className="text-sm text-muted-foreground truncate flex items-center gap-1.5">
                       <Mail className="h-3.5 w-3.5 flex-shrink-0" />
                       {candidate.email}
                     </p>
@@ -279,7 +294,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
       <Dialog open={!!selectedCandidate} onOpenChange={() => setSelectedCandidate(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-slate-900">Kandidatenprofil</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-foreground">Kandidatenprofil</DialogTitle>
           </DialogHeader>
           {selectedCandidate && (
             <div className="space-y-6 pt-4">
@@ -291,7 +306,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">
+                  <h3 className="text-xl font-bold text-foreground">
                     {selectedCandidate.full_name}
                   </h3>
                   {selectedCandidate.job_title && (
@@ -329,7 +344,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
 
               {/* Skills */}
               <div>
-                <h4 className="font-semibold text-slate-900 mb-3">Skills</h4>
+                <h4 className="font-semibold text-foreground mb-3">Skills</h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedCandidate.skills.map((skill) => (
                     <span
@@ -345,13 +360,13 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
               {/* Education */}
               {selectedCandidate.education && (
                 <div>
-                  <h4 className="font-semibold text-slate-900 mb-2">Ausbildung</h4>
+                  <h4 className="font-semibold text-foreground mb-2">Ausbildung</h4>
                   <p className="text-slate-600">{selectedCandidate.education}</p>
                 </div>
               )}
 
               {/* Actions */}
-              <div className="flex gap-3 pt-4 border-t border-slate-200">
+              <div className="flex gap-3 pt-4 border-t border-border">
                 <Button
                   variant="outline"
                   className="flex-1"
