@@ -16,6 +16,14 @@
   --rv-mist: #F1F6F4;
   --rv-mist-2: #E7F0EC;
   --rv-gradient: linear-gradient(130deg, var(--rv-cyan) 0%, var(--rv-green) 100%);
+  /* Landing/marketing-only radii — never applied to app-wide --radius (dashboard stays subtle) */
+  --rv-radius: 20px;
+  --rv-radius-lg: 30px;
+  --rv-radius-xl: 38px;
+  --rv-radius-pill: 999px;
+  --rv-shadow-sm: 0 14px 34px -22px rgba(12, 26, 22, 0.28);
+  --rv-shadow: 0 30px 70px -40px rgba(12, 26, 22, 0.30);
+  --rv-shadow-lg: 0 50px 110px -55px rgba(12, 26, 22, 0.38);
 
   /* Base */
   --background: #F7FAF9;
@@ -438,3 +446,57 @@ html { scroll-behavior: smooth; }
     opacity: 1 !important;
   }
 }
+
+/* ─────────────────────────────────────────────
+   Revetly landing — shared button mechanics
+   (rv-button.tsx). Pseudo-elements/gradient-border
+   tricks below are cleaner as real CSS than long
+   Tailwind arbitrary-value strings.
+   ───────────────────────────────────────────── */
+.rv-btn { position: relative; overflow: hidden; }
+.rv-btn:active { transform: scale(0.97); }
+.rv-btn .rv-btn-arrow { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+.rv-btn:hover .rv-btn-arrow { transform: translate(3px, -3px); }
+
+.rv-btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -160%;
+  width: 55%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.32), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
+}
+.rv-btn-shine:hover::after { animation: rv-btn-shine 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes rv-btn-shine { to { left: 170%; } }
+
+/* Gradient-ring ghost button (transparent interior, brand-gradient border) */
+.rv-btn-ring {
+  border: 1.5px solid transparent;
+  background: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0)) padding-box,
+    var(--rv-gradient) border-box;
+}
+.rv-btn-ring:hover {
+  background: linear-gradient(rgba(34, 193, 238, 0.13), rgba(22, 199, 124, 0.13)) padding-box,
+    var(--rv-gradient) border-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-btn-shine::after { display: none; }
+}
+
+/* Cursor-tracking spotlight glow (rv-card.tsx sets --sx/--sy on mousemove) */
+.rv-spotlight { position: relative; overflow: hidden; }
+.rv-spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(230px circle at var(--sx, 50%) var(--sy, 50%), rgba(22, 199, 124, 0.10), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+.rv-spotlight:hover::before { opacity: 1; }
+.rv-spotlight > * { position: relative; z-index: 1; }
