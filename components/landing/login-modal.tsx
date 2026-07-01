@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { RvBrandMark } from "@/components/landing/rv-brand-mark"
 import {
   Dialog,
   DialogContent,
@@ -61,15 +62,8 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="mb-2 flex items-center gap-2">
-            <span
-              className="inline-flex h-7 w-7 items-center justify-center rounded-[7px]"
-              style={{ backgroundImage: "var(--rv-gradient)" }}
-              aria-hidden="true"
-            >
-              <span className="h-2.5 w-2.5 rounded-[2px] bg-white" />
-            </span>
-            <span className="text-xl font-extrabold tracking-tight text-[#0C1A16]">Revetly</span>
+          <div className="mb-2 flex items-center">
+            <RvBrandMark />
           </div>
           <DialogTitle className="text-2xl font-bold text-slate-900">
             Willkommen zurück

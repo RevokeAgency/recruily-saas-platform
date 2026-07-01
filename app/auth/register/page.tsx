@@ -2,13 +2,13 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { RvBrandMark } from "@/components/landing/rv-brand-mark"
 import { toast } from "sonner"
 
 export default function RegisterPage() {
@@ -81,16 +81,16 @@ export default function RegisterPage() {
 
   if (showConfirmation) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--rv-mist)] px-4">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-[#0D9488]/10 flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 text-[#0D9488]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-16 h-16 rounded-full bg-[rgba(22,199,124,.12)] flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-[var(--rv-green-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-3">E-Mail bestätigen</h1>
           <p className="text-slate-600 mb-6">
-            Wir haben Ihnen eine Bestätigungs-E-Mail an <strong>{formData.email}</strong> gesendet. 
+            Wir haben Ihnen eine Bestätigungs-E-Mail an <strong>{formData.email}</strong> gesendet.
             Bitte klicken Sie auf den Link in der E-Mail, um Ihr Konto zu aktivieren.
           </p>
           <Link href="/">
@@ -104,19 +104,13 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--rv-mist)] px-4 py-12">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           {/* Logo */}
           <div className="flex justify-center mb-6">
             <Link href="/">
-              <Image 
-                src="/images/recruily-logo.png" 
-                alt="Recruily" 
-                width={180} 
-                height={50} 
-                className="h-12 w-auto"
-              />
+              <RvBrandMark />
             </Link>
           </div>
 
@@ -211,11 +205,11 @@ export default function RegisterPage() {
               />
               <Label htmlFor="agb" className="text-sm text-slate-600 leading-relaxed cursor-pointer">
                 Ich akzeptiere die{" "}
-                <Link href="/terms" className="text-[#0D9488] hover:underline">
+                <Link href="/terms" className="text-[var(--rv-green-deep)] hover:underline">
                   Allgemeinen Geschäftsbedingungen
                 </Link>{" "}
                 und habe die{" "}
-                <Link href="/privacy" className="text-[#0D9488] hover:underline">
+                <Link href="/privacy" className="text-[var(--rv-green-deep)] hover:underline">
                   Datenschutzerklärung
                 </Link>{" "}
                 gelesen.
@@ -225,7 +219,7 @@ export default function RegisterPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#0D9488] hover:bg-[#0B7C72] text-white rounded-lg mt-6"
+              className="w-full rounded-lg mt-6"
             >
               {loading ? "Wird erstellt..." : "Konto erstellen"}
             </Button>
@@ -233,7 +227,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-slate-600 mt-6">
             Bereits ein Konto?{" "}
-            <Link href="/" className="text-[#0D9488] font-medium hover:underline">
+            <Link href="/" className="text-[var(--rv-green-deep)] font-medium hover:underline">
               Anmelden
             </Link>
           </p>

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Menu, X } from "lucide-react"
 
 import { RvArrowIcon, RvButton } from "./rv-button"
+import { RvBrandMark } from "./rv-brand-mark"
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -46,16 +47,7 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
         }`}
       >
         <Link href="/" aria-label="Revetly Startseite" className="inline-flex items-center">
-          <span className="flex items-center gap-2">
-            <span
-              className="inline-flex h-7 w-7 items-center justify-center rounded-[7px]"
-              style={{ backgroundImage: "var(--rv-gradient)" }}
-              aria-hidden="true"
-            >
-              <span className="h-2.5 w-2.5 rounded-[2px] bg-white" />
-            </span>
-            <span className="text-xl font-extrabold tracking-tight text-[#0C1A16]">Revetly</span>
-          </span>
+          <RvBrandMark />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">

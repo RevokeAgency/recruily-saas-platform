@@ -1,22 +1,16 @@
 import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
+import { RvBrandMark } from "@/components/landing/rv-brand-mark"
 
 export default function AuthErrorPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--rv-mist)] px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <Link href="/">
-            <Image 
-              src="/images/recruily-logo.png" 
-              alt="Recruily" 
-              width={180} 
-              height={50} 
-              className="h-12 w-auto"
-            />
+            <RvBrandMark />
           </Link>
         </div>
 
@@ -34,7 +28,7 @@ export default function AuthErrorPage() {
         
         <div className="space-y-3">
           <Link href="/auth/register">
-            <Button className="w-full bg-[#0D9488] hover:bg-[#0B7C72] text-white rounded-lg">
+            <Button className="w-full rounded-lg">
               Neu registrieren
             </Button>
           </Link>
