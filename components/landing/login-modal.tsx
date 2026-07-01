@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { RvBrandMark } from "@/components/landing/rv-brand-mark"
 import {
@@ -65,17 +66,17 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           <div className="mb-2 flex items-center">
             <RvBrandMark />
           </div>
-          <DialogTitle className="text-2xl font-bold text-slate-900">
+          <DialogTitle className="text-xl font-bold text-foreground">
             Willkommen zurück
           </DialogTitle>
-          <p className="text-slate-600 text-sm">
+          <p className="text-muted-foreground text-sm">
             Melden Sie sich an, um fortzufahren
           </p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div>
-            <Label htmlFor="login-email" className="text-slate-700">E-Mail</Label>
+            <Label htmlFor="login-email" className="text-[var(--rv-ink-soft)] mb-1.5 block text-sm font-medium">E-Mail</Label>
             <Input
               id="login-email"
               type="email"
@@ -83,12 +84,11 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1.5 rounded-lg border-slate-200"
             />
           </div>
 
           <div>
-            <Label htmlFor="login-password" className="text-slate-700">Passwort</Label>
+            <Label htmlFor="login-password" className="text-[var(--rv-ink-soft)] mb-1.5 block text-sm font-medium">Passwort</Label>
             <Input
               id="login-password"
               type="password"
@@ -96,7 +96,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1.5 rounded-lg border-slate-200"
             />
           </div>
 
@@ -107,7 +106,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                 checked={rememberMe}
                 onCheckedChange={(checked) => setRememberMe(checked === true)}
               />
-              <Label htmlFor="remember" className="text-sm text-slate-600 cursor-pointer">
+              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer font-normal">
                 Angemeldet bleiben
               </Label>
             </div>
@@ -120,12 +119,13 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             </Link>
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full rounded-lg">
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {loading ? "Wird angemeldet..." : "Anmelden"}
           </Button>
         </form>
 
-        <div className="text-center text-sm text-slate-600 mt-4">
+        <div className="text-center text-sm text-muted-foreground mt-4">
           {"Noch kein Konto? "}
           <Link
             href="/auth/register"

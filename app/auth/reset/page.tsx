@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Loader2, Mail } from "lucide-react"
 import { RvBrandMark } from "@/components/landing/rv-brand-mark"
+import { AuthSplitLayout } from "@/components/auth/auth-split-layout"
 
 export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
@@ -22,7 +23,7 @@ export default function ResetPasswordPage() {
     try {
       const supabase = createClient()
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? 
+        redirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ??
           `${window.location.origin}/auth/callback?next=/settings`,
       })
 
@@ -41,79 +42,66 @@ export default function ResetPasswordPage() {
 
   if (sent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--rv-mist)] px-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-[rgba(22,199,124,.12)] flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 text-[var(--rv-green-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+      <AuthSplitLayout>
+        <div className="text-center">
+          <div className="w-14 h-14 rounded-full bg-[var(--app-green-wash)] flex items-center justify-center mx-auto mb-6">
+            <Mail className="w-6 h-6 text-[var(--rv-green-deep)]" strokeWidth={1.75} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-3">E-Mail gesendet</h1>
-          <p className="text-slate-600 mb-6">
-            Wir haben Ihnen einen Link zum Zurücksetzen Ihres Passworts an <strong>{email}</strong> gesendet.
+          <h1 className="text-xl font-bold text-foreground mb-2.5">E-Mail gesendet</h1>
+          <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
+            Wir haben Ihnen einen Link zum Zurücksetzen Ihres Passworts an <strong className="text-foreground">{email}</strong> gesendet.
             Bitte überprüfen Sie Ihren Posteingang.
           </p>
           <Link href="/">
-            <Button variant="outline" className="w-full rounded-lg">
+            <Button variant="outline" className="w-full">
               Zurück zur Startseite
             </Button>
           </Link>
         </div>
-      </div>
+      </AuthSplitLayout>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--rv-mist)] px-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          {/* Logo */}
-          <div className="flex justify-center mb-6">
-            <Link href="/">
-              <RvBrandMark />
-            </Link>
-          </div>
+    <AuthSplitLayout>
+      <Link href="/" className="mb-8 flex justify-center">
+        <RvBrandMark />
+      </Link>
 
-          <h1 className="text-2xl font-bold text-slate-900 text-center mb-2">
-            Passwort zurücksetzen
-          </h1>
-          <p className="text-slate-600 text-center text-sm mb-8">
-            Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen.
-          </p>
+      <h1 className="text-xl font-bold text-foreground text-center mb-1.5">
+        Passwort zurücksetzen
+      </h1>
+      <p className="text-muted-foreground text-center text-sm mb-8">
+        Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen.
+      </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="email" className="text-slate-700">E-Mail</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="max@beispiel.de"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="mt-1.5 rounded-lg border-slate-200"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg"
-            >
-              {loading ? "Wird gesendet..." : "Link senden"}
-            </Button>
-          </form>
-
-          <Link 
-            href="/" 
-            className="flex items-center justify-center gap-2 text-sm text-slate-600 hover:text-slate-900 mt-6"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Zurück zur Anmeldung
-          </Link>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="email" className="text-[var(--rv-ink-soft)] mb-1.5 block text-sm font-medium">E-Mail</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="max@beispiel.de"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
-      </div>
-    </div>
+
+        <Button type="submit" disabled={loading} className="w-full">
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {loading ? "Wird gesendet..." : "Link senden"}
+        </Button>
+      </form>
+
+      <Link
+        href="/"
+        className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground mt-6"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Zurück zur Anmeldung
+      </Link>
+    </AuthSplitLayout>
   )
 }
