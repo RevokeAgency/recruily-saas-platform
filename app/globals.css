@@ -365,13 +365,27 @@
 
 html { scroll-behavior: smooth; }
 
-/* Scroll-triggered reveals (IntersectionObserver toggles .visible) */
+/* Scroll-triggered reveals — IntersectionObserver (lib/hooks/useReveal.ts) toggles
+   .in (index.html contract: data-dir + s1-s5 stagger). .visible is kept as an alias
+   so the pre-Revetly-port components (still on the old .reveal/.visible contract)
+   keep animating until the Phase 3 rebuild replaces them. */
 .reveal {
   opacity: 0;
-  transform: translateY(34px);
-  transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1);
+  transform: translateY(44px) scale(0.97);
+  filter: blur(4px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform, filter;
 }
-.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal[data-dir="left"] { transform: translateX(-38px) translateY(6px) scale(0.98); filter: blur(3px); }
+.reveal[data-dir="right"] { transform: translateX(38px) translateY(6px) scale(0.98); filter: blur(3px); }
+.reveal[data-dir="scale"] { transform: scale(0.93) translateY(18px); filter: blur(5px); }
+.reveal.in, .reveal.visible { opacity: 1; transform: none; filter: none; }
+
+.reveal.s1 { transition-delay: 0.08s; }
+.reveal.s2 { transition-delay: 0.16s; }
+.reveal.s3 { transition-delay: 0.24s; }
+.reveal.s4 { transition-delay: 0.32s; }
+.reveal.s5 { transition-delay: 0.44s; }
 
 .reveal-left {
   opacity: 0;
@@ -416,6 +430,7 @@ html { scroll-behavior: smooth; }
   .reveal, .reveal-left, .reveal-right {
     opacity: 1 !important;
     transform: none !important;
+    filter: none !important;
     transition: none !important;
   }
   .rv-fade-down, .rv-fade-up, .rv-float, .rv-float-slow {
