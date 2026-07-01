@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Plus, Upload, TrendingUp } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { CountUp } from "@/components/dashboard/count-up"
+import { CountUp } from "@/components/app/count-up"
 
 interface DashboardHeroProps {
   avgMatchScore: number

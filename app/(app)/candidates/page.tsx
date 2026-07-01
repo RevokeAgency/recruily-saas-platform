@@ -4,6 +4,7 @@ import { useState } from "react"
 import { mutate } from "swr"
 import { CandidatesHeader } from "@/components/candidates/candidates-header"
 import { CandidatesList } from "@/components/candidates/candidates-list"
+import { RevealGroup } from "@/components/app/reveal-group"
 
 export default function CandidatesPage() {
   const [filter, setFilter] = useState("all")
@@ -15,15 +16,20 @@ export default function CandidatesPage() {
   }
 
   return (
-    <div className="p-8 lg:p-10 space-y-8">
-      <CandidatesHeader 
-        onRefresh={handleRefresh} 
-        filter={filter}
-        onFilterChange={setFilter}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
-      <CandidatesList filter={filter} searchQuery={searchQuery} />
+    <div className="relative min-h-full overflow-hidden">
+      <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
+      <RevealGroup className="relative z-[1] space-y-6 p-6 lg:p-8">
+        <CandidatesHeader
+          onRefresh={handleRefresh}
+          filter={filter}
+          onFilterChange={setFilter}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+        <div className="reveal">
+          <CandidatesList filter={filter} searchQuery={searchQuery} />
+        </div>
+      </RevealGroup>
     </div>
   )
 }

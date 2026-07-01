@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react"
 import { ArrowUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { CountUp } from "@/components/dashboard/count-up"
+import { CountUp } from "@/components/app/count-up"
 
 export interface StatCardProps {
   label: string

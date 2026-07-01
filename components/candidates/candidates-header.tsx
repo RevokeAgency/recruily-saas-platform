@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Search, RefreshCw } from "lucide-react"
+import { PageHero, HeroGhostButton } from "@/components/app/page-hero"
 
 interface CandidatesHeaderProps {
   onRefresh?: () => void
@@ -23,31 +24,29 @@ export function CandidatesHeader({
 }: CandidatesHeaderProps) {
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Kandidaten</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Verwalte deinen Kandidatenpool
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {onRefresh && (
-            <Button variant="outline" onClick={onRefresh}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Aktualisieren
+      <PageHero
+        eyebrow="Kandidaten"
+        title="Dein Kandidatenpool"
+        subtitle="Alle Talente an einem Ort — durchsuchen, filtern und mit Jobs matchen."
+        actions={
+          <>
+            {onRefresh && (
+              <HeroGhostButton onClick={onRefresh}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Aktualisieren
+              </HeroGhostButton>
+            )}
+            <Button asChild>
+              <Link href="/candidates/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Kandidat hinzufügen
+              </Link>
             </Button>
-          )}
-          <Button asChild>
-            <Link href="/candidates/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Kandidat hinzufügen
-            </Link>
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="reveal flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input

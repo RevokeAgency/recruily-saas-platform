@@ -11,6 +11,14 @@ import { Check, Zap, Crown, Sparkles, Building } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useProfile } from "@/lib/hooks/useProfile"
 import { PLANS, type PlanId } from "@/lib/plans"
+import { PageHero } from "@/components/app/page-hero"
+import { RevealGroup } from "@/components/app/reveal-group"
+
+function spotlightMove(e: React.MouseEvent<HTMLDivElement>) {
+  const rect = e.currentTarget.getBoundingClientRect()
+  e.currentTarget.style.setProperty("--sx", `${e.clientX - rect.left}px`)
+  e.currentTarget.style.setProperty("--sy", `${e.clientY - rect.top}px`)
+}
 
 const planIcons: Record<PlanId, React.ElementType> = {
   free: Zap,
@@ -47,17 +55,17 @@ export default function SubscriptionPage() {
   const planOrder: PlanId[] = ['free', 'starter', 'growth', 'pro']
 
   return (
-    <div className="p-6 lg:p-8 space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Abonnement</h1>
-        <p className="text-muted-foreground mt-1">
-          Verwalte dein Abo und deine Nutzung
-        </p>
-      </div>
+    <div className="relative min-h-full overflow-hidden">
+      <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
+      <RevealGroup className="relative z-[1] space-y-8 p-6 lg:p-8">
+        <PageHero
+          eyebrow="Abonnement"
+          title="Plan & Nutzung"
+          subtitle="Verwalte dein Abo, behalte dein Kontingent im Blick und wechsle jederzeit den Plan."
+        />
 
       {/* Current Plan Usage */}
-      <Card className="border border-border">
+      <Card className="reveal border border-border shadow-card">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -116,7 +124,7 @@ export default function SubscriptionPage() {
       </Card>
 
       {/* Billing Toggle */}
-      <div className="flex items-center justify-center gap-3">
+      <div className="reveal flex items-center justify-center gap-3">
         <Label
           htmlFor="billing-toggle"
           className={cn(
@@ -146,7 +154,7 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Pricing Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="reveal grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {planOrder.map((planId) => {
           const plan = PLANS[planId]
           const price = isAnnual 
@@ -158,10 +166,11 @@ export default function SubscriptionPage() {
           return (
             <Card
               key={planId}
+              onMouseMove={spotlightMove}
               className={cn(
-                "relative border transition-shadow hover:shadow-md",
+                "rv-spotlight relative border transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]",
                 plan.featured
-                  ? "border-[var(--rv-green)] shadow-sm"
+                  ? "border-[var(--rv-green)] shadow-card"
                   : isCurrent
                   ? "border-[rgba(22,199,124,.5)]"
                   : "border-border"
@@ -255,16 +264,17 @@ export default function SubscriptionPage() {
         })}
       </div>
 
-      {/* Payment Info */}
-      <div className="text-center text-sm text-muted-foreground">
-        <p>
-          Sichere Zahlung via{" "}
-          <span className="font-medium text-foreground">Stripe</span>
-        </p>
-        <p className="mt-1">
-          Alle Preise verstehen sich zzgl. MwSt. Jederzeit kündbar.
-        </p>
-      </div>
+        {/* Payment Info */}
+        <div className="reveal text-center text-sm text-muted-foreground">
+          <p>
+            Sichere Zahlung via{" "}
+            <span className="font-medium text-foreground">Stripe</span>
+          </p>
+          <p className="mt-1">
+            Alle Preise verstehen sich zzgl. MwSt. Jederzeit kündbar.
+          </p>
+        </div>
+      </RevealGroup>
     </div>
   )
 }

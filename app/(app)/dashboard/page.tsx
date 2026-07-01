@@ -2,7 +2,7 @@ import { DashboardHero } from "@/components/dashboard/dashboard-hero"
 import { DashboardMetrics, type DashboardMetricsData } from "@/components/dashboard/metrics"
 import { RecentActivity, type RecentJob } from "@/components/dashboard/recent-activity"
 import { QuotaProgress } from "@/components/dashboard/quota-progress"
-import { RevealGroup } from "@/components/dashboard/reveal-group"
+import { RevealGroup } from "@/components/app/reveal-group"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"

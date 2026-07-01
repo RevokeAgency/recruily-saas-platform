@@ -2,22 +2,28 @@
 
 import { JobsList, useJobsRefresh } from "@/components/jobs/jobs-list"
 import { JobsHeader } from "@/components/jobs/jobs-header"
+import { RevealGroup } from "@/components/app/reveal-group"
 
 export default function JobsPage() {
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <JobsPageContent />
+    <div className="relative min-h-full overflow-hidden">
+      <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
+      <RevealGroup className="relative z-[1] space-y-6 p-6 lg:p-8">
+        <JobsPageContent />
+      </RevealGroup>
     </div>
   )
 }
 
 function JobsPageContent() {
   const refresh = useJobsRefresh()
-  
+
   return (
     <>
       <JobsHeader onRefresh={() => refresh()} />
-      <JobsList />
+      <div className="reveal">
+        <JobsList />
+      </div>
     </>
   )
 }

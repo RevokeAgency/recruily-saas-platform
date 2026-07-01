@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus, Search, RefreshCw } from "lucide-react"
+import { PageHero, HeroGhostButton } from "@/components/app/page-hero"
 
 interface JobsHeaderProps {
   onRefresh?: () => void
@@ -18,57 +19,56 @@ interface JobsHeaderProps {
 
 export function JobsHeader({ onRefresh }: JobsHeaderProps) {
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Job Postings</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Manage your open positions and recruitment
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={onRefresh}>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
-          <Button asChild>
-            <Link href="/jobs/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Create Job
-            </Link>
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHero
+        eyebrow="Stellenangebote"
+        title="Deine Jobs"
+        subtitle="Verwalte deine offenen Stellen und finde die passenden Kandidaten."
+        actions={
+          <>
+            <HeroGhostButton onClick={onRefresh}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Aktualisieren
+            </HeroGhostButton>
+            <Button asChild>
+              <Link href="/jobs/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Job erstellen
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="reveal flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search jobs by title, company, or location..."
+            placeholder="Jobs nach Titel, Unternehmen oder Standort suchen..."
             className="pl-11"
           />
         </div>
         <div className="flex gap-3">
           <Select defaultValue="all">
-            <SelectTrigger className="w-full sm:w-40 h-11">
-              <SelectValue placeholder="All Status" />
+            <SelectTrigger className="h-11 w-full sm:w-40">
+              <SelectValue placeholder="Alle Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
+              <SelectItem value="all">Alle Status</SelectItem>
+              <SelectItem value="active">Aktiv</SelectItem>
+              <SelectItem value="draft">Entwurf</SelectItem>
+              <SelectItem value="archived">Archiviert</SelectItem>
             </SelectContent>
           </Select>
           <Select defaultValue="all">
-            <SelectTrigger className="w-full sm:w-40 h-11">
-              <SelectValue placeholder="All Types" />
+            <SelectTrigger className="h-11 w-full sm:w-40">
+              <SelectValue placeholder="Alle Typen" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="full-time">Full Time</SelectItem>
-              <SelectItem value="part-time">Part Time</SelectItem>
-              <SelectItem value="contract">Contract</SelectItem>
+              <SelectItem value="all">Alle Typen</SelectItem>
+              <SelectItem value="full-time">Vollzeit</SelectItem>
+              <SelectItem value="part-time">Teilzeit</SelectItem>
+              <SelectItem value="contract">Befristet</SelectItem>
               <SelectItem value="remote">Remote</SelectItem>
             </SelectContent>
           </Select>

@@ -33,6 +33,8 @@ import {
   Server,
 } from "lucide-react"
 import { toast } from "sonner"
+import { PageHero } from "@/components/app/page-hero"
+import { RevealGroup } from "@/components/app/reveal-group"
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState({
@@ -68,18 +70,17 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-foreground">Einstellungen</h1>
-        <p className="text-muted-foreground mt-1">
-          Verwalte dein Konto und deine Präferenzen
-        </p>
-      </div>
+    <div className="relative min-h-full overflow-hidden">
+      <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
+      <RevealGroup className="relative z-[1] max-w-4xl space-y-8 p-6 lg:p-8">
+        <PageHero
+          eyebrow="Einstellungen"
+          title="Konto & Präferenzen"
+          subtitle="Verwalte dein Profil, Benachrichtigungen, Integrationen und Datenschutz."
+        />
 
-      <div className="space-y-8">
         {/* Profile Section */}
-        <Card className="border border-border">
+        <Card className="reveal border border-border shadow-card">
           <CardHeader>
             <div className="flex items-center gap-2">
               <User className="h-5 w-5 text-muted-foreground" />
@@ -133,7 +134,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* Notifications Section */}
-        <Card className="border border-border">
+        <Card className="reveal border border-border shadow-card">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-muted-foreground" />
@@ -211,7 +212,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* API & Integrations Section */}
-        <Card className="border border-border">
+        <Card className="reveal border border-border shadow-card">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Key className="h-5 w-5 text-muted-foreground" />
@@ -262,7 +263,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* DSGVO / Data Privacy Section */}
-        <Card className="border border-border">
+        <Card className="reveal border border-border shadow-card">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-muted-foreground" />
@@ -339,7 +340,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* Team Section (Placeholder) */}
-        <Card className="border border-border">
+        <Card className="reveal border border-border shadow-card">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-muted-foreground" />
@@ -362,7 +363,7 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </RevealGroup>
     </div>
   )
 }
