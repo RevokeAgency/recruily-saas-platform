@@ -1,4 +1,6 @@
-import { Briefcase, Users, Zap, TrendingUp } from "lucide-react"
+"use client"
+
+import { Briefcase, Users, Zap } from "lucide-react"
 
 import { StatCard } from "@/components/dashboard/stat-card"
 
@@ -12,6 +14,8 @@ export interface DashboardMetricsData {
   avgMatchScore: number
 }
 
+// Ø Match-Score is the hero's flagship metric; the KPI row carries the three
+// counting metrics. Staggered via `.reveal .s1–.s3` (page-level RevealGroup).
 export function DashboardMetrics({ data }: { data: DashboardMetricsData }) {
   const matchesPercentage = data.matchesLimit > 0
     ? Math.round((data.matchesUsed / data.matchesLimit) * 100)
@@ -36,21 +40,14 @@ export function DashboardMetrics({ data }: { data: DashboardMetricsData }) {
       label: "Matches diesen Monat",
       value: data.matchesUsed,
       icon: Zap,
-      context: `${matchesPercentage}% von ${data.matchesLimit} verfügbar`,
-    },
-    {
-      label: "Ø Match Score",
-      value: `${data.avgMatchScore}%`,
-      icon: TrendingUp,
-      context: "im Schnitt über alle Matches",
-      accent: true,
+      context: `${matchesPercentage}% von ${data.matchesLimit} verbraucht`,
     },
   ]
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {metrics.map((metric) => (
-        <StatCard key={metric.label} {...metric} />
+    <div className="grid gap-4 md:grid-cols-3">
+      {metrics.map((metric, i) => (
+        <StatCard key={metric.label} {...metric} className={`reveal s${i + 1}`} />
       ))}
     </div>
   )

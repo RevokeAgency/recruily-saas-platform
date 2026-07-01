@@ -1,8 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { EmptyState } from "@/components/empty-state"
-import { Briefcase, Clock, Plus } from "lucide-react"
+import { Briefcase, Clock } from "lucide-react"
 import Link from "next/link"
+
+import { cn } from "@/lib/utils"
 
 export interface RecentJob {
   id: string
@@ -22,17 +23,15 @@ const statusConfig = {
   archived: { label: "Archiviert", variant: "outline" as const },
 }
 
-export function RecentActivity({ jobs }: { jobs: RecentJob[] }) {
+export function RecentActivity({ jobs, className }: { jobs: RecentJob[]; className?: string }) {
   return (
-    <Card className="border border-border shadow-sm">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          Letzte Aktivitäten
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+    <div className={cn("rounded-2xl border bg-card p-6 shadow-card", className)}>
+      <div className="mb-4 flex items-center gap-2">
+        <Clock className="h-4 w-4 text-muted-foreground" />
+        <h2 className="text-base font-semibold text-foreground">Letzte Aktivitäten</h2>
+      </div>
+      <div>
+        <div className="space-y-1">
           {jobs.length === 0 ? (
             <EmptyState
               icon={Briefcase}
@@ -46,7 +45,7 @@ export function RecentActivity({ jobs }: { jobs: RecentJob[] }) {
               <Link
                 key={job.id}
                 href={`/jobs/${job.id}`}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors group"
+                className="group -mx-2 flex items-center justify-between rounded-xl px-2 py-2.5 transition-colors duration-150 hover:bg-[var(--app-green-wash)]"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -76,7 +75,7 @@ export function RecentActivity({ jobs }: { jobs: RecentJob[] }) {
             ))
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

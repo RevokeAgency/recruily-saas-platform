@@ -1,7 +1,8 @@
+import { DashboardHero } from "@/components/dashboard/dashboard-hero"
 import { DashboardMetrics, type DashboardMetricsData } from "@/components/dashboard/metrics"
 import { RecentActivity, type RecentJob } from "@/components/dashboard/recent-activity"
-import { QuickActions } from "@/components/dashboard/quick-actions"
 import { QuotaProgress } from "@/components/dashboard/quota-progress"
+import { RevealGroup } from "@/components/dashboard/reveal-group"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
@@ -122,26 +123,23 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Willkommen zurück! Hier ist deine Recruiting-Übersicht.
-        </p>
-      </div>
+    <div className="relative min-h-full overflow-hidden">
+      {/* Faint page-level pattern for depth (landing DNA), fades from top-right */}
+      <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
 
-      {/* Metrics Grid */}
-      <DashboardMetrics data={metricsData} />
+      <RevealGroup className="relative z-[1] space-y-6 p-6 lg:p-8">
+        {/* Signature hero band: greeting + actions | flagship Ø Match-Score */}
+        <DashboardHero avgMatchScore={metricsData.avgMatchScore} matchesUsed={metricsData.matchesUsed} />
 
-      {/* Quota Progress */}
-      <QuotaProgress used={metricsData.matchesUsed} total={metricsData.matchesLimit} />
+        {/* KPI row (staggered reveal + spotlight) */}
+        <DashboardMetrics data={metricsData} />
 
-      {/* Quick Actions */}
-      <QuickActions />
+        {/* Matching quota gauge */}
+        <QuotaProgress used={metricsData.matchesUsed} total={metricsData.matchesLimit} className="reveal" />
 
-      {/* Recent Activity */}
-      <RecentActivity jobs={recentJobs} />
+        {/* Recent activity */}
+        <RecentActivity jobs={recentJobs} className="reveal" />
+      </RevealGroup>
     </div>
   )
 }
