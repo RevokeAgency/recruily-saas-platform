@@ -4,50 +4,63 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Recruily Design System */
-  /* Base: Off-White #F8FAFC for app bg, Pure White #FFFFFF for cards */
-  --background: #F8FAFC;
-  --foreground: #0F172A;
+  /* Revetly Design System — cyan/green brand, applies to landing, auth and dashboard */
+  /* Brand ramp (source of truth: reference/revetly-landing/index.html) */
+  --rv-cyan: #22C1EE;
+  --rv-green: #16C77C;
+  --rv-cyan-deep: #0E96C4;
+  --rv-green-deep: #0E9F62;
+  --rv-ink: #0C1A16;
+  --rv-ink-soft: #2C3D38;
+  --rv-muted: #506A63;
+  --rv-mist: #F1F6F4;
+  --rv-mist-2: #E7F0EC;
+  --rv-gradient: linear-gradient(130deg, var(--rv-cyan) 0%, var(--rv-green) 100%);
+
+  /* Base */
+  --background: #F7FAF9;
+  --foreground: var(--rv-ink);
   --card: #FFFFFF;
-  --card-foreground: #0F172A;
+  --card-foreground: var(--rv-ink);
   --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
-  /* Primary: Deep Teal #4EB0BE */
-  --primary: #4EB0BE;
-  --primary-foreground: #FFFFFF;
-  /* Secondary: Light Mint #EBF7F9 */
-  --secondary: #EBF7F9;
-  --secondary-foreground: #4EB0BE;
-  /* Muted: Slate tones */
-  --muted: #F1F5F9;
-  --muted-foreground: #475569;
-  /* Accent: Mint accents */
-  --accent: #EBF7F9;
-  --accent-foreground: #4EB0BE;
+  --popover-foreground: var(--rv-ink);
+  /* Primary: Revetly Green */
+  --primary: var(--rv-green);
+  --primary-foreground: var(--rv-ink);
+  /* Secondary: Light Cyan wash */
+  --secondary: #E7F6FC;
+  --secondary-foreground: var(--rv-cyan-deep);
+  /* Muted */
+  --muted: var(--rv-mist);
+  --muted-foreground: var(--rv-muted);
+  /* Accent: Light Cyan wash (same family as secondary, kept distinct for shadcn contract) */
+  --accent: #E7F6FC;
+  --accent-foreground: var(--rv-cyan-deep);
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  /* Borders */
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #4EB0BE;
+  /* Borders — tinted ink, never pure grey */
+  --border: rgba(12, 26, 22, 0.10);
+  --input: rgba(12, 26, 22, 0.10);
+  --ring: var(--rv-green);
   /* Charts */
-  --chart-1: #4EB0BE;
-  --chart-2: #4EB0BE;
-  --chart-3: #4EB0BE;
-  --chart-4: #4EB0BE;
-  --chart-5: #EBF7F9;
+  --chart-1: var(--rv-cyan);
+  --chart-2: var(--rv-green);
+  --chart-3: var(--rv-cyan-deep);
+  --chart-4: var(--rv-green-deep);
+  --chart-5: var(--rv-mist);
+  /* App-UI radius stays subtle; large 20/30/38/pill radii are landing-only (see .rv-* scope) */
   --radius: 0.75rem;
-  /* Sidebar: Off-White */
-  --sidebar: #F8FAFC;
-  --sidebar-foreground: #64748B;
-  --sidebar-primary: #4EB0BE;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #EBF7F9;
-  --sidebar-accent-foreground: #4EB0BE;
-  --sidebar-border: #E2E8F0;
-  --sidebar-ring: #4EB0BE;
+  /* Sidebar */
+  --sidebar: #F7FAF9;
+  --sidebar-foreground: var(--rv-muted);
+  --sidebar-primary: var(--rv-green);
+  --sidebar-primary-foreground: var(--rv-ink);
+  --sidebar-accent: #E7F6FC;
+  --sidebar-accent-foreground: var(--rv-cyan-deep);
+  --sidebar-border: rgba(12, 26, 22, 0.10);
+  --sidebar-ring: var(--rv-green);
   /* Status colors */
-  --success: #4EB0BE;
+  --success: var(--rv-green);
   --success-foreground: #FFFFFF;
   --warning: #F59E0B;
   --warning-foreground: #FFFFFF;
@@ -338,24 +351,11 @@
 }
 
 /* ─────────────────────────────────────────────
-   REVETLY Landing — HR-Pro inspired design system
-   Light & airy, green accent #4EB0BE, Montserrat
+   .rv scope marker — brand color/font vars now live in :root above
+   (superseded pre-Revetly-port palette removed to avoid shadowing).
+   Reveal/fade utilities below are still used by the current landing
+   components pending the Phase 3 rebuild from index.html.
    ───────────────────────────────────────────── */
-.rv {
-  --rv-green: #4EB0BE;
-  --rv-green-dark: #2B6169;
-  --rv-green-soft: #EBF7F9;
-  --rv-dark: #081314;        /* deep forest green for dark sections */
-  --rv-dark-2: #081314;
-  --rv-ink: #081314;
-  --rv-text: #3F4A45;
-  --rv-muted: #6B7280;
-  --rv-alt: #EBF7F9;         /* subtle off-white green-grey */
-  --rv-border: #E5E9E7;
-  --rv-on-dark: #FFFFFF;
-  --rv-muted-dark: #7AABB2;
-}
-
 .rv-eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.1em;
