@@ -122,11 +122,11 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="p-8 lg:p-10 space-y-10">
+    <div className="p-6 lg:p-8 space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-        <p className="text-slate-500 mt-1.5">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
           Willkommen zurück! Hier ist deine Recruiting-Übersicht.
         </p>
       </div>

@@ -17,13 +17,13 @@ export function QuotaProgress({ used, total }: { used: number; total: number }) 
       <CardContent>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold text-foreground">
+            <span className="text-2xl font-bold text-foreground tabular-nums">
               {used}/{total}
             </span>
             <span className="text-sm text-muted-foreground">Matches verwendet</span>
           </div>
-          <Progress value={percentage} className="h-2" />
-          <p className="text-xs text-muted-foreground">
+          <Progress value={percentage} />
+          <p className="text-xs text-muted-foreground tabular-nums">
             Noch {remaining} Matches verfügbar in diesem Monat. Erneuert sich am 1. des Monats.
           </p>
         </div>

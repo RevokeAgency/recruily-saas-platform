@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Briefcase, Clock } from "lucide-react"
+import { EmptyState } from "@/components/empty-state"
+import { Briefcase, Clock, Plus } from "lucide-react"
 import Link from "next/link"
 
 export interface RecentJob {
@@ -13,10 +14,12 @@ export interface RecentJob {
   createdAt: string
 }
 
+// Dezente Badges statt Vollgrün: "active" nutzt das green-wash-Default aus
+// components/ui/badge.tsx, "draft"/"archived" die neutral-Variante.
 const statusConfig = {
-  active: { label: "Aktiv", variant: "default" as const, className: "bg-success text-success-foreground" },
-  draft: { label: "Entwurf", variant: "secondary" as const, className: "bg-muted text-muted-foreground" },
-  archived: { label: "Archiviert", variant: "outline" as const, className: "bg-muted/50 text-muted-foreground" },
+  active: { label: "Aktiv", variant: "default" as const },
+  draft: { label: "Entwurf", variant: "neutral" as const },
+  archived: { label: "Archiviert", variant: "outline" as const },
 }
 
 export function RecentActivity({ jobs }: { jobs: RecentJob[] }) {
@@ -31,9 +34,13 @@ export function RecentActivity({ jobs }: { jobs: RecentJob[] }) {
       <CardContent>
         <div className="space-y-4">
           {jobs.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">
-              Noch keine Aktivitäten. Erstelle deinen ersten Job, um loszulegen.
-            </p>
+            <EmptyState
+              icon={Briefcase}
+              title="Noch keine Jobs"
+              description="Lege deinen ersten Job an, um Kandidaten zu sammeln und zu matchen."
+              actionLabel="Ersten Job anlegen"
+              actionHref="/jobs/new"
+            />
           ) : (
             jobs.map((job) => (
               <Link
@@ -55,7 +62,7 @@ export function RecentActivity({ jobs }: { jobs: RecentJob[] }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
-                  <Badge className={statusConfig[job.status].className}>
+                  <Badge variant={statusConfig[job.status].variant}>
                     {statusConfig[job.status].label}
                   </Badge>
                   {job.status === "active" && (
