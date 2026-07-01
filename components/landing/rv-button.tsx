@@ -41,8 +41,17 @@ export interface RvButtonProps
   extends React.ComponentProps<"button">,
     VariantProps<typeof rvButtonVariants> {
   asChild?: boolean
-  /** Show the up-right arrow that nudges on hover (index.html .btn .arrow). */
+  /**
+   * Show the up-right arrow that nudges on hover (index.html .btn .arrow).
+   * Only applies when `asChild` is false — Radix Slot requires exactly one
+   * child element, so with `asChild` the caller places <RvArrowIcon /> inside
+   * their own child (e.g. next to the <Link> text) instead.
+   */
   arrow?: boolean
+}
+
+function RvArrowIcon({ className }: { className?: string }) {
+  return <ArrowUpRight className={cn("rv-btn-arrow h-3.5 w-3.5", className)} strokeWidth={2.4} />
 }
 
 function RvButton({
@@ -62,10 +71,14 @@ function RvButton({
       className={cn(rvButtonVariants({ variant, size, className }))}
       {...props}
     >
-      {children}
-      {arrow && <ArrowUpRight className="rv-btn-arrow h-3.5 w-3.5" strokeWidth={2.4} />}
+      {asChild ? children : (
+        <>
+          {children}
+          {arrow && <RvArrowIcon />}
+        </>
+      )}
     </Comp>
   )
 }
 
-export { RvButton, rvButtonVariants }
+export { RvButton, RvArrowIcon, rvButtonVariants }

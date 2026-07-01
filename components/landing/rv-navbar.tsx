@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 
-import { RvButton } from "./rv-button"
+import { RvArrowIcon, RvButton } from "./rv-button"
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -74,8 +74,11 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
           <RvButton variant="ghostRing" size="sm" onClick={onLoginClick}>
             Anmelden
           </RvButton>
-          <RvButton variant="primary" size="sm" arrow asChild>
-            <Link href="/auth/register">Kostenlos starten</Link>
+          <RvButton variant="primary" size="sm" asChild>
+            <Link href="/auth/register">
+              Kostenlos starten
+              <RvArrowIcon />
+            </Link>
           </RvButton>
         </div>
 
@@ -110,8 +113,11 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
               >
                 Anmelden
               </RvButton>
-              <RvButton variant="primary" arrow asChild>
-                <Link href="/auth/register">Kostenlos starten</Link>
+              <RvButton variant="primary" asChild>
+                <Link href="/auth/register">
+                  Kostenlos starten
+                  <RvArrowIcon />
+                </Link>
               </RvButton>
             </div>
           </div>

@@ -4,7 +4,6 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { RevetlyLogo } from "@/components/landing/revetly-logo"
 import {
   Dialog,
   DialogContent,
@@ -62,8 +61,15 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="mb-2 flex items-center">
-            <RevetlyLogo />
+          <div className="mb-2 flex items-center gap-2">
+            <span
+              className="inline-flex h-7 w-7 items-center justify-center rounded-[7px]"
+              style={{ backgroundImage: "var(--rv-gradient)" }}
+              aria-hidden="true"
+            >
+              <span className="h-2.5 w-2.5 rounded-[2px] bg-white" />
+            </span>
+            <span className="text-xl font-extrabold tracking-tight text-[#0C1A16]">Revetly</span>
           </div>
           <DialogTitle className="text-2xl font-bold text-slate-900">
             Willkommen zurück
@@ -113,18 +119,14 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
             </div>
             <Link
               href="/auth/reset"
-              className="text-sm text-[#4EB0BE] hover:underline"
+              className="text-sm text-[var(--rv-green-deep)] hover:underline"
               onClick={() => onOpenChange(false)}
             >
               Passwort vergessen?
             </Link>
           </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#4EB0BE] hover:bg-[#2B6169] text-white rounded-lg"
-          >
+          <Button type="submit" disabled={loading} className="w-full rounded-lg">
             {loading ? "Wird angemeldet..." : "Anmelden"}
           </Button>
         </form>
@@ -133,7 +135,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           {"Noch kein Konto? "}
           <Link
             href="/auth/register"
-            className="text-[#4EB0BE] font-medium hover:underline"
+            className="text-[var(--rv-green-deep)] font-medium hover:underline"
             onClick={() => onOpenChange(false)}
           >
             Registrieren

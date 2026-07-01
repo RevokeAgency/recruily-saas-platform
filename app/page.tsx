@@ -1,46 +1,39 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Navbar } from "@/components/landing/navbar"
-import { HeroSection } from "@/components/landing/hero-section"
-import { LogoBar } from "@/components/landing/logo-bar"
-import { PlatformSection } from "@/components/landing/platform-section"
-import { ServicesSection } from "@/components/landing/services-section"
-import { HowItWorks } from "@/components/landing/how-it-works"
-import { HowWeHelp } from "@/components/landing/how-we-help"
-import { TestimonialsSection } from "@/components/landing/testimonials-section"
-import { FinalCta } from "@/components/landing/final-cta"
-import { Footer } from "@/components/landing/footer"
+import { RvNavbar } from "@/components/landing/rv-navbar"
+import { RvHero } from "@/components/landing/rv-hero"
+import { RvMarquee } from "@/components/landing/rv-marquee"
+import { RvFeatures } from "@/components/landing/rv-features"
+import { RvServices } from "@/components/landing/rv-services"
+import { RvHowItWorks } from "@/components/landing/rv-how-it-works"
+import { RvGrow } from "@/components/landing/rv-grow"
+import { RvTestimonials } from "@/components/landing/rv-testimonials"
+import { RvPricing } from "@/components/landing/rv-pricing"
+import { RvFaq } from "@/components/landing/rv-faq"
+import { RvCta } from "@/components/landing/rv-cta"
+import { RvFooter } from "@/components/landing/rv-footer"
 import { LoginModal } from "@/components/landing/login-modal"
 
 export default function LandingPage() {
   const [loginOpen, setLoginOpen] = useState(false)
-  const router = useRouter()
 
   return (
-    <div className="rv min-h-screen bg-white font-sans">
-      <Navbar onLoginClick={() => setLoginOpen(true)} />
-      <main>
-        {/* 1. Hero */}
-        <HeroSection />
-        {/* 2. Logo bar */}
-        <LogoBar />
-        {/* 3. Platform / features */}
-        <PlatformSection />
-        {/* 4. Services tabs */}
-        <ServicesSection />
-        {/* 5. How it works — dark green */}
-        <HowItWorks />
-        {/* 6. How we help — score rings */}
-        <HowWeHelp />
-        {/* 7. Testimonials */}
-        <TestimonialsSection />
-        {/* 8. Final CTA — dark green */}
-        <FinalCta onGetStarted={() => router.push("/auth/register")} />
+    <div className="min-h-screen bg-white font-sans">
+      <RvNavbar onLoginClick={() => setLoginOpen(true)} />
+      <main id="top">
+        <RvHero />
+        <RvMarquee />
+        <RvFeatures />
+        <RvServices />
+        <RvHowItWorks />
+        <RvGrow />
+        <RvTestimonials />
+        <RvPricing />
+        <RvFaq />
+        <RvCta />
       </main>
-      {/* 9. Footer */}
-      <Footer />
+      <RvFooter />
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
     </div>
   )
