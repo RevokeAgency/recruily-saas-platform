@@ -20,10 +20,10 @@ import {
   Pencil,
   Archive,
   Trash2,
-  Loader2,
   Users2,
 } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Job {
   id: string
@@ -48,8 +48,17 @@ export function JobsList() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Card key={i} className="flex flex-col p-6">
+            <Skeleton className="h-5 w-2/3 mb-3" />
+            <Skeleton className="h-3.5 w-1/3 mb-4" />
+            <Skeleton className="h-16 w-full rounded-[10px] mb-4" />
+            <Skeleton className="h-3.5 w-full mb-2" />
+            <Skeleton className="h-3.5 w-4/5 mb-5" />
+            <Skeleton className="h-10 w-full mt-auto" />
+          </Card>
+        ))}
       </div>
     )
   }
@@ -96,9 +105,9 @@ export function JobsList() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {jobs.map((job) => (
-        <Card 
-          key={job.id} 
-          className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col"
+        <Card
+          key={job.id}
+          className="flex flex-col transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]"
         >
           <CardContent className="p-6 flex flex-col flex-1">
             {/* Header with title, badge, menu */}
@@ -160,16 +169,16 @@ export function JobsList() {
             )}
 
             {/* Stats Row */}
-            <div className="flex items-center gap-6 py-4 px-5 bg-slate-50 rounded-xl mb-4">
+            <div className="flex items-center gap-6 py-4 px-5 bg-[var(--rv-mist)] rounded-[10px] mb-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-slate-900">{job.candidate_count}</p>
-                <p className="text-xs text-slate-500">Candidates</p>
+                <p className="text-2xl font-bold text-foreground tabular-nums">{job.candidate_count}</p>
+                <p className="text-xs text-muted-foreground">Candidates</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-slate-900">{job.top_match_score}%</p>
-                <p className="text-xs text-slate-500">Match</p>
+                <p className="text-2xl font-bold text-foreground tabular-nums">{job.top_match_score}%</p>
+                <p className="text-xs text-muted-foreground">Match</p>
               </div>
-              <div className="text-sm text-teal-600 font-medium ml-auto">
+              <div className="text-sm text-[var(--rv-green-deep)] font-medium ml-auto tabular-nums">
                 {new Date(job.created_at).toLocaleDateString("de-DE")}
               </div>
             </div>
@@ -216,7 +225,7 @@ export function JobsList() {
             )}
 
             {/* Open Workspace Button */}
-            <Button asChild className="w-full mt-auto rounded-xl bg-primary hover:bg-primary/90 btn-hover">
+            <Button asChild className="w-full mt-auto">
               <Link href={`/jobs/${job.id}`}>
                 <Users2 className="mr-2 h-4 w-4" />
                 Open Workspace

@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   BarChart3,
   TrendingUp,
@@ -9,7 +10,6 @@ import {
   Clock,
   Target,
   Sparkles,
-  Loader2,
 } from "lucide-react"
 import useSWR from "swr"
 
@@ -52,8 +52,28 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-lg" />
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-6 w-12" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-24 w-full rounded-[10px]" />
+          </CardContent>
+        </Card>
       </div>
     )
   }

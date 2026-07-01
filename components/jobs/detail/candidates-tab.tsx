@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Search,
   Mail,
@@ -173,8 +174,19 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i}>
+            <CardContent className="p-4 flex items-center gap-4">
+              <Skeleton className="h-11 w-11 rounded-full flex-none" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+              <Skeleton className="h-8 w-16 flex-none" />
+            </CardContent>
+          </Card>
+        ))}
       </div>
     )
   }
