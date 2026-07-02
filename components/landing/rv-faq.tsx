@@ -39,20 +39,26 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   const id = useId()
 
+  // The `reveal` class lives on this static wrapper — never on the element whose
+  // className changes with `open`. Otherwise React would rewrite that element's
+  // className on every toggle and wipe the `.in` class the IntersectionObserver
+  // added imperatively, making the item collapse back to its hidden state.
   return (
-    <div className={`rv-faq-item reveal overflow-hidden rounded-2xl border border-[rgba(12,26,22,.10)] bg-white ${open ? "open" : ""}`}>
-      <button
-        className="flex w-full items-center justify-between gap-4 px-[26px] py-[22px] text-left text-[1.02rem] font-bold text-[var(--rv-ink)]"
-        aria-controls={id}
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-      >
-        {q}
-        <span className="rv-faq-pm relative h-6 w-6 flex-none" />
-      </button>
-      <div className="rv-faq-a" id={id} role="region">
-        <div>
-          <p className="px-[26px] pb-6 text-[var(--rv-muted)]">{a}</p>
+    <div className="reveal">
+      <div className={`rv-faq-item overflow-hidden rounded-2xl border border-[rgba(12,26,22,.10)] bg-white ${open ? "open" : ""}`}>
+        <button
+          className="flex w-full items-center justify-between gap-4 px-[26px] py-[22px] text-left text-[1.02rem] font-bold text-[var(--rv-ink)]"
+          aria-controls={id}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {q}
+          <span className="rv-faq-pm relative h-6 w-6 flex-none" />
+        </button>
+        <div className="rv-faq-a" id={id} role="region">
+          <div>
+            <p className="px-[26px] pb-6 text-[var(--rv-muted)]">{a}</p>
+          </div>
         </div>
       </div>
     </div>
