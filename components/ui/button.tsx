@@ -9,8 +9,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primary: brand gradient + ink text, not a flat green fill (DASHBOARD_AUTH_REDESIGN.md §2/§4).
+        // Primary: solid Revetly green + ink text. The brand gradient is kept as an
+        // opt-in `gradient` variant, reserved for rare signature CTAs.
         default:
+          'bg-[var(--rv-green)] text-[#0C1A16] font-semibold shadow-[0_1px_2px_rgba(12,26,22,.04),0_8px_20px_-10px_rgba(14,159,98,.45)] hover:bg-[var(--rv-green-deep)] hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_10px_24px_-10px_rgba(14,159,98,.55)]',
+        gradient:
           'bg-[image:var(--rv-gradient)] text-[#0C1A16] font-semibold shadow-[0_1px_2px_rgba(12,26,22,.04),0_8px_20px_-10px_rgba(14,159,98,.45)] hover:brightness-[1.03] hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_10px_24px_-10px_rgba(14,159,98,.55)]',
         destructive:
           'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',

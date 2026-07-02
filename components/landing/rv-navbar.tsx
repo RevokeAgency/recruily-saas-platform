@@ -43,16 +43,16 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
     >
       <div
         className={`relative mx-auto flex max-w-[1200px] items-center justify-between rounded-[20px] border border-white/55 pr-3 pl-4 shadow-[0_16px_44px_-20px_rgba(12,26,22,.40),inset_0_1px_0_rgba(255,255,255,.65)] backdrop-blur-xl backdrop-saturate-[1.7] transition-[height,background-color,box-shadow,border-radius] duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          scrolled ? "h-16 rounded-2xl bg-white/84" : "h-[72px] bg-white/62"
+          scrolled ? "h-[72px] rounded-2xl bg-white/84" : "h-20 bg-white/62"
         }`}
       >
         <Link href="/" aria-label="Revetly Startseite" className="inline-flex items-center">
           <Image
             src="/revetly/LogoEntwurf.png"
             alt="Revetly"
-            width={68}
-            height={48}
-            className="h-12 w-auto"
+            width={79}
+            height={56}
+            className="h-14 w-auto"
             priority
           />
         </Link>
@@ -70,7 +70,7 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
-          <RvButton variant="ghostRing" size="sm" onClick={onLoginClick}>
+          <RvButton variant="blue" size="sm" onClick={onLoginClick}>
             Anmelden
           </RvButton>
           <RvButton variant="primary" size="sm" asChild>
@@ -104,7 +104,7 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
             </div>
             <div className="mt-2 flex flex-col gap-2.5 border-t border-[rgba(12,26,22,.10)] px-1 pt-3 pb-1">
               <RvButton
-                variant="ghostRing"
+                variant="blue"
                 onClick={() => {
                   setMobileOpen(false)
                   onLoginClick?.()

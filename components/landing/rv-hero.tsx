@@ -109,7 +109,7 @@ export function RvHero() {
             ohne Handarbeit.
           </p>
           <div className="flex flex-wrap gap-3">
-            <RvButton variant="primary" size="lg" asChild>
+            <RvButton variant="grad" size="lg" asChild>
               <Link href="/auth/register">
                 Jetzt kostenlos starten
                 <RvArrowIcon />
