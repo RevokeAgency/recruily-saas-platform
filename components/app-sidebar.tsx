@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import {
@@ -17,7 +18,6 @@ import {
   Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { RvBrandMark } from "@/components/landing/rv-brand-mark"
 import { SidebarNavItem } from "@/components/dashboard/sidebar-nav-item"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -134,8 +134,8 @@ export function AppSidebar() {
       {/* Logo & Menu Toggle */}
       <div className="flex items-center justify-between p-5 border-b border-border">
         {!collapsed && (
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <RvBrandMark />
+          <Link href="/dashboard" className="flex items-center">
+            <Image src="/revetly/LogoEntwurf.png" alt="Revetly" width={51} height={36} className="h-9 w-auto" priority />
           </Link>
         )}
         <Button
