@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Menu, X } from "lucide-react"
 
 import { RvArrowIcon, RvButton } from "./rv-button"
-import { RvBrandMark } from "./rv-brand-mark"
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -47,7 +47,14 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
         }`}
       >
         <Link href="/" aria-label="Revetly Startseite" className="inline-flex items-center">
-          <RvBrandMark />
+          <Image
+            src="/revetly/LogoEntwurf.png"
+            alt="Revetly"
+            width={51}
+            height={36}
+            className="h-9 w-auto"
+            priority
+          />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">

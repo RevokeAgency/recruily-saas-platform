@@ -18,7 +18,7 @@ export function RvFooter() {
         <div className="mb-[50px] grid grid-cols-2 gap-10 sm:grid-cols-3 lg:grid-cols-[1.6fr_repeat(4,1fr)]">
           <div className="col-span-2 sm:col-span-3 lg:col-span-1">
             <Link href="#top" className="inline-flex items-center">
-              <Image src="/revetly/LogoEntwurf.png" alt="Revetly" width={150} height={62} className="h-[52px] w-auto" />
+              <Image src="/revetly/LogoEntwurf.png" alt="Revetly" width={125} height={88} className="h-[88px] w-auto" />
             </Link>
             <p className="mt-3.5 max-w-[260px] text-[.92rem] leading-[1.6] text-[var(--rv-muted)]">
               KI-gestütztes Recruiting für den DACH-Markt. Erklärbar, DSGVO-konform &amp; EU
