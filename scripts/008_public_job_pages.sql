@@ -65,3 +65,26 @@ CREATE TRIGGER jobs_set_public_slug
 -- 2) user_profiles.logo_url — company logo shown on the public job page.
 -- ---------------------------------------------------------------------------
 ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS logo_url text;
+
+-- ---------------------------------------------------------------------------
+-- 3) Auto-assign a customer slug on signup, so every NEW customer immediately
+--    gets a working public page + job email (existing rows were backfilled in
+--    007). The id suffix guarantees uniqueness.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.set_user_profile_slug()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF new.slug IS NOT NULL AND new.slug <> '' THEN
+    RETURN new;
+  END IF;
+  new.slug := coalesce(
+                nullif(public.slugify(coalesce(new.first_name, '') || '-' || coalesce(new.last_name, '')), ''),
+                'kunde'
+              ) || '-' || left(replace(new.id::text, '-', ''), 6);
+  RETURN new;
+END $$;
+
+DROP TRIGGER IF EXISTS user_profiles_set_slug ON public.user_profiles;
+CREATE TRIGGER user_profiles_set_slug
+  BEFORE INSERT ON public.user_profiles
+  FOR EACH ROW EXECUTE FUNCTION public.set_user_profile_slug();

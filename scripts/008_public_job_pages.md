@@ -7,7 +7,11 @@ Prompt-2 inbound pipeline (parse → create candidate → consumeMatch → score
 
 Run `scripts/008_public_job_pages.sql` (idempotent, needs 007). It adds
 `jobs.public_slug` (unique per customer, backfilled + auto-assigned on insert via
-trigger) and `user_profiles.logo_url`.
+trigger), `user_profiles.logo_url`, and a `user_profiles` BEFORE INSERT trigger
+that auto-assigns a customer slug on signup — so **every new customer gets a
+working public page + job email automatically** (existing rows were backfilled
+in 007). No matter how a job is created (link / PDF / manual) the insert hits the
+`jobs` trigger, so the public page + email address exist immediately.
 
 ## 2. URLs & routing
 
