@@ -1,38 +1,44 @@
-// Plan definitions for Recruily subscription tiers
-// Used for displaying plan info and integrated with Stripe
+// Plan definitions for Revetly subscription tiers.
+// FINAL, BINDING PRICING (Phase 1). These values are the source of truth for
+// display; enforcement limits are mirrored in the DB (plan_match_limit /
+// plan_job_limit in scripts/006_match_counter_system.sql).
+// Yearly price = 10x monthly (2 months free). active_jobs = 999 means unlimited.
 
 export const PLANS = {
   free: {
     label: 'Free',
     price_monthly: 0,
     price_yearly: 0,
-    matches: 10,
-    matches_label: '10 Matches gesamt',
+    matches: 5,
+    matches_label: '5 Matches/Monat',
     active_jobs: 1,
+    basic_score: true,
+    custom: false,
     featured: false,
     email_feature: false,
     features: [
-      '10 Matches gesamt',
+      '5 Matches/Monat',
       '1 aktiver Job',
-      'IMLRS God Mode Score',
-      'KI-Zusammenfassung',
+      'Basic AI Matching Score',
       'Kandidaten-Pool',
       'Kein CC erforderlich',
     ],
   },
   starter: {
     label: 'Starter',
-    price_monthly: 49,
-    price_yearly: 490,
+    price_monthly: 99,
+    price_yearly: 990,
     matches: 50,
     matches_label: '50 Matches/Monat',
     active_jobs: 3,
+    basic_score: false,
+    custom: false,
     featured: false,
     email_feature: false,
     features: [
       '50 Matches/Monat',
       '3 aktive Jobs',
-      'IMLRS God Mode Score',
+      'Voller IMLRS Score (9 Kategorien)',
       'KI-Zusammenfassung',
       'Analytics Dashboard',
       'CSV Export',
@@ -41,17 +47,19 @@ export const PLANS = {
   },
   growth: {
     label: 'Growth',
-    price_monthly: 149,
-    price_yearly: 1490,
-    matches: 200,
-    matches_label: '200 Matches/Monat',
+    price_monthly: 249,
+    price_yearly: 2490,
+    matches: 300,
+    matches_label: '300 Matches/Monat',
     active_jobs: 10,
+    basic_score: false,
+    custom: false,
     featured: true,
     email_feature: true,
     features: [
-      '200 Matches/Monat',
+      '300 Matches/Monat',
       '10 aktive Jobs',
-      'IMLRS God Mode Score',
+      'Voller IMLRS Score (9 Kategorien)',
       'KI-Zusammenfassung',
       'Analytics Dashboard',
       'Custom KO-Kriterien',
@@ -61,17 +69,19 @@ export const PLANS = {
   },
   pro: {
     label: 'Pro',
-    price_monthly: 299,
-    price_yearly: 2990,
-    matches: 500,
-    matches_label: '500 Matches/Monat',
+    price_monthly: 499,
+    price_yearly: 4990,
+    matches: 1000,
+    matches_label: '1.000 Matches/Monat',
     active_jobs: 999,
+    basic_score: false,
+    custom: false,
     featured: false,
     email_feature: true,
     features: [
-      '500 Matches/Monat',
+      '1.000 Matches/Monat',
       'Unbegrenzte aktive Jobs',
-      'IMLRS God Mode Score',
+      'Voller IMLRS Score (9 Kategorien)',
       'KI-Zusammenfassung',
       'Analytics Dashboard',
       'Custom KO-Kriterien',
@@ -79,6 +89,26 @@ export const PLANS = {
       'Eigene Absender-Domain',
       'Priority Phone Support',
       'Dedicated Onboarding Call',
+    ],
+  },
+  enterprise: {
+    label: 'Enterprise',
+    price_monthly: 0,
+    price_yearly: 0,
+    matches: 1000,
+    matches_label: 'Individuelles Match-Volumen',
+    active_jobs: 999,
+    basic_score: false,
+    custom: true,
+    featured: false,
+    email_feature: true,
+    features: [
+      'Individuelles Match-Volumen',
+      'Unbegrenzte aktive Jobs',
+      'Verhandelbare Overage-Preise',
+      'Voller IMLRS Score (9 Kategorien)',
+      'SLA & Dedicated Support',
+      'Custom Onboarding',
     ],
   },
 } as const
@@ -99,8 +129,8 @@ export const getPlanByPriceId = (priceId: string): PlanId | null => {
 }
 
 export function getPlanByMatchLimit(limit: number): Plan {
-  if (limit >= 500) return PLANS.pro
-  if (limit >= 200) return PLANS.growth
+  if (limit >= 1000) return PLANS.pro
+  if (limit >= 300) return PLANS.growth
   if (limit >= 50) return PLANS.starter
   return PLANS.free
 }

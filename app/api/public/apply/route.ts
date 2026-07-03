@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextRequest } from "next/server"
-import { runIMLRSMatch } from "@/lib/matching/imlrs"
+import { consumeMatch } from "@/lib/quota"
+import { scoreJobCandidateLink } from "@/lib/scoring"
 
 // Service-role client — bypasses RLS for public application submissions.
 // We scope every INSERT with the job owner's user_id explicitly.
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
     // Fetch the job to get the owner's user_id
     const { data: job, error: jobError } = await supabase
       .from("jobs")
-      .select("id, title, company, location, description, required_skills, nice_to_have_skills, years_experience, education, languages, user_id")
+      .select("id, user_id")
       .eq("id", jobId)
       .eq("is_active", true)
       .single()
@@ -36,7 +37,8 @@ export async function POST(req: NextRequest) {
 
     const ownerId = job.user_id
 
-    // Insert candidate scoped to the job owner
+    // Insert candidate scoped to the job owner — the applicant is NEVER lost,
+    // even when the owner is over their monthly match limit.
     const { data: candidate, error: candidateError } = await supabase
       .from("candidates")
       .insert({
@@ -52,82 +54,46 @@ export async function POST(req: NextRequest) {
         location: candidateData.location || null,
         user_id: ownerId,
       })
-      .select()
+      .select("id")
       .single()
 
     if (candidateError || !candidate) {
-      console.error("[v0] Error creating candidate from public apply:", candidateError)
+      console.error("[apply] Error creating candidate:", candidateError)
       return Response.json({ error: "Fehler beim Erstellen des Kandidaten" }, { status: 500 })
     }
 
-    // Create the job_candidates link
+    // Try to spend one of the owner's matches. If they are over their limit the
+    // application is stored with status 'queued' (unscored) and picked up later
+    // by the backfill once quota frees up (reset or upgrade).
+    const quota = await consumeMatch(supabase, ownerId)
+    const status = quota.allowed ? "analyzing" : "queued"
+
     const { data: link, error: linkError } = await supabase
       .from("job_candidates")
       .insert({
         job_id: jobId,
         candidate_id: candidate.id,
-        status: "analyzing",
+        status,
         user_id: ownerId,
       })
       .select("id")
       .single()
 
     if (linkError || !link) {
-      console.error("[v0] Error linking candidate to job:", linkError)
+      console.error("[apply] Error linking candidate to job:", linkError)
       return Response.json({ error: "Fehler beim Verknüpfen" }, { status: 500 })
     }
 
-    // Fire IMLRS match in background — do not block the response
-    runIMLRSMatch(
-      {
-        id: candidate.id,
-        name: candidate.full_name,
-        skills: candidate.skills,
-        experience: `${candidate.years_of_experience} years`,
-        experienceLevel: candidate.experience_level,
-        education: candidate.education,
-        location: candidate.location,
-      },
-      {
-        id: job.id,
-        title: job.title,
-        company: job.company,
-        required_skills: job.required_skills || [],
-        nice_to_have_skills: job.nice_to_have_skills || [],
-        years_experience: job.years_experience,
-        education: job.education,
-        location: job.location,
-        description: job.description,
-      }
-    )
-      .then(async (match) => {
-        const roundScore = (s: number | undefined | null) =>
-          s == null ? null : Math.round(s)
-        const cats = match?.categories
-        await supabase
-          .from("job_candidates")
-          .update({
-            status: "scored",
-            match_score: roundScore(match?.overallScore),
-            hard_skills_score: roundScore(cats?.hardSkills?.score),
-            experience_score: roundScore(cats?.experience?.score),
-            education_score: roundScore(cats?.education?.score),
-            soft_skills_score: roundScore(cats?.softSkills?.score),
-            languages_score: roundScore(cats?.languages?.score),
-            location_score: roundScore(cats?.location?.score),
-            industry_score: roundScore(cats?.industry?.score),
-            salary_score: roundScore(cats?.salary?.score),
-            culture_score: roundScore(cats?.culture?.score),
-            career_prognosis: match?.careerPrognosis,
-            ai_summary: match?.whyTheyFit?.join(" | "),
-          })
-          .eq("id", link.id)
-      })
-      .catch((err) => console.error("[v0] Public apply IMLRS match failed:", err))
+    if (quota.allowed) {
+      // Fire-and-forget scoring — do not block the applicant's response.
+      scoreJobCandidateLink(supabase, link.id).catch((err) =>
+        console.error("[apply] background scoring failed:", err)
+      )
+    }
 
-    return Response.json({ success: true, candidateId: candidate.id })
+    return Response.json({ success: true, candidateId: candidate.id, scored: quota.allowed })
   } catch (error) {
-    console.error("[v0] Error in public apply:", error)
+    console.error("[apply] Error in public apply:", error)
     return Response.json({ error: "Interner Serverfehler" }, { status: 500 })
   }
 }

@@ -1,4 +1,5 @@
 import { DashboardHero } from "@/components/dashboard/dashboard-hero"
+import { MatchBackfillTrigger } from "@/components/dashboard/match-backfill-trigger"
 import { DashboardMetrics, type DashboardMetricsData } from "@/components/dashboard/metrics"
 import { RecentActivity, type RecentJob } from "@/components/dashboard/recent-activity"
 import { QuotaProgress } from "@/components/dashboard/quota-progress"
@@ -35,6 +36,7 @@ export default async function DashboardPage() {
     newCandidatesThisMonth: 0,
     matchesUsed: 0,
     matchesLimit: 0,
+    activeJobsLimit: 1,
     avgMatchScore: 0,
   }
   let recentJobs: RecentJob[] = []
@@ -50,7 +52,7 @@ export default async function DashboardPage() {
       newJobsRes,
       totalCandidatesRes,
       newCandidatesRes,
-      profileRes,
+      usageRes,
       matchScoresRes,
       jobsListRes,
     ] = await Promise.all([
@@ -62,13 +64,18 @@ export default async function DashboardPage() {
         .eq("user_id", user.id),
       supabase.from("candidates").select("id", { count: "exact", head: true })
         .eq("user_id", user.id).gte("created_at", monthStart),
-      supabase.from("user_profiles").select("matches_used, matches_limit")
-        .eq("id", user.id).single(),
+      // match_usage applies the monthly reset virtually, so the numbers are
+      // correct even at the start of a new month before the next match.
+      supabase.rpc("match_usage", { p_user: user.id }),
       supabase.from("job_candidates").select("match_score")
         .eq("user_id", user.id).not("match_score", "is", null),
       supabase.from("jobs").select("id, title, company, is_active, created_at")
         .eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
     ])
+
+    const usage = (usageRes.data ?? null) as
+      | { used: number; limit: number; active_jobs_limit: number }
+      | null
 
     // Average match score
     const scores = (matchScoresRes.data || [])
@@ -83,8 +90,9 @@ export default async function DashboardPage() {
       newJobsThisWeek: newJobsRes.count ?? 0,
       totalCandidates: totalCandidatesRes.count ?? 0,
       newCandidatesThisMonth: newCandidatesRes.count ?? 0,
-      matchesUsed: profileRes.data?.matches_used ?? 0,
-      matchesLimit: profileRes.data?.matches_limit ?? 0,
+      matchesUsed: usage?.used ?? 0,
+      matchesLimit: usage?.limit ?? 0,
+      activeJobsLimit: usage?.active_jobs_limit ?? 1,
       avgMatchScore,
     }
 
@@ -126,6 +134,7 @@ export default async function DashboardPage() {
     <div className="relative min-h-full overflow-hidden">
       {/* Faint page-level pattern for depth (landing DNA), fades from top-right */}
       <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
+      <MatchBackfillTrigger />
 
       <RevealGroup className="relative z-[1] space-y-6 p-6 lg:p-8">
         {/* Signature hero band: greeting + actions | flagship Ø Match-Score */}

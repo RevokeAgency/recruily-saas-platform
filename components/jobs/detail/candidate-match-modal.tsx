@@ -21,7 +21,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import { useProfile } from "@/lib/hooks/useProfile"
+import { hasFullScore } from "@/lib/quota"
 import { RejectionModal } from "@/components/ui/rejection-modal"
 import {
   Mail,
@@ -261,6 +264,10 @@ export function CandidateMatchModal({
   const [inviteNote, setInviteNote] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [invited, setInvited] = useState(false)
+  const { profile } = useProfile()
+  // Free plan gets the "Basic AI Matching Score" (overall only); every paid plan
+  // gets the full 9-category breakdown + prognosis + pitch.
+  const showFull = hasFullScore(profile?.plan)
 
   // Reflect already-saved statuses when the candidate changes
   useEffect(() => {
@@ -392,51 +399,70 @@ export function CandidateMatchModal({
                 <CircularProgress value={candidate.match_score} />
               </div>
 
-              {/* Career Prognosis */}
-              {candidate.career_prognosis && (
-                <CareerPrognosisBadge prognosis={candidate.career_prognosis} />
-              )}
+              {showFull ? (
+                <>
+                  {/* Career Prognosis */}
+                  {candidate.career_prognosis && (
+                    <CareerPrognosisBadge prognosis={candidate.career_prognosis} />
+                  )}
 
-              {/* IMLRS 9 Categories */}
-              <Card className="border-slate-200">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold text-sm text-slate-900 mb-4 flex items-center gap-2">
-                    <Target className="h-4 w-4 text-teal-600" />
-                    IMLRS 9-Kategorien Breakdown
-                  </h4>
-                  <div className="space-y-3">
-                    {categories.map((cat) => {
-                      const score = candidate[cat.key as keyof Candidate] as number | null
-                      return (
-                        <CategoryBar 
-                          key={cat.key}
-                          label={cat.label}
-                          score={score || 0}
-                          weight={cat.weight}
-                          icon={cat.icon}
-                        />
-                      )
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
+                  {/* IMLRS 9 Categories */}
+                  <Card className="border-slate-200">
+                    <CardContent className="p-4">
+                      <h4 className="font-semibold text-sm text-slate-900 mb-4 flex items-center gap-2">
+                        <Target className="h-4 w-4 text-teal-600" />
+                        IMLRS 9-Kategorien Breakdown
+                      </h4>
+                      <div className="space-y-3">
+                        {categories.map((cat) => {
+                          const score = candidate[cat.key as keyof Candidate] as number | null
+                          return (
+                            <CategoryBar
+                              key={cat.key}
+                              label={cat.label}
+                              score={score || 0}
+                              weight={cat.weight}
+                              icon={cat.icon}
+                            />
+                          )
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              {/* Why They Fit - Contextual Pitch (from ai_summary) */}
-              {pitchPoints.length > 0 && (
-                <Card className="border-teal-200 bg-teal-50/50">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <CheckCircle2 className="h-5 w-5 text-teal-600" />
-                      <h4 className="font-semibold text-sm text-teal-900">Warum dieser Kandidat passt</h4>
-                    </div>
-                    <ul className="space-y-2">
-                      {pitchPoints.map((reason, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-teal-800">
-                          <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
-                          {reason}
-                        </li>
-                      ))}
-                    </ul>
+                  {/* Why They Fit - Contextual Pitch (from ai_summary) */}
+                  {pitchPoints.length > 0 && (
+                    <Card className="border-teal-200 bg-teal-50/50">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <CheckCircle2 className="h-5 w-5 text-teal-600" />
+                          <h4 className="font-semibold text-sm text-teal-900">Warum dieser Kandidat passt</h4>
+                        </div>
+                        <ul className="space-y-2">
+                          {pitchPoints.map((reason, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm text-teal-800">
+                              <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                              {reason}
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
+              ) : (
+                /* Free plan — Basic Score only. Full breakdown is a paid feature. */
+                <Card className="border-dashed border-border">
+                  <CardContent className="p-5 text-center space-y-2">
+                    <Sparkles className="h-6 w-6 text-[var(--rv-green)] mx-auto" />
+                    <h4 className="font-semibold text-sm text-foreground">Voller IMLRS-Score</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Der detaillierte 9-Kategorien-Breakdown, die Karriere-Prognose und der
+                      Contextual Pitch sind ab dem Starter-Plan verfügbar.
+                    </p>
+                    <Button asChild size="sm" className="mt-1">
+                      <Link href="/subscription">Upgraden</Link>
+                    </Button>
                   </CardContent>
                 </Card>
               )}

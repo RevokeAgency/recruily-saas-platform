@@ -25,13 +25,15 @@ const planIcons: Record<PlanId, React.ElementType> = {
   starter: Sparkles,
   growth: Crown,
   pro: Building,
+  enterprise: Building,
 }
 
 const planDescriptions: Record<PlanId, string> = {
   free: 'Perfekt zum Ausprobieren',
   starter: 'Für kleine Teams',
   growth: 'Für wachsende Unternehmen',
-  pro: 'Für Enterprise',
+  pro: 'Für große Teams',
+  enterprise: 'Individuell konfigurierbar',
 }
 
 export default function SubscriptionPage() {

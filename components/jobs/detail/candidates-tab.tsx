@@ -78,7 +78,7 @@ interface Candidate {
   education: string | null
   summary_ai: string | null
   location: string | null
-  status: "analyzing" | "scored" | "error" | "stale" | "new" | "shortlisted" | "interviewed" | "Eingeladen" | "Abgesagt"
+  status: "queued" | "analyzing" | "scored" | "error" | "stale" | "new" | "shortlisted" | "interviewed" | "Eingeladen" | "Abgesagt"
   match_score: number | null
   hard_skills_score: number | null
   experience_score: number | null
@@ -379,6 +379,16 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                           <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
                         </div>
                         <p className="text-sm font-medium text-teal-600">Analysiere...</p>
+                      </div>
+                    ) : candidate.status === "queued" ? (
+                      <div className="flex flex-col items-center xl:items-end">
+                        <div className="w-16 h-16 mb-2 flex items-center justify-center">
+                          <Sparkles className="h-7 w-7 text-amber-500" />
+                        </div>
+                        <p className="text-sm font-medium text-amber-600">Kontingent aufgebraucht</p>
+                        <a href="/subscription" className="text-xs text-[var(--rv-green-deep)] hover:underline">
+                          Upgraden zum Scoren
+                        </a>
                       </div>
                     ) : candidate.match_score !== null && candidate.match_score !== undefined ? (
                       <div className="flex flex-col items-center xl:items-end">

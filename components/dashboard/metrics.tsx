@@ -11,6 +11,7 @@ export interface DashboardMetricsData {
   newCandidatesThisMonth: number
   matchesUsed: number
   matchesLimit: number
+  activeJobsLimit: number
   avgMatchScore: number
 }
 
@@ -26,8 +27,9 @@ export function DashboardMetrics({ data }: { data: DashboardMetricsData }) {
       label: "Aktive Jobs",
       value: data.activeJobs,
       icon: Briefcase,
-      context: data.newJobsThisWeek > 0 ? `+${data.newJobsThisWeek} diese Woche` : "keine neuen diese Woche",
-      positive: data.newJobsThisWeek > 0,
+      context: data.activeJobsLimit >= 999
+        ? "unbegrenzte Job-Slots"
+        : `${data.activeJobs} von ${data.activeJobsLimit} Slots belegt`,
     },
     {
       label: "Kandidaten gesamt",
