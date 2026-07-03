@@ -47,19 +47,26 @@ BEGIN
     EXECUTE format('ALTER TABLE public.user_profiles DROP CONSTRAINT %I', c.conname);
   END LOOP;
 
+  -- NOT VALID: enforce on new/updated rows without failing on any legacy data.
   ALTER TABLE public.user_profiles
     ADD CONSTRAINT user_profiles_plan_check
-    CHECK (plan IN ('free', 'starter', 'growth', 'pro', 'enterprise'));
+    CHECK (plan IN ('free', 'starter', 'growth', 'pro', 'enterprise'))
+    NOT VALID;
 END $$;
 
 -- ---------------------------------------------------------------------------
 -- 3) job_candidates: add 'queued' status (over-limit application, stored but
 --    not yet scored). Recreate the CHECK with the full status list.
 -- ---------------------------------------------------------------------------
+-- Includes the German workflow statuses the app already writes ('Eingeladen',
+-- 'Abgesagt'). NOT VALID: enforce on new/updated rows without failing on legacy
+-- rows that may still carry other historical status values.
 ALTER TABLE public.job_candidates DROP CONSTRAINT IF EXISTS job_candidates_status_check;
 ALTER TABLE public.job_candidates ADD CONSTRAINT job_candidates_status_check
   CHECK (status IN ('new', 'queued', 'analyzing', 'scored', 'error', 'stale',
-                    'shortlisted', 'interviewed', 'rejected', 'hired'));
+                    'shortlisted', 'interviewed', 'rejected', 'hired',
+                    'Eingeladen', 'Abgesagt'))
+  NOT VALID;
 
 -- Index to find queued (unscored) links per owner quickly for backfill.
 CREATE INDEX IF NOT EXISTS idx_job_candidates_user_status
