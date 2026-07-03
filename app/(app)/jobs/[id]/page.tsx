@@ -9,14 +9,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   ArrowLeft,
-  Settings,
   Users,
   BarChart3,
   Calendar,
   Clock,
   Loader2,
   Share2,
+  Lock,
+  Unlock,
 } from "lucide-react"
+import { toast } from "sonner"
 import { JobOverviewTab } from "@/components/jobs/detail/overview-tab"
 import { JobCandidatesTab } from "@/components/jobs/detail/candidates-tab"
 import { JobApplicationsTab } from "@/components/jobs/detail/applications-tab"
@@ -30,6 +32,7 @@ interface Job {
   location: string | null
   employment_type: string | null
   is_active: boolean
+  public_slug: string | null
   created_at: string
   salary_range: string | null
   years_experience: string | null
@@ -61,8 +64,9 @@ export default function JobDetailPage() {
   const jobId = params.id as string
   const [activeTab, setActiveTab] = useState("candidates")
   const [channelsOpen, setChannelsOpen] = useState(false)
+  const [toggling, setToggling] = useState(false)
 
-  const { data, error, isLoading } = useSWR<{ job: Job }>(
+  const { data, error, isLoading, mutate } = useSWR<{ job: Job }>(
     jobId ? `/api/jobs/${jobId}` : null,
     fetcher
   )
@@ -96,6 +100,32 @@ export default function JobDetailPage() {
   }
 
   const job = data.job
+
+  const toggleActive = async () => {
+    setToggling(true)
+    try {
+      const res = await fetch(`/api/jobs/${jobId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !job.is_active }),
+      })
+      const result = await res.json()
+      if (res.status === 403 && result.error === "job_limit_reached") {
+        toast.error(`Job-Limit erreicht (${result.limit}). Schließe einen anderen Job oder upgrade.`)
+        return
+      }
+      if (!res.ok) {
+        toast.error(result.error || "Aktion fehlgeschlagen")
+        return
+      }
+      toast.success(job.is_active ? "Job geschlossen — keine neuen Bewerbungen mehr" : "Job wieder geöffnet")
+      mutate()
+    } catch {
+      toast.error("Aktion fehlgeschlagen")
+    } finally {
+      setToggling(false)
+    }
+  }
 
   // Transform job data for the overview component
   const jobForOverview = {
@@ -138,9 +168,12 @@ export default function JobDetailPage() {
             <Share2 className="mr-2 h-4 w-4" />
             Kanäle & Bewerbungslink
           </Button>
-          <Button variant="outline" size="sm">
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
+          <Button variant="outline" size="sm" onClick={toggleActive} disabled={toggling}>
+            {job.is_active ? (
+              <><Lock className="mr-2 h-4 w-4" /> Job schließen</>
+            ) : (
+              <><Unlock className="mr-2 h-4 w-4" /> Job öffnen</>
+            )}
           </Button>
         </div>
       </div>
@@ -274,6 +307,7 @@ export default function JobDetailPage() {
         onClose={() => setChannelsOpen(false)}
         jobId={jobId}
         jobTitle={job.title}
+        jobSlug={job.public_slug ?? undefined}
       />
     </div>
   )

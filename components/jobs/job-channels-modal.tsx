@@ -10,20 +10,22 @@ import {
 import { Button } from "@/components/ui/button"
 import { Link2, Mail, Copy, ExternalLink, Check } from "lucide-react"
 import { useProfile } from "@/lib/hooks/useProfile"
-import { buildJobEmailAddress } from "@/lib/email/routing"
+import { buildJobEmailAddress, slugify } from "@/lib/email/routing"
 
 interface JobChannelsModalProps {
   isOpen: boolean
   onClose: () => void
   jobId: string
   jobTitle?: string
+  jobSlug?: string
 }
 
-const BASE_URL = "https://v0-recruily-saas-platform.vercel.app"
-
-export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle }: JobChannelsModalProps) {
+export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle, jobSlug }: JobChannelsModalProps) {
   const { profile } = useProfile()
-  const applyUrl = `${BASE_URL}/apply/${jobId}`
+  const origin = typeof window !== "undefined" ? window.location.origin : ""
+  const jobPageUrl = profile?.slug
+    ? `${origin}/jobs/${profile.slug}/${jobSlug || slugify(jobTitle || "job")}`
+    : null
   const emailAddress = profile?.slug
     ? buildJobEmailAddress(profile.slug, jobTitle || "job", jobId)
     : null
@@ -62,24 +64,24 @@ export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle }: JobChanne
               <div className="w-8 h-8 rounded-lg bg-[var(--app-green-wash)] flex items-center justify-center">
                 <Link2 className="h-4 w-4 text-[var(--rv-green-deep)]" />
               </div>
-              <span className="font-medium text-sm">Bewerbungs-Link</span>
+              <span className="font-medium text-sm">Öffentliche Job-Page</span>
             </div>
 
             <div className="bg-muted/50 rounded-lg px-3 py-2.5">
-              <p className="text-xs text-muted-foreground font-mono break-all">{applyUrl}</p>
+              <p className="text-xs text-muted-foreground font-mono break-all">{jobPageUrl ?? "…"}</p>
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1" onClick={() => copy(applyUrl, "link")}>
+              <Button variant="outline" size="sm" className="flex-1" disabled={!jobPageUrl} onClick={() => jobPageUrl && copy(jobPageUrl, "link")}>
                 {copiedKey === "link" ? (
                   <><Check className="mr-2 h-4 w-4 text-[var(--rv-green-deep)]" /> Kopiert!</>
                 ) : (
                   <><Copy className="mr-2 h-4 w-4" /> Link kopieren</>
                 )}
               </Button>
-              <Button variant="outline" size="sm" className="flex-1" onClick={() => window.open(applyUrl, "_blank")}>
+              <Button variant="outline" size="sm" className="flex-1" disabled={!jobPageUrl} onClick={() => jobPageUrl && window.open(jobPageUrl, "_blank")}>
                 <ExternalLink className="mr-2 h-4 w-4" />
-                Link öffnen
+                Öffnen
               </Button>
             </div>
           </div>
