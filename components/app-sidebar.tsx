@@ -135,7 +135,7 @@ export function AppSidebar() {
       <div className="flex items-center justify-between p-5 border-b border-border">
         {!collapsed && (
           <Link href="/dashboard" className="flex items-center">
-            <Image src="/revetly/LogoEntwurf.png" alt="Revetly" width={51} height={36} className="h-9 w-auto" priority />
+            <Image src="/revetly/LogoEntwurf-trim.png" alt="Revetly" width={97} height={24} className="h-6 w-auto" priority />
           </Link>
         )}
         <Button

@@ -43,16 +43,16 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
     >
       <div
         className={`relative mx-auto flex max-w-[1200px] items-center justify-between rounded-[20px] border border-white/55 pr-3 pl-4 shadow-[0_16px_44px_-20px_rgba(12,26,22,.40),inset_0_1px_0_rgba(255,255,255,.65)] backdrop-blur-xl backdrop-saturate-[1.7] transition-[height,background-color,box-shadow,border-radius] duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          scrolled ? "h-[128px] rounded-2xl bg-white/84" : "h-[140px] bg-white/62"
+          scrolled ? "h-14 rounded-2xl bg-white/84" : "h-16 bg-white/62"
         }`}
       >
         <Link href="/" aria-label="Revetly Startseite" className="inline-flex items-center">
           <Image
-            src="/revetly/LogoEntwurf.png"
+            src="/revetly/LogoEntwurf-trim.png"
             alt="Revetly"
-            width={170}
-            height={120}
-            className="h-[120px] w-auto"
+            width={161}
+            height={40}
+            className="h-10 w-auto"
             priority
           />
         </Link>
