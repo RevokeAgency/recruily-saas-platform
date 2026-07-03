@@ -50,9 +50,9 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
           <Image
             src="/revetly/LogoEntwurf-trim.png"
             alt="Revetly"
-            width={161}
-            height={40}
-            className="h-10 w-auto"
+            width={129}
+            height={32}
+            className="h-8 w-auto"
             priority
           />
         </Link>
