@@ -1,0 +1,18 @@
+{
+  "from": "bewerber@example.com",
+  "to": "senior-developer+REPLACE_WITH_REAL_JOB_UUID@REPLACE_WITH_CUSTOMER_SLUG.revetly.ai",
+  "subject": "Bewerbung als Senior Developer",
+  "body": {
+    "text": "Sehr geehrte Damen und Herren,\n\nanbei sende ich Ihnen meine Bewerbung samt Lebenslauf. Ich bringe mehrjaehrige Erfahrung in der Frontend-Entwicklung mit und arbeite gerne im Team.\n\nMit freundlichen Gruessen",
+    "html": "<p>Sehr geehrte Damen und Herren, ...</p>"
+  },
+  "attachments": [
+    {
+      "filename": "lebenslauf.pdf",
+      "contentType": "application/pdf",
+      "virusScan": "clean",
+      "content": "REPLACE_WITH_BASE64_OF_A_REAL_CV_PDF_OR_DOCX"
+    }
+  ],
+  "authentication": { "spf": "pass", "dkim": "pass", "dmarc": "pass" }
+}

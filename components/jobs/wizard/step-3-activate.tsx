@@ -93,6 +93,7 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
         isOpen={!!channelsJobId}
         onClose={() => { setChannelsJobId(null); router.push("/jobs") }}
         jobId={channelsJobId}
+        jobTitle={formData.title}
       />
     )}
     <div className="space-y-6">

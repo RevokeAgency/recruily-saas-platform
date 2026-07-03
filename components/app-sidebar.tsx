@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Briefcase,
   Users,
+  Inbox,
   CreditCard,
   Settings,
   LogOut,
@@ -34,6 +35,7 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Stellenangebote", href: "/jobs", icon: Briefcase },
   { name: "Kandidaten", href: "/candidates", icon: Users },
+  { name: "Posteingang", href: "/inbox", icon: Inbox },
   { name: "Abonnement", href: "/subscription", icon: CreditCard },
   { name: "Einstellungen", href: "/settings", icon: Settings },
 ]

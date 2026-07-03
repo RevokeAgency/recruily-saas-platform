@@ -16,6 +16,7 @@ export interface Profile {
   stripe_customer_id: string | null
   subscription_status: string
   billing_period_end: string | null
+  slug: string | null
 }
 
 export function useProfile() {
@@ -50,6 +51,7 @@ export function useProfile() {
         stripe_customer_id: data.stripe_customer_id || null,
         subscription_status: data.subscription_status || 'inactive',
         billing_period_end: data.billing_period_end || null,
+        slug: data.slug || null,
       })
     }
     setLoading(false)

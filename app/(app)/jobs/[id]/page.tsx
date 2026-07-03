@@ -273,6 +273,7 @@ export default function JobDetailPage() {
         isOpen={channelsOpen}
         onClose={() => setChannelsOpen(false)}
         jobId={jobId}
+        jobTitle={job.title}
       />
     </div>
   )
