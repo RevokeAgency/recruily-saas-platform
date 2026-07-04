@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,17 +31,54 @@ import {
   Copy,
   RefreshCw,
   Server,
+  Loader2,
 } from "lucide-react"
 import { toast } from "sonner"
 import { PageHero } from "@/components/app/page-hero"
 import { RevealGroup } from "@/components/app/reveal-group"
+import { useProfile } from "@/lib/hooks/useProfile"
+import { updateCompanyName } from "@/app/actions/onboarding"
 
 export default function SettingsPage() {
+  const { profile: account } = useProfile()
   const [profile, setProfile] = useState({
     name: "Max Mustermann",
     email: "max@revetly.de",
-    company: "TechCorp GmbH",
+    company: "",
   })
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [logoUploading, setLogoUploading] = useState(false)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const logoInputRef = useRef<HTMLInputElement>(null)
+
+  // Seed company + logo from the loaded account profile.
+  useEffect(() => {
+    if (!account) return
+    setProfile((p) => ({
+      ...p,
+      name: `${account.first_name ?? ""} ${account.last_name ?? ""}`.trim() || p.name,
+      email: account.email || p.email,
+      company: account.company_name ?? "",
+    }))
+    setLogoUrl(account.logo_url ?? null)
+  }, [account])
+
+  const handleLogoUpload = async (file: File | null) => {
+    if (!file) return
+    setLogoUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append("file", file)
+      const res = await fetch("/api/company/logo", { method: "POST", body: fd })
+      const data = await res.json()
+      if (res.ok) { setLogoUrl(data.logoUrl); toast.success("Logo aktualisiert") }
+      else toast.error(data.error || "Upload fehlgeschlagen")
+    } catch {
+      toast.error("Upload fehlgeschlagen")
+    } finally {
+      setLogoUploading(false)
+    }
+  }
 
   const [notifications, setNotifications] = useState({
     newMatch: true,
@@ -57,10 +94,15 @@ export default function SettingsPage() {
     toast.success("API Key kopiert")
   }
 
-  const handleSaveProfile = () => {
-    toast.success("Profil gespeichert", {
-      description: "Deine Änderungen wurden übernommen.",
-    })
+  const handleSaveProfile = async () => {
+    setSavingProfile(true)
+    const res = await updateCompanyName(profile.company)
+    setSavingProfile(false)
+    if (res.ok) {
+      toast.success("Profil gespeichert", { description: "Deine Änderungen wurden übernommen." })
+    } else {
+      toast.error(res.error || "Speichern fehlgeschlagen")
+    }
   }
 
   const handleExportData = () => {
@@ -120,15 +162,25 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label htmlFor="logo">Firmenlogo</Label>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Logo hochladen
+                  {logoUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={logoUrl} alt="Logo" className="h-9 w-9 rounded-lg object-contain" />
+                  )}
+                  <Button variant="outline" size="sm" disabled={logoUploading}
+                    onClick={() => logoInputRef.current?.click()}>
+                    {logoUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                    {logoUrl ? "Ändern" : "Logo hochladen"}
                   </Button>
+                  <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    className="hidden" onChange={(e) => handleLogoUpload(e.target.files?.[0] ?? null)} />
                 </div>
               </div>
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleSaveProfile}>Speichern</Button>
+              <Button onClick={handleSaveProfile} disabled={savingProfile}>
+                {savingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Speichern
+              </Button>
             </div>
           </CardContent>
         </Card>

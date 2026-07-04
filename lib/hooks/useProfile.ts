@@ -17,6 +17,8 @@ export interface Profile {
   subscription_status: string
   billing_period_end: string | null
   slug: string | null
+  company_name: string | null
+  logo_url: string | null
 }
 
 export function useProfile() {
@@ -52,6 +54,8 @@ export function useProfile() {
         subscription_status: data.subscription_status || 'inactive',
         billing_period_end: data.billing_period_end || null,
         slug: data.slug || null,
+        company_name: data.company_name || null,
+        logo_url: data.logo_url || null,
       })
     }
     setLoading(false)
