@@ -44,9 +44,15 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
+  // Public job pages live at /jobs/<company-slug>/<job-slug> (two extra
+  // segments) and must stay reachable for applicants without an account.
+  // The authenticated app uses /jobs, /jobs/new and /jobs/<id> (one segment).
+  const segments = pathname.split('/').filter(Boolean)
+  const isPublicJobPage = segments[0] === 'jobs' && segments.length >= 3
+
   // Protected routes - redirect to register if not authenticated
-  const protectedRoutes = ['/dashboard', '/jobs', '/candidates', '/subscription', '/settings']
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const protectedRoutes = ['/dashboard', '/jobs', '/candidates', '/subscription', '/settings', '/inbox', '/onboarding']
+  const isProtectedRoute = !isPublicJobPage && protectedRoutes.some(route =>
     pathname === route || pathname.startsWith(`${route}/`)
   )
 
