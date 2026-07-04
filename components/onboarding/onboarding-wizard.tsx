@@ -29,7 +29,7 @@ export function OnboardingWizard({ initial }: Props) {
   const router = useRouter()
   const [step, setStep] = useState(0)
 
-  // Step 1 — company
+  // Step 1: company
   const [companyName, setCompanyName] = useState(initial.companyName || "")
   const [slug, setSlug] = useState(initial.slug || "")
   const [slugTouched, setSlugTouched] = useState(false)
@@ -37,7 +37,7 @@ export function OnboardingWizard({ initial }: Props) {
   const [logoUrl, setLogoUrl] = useState<string | null>(initial.logoUrl)
   const [logoUploading, setLogoUploading] = useState(false)
 
-  // Step 2 — first job
+  // Step 2: first job
   const [job, setJob] = useState({ title: "", location: "", employmentType: "full-time", description: "", requirements: "" })
   const [createdJob, setCreatedJob] = useState<CreatedJob | null>(null)
 
@@ -108,7 +108,7 @@ export function OnboardingWizard({ initial }: Props) {
       })
       const data = await res.json()
       if (res.status === 403 && data.error === "job_limit_reached") {
-        toast.error("Job-Limit erreicht — im Dashboard kannst du upgraden.")
+        toast.error("Job-Limit erreicht. Im Dashboard kannst du upgraden.")
         return
       }
       if (!res.ok || !data.job) { toast.error(data.error || "Job konnte nicht angelegt werden"); return }
@@ -135,13 +135,8 @@ export function OnboardingWizard({ initial }: Props) {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[var(--rv-mist)]">
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="absolute -top-24 right-1/4 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(34,193,238,.18),transparent_70%)] blur-2xl" />
-        <div className="absolute -bottom-24 left-1/4 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(22,199,124,.16),transparent_70%)] blur-2xl" />
-      </div>
-
-      <div className="relative z-[1] mx-auto flex min-h-screen max-w-xl flex-col px-4 py-8">
+    <div className="min-h-screen bg-[var(--rv-mist)]">
+      <div className="mx-auto flex min-h-screen max-w-xl flex-col px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <RvBrandMark />
           <span className="text-sm text-muted-foreground">Schritt {Math.min(step + 1, 4)} von 4</span>
@@ -165,7 +160,7 @@ export function OnboardingWizard({ initial }: Props) {
                 <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--app-green-wash)]">
                   <Building2 className="h-5 w-5 text-[var(--rv-green-deep)]" />
                 </div>
-                <h1 className="text-xl font-bold text-foreground">Willkommen bei Revetly 👋</h1>
+                <h1 className="text-xl font-bold text-foreground">Willkommen bei Revetly</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Richte in unter 5 Minuten deine Firma ein. Los geht's mit den Basics.
                 </p>
@@ -188,8 +183,8 @@ export function OnboardingWizard({ initial }: Props) {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {slugStatus === "checking" && "Prüfe Verfügbarkeit…"}
-                  {slugStatus === "free" && <span className="text-[var(--rv-green-deep)]">✓ verfügbar</span>}
-                  {slugStatus === "taken" && <span className="text-amber-600">Bereits vergeben — Vorschlag übernommen</span>}
+                  {slugStatus === "free" && <span className="inline-flex items-center gap-1 text-[var(--rv-green-deep)]"><Check className="h-3.5 w-3.5" /> verfügbar</span>}
+                  {slugStatus === "taken" && <span className="text-amber-600">Bereits vergeben, Vorschlag übernommen</span>}
                   {slugStatus === "idle" && "Wird für E-Mail-Adressen und Job-Page-Links verwendet."}
                 </p>
               </div>
@@ -231,7 +226,7 @@ export function OnboardingWizard({ initial }: Props) {
                   <Sparkles className="h-5 w-5 text-[var(--rv-green-deep)]" />
                 </div>
                 <h1 className="text-xl font-bold text-foreground">Dein erster Job</h1>
-                <p className="mt-1 text-sm text-muted-foreground">Nur die Basics — verfeinern kannst du später jederzeit.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Nur die Basics, verfeinern kannst du später jederzeit.</p>
               </div>
 
               <div className="space-y-1.5">
@@ -291,9 +286,9 @@ export function OnboardingWizard({ initial }: Props) {
                 <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--app-green-wash)]">
                   <Check className="h-5 w-5 text-[var(--rv-green-deep)]" />
                 </div>
-                <h1 className="text-xl font-bold text-foreground">Das war's schon! 🎉</h1>
+                <h1 className="text-xl font-bold text-foreground">Das war's schon!</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  „{createdJob.title}" ist live. Bewerbungen kommen ab jetzt automatisch rein — über zwei Wege:
+                  „{createdJob.title}" ist live. Bewerbungen kommen ab jetzt automatisch rein, über zwei Wege:
                 </p>
               </div>
 
@@ -324,7 +319,7 @@ export function OnboardingWizard({ initial }: Props) {
 
               <div className="rounded-xl bg-[var(--app-green-wash)] p-4 text-sm text-[var(--rv-green-deep)]">
                 <strong>Dein nächster Schritt:</strong> Trage die E-Mail-Adresse bei deinen Jobbörsen
-                (Karriere.at, Indeed …) ein und/oder teile den Job-Page-Link. Fertig — Revetly macht den Rest.
+                (Karriere.at, Indeed) ein und/oder teile den Job-Page-Link. Fertig, Revetly macht den Rest.
               </div>
 
               <Button className="w-full" onClick={() => setStep(3)}>

@@ -58,9 +58,8 @@ function MetaChip({ icon: Icon, children }: { icon: React.ElementType; children:
 function PoweredBy() {
   return (
     <p className="py-10 text-center text-xs text-muted-foreground">
-      Powered by{" "}
+      Intelligentes Recruiting mit{" "}
       <a href="/" className="font-semibold text-[var(--rv-green-deep)] hover:underline">Revetly</a>
-      {" "}— Intelligentes Recruiting
     </p>
   )
 }
@@ -262,7 +261,7 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
           {errors.submit && <p className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">{errors.submit}</p>}
 
           <Button type="submit" disabled={isSubmitting} className="h-12 w-full text-base">
-            {isSubmitting ? (<><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Wird gesendet...</>) : "Jetzt bewerben"}
+            {isSubmitting ? (<><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Wird gesendet...</>) : "Bewerbung absenden"}
           </Button>
         </form>
       </div>
@@ -279,16 +278,12 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
       </header>
 
       {/* Hero */}
-      <section className="rv-fade-up relative overflow-hidden border-b border-border bg-background">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute -top-24 right-0 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(34,193,238,.20),transparent_70%)] blur-2xl" />
-          <div className="absolute -bottom-28 left-1/4 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(22,199,124,.18),transparent_70%)] blur-2xl" />
-        </div>
-        <div className="relative mx-auto max-w-5xl px-4 py-12 lg:py-16">
+      <section className="rv-fade-up border-b border-border bg-background">
+        <div className="mx-auto max-w-5xl px-4 py-12 lg:py-16">
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--rv-green-deep)]">
-            Offene Stelle {closed && "· geschlossen"}
+            {closed ? "Geschlossen" : "Offene Stelle"}
           </span>
-          <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight text-foreground lg:text-[2.6rem] lg:leading-[1.08]">
+          <h1 className="mt-3 text-3xl font-bold leading-[1.05] tracking-tighter text-foreground lg:text-[2.9rem]">
             {job.title}
           </h1>
           <p className="mt-2 text-lg font-medium text-muted-foreground">{job.company}</p>
