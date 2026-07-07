@@ -14,12 +14,12 @@ import {
   Settings,
   LogOut,
   HelpCircle,
-  Bell,
   Menu,
   Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SidebarNavItem } from "@/components/dashboard/sidebar-nav-item"
+import { ActivityBell } from "@/components/app/activity-bell"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -204,13 +204,12 @@ export function AppSidebar() {
         {/* Quick Actions */}
         {!collapsed && (
           <div className="flex items-center justify-center gap-1 pb-2">
-            <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8">
-              <HelpCircle className="h-4 w-4" strokeWidth={1.75} />
+            <Button asChild variant="ghost" size="icon" className="text-muted-foreground h-8 w-8" aria-label="Hilfe">
+              <Link href="/help">
+                <HelpCircle className="h-4 w-4" strokeWidth={1.75} />
+              </Link>
             </Button>
-            <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8 relative">
-              <Bell className="h-4 w-4" strokeWidth={1.75} />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-destructive rounded-full" />
-            </Button>
+            <ActivityBell />
           </div>
         )}
 

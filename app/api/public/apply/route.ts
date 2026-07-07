@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
         candidate_id: candidate.id,
         status,
         user_id: ownerId,
+        source: "public_page",
       })
       .select("id")
       .single()

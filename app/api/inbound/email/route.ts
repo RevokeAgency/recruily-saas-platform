@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
 
     const { data: link } = await supabase
       .from("job_candidates")
-      .insert({ job_id: job.id, candidate_id: candidate.id, status, user_id: job.user_id })
+      .insert({ job_id: job.id, candidate_id: candidate.id, status, user_id: job.user_id, source: "email" })
       .select("id")
       .single()
 
