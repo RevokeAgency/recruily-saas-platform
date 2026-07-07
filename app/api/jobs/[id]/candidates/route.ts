@@ -39,7 +39,10 @@ export async function GET(
           skills,
           education,
           summary_ai,
-          location
+          location,
+          photo_url,
+          resume_path,
+          cover_letter_path
         )
       `)
       .eq("job_id", jobId)
@@ -64,6 +67,9 @@ export async function GET(
       education: jc.candidate?.education,
       summary_ai: jc.candidate?.summary_ai,
       location: jc.candidate?.location,
+      photo_url: jc.candidate?.photo_url,
+      resume_path: jc.candidate?.resume_path,
+      cover_letter_path: jc.candidate?.cover_letter_path,
       status: jc.status,
       match_score: jc.match_score,
       hard_skills_score: jc.hard_skills_score,

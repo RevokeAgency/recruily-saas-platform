@@ -115,3 +115,46 @@ export async function parseCvBuffer(
 export function isUsableCandidate(c: ParsedCandidate | null): c is ParsedCandidate {
   return !!c && !!c.full_name && c.full_name.trim().length > 1
 }
+
+/** True for PDF attachments (used to decide whether to attempt photo extraction). */
+export function isPdfFile(mimeType: string | null, filename: string | null): boolean {
+  return isPdf(mimeType, filename)
+}
+
+/**
+ * Extracts plain text from a cover-letter / motivation document (PDF or DOCX)
+ * so it can be stored and fed into matching. Best-effort: returns "" on failure.
+ */
+export async function extractDocumentText(
+  buffer: Buffer,
+  mimeType: string | null,
+  filename: string | null,
+): Promise<string> {
+  try {
+    if (isDocx(mimeType, filename)) {
+      const { value } = await mammoth.extractRawText({ buffer })
+      return (value || "").trim()
+    }
+    if (isPdf(mimeType, filename)) {
+      const pdfjs: typeof import("pdfjs-dist/legacy/build/pdf.mjs") = await import(
+        "pdfjs-dist/legacy/build/pdf.mjs"
+      )
+      const doc = await pdfjs.getDocument({
+        data: new Uint8Array(buffer),
+      }).promise
+      const pages = Math.min(doc.numPages, 6)
+      let text = ""
+      for (let i = 1; i <= pages; i++) {
+        const page = await doc.getPage(i)
+        const content = await page.getTextContent()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        text += content.items.map((it: any) => ("str" in it ? it.str : "")).join(" ") + "\n"
+      }
+      return text.trim()
+    }
+    return ""
+  } catch (err) {
+    console.error("extractDocumentText failed:", err)
+    return ""
+  }
+}

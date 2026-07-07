@@ -2,9 +2,10 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { NextRequest } from "next/server"
 import { parseEmailConnectPayload, verifyEmailConnectSignature } from "@/lib/email/emailconnect"
 import { parseInboundRecipient } from "@/lib/email/routing"
-import { parseCvBuffer, isSupportedCvType, isUsableCandidate } from "@/lib/cv-parse"
+import { parseCvBuffer, isSupportedCvType, isUsableCandidate, isPdfFile } from "@/lib/cv-parse"
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
+import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { loadInboundAttachment } from "@/lib/email/attachments"
 
 export const maxDuration = 60
@@ -140,6 +141,7 @@ export async function POST(req: NextRequest) {
         education: parsed.education,
         summary_ai: parsed.summary_ai,
         location: parsed.location,
+        cover_letter_text: email.text || null,
         user_id: job.user_id,
       })
       .select("id")
@@ -148,6 +150,29 @@ export async function POST(req: NextRequest) {
     if (candErr || !candidate) {
       await finalize("error", "Kandidat konnte nicht angelegt werden")
       return Response.json({ success: true, status: "error" })
+    }
+
+    // Store the CV and (best-effort) extract a profile photo. Non-fatal.
+    try {
+      const ext = cvAtt.filename?.split(".").pop()?.toLowerCase() || "pdf"
+      const resumePath = `${job.user_id}/${candidate.id}/cv.${ext}`
+      await supabase.storage.from("resumes").upload(resumePath, buffer, {
+        contentType: cvAtt.mimeType || "application/pdf", upsert: true,
+      })
+      let photoUrl: string | null = null
+      if (isPdfFile(cvAtt.mimeType, cvAtt.filename)) {
+        const photo = await extractCandidatePhoto(buffer)
+        if (photo) {
+          const photoPath = `${job.user_id}/${candidate.id}.jpg`
+          const { error: pErr } = await supabase.storage.from("candidate-photos").upload(photoPath, photo, {
+            contentType: "image/jpeg", upsert: true,
+          })
+          if (!pErr) photoUrl = supabase.storage.from("candidate-photos").getPublicUrl(photoPath).data.publicUrl
+        }
+      }
+      await supabase.from("candidates").update({ resume_path: resumePath, photo_url: photoUrl }).eq("id", candidate.id)
+    } catch (err) {
+      console.error("[inbound] document/photo storage failed:", err)
     }
 
     // Spend a match if quota allows; otherwise store unscored ('queued').

@@ -44,6 +44,8 @@ export async function scoreJobCandidateLink(
         experienceLevel: candidate.experience_level,
         education: candidate.education,
         location: candidate.location,
+        summary_ai: candidate.summary_ai,
+        cover_letter_text: candidate.cover_letter_text ?? null,
       },
       {
         id: job.id,

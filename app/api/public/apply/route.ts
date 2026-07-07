@@ -2,9 +2,14 @@ import { createClient } from "@supabase/supabase-js"
 import { NextRequest } from "next/server"
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
+import { parseCvBuffer, isUsableCandidate, isPdfFile, extractDocumentText } from "@/lib/cv-parse"
+import { extractCandidatePhoto } from "@/lib/cv-photo"
+
+export const dynamic = "force-dynamic"
+export const maxDuration = 60
 
 // Service-role client — bypasses RLS for public application submissions.
-// We scope every INSERT with the job owner's user_id explicitly.
+// Every write is scoped to the job owner's user_id explicitly.
 function createServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -12,89 +17,145 @@ function createServiceClient() {
   return createClient(url, key, { auth: { persistSession: false } })
 }
 
+const RESUMES = "resumes"
+const PHOTOS = "candidate-photos"
+
+function fileExt(name: string, fallback: string): string {
+  const e = name.split(".").pop()?.toLowerCase()
+  return e && e.length <= 5 ? e : fallback
+}
+
+/**
+ * Public application intake (multipart). One call does the whole pipeline:
+ * resolve job+owner, parse CV (+ cover letter), create the candidate, store
+ * both documents in the private `resumes` bucket, best-effort extract a profile
+ * photo, then consume a match and score (or queue when over the limit).
+ */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { jobId, candidateData } = body
+    const form = await req.formData()
+    const jobId = form.get("jobId") as string | null
+    const firstName = ((form.get("firstName") as string) || "").trim()
+    const lastName = ((form.get("lastName") as string) || "").trim()
+    const email = ((form.get("email") as string) || "").trim()
+    const phone = ((form.get("phone") as string) || "").trim()
+    const message = ((form.get("message") as string) || "").trim()
+    const cvFile = form.get("cv") as File | null
+    const coverFile = form.get("cover") as File | null
 
-    if (!jobId || !candidateData?.full_name) {
-      return Response.json({ error: "Fehlende Pflichtfelder" }, { status: 400 })
+    if (!jobId || !cvFile) {
+      return Response.json({ error: "Lebenslauf und Job sind erforderlich" }, { status: 400 })
     }
+    const fullName = `${firstName} ${lastName}`.trim()
+    if (!fullName) return Response.json({ error: "Name ist erforderlich" }, { status: 400 })
 
     const supabase = createServiceClient()
 
-    // Fetch the job to get the owner's user_id
+    // Resolve the job -> owner (the applicant is always filed to the job owner).
     const { data: job, error: jobError } = await supabase
-      .from("jobs")
-      .select("id, user_id")
-      .eq("id", jobId)
-      .eq("is_active", true)
-      .single()
-
+      .from("jobs").select("id, user_id").eq("id", jobId).eq("is_active", true).single()
     if (jobError || !job) {
       return Response.json({ error: "Job nicht gefunden oder inaktiv" }, { status: 404 })
     }
+    const ownerId = job.user_id as string
 
-    const ownerId = job.user_id
+    const cvBuf = Buffer.from(await cvFile.arrayBuffer())
+    const coverBuf = coverFile ? Buffer.from(await coverFile.arrayBuffer()) : null
 
-    // Insert candidate scoped to the job owner — the applicant is NEVER lost,
-    // even when the owner is over their monthly match limit.
+    // Cover-letter text = typed motivation + text of an uploaded cover letter.
+    let coverText = message
+    if (coverBuf && coverFile) {
+      const t = await extractDocumentText(coverBuf, coverFile.type, coverFile.name)
+      if (t) coverText = coverText ? `${coverText}\n\n${t}` : t
+    }
+
+    // Parse the CV and attempt the photo in parallel (both read the CV buffer).
+    const [parsed, photo] = await Promise.all([
+      parseCvBuffer(cvBuf, cvFile.type, cvFile.name, coverText || null),
+      isPdfFile(cvFile.type, cvFile.name) ? extractCandidatePhoto(cvBuf) : Promise.resolve(null),
+    ])
+
+    const p = isUsableCandidate(parsed) ? parsed : null
+
+    // Create the candidate scoped to the owner. Form fields win over parsed
+    // contact data (the applicant typed them).
     const { data: candidate, error: candidateError } = await supabase
       .from("candidates")
       .insert({
-        full_name: candidateData.full_name,
-        email: candidateData.email || null,
-        phone: candidateData.phone || null,
-        job_title: candidateData.job_title || null,
-        years_of_experience: Math.round(candidateData.years_of_experience || 0),
-        experience_level: candidateData.experience_level || "mid",
-        skills: candidateData.skills || [],
-        education: candidateData.education || null,
-        summary_ai: candidateData.summary_ai || null,
-        location: candidateData.location || null,
+        full_name: fullName,
+        email: email || p?.email || null,
+        phone: phone || p?.phone || null,
+        job_title: p?.job_title || null,
+        years_of_experience: Math.round(p?.years_of_experience || 0),
+        experience_level: p?.experience_level || "mid",
+        skills: p?.skills || [],
+        education: p?.education || null,
+        summary_ai: p?.summary_ai || null,
+        location: p?.location || null,
+        cover_letter_text: coverText || null,
         user_id: ownerId,
       })
       .select("id")
       .single()
 
     if (candidateError || !candidate) {
-      console.error("[apply] Error creating candidate:", candidateError)
+      console.error("[apply] create candidate failed:", candidateError)
       return Response.json({ error: "Fehler beim Erstellen des Kandidaten" }, { status: 500 })
     }
 
-    // Try to spend one of the owner's matches. If they are over their limit the
-    // application is stored with status 'queued' (unscored) and picked up later
-    // by the backfill once quota frees up (reset or upgrade).
+    // Store documents (private) + photo (public); failures here are non-fatal.
+    const resumePath = `${ownerId}/${candidate.id}/cv.${fileExt(cvFile.name, "pdf")}`
+    await supabase.storage.from(RESUMES).upload(resumePath, cvBuf, {
+      contentType: cvFile.type || "application/pdf", upsert: true,
+    }).catch(() => null)
+
+    let coverPath: string | null = null
+    if (coverBuf && coverFile) {
+      coverPath = `${ownerId}/${candidate.id}/cover.${fileExt(coverFile.name, "pdf")}`
+      await supabase.storage.from(RESUMES).upload(coverPath, coverBuf, {
+        contentType: coverFile.type || "application/pdf", upsert: true,
+      }).catch(() => null)
+    }
+
+    let photoUrl: string | null = null
+    if (photo) {
+      const photoPath = `${ownerId}/${candidate.id}.jpg`
+      const { error: upErr } = await supabase.storage.from(PHOTOS).upload(photoPath, photo, {
+        contentType: "image/jpeg", upsert: true,
+      })
+      if (!upErr) photoUrl = supabase.storage.from(PHOTOS).getPublicUrl(photoPath).data.publicUrl
+    }
+
+    await supabase.from("candidates").update({
+      resume_path: resumePath,
+      cover_letter_path: coverPath,
+      photo_url: photoUrl,
+    }).eq("id", candidate.id)
+
+    // Spend a match (or queue if over the limit) then link + score.
     const quota = await consumeMatch(supabase, ownerId)
     const status = quota.allowed ? "analyzing" : "queued"
 
     const { data: link, error: linkError } = await supabase
       .from("job_candidates")
-      .insert({
-        job_id: jobId,
-        candidate_id: candidate.id,
-        status,
-        user_id: ownerId,
-        source: "public_page",
-      })
+      .insert({ job_id: jobId, candidate_id: candidate.id, status, user_id: ownerId, source: "public_page" })
       .select("id")
       .single()
 
     if (linkError || !link) {
-      console.error("[apply] Error linking candidate to job:", linkError)
+      console.error("[apply] link failed:", linkError)
       return Response.json({ error: "Fehler beim Verknüpfen" }, { status: 500 })
     }
 
     if (quota.allowed) {
-      // Fire-and-forget scoring — do not block the applicant's response.
       scoreJobCandidateLink(supabase, link.id).catch((err) =>
-        console.error("[apply] background scoring failed:", err)
+        console.error("[apply] background scoring failed:", err),
       )
     }
 
     return Response.json({ success: true, candidateId: candidate.id, scored: quota.allowed })
   } catch (error) {
-    console.error("[apply] Error in public apply:", error)
+    console.error("[apply] error:", error)
     return Response.json({ error: "Interner Serverfehler" }, { status: 500 })
   }
 }

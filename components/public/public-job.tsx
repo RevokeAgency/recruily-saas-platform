@@ -78,6 +78,7 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
   const [message, setMessage] = useState("")
   const [dsgvo, setDsgvo] = useState(false)
   const [cvFile, setCvFile] = useState<File | null>(null)
+  const [coverFile, setCoverFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -96,6 +97,21 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
     }
     setErrors((e) => { const n = { ...e }; delete n.cv; return n })
     setCvFile(file)
+  }
+
+  const handleCoverChange = (file: File | null) => {
+    if (!file) return
+    const validTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+    if (!validTypes.includes(file.type)) {
+      setErrors((e) => ({ ...e, cover: "Nur PDF oder DOCX erlaubt." }))
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setErrors((e) => ({ ...e, cover: "Maximale Dateigröße: 10 MB." }))
+      return
+    }
+    setErrors((e) => { const n = { ...e }; delete n.cover; return n })
+    setCoverFile(file)
   }
 
   const onDrop = useCallback((e: React.DragEvent) => {
@@ -123,36 +139,21 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
     setIsSubmitting(true)
 
     try {
-      let parsedData: Record<string, unknown> = { full_name: `${firstName} ${lastName}`, email, phone }
-      if (cvFile) {
-        const fd = new FormData()
-        fd.append("file", cvFile)
-        const parseRes = await fetch("/api/candidates/parse", { method: "POST", body: fd })
-        if (parseRes.ok) {
-          const parseResult = await parseRes.json()
-          if (parseResult.data) {
-            parsedData = {
-              ...parseResult.data,
-              full_name: `${firstName} ${lastName}`,
-              email,
-              phone: phone || parseResult.data.phone,
-            }
-          }
-        }
-        const up = new FormData()
-        up.append("file", cvFile)
-        up.append("jobId", job.id)
-        up.append("candidateName", `${firstName} ${lastName}`)
-        await fetch("/api/public/upload-resume", { method: "POST", body: up }).catch(() => null)
-      }
+      // One multipart call: the server parses the CV + cover letter, stores
+      // both documents, extracts the photo and scores the candidate.
+      const fd = new FormData()
+      fd.append("jobId", job.id)
+      fd.append("firstName", firstName)
+      fd.append("lastName", lastName)
+      fd.append("email", email)
+      fd.append("phone", phone)
+      fd.append("message", message)
+      if (cvFile) fd.append("cv", cvFile)
+      if (coverFile) fd.append("cover", coverFile)
 
-      const applyRes = await fetch("/api/public/apply", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId: job.id, candidateData: { ...parsedData, note: message } }),
-      })
+      const applyRes = await fetch("/api/public/apply", { method: "POST", body: fd })
       if (!applyRes.ok) {
-        const err = await applyRes.json()
+        const err = await applyRes.json().catch(() => ({}))
         throw new Error(err.error || "Unbekannter Fehler")
       }
       setSubmitted(true)
@@ -219,7 +220,7 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="message">Anschreiben / Motivation <span className="font-normal text-muted-foreground">(optional)</span></Label>
+            <Label htmlFor="message">Kurze Nachricht <span className="font-normal text-muted-foreground">(optional)</span></Label>
             <Textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Warum passt du zu dieser Stelle?" rows={4} />
           </div>
 
@@ -252,6 +253,33 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
               </div>
             )}
             {errors.cv && <p className="text-xs text-destructive">{errors.cv}</p>}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Anschreiben / Motivationsschreiben <span className="font-normal text-muted-foreground">(optional)</span></Label>
+            {coverFile ? (
+              <div className="flex items-center gap-3 rounded-xl border border-[var(--rv-green)] bg-[var(--app-green-wash)] p-4">
+                <FileText className="h-5 w-5 flex-shrink-0 text-[var(--rv-green-deep)]" />
+                <span className="flex-1 truncate text-sm font-medium text-foreground">{coverFile.name}</span>
+                <button type="button" onClick={() => setCoverFile(null)} className="text-muted-foreground hover:text-foreground">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => document.getElementById("cover-input")?.click()}
+                className={`flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 text-sm text-muted-foreground transition-colors ${
+                  errors.cover ? "border-destructive bg-destructive/5" : "border-border hover:border-[var(--rv-green)] hover:bg-muted/50"
+                }`}
+              >
+                <Upload className="h-4 w-4" />
+                Anschreiben hinzufügen (PDF oder DOCX)
+                <input id="cover-input" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={(e) => handleCoverChange(e.target.files?.[0] ?? null)} />
+              </button>
+            )}
+            {errors.cover && <p className="text-xs text-destructive">{errors.cover}</p>}
+            <p className="text-xs text-muted-foreground">Du kannst Lebenslauf und Anschreiben auch als eine gemeinsame PDF hochladen.</p>
           </div>
 
           <div className="flex items-start gap-3">

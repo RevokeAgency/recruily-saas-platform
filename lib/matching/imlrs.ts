@@ -59,6 +59,7 @@ export interface IMLRSCandidateInput {
   phone?: string
   summary?: string
   summary_ai?: string
+  cover_letter_text?: string | null
 }
 
 export interface IMLRSJobInput {
@@ -178,6 +179,9 @@ Ausbildung: ${candidate.education || "Nicht angegeben"}
 E-Mail: ${candidate.email || "Nicht angegeben"}
 Telefon: ${candidate.phone || "Nicht angegeben"}
 KI-Zusammenfassung: ${candidate.summary_ai || candidate.summary || "Keine Zusammenfassung verfügbar"}
+${candidate.cover_letter_text?.trim()
+  ? `\n=== ANSCHREIBEN / MOTIVATIONSSCHREIBEN ===\n${candidate.cover_letter_text.trim().slice(0, 4000)}\nBerücksichtige das Anschreiben besonders für Soft Skills, Kultur-Fit und Motivation.`
+  : ""}
 `
 
   const jobInfo = `

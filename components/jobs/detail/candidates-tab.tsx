@@ -5,7 +5,7 @@ import useSWR from "swr"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -27,6 +27,7 @@ import {
   Loader2,
   Trash2,
   X,
+  FileText,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -78,6 +79,9 @@ interface Candidate {
   education: string | null
   summary_ai: string | null
   location: string | null
+  photo_url: string | null
+  resume_path: string | null
+  cover_letter_path: string | null
   status: "queued" | "analyzing" | "scored" | "error" | "stale" | "new" | "shortlisted" | "interviewed" | "Eingeladen" | "Abgesagt"
   match_score: number | null
   hard_skills_score: number | null
@@ -142,6 +146,21 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
       .join("")
       .toUpperCase()
       .slice(0, 2)
+  }
+
+  const [openingDoc, setOpeningDoc] = useState<string | null>(null)
+  const openDocument = async (candidateId: string, type: "resume" | "cover") => {
+    setOpeningDoc(`${candidateId}-${type}`)
+    try {
+      const res = await fetch(`/api/candidates/${candidateId}/document?type=${type}`)
+      const data = await res.json()
+      if (res.ok && data.url) window.open(data.url, "_blank", "noopener")
+      else toast.error(data.error || "Dokument konnte nicht geladen werden")
+    } catch {
+      toast.error("Dokument konnte nicht geladen werden")
+    } finally {
+      setOpeningDoc(null)
+    }
   }
 
   // Delete candidate from job
@@ -300,6 +319,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                   {/* Header */}
                   <div className="flex items-start gap-4 mb-4">
                     <Avatar className="h-12 w-12">
+                      {candidate.photo_url && <AvatarImage src={candidate.photo_url} alt={candidate.full_name} className="object-cover" />}
                       <AvatarFallback
                         className="text-[#0C1A16] font-semibold"
                         style={{ backgroundImage: "var(--rv-gradient)" }}
@@ -365,6 +385,36 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                         <span className="font-medium text-sm text-teal-600">KI-Zusammenfassung</span>
                       </div>
                       <p className="text-sm text-slate-600">{candidate.summary_ai}</p>
+                    </div>
+                  )}
+
+                  {/* Documents */}
+                  {(candidate.resume_path || candidate.cover_letter_path) && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {candidate.resume_path && (
+                        <Button
+                          variant="outline" size="sm" className="gap-2"
+                          disabled={openingDoc === `${candidate.id}-resume`}
+                          onClick={() => openDocument(candidate.id, "resume")}
+                        >
+                          {openingDoc === `${candidate.id}-resume`
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : <FileText className="h-4 w-4 text-[var(--rv-green-deep)]" />}
+                          Lebenslauf
+                        </Button>
+                      )}
+                      {candidate.cover_letter_path && (
+                        <Button
+                          variant="outline" size="sm" className="gap-2"
+                          disabled={openingDoc === `${candidate.id}-cover`}
+                          onClick={() => openDocument(candidate.id, "cover")}
+                        >
+                          {openingDoc === `${candidate.id}-cover`
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : <FileText className="h-4 w-4 text-[var(--rv-green-deep)]" />}
+                          Anschreiben
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>

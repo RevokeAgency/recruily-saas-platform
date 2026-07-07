@@ -15,7 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -59,6 +59,7 @@ interface Candidate {
   skills: string[]
   education: string | null
   summary_ai: string | null
+  photo_url?: string | null
   location: string | null
   status: string
   match_score: number | null
@@ -357,6 +358,7 @@ export function CandidateMatchModal({
           {/* Candidate Header */}
           <div className="flex items-center gap-4">
             <Avatar className="h-14 w-14">
+              {candidate.photo_url && <AvatarImage src={candidate.photo_url} alt={candidate.full_name} className="object-cover" />}
               <AvatarFallback
                 className="text-[#0C1A16] text-lg font-semibold"
                 style={{ backgroundImage: "var(--rv-gradient)" }}
