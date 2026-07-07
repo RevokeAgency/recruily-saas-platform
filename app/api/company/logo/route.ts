@@ -1,5 +1,4 @@
 import { createClient as createServer } from "@/lib/supabase/server"
-import { createClient as createAdmin } from "@supabase/supabase-js"
 import { NextRequest } from "next/server"
 
 export const dynamic = "force-dynamic"
@@ -8,12 +7,13 @@ const BUCKET = "logos"
 const ALLOWED = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"]
 
 // Uploads a company logo to the public `logos` Storage bucket and stores its URL
-// on user_profiles.logo_url. Requires a public bucket named "logos" in Supabase
-// Storage. Used by onboarding and settings.
+// on user_profiles.logo_url. Runs as the signed-in user: Storage RLS (migration
+// 011) lets them write only inside their own {user_id}/ folder, so no
+// service-role key is needed. Used by onboarding and settings.
 export async function POST(req: NextRequest) {
   try {
-    const server = await createServer()
-    const { data: { user } } = await server.auth.getUser()
+    const supabase = await createServer()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
 
     const form = await req.formData()
@@ -26,28 +26,32 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: "Maximale Dateigröße: 2 MB" }, { status: 400 })
     }
 
-    const admin = createAdmin(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { persistSession: false } },
-    )
-
     const ext = file.name.split(".").pop()?.toLowerCase() || "png"
     const path = `${user.id}/logo-${Date.now()}.${ext}`
     const buffer = Buffer.from(await file.arrayBuffer())
 
-    const { error: upErr } = await admin.storage
+    const { error: upErr } = await supabase.storage
       .from(BUCKET)
       .upload(path, buffer, { contentType: file.type, upsert: true })
     if (upErr) {
       console.error("[logo] upload failed:", upErr)
-      return Response.json({ error: "Upload fehlgeschlagen (Bucket 'logos' vorhanden?)" }, { status: 500 })
+      return Response.json(
+        { error: "Upload fehlgeschlagen. Ist die Migration 011 (Storage-Bucket 'logos') eingespielt?" },
+        { status: 500 },
+      )
     }
 
-    const { data: pub } = admin.storage.from(BUCKET).getPublicUrl(path)
+    const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path)
     const logoUrl = pub.publicUrl
 
-    await admin.from("user_profiles").update({ logo_url: logoUrl }).eq("id", user.id)
+    const { error: updErr } = await supabase
+      .from("user_profiles")
+      .update({ logo_url: logoUrl })
+      .eq("id", user.id)
+    if (updErr) {
+      console.error("[logo] profile update failed:", updErr)
+      return Response.json({ error: "Logo gespeichert, aber Profil-Update fehlgeschlagen" }, { status: 500 })
+    }
 
     return Response.json({ success: true, logoUrl })
   } catch (error) {

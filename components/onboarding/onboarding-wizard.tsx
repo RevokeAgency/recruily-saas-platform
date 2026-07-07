@@ -13,7 +13,7 @@ import { toast } from "sonner"
 import {
   Building2, Upload, Check, Loader2, Copy, Mail, Link2, Sparkles, ArrowRight, PartyPopper,
 } from "lucide-react"
-import { RvBrandMark } from "@/components/landing/rv-brand-mark"
+import Image from "next/image"
 import { slugify, buildJobEmailAddress, INBOUND_DOMAIN } from "@/lib/email/routing"
 import { saveCompany, checkSlugAvailable, completeOnboarding } from "@/app/actions/onboarding"
 
@@ -138,7 +138,14 @@ export function OnboardingWizard({ initial }: Props) {
     <div className="min-h-screen bg-[var(--rv-mist)]">
       <div className="mx-auto flex min-h-screen max-w-xl flex-col px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <RvBrandMark />
+          <Image
+            src="/revetly/LogoEntwurf-trim.png"
+            alt="Revetly"
+            width={129}
+            height={32}
+            className="h-8 w-auto"
+            priority
+          />
           <span className="text-sm text-muted-foreground">Schritt {Math.min(step + 1, 4)} von 4</span>
         </div>
 
