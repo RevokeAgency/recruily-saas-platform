@@ -5,31 +5,41 @@ import { PublicJobView, type PublicJob } from "@/components/public/public-job"
 
 export const dynamic = "force-dynamic"
 
-// Service-role read: user_profiles is RLS-protected, so the public page resolves
-// the customer + job server-side with the service key (never exposed to the client).
-function admin() {
+// The public page resolves the customer + job through a SECURITY DEFINER RPC
+// (scripts/012) callable with the anon key, so a shared job link renders
+// without depending on the service-role key. The RPC returns only the public
+// fields of the single matched job; user_profiles / jobs stay RLS-protected.
+function anonClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     { auth: { persistSession: false } },
   )
 }
 
 async function resolve(customerSlug: string, jobSlug: string): Promise<{ job: PublicJob; logoUrl: string | null } | null> {
-  const supabase = admin()
-  const { data: owner } = await supabase
-    .from("user_profiles").select("id, logo_url").eq("slug", customerSlug).single()
-  if (!owner) return null
+  const supabase = anonClient()
+  const { data, error } = await supabase.rpc("public_job_by_slug", {
+    p_customer_slug: customerSlug,
+    p_job_slug: jobSlug,
+  })
+  if (error || !data) return null
 
-  const { data: job } = await supabase
-    .from("jobs")
-    .select("id, title, company, location, employment_type, description, required_skills, years_experience, is_active")
-    .eq("user_id", owner.id)
-    .eq("public_slug", jobSlug)
-    .single()
-  if (!job) return null
-
-  return { job: job as PublicJob, logoUrl: owner.logo_url ?? null }
+  const d = data as Record<string, unknown>
+  return {
+    job: {
+      id: d.id as string,
+      title: d.title as string,
+      company: d.company as string,
+      location: (d.location as string) ?? null,
+      employment_type: (d.employment_type as string) ?? null,
+      description: (d.description as string) ?? null,
+      required_skills: (d.required_skills as string[]) ?? null,
+      years_experience: (d.years_experience as string) ?? null,
+      is_active: Boolean(d.is_active),
+    },
+    logoUrl: (d.logo_url as string) ?? null,
+  }
 }
 
 export async function generateMetadata(
