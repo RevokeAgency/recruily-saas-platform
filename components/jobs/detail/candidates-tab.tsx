@@ -432,16 +432,16 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                     {candidate.status !== "Abgesagt" ? (
                       <Button
                         size="sm"
-                        variant="ghost"
+                        variant="outline"
                         onClick={() => setRejectionCandidate(candidate)}
-                        className="w-full text-red-500 hover:text-red-700 hover:bg-red-50 text-xs"
+                        className="w-full gap-1.5 border-border text-muted-foreground hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive"
                       >
-                        <X className="h-3 w-3 mr-1" />
+                        <X className="h-3.5 w-3.5" />
                         Absage senden
                       </Button>
                     ) : (
-                      <Button size="sm" variant="ghost" disabled className="w-full text-slate-400 text-xs">
-                        Abgesagt
+                      <Button size="sm" variant="ghost" disabled className="w-full text-muted-foreground">
+                        Absage gesendet
                       </Button>
                     )}
                   </div>
