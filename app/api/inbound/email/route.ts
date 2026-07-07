@@ -182,9 +182,15 @@ export async function POST(req: NextRequest) {
 
     const { data: link } = await supabase
       .from("job_candidates")
-      .insert({ job_id: job.id, candidate_id: candidate.id, status, user_id: job.user_id, source: "email" })
+      .insert({ job_id: job.id, candidate_id: candidate.id, status, user_id: job.user_id })
       .select("id")
       .single()
+
+    if (link) {
+      // Best-effort source tag (migration 013).
+      await supabase.from("job_candidates").update({ source: "email" }).eq("id", link.id)
+        .then(({ error }) => { if (error) console.error("[inbound] source skipped:", error.message) })
+    }
 
     if (link && quota.allowed) {
       scoreJobCandidateLink(supabase, link.id).catch((err) =>

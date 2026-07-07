@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { 
-  ArrowLeft, 
-  FileUp, 
-  Loader2, 
-  X, 
+  ArrowLeft,
+  FileUp,
+  FileText,
+  Upload,
+  Loader2,
+  X,
   Plus,
   CheckCircle2,
   Sparkles,
@@ -56,9 +58,12 @@ function NewCandidateContent() {
   const [isSaving, setIsSaving] = useState(false)
   const [candidateData, setCandidateData] = useState<CandidateData | null>(null)
   const [newSkill, setNewSkill] = useState("")
+  const [cvFile, setCvFile] = useState<File | null>(null)
+  const [coverFile, setCoverFile] = useState<File | null>(null)
 
   // Handle file upload
   const handleFileUpload = async (file: File) => {
+    setCvFile(file)
     setIsProcessing(true)
 
     try {
@@ -205,6 +210,19 @@ function NewCandidateContent() {
         return
       }
 
+      // Attach CV + cover letter and extract the photo (best-effort).
+      const candidateId = result.candidate?.id
+      if (candidateId && (cvFile || coverFile)) {
+        try {
+          const fd = new FormData()
+          if (cvFile) fd.append("cv", cvFile)
+          if (coverFile) fd.append("cover", coverFile)
+          await fetch(`/api/candidates/${candidateId}/upload`, { method: "POST", body: fd })
+        } catch {
+          /* non-fatal: candidate is saved, documents are optional */
+        }
+      }
+
       // If a match was triggered, notify the counter to refresh
       if (jobId) {
         window.dispatchEvent(new Event("match-completed"))
@@ -270,6 +288,8 @@ function NewCandidateContent() {
           isSaving={isSaving}
           onSave={saveCandidate}
           onBack={() => setStep("upload")}
+          coverFile={coverFile}
+          onCoverChange={setCoverFile}
         />
       )}
 
@@ -441,6 +461,8 @@ function PreviewSection({
   isSaving,
   onSave,
   onBack,
+  coverFile,
+  onCoverChange,
 }: {
   data: CandidateData
   onDataChange: (data: CandidateData) => void
@@ -453,6 +475,8 @@ function PreviewSection({
   isSaving: boolean
   onSave: () => void
   onBack: () => void
+  coverFile: File | null
+  onCoverChange: (file: File | null) => void
 }) {
   return (
     <div className="space-y-6">
@@ -626,6 +650,32 @@ function PreviewSection({
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Cover letter (optional) */}
+      <Card className="border border-border rounded-2xl">
+        <CardContent className="p-5">
+          <p className="text-sm font-medium text-slate-900 mb-1">Anschreiben / Motivationsschreiben <span className="font-normal text-slate-500">(optional)</span></p>
+          {coverFile ? (
+            <div className="flex items-center gap-3 rounded-xl border border-[var(--rv-green)] bg-[var(--app-green-wash)] p-3">
+              <FileText className="h-5 w-5 flex-shrink-0 text-[var(--rv-green-deep)]" />
+              <span className="flex-1 truncate text-sm font-medium text-slate-900">{coverFile.name}</span>
+              <button type="button" onClick={() => onCoverChange(null)} className="text-slate-400 hover:text-slate-700">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => document.getElementById("cover-upload-input")?.click()}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border p-3 text-sm text-slate-500 transition-colors hover:border-[var(--rv-green)] hover:bg-slate-50"
+            >
+              <Upload className="h-4 w-4" />
+              Anschreiben hinzufügen (PDF oder DOCX)
+              <input id="cover-upload-input" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={(e) => onCoverChange(e.target.files?.[0] ?? null)} />
+            </button>
+          )}
         </CardContent>
       </Card>
 

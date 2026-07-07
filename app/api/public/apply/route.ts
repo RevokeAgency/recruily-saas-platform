@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
 
     const { data: link, error: linkError } = await supabase
       .from("job_candidates")
-      .insert({ job_id: jobId, candidate_id: candidate.id, status, user_id: ownerId, source: "public_page" })
+      .insert({ job_id: jobId, candidate_id: candidate.id, status, user_id: ownerId })
       .select("id")
       .single()
 
@@ -150,6 +150,10 @@ export async function POST(req: NextRequest) {
       console.error("[apply] link failed:", linkError)
       return Response.json({ error: "Fehler beim Verknüpfen" }, { status: 500 })
     }
+
+    // Tag the source for the activity feed. Best-effort (migration 013).
+    await supabase.from("job_candidates").update({ source: "public_page" }).eq("id", link.id)
+      .then(({ error }) => { if (error) console.error("[apply] source skipped:", error.message) })
 
     if (quota.allowed) {
       scoreJobCandidateLink(supabase, link.id).catch((err) =>
