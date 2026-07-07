@@ -141,7 +141,6 @@ export async function POST(req: NextRequest) {
         education: parsed.education,
         summary_ai: parsed.summary_ai,
         location: parsed.location,
-        cover_letter_text: email.text || null,
         user_id: job.user_id,
       })
       .select("id")
@@ -170,7 +169,9 @@ export async function POST(req: NextRequest) {
           if (!pErr) photoUrl = supabase.storage.from("candidate-photos").getPublicUrl(photoPath).data.publicUrl
         }
       }
-      await supabase.from("candidates").update({ resume_path: resumePath, photo_url: photoUrl }).eq("id", candidate.id)
+      await supabase.from("candidates")
+        .update({ resume_path: resumePath, photo_url: photoUrl, cover_letter_text: email.text || null })
+        .eq("id", candidate.id)
     } catch (err) {
       console.error("[inbound] document/photo storage failed:", err)
     }

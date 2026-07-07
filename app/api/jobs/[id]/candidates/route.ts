@@ -28,22 +28,7 @@ export async function GET(
         ai_summary,
         notes,
         created_at,
-        candidate:candidates(
-          id,
-          full_name,
-          email,
-          phone,
-          job_title,
-          years_of_experience,
-          experience_level,
-          skills,
-          education,
-          summary_ai,
-          location,
-          photo_url,
-          resume_path,
-          cover_letter_path
-        )
+        candidate:candidates(*)
       `)
       .eq("job_id", jobId)
       .order("created_at", { ascending: false })

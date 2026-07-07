@@ -92,7 +92,6 @@ export async function POST(req: NextRequest) {
         education: p?.education || null,
         summary_ai: p?.summary_ai || null,
         location: p?.location || null,
-        cover_letter_text: coverText || null,
         user_id: ownerId,
       })
       .select("id")
@@ -126,11 +125,16 @@ export async function POST(req: NextRequest) {
       if (!upErr) photoUrl = supabase.storage.from(PHOTOS).getPublicUrl(photoPath).data.publicUrl
     }
 
+    // Enrichment columns land here (migration 014). Best-effort: if the columns
+    // aren't there yet the candidate + matching still work, just without docs.
     await supabase.from("candidates").update({
       resume_path: resumePath,
       cover_letter_path: coverPath,
+      cover_letter_text: coverText || null,
       photo_url: photoUrl,
-    }).eq("id", candidate.id)
+    }).eq("id", candidate.id).then(({ error }) => {
+      if (error) console.error("[apply] document enrichment skipped:", error.message)
+    })
 
     // Spend a match (or queue if over the limit) then link + score.
     const quota = await consumeMatch(supabase, ownerId)
