@@ -89,7 +89,20 @@ const jobSchema = z.object({
   location: z.string().nullable().describe("Job location, city and country"),
   employmentType: z.enum(["full-time", "part-time", "remote", "contract"]).describe("Type of employment"),
   salaryRange: z.string().nullable().describe("Salary range if mentioned, format: €XX.XXX - €XX.XXX"),
-  description: z.string().describe("Full job description including responsibilities"),
+  description: z.string().describe(
+    "Die vollständige Stellenbeschreibung, sauber strukturiert und gut lesbar formatiert. " +
+    "REGELN: (1) Beginne mit 1-2 einleitenden Sätzen als Fließtext (kurze Vorstellung der Rolle/Firma). " +
+    "(2) Gliedere den Rest in klar benannte Abschnitte. Jede Abschnitts-Überschrift steht in einer eigenen Zeile " +
+    "und endet mit einem Doppelpunkt, z.B. 'Deine Aufgaben:', 'Dein Profil:', 'Wir bieten:', 'Über uns:'. " +
+    "(3) Liste Aufgaben, Anforderungen und Benefits als einzelne Stichpunkte, jeder in einer eigenen Zeile mit '- ' am Anfang. " +
+    "(4) Trenne Abschnitte durch eine Leerzeile. " +
+    "(5) Übernimm KEINE rohen, mit '|' getrennten Schlagwortketten und keine Werbe-Symbole. Formuliere vollständige, saubere Sätze bzw. Stichpunkte. " +
+    "Antworte auf Deutsch. Beispiel-Struktur:\n" +
+    "Als Verkaufsmitarbeiter:in berätst du unsere Kund:innen und bist erste Ansprechperson im Shop.\n\n" +
+    "Deine Aufgaben:\n- Beratung und Verkauf von Produkten\n- Betreuung der Kund:innen vor Ort\n\n" +
+    "Dein Profil:\n- Freude am Umgang mit Menschen\n- Kommunikationsstärke\n\n" +
+    "Wir bieten:\n- Attraktives Prämienmodell\n- Mitarbeiterrabatte"
+  ),
   requiredSkills: z.array(z.string()).describe("List of required technical and soft skills"),
   niceToHaveSkills: z.array(z.string()).describe("List of nice-to-have or preferred skills"),
   yearsExperience: z.string().nullable().describe("Required years of experience, e.g. '3-5 Jahre'"),
@@ -227,10 +240,16 @@ ${content}`,
 
     const { output } = await generateText({
       model: google("gemini-2.5-flash"),
-      system: `Du bist ein Experte für HR und Recruiting. 
+      system: `Du bist ein Experte für HR und Recruiting.
 Deine Aufgabe ist es, Stellenausschreibungen zu analysieren und strukturierte Daten zu extrahieren.
 Extrahiere alle relevanten Informationen und fülle die Felder so vollständig wie möglich aus.
 Wenn eine Information nicht vorhanden ist, setze den Wert auf null oder ein leeres Array.
+
+Besonders wichtig ist das Feld "description": Gib es NIEMALS als einen einzigen langen Textblock aus.
+Formatiere es immer sauber mit einem kurzen Einleitungssatz, Abschnitts-Überschriften (die auf ":" enden)
+und Stichpunkten (jeweils mit "- " am Zeilenanfang), getrennt durch Leerzeilen. Verwende echte
+Zeilenumbrüche (\\n). Kopiere keine rohen, mit "|" getrennten Schlagwortketten aus dem Original.
+
 Antworte IMMER auf Deutsch.`,
       output: Output.object({
         schema: jobSchema,

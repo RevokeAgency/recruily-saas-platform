@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { MapPin, Clock, Upload, FileText, X, Loader2, CheckCircle2, GraduationCap, Lock, ArrowDown } from "lucide-react"
+import { FormattedJobDescription } from "@/components/jobs/formatted-description"
 
 export interface PublicJob {
   id: string
@@ -308,9 +309,10 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
           <div className="rounded-2xl border border-border bg-card p-6 lg:p-8">
             <h2 className="mb-4 text-lg font-semibold text-foreground">Über die Stelle</h2>
             {job.description ? (
-              <div className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                {job.description}
-              </div>
+              <FormattedJobDescription
+                text={job.description}
+                className="text-sm leading-relaxed text-muted-foreground"
+              />
             ) : (
               <p className="text-sm text-muted-foreground">Keine Beschreibung hinterlegt.</p>
             )}

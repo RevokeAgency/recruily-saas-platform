@@ -224,13 +224,6 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
         </CardContent>
       </Card>
 
-      {/* AI Badge */}
-      <div className="flex items-center justify-center">
-        <Badge variant="outline" className="text-muted-foreground">
-          Powered by Gemini AI
-        </Badge>
-      </div>
-
       {/* Navigation */}
       <div className="flex flex-col sm:flex-row justify-between gap-3 pt-4">
         <Button variant="outline" onClick={onBack} disabled={isSubmitting}>

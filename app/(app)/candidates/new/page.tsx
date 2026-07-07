@@ -416,9 +416,9 @@ function UploadSection({
         <CardContent className="p-5 flex items-start gap-4">
           <Sparkles className="h-5 w-5 text-teal-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-medium text-teal-900">Powered by Gemini AI</p>
+            <p className="font-medium text-teal-900">Automatische CV-Analyse</p>
             <p className="text-sm text-teal-700 mt-1">
-              Unsere KI extrahiert automatisch alle relevanten Informationen aus dem CV: 
+              Unsere KI extrahiert automatisch alle relevanten Informationen aus dem CV:
               Kontaktdaten, Skills, Berufserfahrung und erstellt ein professionelles Profil.
             </p>
           </div>
