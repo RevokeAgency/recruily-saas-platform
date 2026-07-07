@@ -58,10 +58,13 @@ function MetaChip({ icon: Icon, children }: { icon: React.ElementType; children:
 
 function PoweredBy() {
   return (
-    <p className="py-10 text-center text-xs text-muted-foreground">
-      Intelligentes Recruiting mit{" "}
-      <a href="/" className="font-semibold text-[var(--rv-green-deep)] hover:underline">Revetly</a>
-    </p>
+    <div className="flex items-center justify-center gap-2 py-10 text-xs text-muted-foreground">
+      <span>Intelligentes Recruiting mit</span>
+      <a href="/" aria-label="Revetly" className="inline-flex items-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/revetly/LogoEntwurf-trim.png" alt="Revetly" className="h-5 w-auto" />
+      </a>
+    </div>
   )
 }
 
