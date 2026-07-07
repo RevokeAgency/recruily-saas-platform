@@ -5,25 +5,17 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select"
 import { toast } from "sonner"
-import {
-  Building2, Upload, Check, Loader2, Copy, Mail, Link2, Sparkles, ArrowRight, PartyPopper,
-} from "lucide-react"
+import { Building2, Upload, Check, Loader2, ArrowRight, PartyPopper } from "lucide-react"
 import Image from "next/image"
-import { slugify, buildJobEmailAddress, INBOUND_DOMAIN } from "@/lib/email/routing"
+import { slugify, INBOUND_DOMAIN } from "@/lib/email/routing"
 import { saveCompany, checkSlugAvailable, completeOnboarding } from "@/app/actions/onboarding"
 
 interface Props {
   initial: { companyName: string; slug: string; logoUrl: string | null }
 }
 
-type CreatedJob = { id: string; public_slug: string; title: string }
-
-const STEPS = ["Firma", "Erster Job", "Fertig", "Los geht's"]
+const STEPS = ["Firma", "Fertig"]
 
 export function OnboardingWizard({ initial }: Props) {
   const router = useRouter()
@@ -36,10 +28,6 @@ export function OnboardingWizard({ initial }: Props) {
   const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "free" | "taken">("idle")
   const [logoUrl, setLogoUrl] = useState<string | null>(initial.logoUrl)
   const [logoUploading, setLogoUploading] = useState(false)
-
-  // Step 2: first job
-  const [job, setJob] = useState({ title: "", location: "", employmentType: "full-time", description: "", requirements: "" })
-  const [createdJob, setCreatedJob] = useState<CreatedJob | null>(null)
 
   const [pending, startTransition] = useTransition()
 
@@ -93,45 +81,12 @@ export function OnboardingWizard({ initial }: Props) {
     })
   }
 
-  const submitJob = () => {
-    if (!job.title.trim()) { toast.error("Bitte gib einen Jobtitel ein"); return }
-    startTransition(async () => {
-      const requiredSkills = job.requirements.split(/[\n,]/).map((s) => s.trim()).filter(Boolean)
-      const res = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: job.title, company: companyName, location: job.location || null,
-          employmentType: job.employmentType, description: job.description || null,
-          requiredSkills, isActive: true,
-        }),
-      })
-      const data = await res.json()
-      if (res.status === 403 && data.error === "job_limit_reached") {
-        toast.error("Job-Limit erreicht. Im Dashboard kannst du upgraden.")
-        return
-      }
-      if (!res.ok || !data.job) { toast.error(data.error || "Job konnte nicht angelegt werden"); return }
-      setCreatedJob({ id: data.job.id, public_slug: data.job.public_slug, title: data.job.title })
-      setStep(2)
-    })
-  }
-
   const finish = () => {
     startTransition(async () => {
       await completeOnboarding()
       router.push("/dashboard")
       router.refresh()
     })
-  }
-
-  const origin = typeof window !== "undefined" ? window.location.origin : ""
-  const emailAddress = createdJob && slug ? buildJobEmailAddress(slug, createdJob.title, createdJob.id) : ""
-  const jobPageUrl = createdJob && slug ? `${origin}/jobs/${slug}/${createdJob.public_slug}` : ""
-
-  const copy = (text: string, label: string) => {
-    navigator.clipboard?.writeText(text).catch(() => {})
-    toast.success(`${label} kopiert`)
   }
 
   return (
@@ -146,7 +101,7 @@ export function OnboardingWizard({ initial }: Props) {
             className="h-8 w-auto"
             priority
           />
-          <span className="text-sm text-muted-foreground">Schritt {Math.min(step + 1, 4)} von 4</span>
+          <span className="text-sm text-muted-foreground">Schritt {Math.min(step + 1, STEPS.length)} von {STEPS.length}</span>
         </div>
 
         {/* progress */}
@@ -169,7 +124,7 @@ export function OnboardingWizard({ initial }: Props) {
                 </div>
                 <h1 className="text-xl font-bold text-foreground">Willkommen bei Revetly</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Richte in unter 5 Minuten deine Firma ein. Los geht's mit den Basics.
+                  Richte in unter 2 Minuten deine Firma ein. Los geht's mit den Basics.
                 </p>
               </div>
 
@@ -225,126 +180,17 @@ export function OnboardingWizard({ initial }: Props) {
             </div>
           )}
 
-          {/* ---------- Step 2: First job ---------- */}
+          {/* ---------- Step 2: Done ---------- */}
           {step === 1 && (
-            <div className="space-y-5">
-              <div>
-                <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--app-green-wash)]">
-                  <Sparkles className="h-5 w-5 text-[var(--rv-green-deep)]" />
-                </div>
-                <h1 className="text-xl font-bold text-foreground">Dein erster Job</h1>
-                <p className="mt-1 text-sm text-muted-foreground">Nur die Basics, verfeinern kannst du später jederzeit.</p>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="jt">Jobtitel *</Label>
-                <Input id="jt" value={job.title} placeholder="Senior Developer (m/w/d)"
-                  onChange={(e) => setJob({ ...job, title: e.target.value })} />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="loc">Standort</Label>
-                  <Input id="loc" value={job.location} placeholder="Wien / Remote"
-                    onChange={(e) => setJob({ ...job, location: e.target.value })} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Anstellung</Label>
-                  <Select value={job.employmentType} onValueChange={(v) => setJob({ ...job, employmentType: v })}>
-                    <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full-time">Vollzeit</SelectItem>
-                      <SelectItem value="part-time">Teilzeit</SelectItem>
-                      <SelectItem value="contract">Freelance / Vertrag</SelectItem>
-                      <SelectItem value="remote">Remote</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="desc">Beschreibung</Label>
-                <Textarea id="desc" rows={4} value={job.description} placeholder="Was macht die Rolle aus?"
-                  onChange={(e) => setJob({ ...job, description: e.target.value })} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="req">Anforderungen / Skills <span className="font-normal text-muted-foreground">(eine pro Zeile)</span></Label>
-                <Textarea id="req" rows={3} value={job.requirements} placeholder={"React\nTypeScript\n3+ Jahre Erfahrung"}
-                  onChange={(e) => setJob({ ...job, requirements: e.target.value })} />
-              </div>
-
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" disabled={pending} onClick={() => setStep(3)}>
-                  Später anlegen
-                </Button>
-                <Button className="flex-1" disabled={pending} onClick={submitJob}>
-                  {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Job anlegen
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* ---------- Step 3: Result ---------- */}
-          {step === 2 && createdJob && (
-            <div className="space-y-5">
-              <div>
-                <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--app-green-wash)]">
-                  <Check className="h-5 w-5 text-[var(--rv-green-deep)]" />
-                </div>
-                <h1 className="text-xl font-bold text-foreground">Das war's schon!</h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  „{createdJob.title}" ist live. Bewerbungen kommen ab jetzt automatisch rein, über zwei Wege:
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <div className="rounded-xl border border-border p-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-                    <Mail className="h-4 w-4 text-[var(--rv-green-deep)]" /> Bewerbungs-E-Mail
-                  </div>
-                  <div className="mb-2 rounded-lg bg-muted/50 px-3 py-2 font-mono text-xs break-all text-muted-foreground">{emailAddress}</div>
-                  <Button variant="outline" size="sm" onClick={() => copy(emailAddress, "E-Mail")}>
-                    <Copy className="mr-2 h-4 w-4" /> Kopieren
-                  </Button>
-                </div>
-
-                <div className="rounded-xl border border-border p-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-                    <Link2 className="h-4 w-4 text-[var(--rv-green-deep)]" /> Öffentliche Job-Page
-                  </div>
-                  <div className="mb-2 rounded-lg bg-muted/50 px-3 py-2 font-mono text-xs break-all text-muted-foreground">{jobPageUrl}</div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => copy(jobPageUrl, "Link")}>
-                      <Copy className="mr-2 h-4 w-4" /> Kopieren
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => window.open(jobPageUrl, "_blank")}>Öffnen</Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-xl bg-[var(--app-green-wash)] p-4 text-sm text-[var(--rv-green-deep)]">
-                <strong>Dein nächster Schritt:</strong> Trage die E-Mail-Adresse bei deinen Jobbörsen
-                (Karriere.at, Indeed) ein und/oder teile den Job-Page-Link. Fertig, Revetly macht den Rest.
-              </div>
-
-              <Button className="w-full" onClick={() => setStep(3)}>
-                Weiter <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          )}
-
-          {/* ---------- Step 4: Done ---------- */}
-          {step === 3 && (
             <div className="space-y-5 text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--app-green-wash)]">
                 <PartyPopper className="h-8 w-8 text-[var(--rv-green-deep)]" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">Einrichtung abgeschlossen</h1>
+                <h1 className="text-xl font-bold text-foreground">Firma eingerichtet</h1>
                 <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-                  Deine Firma ist eingerichtet. Im Dashboard siehst du alle Bewerbungen, Matches und Jobs an einem Ort.
+                  Alles bereit. Leg im Dashboard deinen ersten Job an. Bewerbungen laufen dann
+                  automatisch über deine E-Mail-Adresse und die öffentliche Job-Page rein.
                 </p>
               </div>
               <Button className="w-full" disabled={pending} onClick={finish}>

@@ -1,8 +1,13 @@
 # Onboarding Flow — Runbook (Phase 1, Prompt 5)
 
-A guided 4-step first-run setup: company + slug + logo → first job → result
-(email + job-page link) → done. Shows only once; existing customers go straight
-to the dashboard.
+A guided first-run setup: **company + slug + logo → done**. The first job is
+created later in the dashboard (not during onboarding). Shows only once;
+existing customers go straight to the dashboard.
+
+> Note: the wizard was slimmed to 2 steps. The "first job" and "result"
+> sections described further down reflect the original design and no longer
+> run during onboarding — job creation, the application email and the public
+> job-page link now live in the dashboard / job-channels modal.
 
 ## 1. Apply the migration
 
