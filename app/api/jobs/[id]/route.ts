@@ -46,6 +46,87 @@ export async function PATCH(
   }
 }
 
+// Update a job's editable fields (title, company, description, skills, …).
+// Scoped to the owner; never touches is_active / public_slug / user_id.
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    }
+
+    const body = await request.json()
+    if (!body.title?.trim() || !body.company?.trim()) {
+      return Response.json({ error: "Titel und Unternehmen sind erforderlich" }, { status: 400 })
+    }
+
+    // Ownership check (RLS also enforces this, but 404 is clearer than a no-op).
+    const { data: existing } = await supabase
+      .from("jobs").select("id").eq("id", id).eq("user_id", user.id).single()
+    if (!existing) return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
+
+    const jobData = {
+      title: body.title,
+      company: body.company,
+      location: body.location || null,
+      employment_type: body.employmentType || "full-time",
+      salary_range: body.salaryRange || null,
+      description: body.description || null,
+      required_skills: body.requiredSkills || [],
+      nice_to_have_skills: body.niceToHaveSkills || [],
+      years_experience: body.yearsExperience || null,
+      education: body.education || null,
+      languages: body.languages || [],
+    }
+
+    const { data: job, error } = await supabase
+      .from("jobs").update(jobData).eq("id", id).eq("user_id", user.id).select().single()
+    if (error) return Response.json({ error: error.message }, { status: 500 })
+
+    return Response.json({ job })
+  } catch (error) {
+    console.error("Error updating job fields:", error)
+    return Response.json({ error: "Interner Serverfehler" }, { status: 500 })
+  }
+}
+
+// Permanently delete a job and its candidate links (the candidates themselves
+// stay in the pool). Scoped to the owner.
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    }
+
+    const { data: job } = await supabase
+      .from("jobs").select("id").eq("id", id).eq("user_id", user.id).single()
+    if (!job) return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
+
+    // Remove links first (no guaranteed ON DELETE CASCADE); candidates persist.
+    await supabase.from("job_candidates").delete().eq("job_id", id).eq("user_id", user.id)
+
+    const { error } = await supabase
+      .from("jobs").delete().eq("id", id).eq("user_id", user.id)
+    if (error) return Response.json({ error: error.message }, { status: 500 })
+
+    return Response.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting job:", error)
+    return Response.json({ error: "Interner Serverfehler" }, { status: 500 })
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

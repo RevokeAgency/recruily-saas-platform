@@ -1,7 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import useSWR from "swr"
+import { toast } from "sonner"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,14 +15,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Briefcase,
   MapPin,
   MoreHorizontal,
   Eye,
   Pencil,
   Archive,
+  ArchiveRestore,
   Trash2,
   Users2,
+  Loader2,
 } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -45,6 +59,49 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export function JobsList() {
   const { data, error, isLoading, mutate } = useSWR<{ jobs: Job[] }>("/api/jobs", fetcher)
+  const [deleteTarget, setDeleteTarget] = useState<Job | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const toggleArchive = async (job: Job) => {
+    setBusyId(job.id)
+    try {
+      const res = await fetch(`/api/jobs/${job.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !job.is_active }),
+      })
+      const result = await res.json()
+      if (res.status === 403 && result.error === "job_limit_reached") {
+        toast.error(`Job-Limit erreicht (${result.limit}). Schließe einen anderen Job oder upgrade.`)
+        return
+      }
+      if (!res.ok) { toast.error(result.error || "Aktion fehlgeschlagen"); return }
+      toast.success(job.is_active ? "Job archiviert" : "Job reaktiviert")
+      mutate()
+    } catch {
+      toast.error("Aktion fehlgeschlagen")
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    setIsDeleting(true)
+    try {
+      const res = await fetch(`/api/jobs/${deleteTarget.id}`, { method: "DELETE" })
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok) { toast.error(result.error || "Löschen fehlgeschlagen"); return }
+      toast.success("Job gelöscht")
+      setDeleteTarget(null)
+      mutate()
+    } catch {
+      toast.error("Löschen fehlgeschlagen")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -135,23 +192,35 @@ export function JobsList() {
                   <DropdownMenuItem asChild>
                     <Link href={`/jobs/${job.id}`}>
                       <Eye className="mr-2 h-4 w-4" />
-                      View
+                      Ansehen
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href={`/jobs/${job.id}/edit`}>
                       <Pencil className="mr-2 h-4 w-4" />
-                      Edit
+                      Bearbeiten
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Archive className="mr-2 h-4 w-4" />
-                    Archive
+                  <DropdownMenuItem
+                    disabled={busyId === job.id}
+                    onSelect={(e) => { e.preventDefault(); toggleArchive(job) }}
+                  >
+                    {busyId === job.id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : job.is_active ? (
+                      <Archive className="mr-2 h-4 w-4" />
+                    ) : (
+                      <ArchiveRestore className="mr-2 h-4 w-4" />
+                    )}
+                    {job.is_active ? "Archivieren" : "Reaktivieren"}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive">
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onSelect={(e) => { e.preventDefault(); setDeleteTarget(job) }}
+                  >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
+                    Löschen
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -234,6 +303,29 @@ export function JobsList() {
           </CardContent>
         </Card>
       ))}
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && !isDeleting && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Job löschen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Möchtest du <span className="font-semibold">{deleteTarget?.title}</span> wirklich löschen?
+              Der Job und die Zuordnungen der Kandidaten zu diesem Job werden entfernt. Die Kandidaten
+              selbst bleiben im Pool erhalten. Diese Aktion kann nicht rückgängig gemacht werden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDelete() }}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Löschen…</>) : "Endgültig löschen"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
