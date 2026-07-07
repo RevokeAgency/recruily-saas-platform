@@ -33,16 +33,16 @@ const getEmploymentLabel = (type: string | null) => {
 
 function CompanyBrand({ company, logoUrl }: { company: string; logoUrl: string | null }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-col items-start gap-1.5">
       {logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={logoUrl} alt={company} className="h-10 w-auto max-w-[160px] object-contain" />
+        <img src={logoUrl} alt={company} className="h-14 w-auto max-w-[240px] object-contain" />
       ) : (
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--app-green-wash)] text-lg font-bold text-[var(--rv-green-deep)]">
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--app-green-wash)] text-2xl font-bold text-[var(--rv-green-deep)]">
           {company.trim().charAt(0).toUpperCase() || "?"}
         </div>
       )}
-      <span className="text-lg font-semibold text-foreground">{company}</span>
+      <span className="text-sm font-semibold text-foreground">{company}</span>
     </div>
   )
 }
