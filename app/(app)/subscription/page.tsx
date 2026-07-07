@@ -59,7 +59,7 @@ export default function SubscriptionPage() {
   return (
     <div className="relative min-h-full overflow-hidden">
       <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
-      <RevealGroup className="relative z-[1] space-y-8 p-6 lg:p-8">
+      <RevealGroup className="relative z-[1] flex flex-col gap-8 p-6 lg:p-8">
         <PageHero
           eyebrow="Abonnement"
           title="Plan & Nutzung"
@@ -67,7 +67,7 @@ export default function SubscriptionPage() {
         />
 
       {/* Current Plan Usage */}
-      <Card className="reveal border border-border shadow-card">
+      <Card className="order-3 border border-border shadow-card">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -126,7 +126,7 @@ export default function SubscriptionPage() {
       </Card>
 
       {/* Billing Toggle */}
-      <div className="reveal flex items-center justify-center gap-3">
+      <div className="order-1 flex items-center justify-center gap-3">
         <Label
           htmlFor="billing-toggle"
           className={cn(
@@ -156,7 +156,7 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Pricing Cards */}
-      <div className="reveal grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="order-2 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {planOrder.map((planId) => {
           const plan = PLANS[planId]
           const price = isAnnual 
@@ -267,7 +267,7 @@ export default function SubscriptionPage() {
       </div>
 
         {/* Payment Info */}
-        <div className="reveal text-center text-sm text-muted-foreground">
+        <div className="order-4 text-center text-sm text-muted-foreground">
           <p>
             Sichere Zahlung via{" "}
             <span className="font-medium text-foreground">Stripe</span>
