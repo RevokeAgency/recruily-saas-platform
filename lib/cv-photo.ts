@@ -114,15 +114,43 @@ async function cropSquare(
   }
 }
 
-export async function extractCandidatePhoto(pdf: Buffer): Promise<Buffer | null> {
+export type PhotoDiagnostics = {
+  step: "render" | "locate" | "sanity" | "crop" | "ok"
+  rendered?: boolean
+  pageSize?: string
+  found?: boolean
+  box?: { x: number; y: number; w: number; h: number } | null
+  reason?: string
+}
+
+/** Full pipeline with per-step diagnostics (used by the retry endpoint). */
+export async function extractCandidatePhotoDetailed(
+  pdf: Buffer,
+): Promise<{ photo: Buffer | null; diag: PhotoDiagnostics }> {
   const rendered = await renderPdfFirstPage(pdf)
-  if (!rendered) return null
+  if (!rendered) {
+    return { photo: null, diag: { step: "render", rendered: false, reason: "PDF konnte nicht gerendert werden" } }
+  }
+  const pageSize = `${rendered.width}x${rendered.height}`
 
   const box = await locatePortrait(rendered.png)
-  if (!box) return null
+  if (!box) {
+    return { photo: null, diag: { step: "locate", rendered: true, pageSize, found: false, reason: "Kein Portrait erkannt" } }
+  }
 
-  // Sanity: reject boxes that are basically the whole page or implausibly tiny.
-  if (box.w > 0.85 || box.h > 0.85 || box.w < 0.03 || box.h < 0.03) return null
+  if (box.w > 0.85 || box.h > 0.85 || box.w < 0.03 || box.h < 0.03) {
+    return { photo: null, diag: { step: "sanity", rendered: true, pageSize, found: true, box, reason: "Erkannte Box unplausibel (zu groß/klein)" } }
+  }
 
-  return cropSquare(rendered, box)
+  const photo = await cropSquare(rendered, box)
+  if (!photo) {
+    return { photo: null, diag: { step: "crop", rendered: true, pageSize, found: true, box, reason: "Zuschnitt fehlgeschlagen" } }
+  }
+
+  return { photo, diag: { step: "ok", rendered: true, pageSize, found: true, box } }
+}
+
+export async function extractCandidatePhoto(pdf: Buffer): Promise<Buffer | null> {
+  const { photo } = await extractCandidatePhotoDetailed(pdf)
+  return photo
 }

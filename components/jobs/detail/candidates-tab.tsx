@@ -28,6 +28,7 @@ import {
   Trash2,
   X,
   FileText,
+  Image as ImageIcon,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -146,6 +147,25 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
       .join("")
       .toUpperCase()
       .slice(0, 2)
+  }
+
+  const [retryingPhoto, setRetryingPhoto] = useState<string | null>(null)
+  const retryPhoto = async (candidateId: string) => {
+    setRetryingPhoto(candidateId)
+    try {
+      const res = await fetch(`/api/candidates/${candidateId}/photo`, { method: "POST" })
+      const data = await res.json()
+      if (data.ok) {
+        toast.success("Foto aus dem Lebenslauf übernommen")
+        mutate()
+      } else {
+        toast.error(data.reason || data.error || "Kein Foto gefunden")
+      }
+    } catch {
+      toast.error("Foto-Extraktion fehlgeschlagen")
+    } finally {
+      setRetryingPhoto(null)
+    }
   }
 
   const [openingDoc, setOpeningDoc] = useState<string | null>(null)
@@ -413,6 +433,18 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                             ? <Loader2 className="h-4 w-4 animate-spin" />
                             : <FileText className="h-4 w-4 text-[var(--rv-green-deep)]" />}
                           Anschreiben
+                        </Button>
+                      )}
+                      {candidate.resume_path && !candidate.photo_url && candidate.resume_path.toLowerCase().endsWith(".pdf") && (
+                        <Button
+                          variant="outline" size="sm" className="gap-2"
+                          disabled={retryingPhoto === candidate.id}
+                          onClick={() => retryPhoto(candidate.id)}
+                        >
+                          {retryingPhoto === candidate.id
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : <ImageIcon className="h-4 w-4 text-[var(--rv-green-deep)]" />}
+                          Foto extrahieren
                         </Button>
                       )}
                     </div>
