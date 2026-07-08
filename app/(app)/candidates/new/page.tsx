@@ -186,32 +186,24 @@ function NewCandidateContent() {
     setIsSaving(true)
 
     try {
+      // 1. Create the candidate WITHOUT linking to the job yet, so scoring can
+      //    wait until the cover letter is attached.
       const response = await fetch("/api/candidates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...candidateData,
-          jobId: jobId, // Include jobId to link candidate to job
-        }),
+        body: JSON.stringify({ ...candidateData }),
       })
 
       const result = await response.json()
-
-      if (response.status === 403 && result.error === "match_limit_reached") {
-        toast.error("Match-Limit erreicht. Bitte upgrade deinen Plan.")
-        router.push("/subscription")
-        setIsSaving(false)
-        return
-      }
-
       if (!response.ok || result.error) {
         toast.error(result.error || "Fehler beim Speichern")
         setIsSaving(false)
         return
       }
-
-      // Attach CV + cover letter and extract the photo (best-effort).
       const candidateId = result.candidate?.id
+
+      // 2. Attach CV + cover letter (sets cover_letter_text) and extract the
+      //    photo. Awaited so the match below factors in the cover letter.
       if (candidateId && (cvFile || coverFile)) {
         try {
           const fd = new FormData()
@@ -223,9 +215,25 @@ function NewCandidateContent() {
         }
       }
 
-      // If a match was triggered, notify the counter to refresh
-      if (jobId) {
-        window.dispatchEvent(new Event("match-completed"))
+      // 3. Link to the job and score (the cover letter is now part of the match).
+      if (candidateId && jobId) {
+        const matchRes = await fetch(`/api/candidates/${candidateId}/match`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId }),
+        })
+        const matchResult = await matchRes.json().catch(() => ({}))
+        if (matchRes.status === 403 && matchResult.error === "match_limit_reached") {
+          toast.error("Match-Limit erreicht. Bitte upgrade deinen Plan.")
+          router.push("/subscription")
+          setIsSaving(false)
+          return
+        }
+        if (!matchRes.ok) {
+          toast.error(matchResult.error || "Verknüpfung fehlgeschlagen")
+        } else {
+          window.dispatchEvent(new Event("match-completed"))
+        }
       }
 
       setStep("success")
