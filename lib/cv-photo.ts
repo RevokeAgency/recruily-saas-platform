@@ -17,9 +17,37 @@ const google = createGoogleGenerativeAI({
  */
 
 type Rendered = { png: Buffer; width: number; height: number }
+type RenderResult = Rendered | { error: string }
 
-async function renderPdfFirstPage(pdf: Buffer, scale = 2): Promise<Rendered | null> {
+// pdfjs (legacy build) expects a few browser globals in Node; @napi-rs/canvas
+// provides them. Missing DOMMatrix/Path2D/ImageData is the classic serverless
+// "cannot render" cause once a PDF actually contains fonts/vector content.
+async function ensurePdfGlobals() {
+  const canvas = await import("@napi-rs/canvas")
+  const g = globalThis as unknown as Record<string, unknown>
+  if (!g.DOMMatrix && canvas.DOMMatrix) g.DOMMatrix = canvas.DOMMatrix
+  if (!g.Path2D && canvas.Path2D) g.Path2D = canvas.Path2D
+  if (!g.ImageData && canvas.ImageData) g.ImageData = canvas.ImageData
+  if (!g.DOMPoint && canvas.DOMPoint) g.DOMPoint = canvas.DOMPoint
+}
+
+// Best-effort filesystem path to pdfjs' bundled standard fonts, so rendering a
+// CV that uses the base-14 fonts doesn't throw.
+async function standardFontDataUrl(): Promise<string | undefined> {
   try {
+    const { createRequire } = await import("node:module")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const req = createRequire((import.meta as any).url || __filename)
+    const pkg = req.resolve("pdfjs-dist/package.json")
+    return pkg.replace(/package\.json$/, "standard_fonts/")
+  } catch {
+    return undefined
+  }
+}
+
+async function renderPdfFirstPage(pdf: Buffer, scale = 2): Promise<RenderResult> {
+  try {
+    await ensurePdfGlobals()
     const pdfjs: typeof import("pdfjs-dist/legacy/build/pdf.mjs") = await import(
       "pdfjs-dist/legacy/build/pdf.mjs"
     )
@@ -27,7 +55,8 @@ async function renderPdfFirstPage(pdf: Buffer, scale = 2): Promise<Rendered | nu
 
     const doc = await pdfjs.getDocument({
       data: new Uint8Array(pdf),
-      disableFontFace: true,
+      standardFontDataUrl: await standardFontDataUrl(),
+      useSystemFonts: true,
     }).promise
     const page = await doc.getPage(1)
     const viewport = page.getViewport({ scale })
@@ -40,8 +69,9 @@ async function renderPdfFirstPage(pdf: Buffer, scale = 2): Promise<Rendered | nu
     await page.render({ canvasContext: ctx as any, viewport, canvas: canvas as any }).promise
     return { png: canvas.toBuffer("image/png"), width, height }
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
     console.error("[cv-photo] pdf render failed:", err)
-    return null
+    return { error: message }
   }
 }
 
@@ -128,8 +158,8 @@ export async function extractCandidatePhotoDetailed(
   pdf: Buffer,
 ): Promise<{ photo: Buffer | null; diag: PhotoDiagnostics }> {
   const rendered = await renderPdfFirstPage(pdf)
-  if (!rendered) {
-    return { photo: null, diag: { step: "render", rendered: false, reason: "PDF konnte nicht gerendert werden" } }
+  if ("error" in rendered) {
+    return { photo: null, diag: { step: "render", rendered: false, reason: `PDF-Render-Fehler: ${rendered.error}` } }
   }
   const pageSize = `${rendered.width}x${rendered.height}`
 
