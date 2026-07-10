@@ -7,29 +7,10 @@ const nextConfig = {
     unoptimized: true,
   },
   // Keep the native/heavy CV-photo deps out of the bundler; load them at runtime.
+  // The pdfjs worker is pulled into the bundle via a require.resolve() literal in
+  // lib/cv-photo.ts (outputFileTracingIncludes reproducibly crashes the Vercel
+  // build here, so we can't use it).
   serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist"],
-  // pdfjs loads its worker + standard fonts dynamically at runtime, which the
-  // tracer misses. Force just those two into the bundle for the routes that
-  // render CV PDFs. Paths follow the (pnpm) symlink to the real files; no
-  // glob over the .pnpm store (that tripped the Vercel build tracer).
-  outputFileTracingIncludes: {
-    "/api/candidates/[id]/photo": [
-      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
-      "./node_modules/pdfjs-dist/standard_fonts/**",
-    ],
-    "/api/candidates/[id]/upload": [
-      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
-      "./node_modules/pdfjs-dist/standard_fonts/**",
-    ],
-    "/api/public/apply": [
-      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
-      "./node_modules/pdfjs-dist/standard_fonts/**",
-    ],
-    "/api/inbound/email": [
-      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
-      "./node_modules/pdfjs-dist/standard_fonts/**",
-    ],
-  },
 }
 
 export default nextConfig

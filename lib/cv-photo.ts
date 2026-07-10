@@ -1,10 +1,31 @@
 import { generateText, Output } from "ai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { z } from "zod"
+import { createRequire } from "node:module"
 
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 })
+
+// require.resolve() with a string literal lets the file tracer (nft) pull the
+// pdfjs worker + standard fonts into the serverless bundle. pdfjs imports the
+// worker dynamically at runtime, which the tracer otherwise misses (causing
+// "Setting up fake worker failed: Cannot find module pdf.worker.mjs" on Vercel).
+const nodeRequire = createRequire(import.meta.url)
+let WORKER_SRC: string | undefined
+let STANDARD_FONTS: string | undefined
+try {
+  WORKER_SRC = nodeRequire.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")
+} catch {
+  /* resolved lazily below if this fails at module load */
+}
+try {
+  STANDARD_FONTS = nodeRequire
+    .resolve("pdfjs-dist/package.json")
+    .replace(/package\.json$/, "standard_fonts/")
+} catch {
+  /* fonts are optional */
+}
 
 /**
  * Best-effort applicant-photo extraction from a CV PDF:
@@ -31,33 +52,6 @@ async function ensurePdfGlobals() {
   if (!g.DOMPoint && canvas.DOMPoint) g.DOMPoint = canvas.DOMPoint
 }
 
-// Best-effort filesystem path to pdfjs' bundled standard fonts, so rendering a
-// CV that uses the base-14 fonts doesn't throw.
-async function standardFontDataUrl(): Promise<string | undefined> {
-  try {
-    const { createRequire } = await import("node:module")
-    const path = await import("node:path")
-    // Resolve relative to the deployment root (no import.meta / __filename, which
-    // aren't reliable across the CJS/ESM server bundle).
-    const req = createRequire(path.join(process.cwd(), "index.js"))
-    const pkg = req.resolve("pdfjs-dist/package.json")
-    return pkg.replace(/package\.json$/, "standard_fonts/")
-  } catch {
-    return undefined
-  }
-}
-
-async function resolvePdfjsAsset(rel: string): Promise<string | undefined> {
-  try {
-    const { createRequire } = await import("node:module")
-    const path = await import("node:path")
-    const req = createRequire(path.join(process.cwd(), "index.js"))
-    return req.resolve(`pdfjs-dist/${rel}`)
-  } catch {
-    return undefined
-  }
-}
-
 async function renderPdfFirstPage(pdf: Buffer, scale = 2): Promise<RenderResult> {
   try {
     await ensurePdfGlobals()
@@ -66,14 +60,12 @@ async function renderPdfFirstPage(pdf: Buffer, scale = 2): Promise<RenderResult>
     )
     const { createCanvas } = await import("@napi-rs/canvas")
 
-    // Point pdfjs at its worker file (bundled via outputFileTracingIncludes) so
-    // the fake-worker setup finds it in the serverless runtime.
-    const workerSrc = await resolvePdfjsAsset("legacy/build/pdf.worker.mjs")
-    if (workerSrc) pdfjs.GlobalWorkerOptions.workerSrc = workerSrc
+    // Point pdfjs at its worker file so the fake-worker setup finds it at runtime.
+    if (WORKER_SRC) pdfjs.GlobalWorkerOptions.workerSrc = WORKER_SRC
 
     const doc = await pdfjs.getDocument({
       data: new Uint8Array(pdf),
-      standardFontDataUrl: await standardFontDataUrl(),
+      standardFontDataUrl: STANDARD_FONTS,
       useSystemFonts: true,
     }).promise
     const page = await doc.getPage(1)
