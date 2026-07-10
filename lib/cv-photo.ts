@@ -1,30 +1,23 @@
 import { generateText, Output } from "ai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { z } from "zod"
-import { createRequire } from "node:module"
+import { fileURLToPath } from "node:url"
 
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 })
 
-// require.resolve() with a string literal lets the file tracer (nft) pull the
-// pdfjs worker + standard fonts into the serverless bundle. pdfjs imports the
-// worker dynamically at runtime, which the tracer otherwise misses (causing
-// "Setting up fake worker failed: Cannot find module pdf.worker.mjs" on Vercel).
-const nodeRequire = createRequire(import.meta.url)
+// pdfjs needs its worker file at runtime, but the serverless tracer never
+// bundles it (pdfjs imports it dynamically) and require.resolve() gets rewritten
+// by the bundler into a module id (-> "Invalid workerSrc type"). So the worker
+// is vendored into the repo (lib/pdfjs-worker.mjs) and referenced via new URL,
+// which webpack emits as an asset and gives us a real file path for.
+// NOTE: keep lib/pdfjs-worker.mjs in sync with the installed pdfjs-dist version.
 let WORKER_SRC: string | undefined
-let STANDARD_FONTS: string | undefined
 try {
-  WORKER_SRC = nodeRequire.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")
+  WORKER_SRC = fileURLToPath(new URL("./pdfjs-worker.mjs", import.meta.url))
 } catch {
-  /* resolved lazily below if this fails at module load */
-}
-try {
-  STANDARD_FONTS = nodeRequire
-    .resolve("pdfjs-dist/package.json")
-    .replace(/package\.json$/, "standard_fonts/")
-} catch {
-  /* fonts are optional */
+  /* falls back to pdfjs' default resolution */
 }
 
 /**
@@ -60,12 +53,11 @@ async function renderPdfFirstPage(pdf: Buffer, scale = 2): Promise<RenderResult>
     )
     const { createCanvas } = await import("@napi-rs/canvas")
 
-    // Point pdfjs at its worker file so the fake-worker setup finds it at runtime.
+    // Point pdfjs at the vendored worker so the fake-worker setup finds it.
     if (WORKER_SRC) pdfjs.GlobalWorkerOptions.workerSrc = WORKER_SRC
 
     const doc = await pdfjs.getDocument({
       data: new Uint8Array(pdf),
-      standardFontDataUrl: STANDARD_FONTS,
       useSystemFonts: true,
     }).promise
     const page = await doc.getPage(1)
