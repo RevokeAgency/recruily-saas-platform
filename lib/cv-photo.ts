@@ -47,6 +47,17 @@ async function standardFontDataUrl(): Promise<string | undefined> {
   }
 }
 
+async function resolvePdfjsAsset(rel: string): Promise<string | undefined> {
+  try {
+    const { createRequire } = await import("node:module")
+    const path = await import("node:path")
+    const req = createRequire(path.join(process.cwd(), "index.js"))
+    return req.resolve(`pdfjs-dist/${rel}`)
+  } catch {
+    return undefined
+  }
+}
+
 async function renderPdfFirstPage(pdf: Buffer, scale = 2): Promise<RenderResult> {
   try {
     await ensurePdfGlobals()
@@ -54,6 +65,11 @@ async function renderPdfFirstPage(pdf: Buffer, scale = 2): Promise<RenderResult>
       "pdfjs-dist/legacy/build/pdf.mjs"
     )
     const { createCanvas } = await import("@napi-rs/canvas")
+
+    // Point pdfjs at its worker file (bundled via outputFileTracingIncludes) so
+    // the fake-worker setup finds it in the serverless runtime.
+    const workerSrc = await resolvePdfjsAsset("legacy/build/pdf.worker.mjs")
+    if (workerSrc) pdfjs.GlobalWorkerOptions.workerSrc = workerSrc
 
     const doc = await pdfjs.getDocument({
       data: new Uint8Array(pdf),
