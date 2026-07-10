@@ -97,7 +97,7 @@ async function locatePortrait(png: Buffer): Promise<{ x: number; y: number; w: n
             {
               type: "text",
               text:
-                "Das ist die erste Seite eines Lebenslaufs. Enthält sie ein Bewerbungsfoto / Portrait einer echten Person, gib die Bounding Box um Kopf und Schultern zurück (normalisiert 0-1000: ymin, xmin, ymax, xmax) und found=true. Ignoriere Firmenlogos, Icons, Illustrationen und Cliparts. Ist kein echtes Personenfoto vorhanden, setze found=false und alle Werte auf 0.",
+                "Das ist die erste Seite eines Lebenslaufs. Enthält sie ein Bewerbungsfoto einer echten Person, gib die Bounding Box GENAU um die Kanten des Fotos zurück (das rechteckige Bild selbst, eng an den Bildrändern, ohne den weißen Seitenhintergrund) - normalisiert 0-1000: ymin, xmin, ymax, xmax - und found=true. Ignoriere Firmenlogos, Icons, Illustrationen und Cliparts. Ist kein echtes Personenfoto vorhanden, setze found=false und alle Werte auf 0.",
             },
             { type: "image", image: png },
           ],
@@ -124,18 +124,21 @@ async function cropSquare(
     const { createCanvas, loadImage } = await import("@napi-rs/canvas")
     const img = await loadImage(r.png)
 
-    const bw = box.w * r.width
-    const bh = box.h * r.height
-    const cx = box.x * r.width + bw / 2
-    const cy = box.y * r.height + bh / 2
+    // Inset the detected photo rectangle slightly to eat any thin white border.
+    const inset = 0.03
+    const bx = (box.x + box.w * inset) * r.width
+    const by = (box.y + box.h * inset) * r.height
+    const bw = box.w * (1 - 2 * inset) * r.width
+    const bh = box.h * (1 - 2 * inset) * r.height
 
-    // Square crop around the portrait with a bit of headroom.
-    let side = Math.max(bw, bh) * 1.5
-    side = Math.min(side, r.width, r.height)
-    const sx = Math.max(0, Math.min(cx - side / 2, r.width - side))
-    const sy = Math.max(0, Math.min(cy - side / 2, r.height - side))
+    // Square that fits INSIDE the photo (no page background), centered
+    // horizontally and biased slightly up so the face stays in frame.
+    const side = Math.max(1, Math.min(bw, bh))
+    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(v, hi))
+    const sx = clamp(bx + (bw - side) / 2, bx, bx + bw - side)
+    const sy = clamp(by + (bh - side) * 0.28, by, by + bh - side)
 
-    const size = 256
+    const size = 320
     const out = createCanvas(size, size)
     const octx = out.getContext("2d")
     octx.drawImage(img, sx, sy, side, side, 0, 0, size, size)
