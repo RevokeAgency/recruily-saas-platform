@@ -36,8 +36,10 @@ async function ensurePdfGlobals() {
 async function standardFontDataUrl(): Promise<string | undefined> {
   try {
     const { createRequire } = await import("node:module")
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const req = createRequire((import.meta as any).url || __filename)
+    const path = await import("node:path")
+    // Resolve relative to the deployment root (no import.meta / __filename, which
+    // aren't reliable across the CJS/ESM server bundle).
+    const req = createRequire(path.join(process.cwd(), "index.js"))
     const pkg = req.resolve("pdfjs-dist/package.json")
     return pkg.replace(/package\.json$/, "standard_fonts/")
   } catch {
