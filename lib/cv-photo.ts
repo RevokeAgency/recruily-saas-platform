@@ -135,10 +135,10 @@ async function locatePortrait(png: Buffer): Promise<{ face: Box; photo: Box } | 
   }
 }
 
-// Face-centered circular crop: a square sized to show the whole head, centered
-// on the face and clamped inside the photo rectangle (so no white page bleeds
-// in), masked to a circle so it sits flush in the round avatar.
-async function cropCircle(r: Rendered, face: Box, photo: Box): Promise<Buffer | null> {
+// Face-centred square crop: sized to frame the whole head, centred on the face
+// and clamped inside the photo rectangle (so no white page bleeds in). Left as a
+// square — the round avatar clips it to a circle with a crisp edge.
+async function cropFace(r: Rendered, face: Box, photo: Box): Promise<Buffer | null> {
   try {
     const { createCanvas, loadImage } = await import("@napi-rs/canvas")
     const img = await loadImage(r.png)
@@ -150,26 +150,22 @@ async function cropCircle(r: Rendered, face: Box, photo: Box): Promise<Buffer | 
     const px = photo.x * r.width, py = photo.y * r.height
     const pw = photo.w * r.width, ph = photo.h * r.height
 
-    // Enough around the head to show the full face with a little margin, but
+    // Enough around the head to frame the whole face with a little margin, but
     // never larger than the photo itself.
-    let side = Math.max(fw, fh) * 1.9
+    let side = Math.max(fw, fh) * 1.7
     side = Math.max(1, Math.min(side, pw, ph, r.width, r.height))
 
+    // Classic portrait framing: face slightly above the vertical centre (eyes
+    // in the upper third), horizontally centred. A plain square — the round
+    // avatar clips it to a circle with a crisp edge (no double-mask halo).
     const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(v, hi))
     const sx = clamp(fcx - side / 2, px, Math.max(px, px + pw - side))
-    const sy = clamp(fcy - side / 2, py, Math.max(py, py + ph - side))
+    const sy = clamp(fcy - side * 0.42, py, Math.max(py, py + ph - side))
 
     const size = 320
     const out = createCanvas(size, size)
     const octx = out.getContext("2d")
-    octx.clearRect(0, 0, size, size)
-    octx.save()
-    octx.beginPath()
-    octx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
-    octx.closePath()
-    octx.clip()
     octx.drawImage(img, sx, sy, side, side, 0, 0, size, size)
-    octx.restore()
     return out.toBuffer("image/png")
   } catch (err) {
     console.error("[cv-photo] crop failed:", err)
@@ -206,7 +202,7 @@ export async function extractCandidatePhotoDetailed(
     return { photo: null, diag: { step: "sanity", rendered: true, pageSize, found: true, box: face, reason: "Erkannte Gesichts-Box unplausibel (zu groß/klein)" } }
   }
 
-  const photo = await cropCircle(rendered, face, photoBox)
+  const photo = await cropFace(rendered, face, photoBox)
   if (!photo) {
     return { photo: null, diag: { step: "crop", rendered: true, pageSize, found: true, box: face, reason: "Zuschnitt fehlgeschlagen" } }
   }
