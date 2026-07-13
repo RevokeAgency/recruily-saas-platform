@@ -54,9 +54,9 @@ export async function POST(
       if (isPdfFile(cvFile.type, cvFile.name)) {
         const photo = await extractCandidatePhoto(buf)
         if (photo) {
-          const pp = `${user.id}/${id}.jpg`
+          const pp = `${user.id}/${id}.png`
           const { error } = await admin.storage.from("candidate-photos").upload(pp, photo, {
-            contentType: "image/jpeg", upsert: true,
+            contentType: "image/png", upsert: true,
           })
           if (!error) update.photo_url = admin.storage.from("candidate-photos").getPublicUrl(pp).data.publicUrl
         }

@@ -77,15 +77,30 @@ async function renderPdfFirstPage(pdf: Buffer, scale = 2): Promise<RenderResult>
   }
 }
 
+type Box = { x: number; y: number; w: number; h: number }
+
 const boxSchema = z.object({
   found: z.boolean().describe("true only if a real person's portrait/headshot photo is present"),
-  ymin: z.number().describe("top edge, 0-1000"),
-  xmin: z.number().describe("left edge, 0-1000"),
-  ymax: z.number().describe("bottom edge, 0-1000"),
-  xmax: z.number().describe("right edge, 0-1000"),
+  face_ymin: z.number().describe("head/face top edge, 0-1000"),
+  face_xmin: z.number().describe("head/face left edge, 0-1000"),
+  face_ymax: z.number().describe("head/face bottom edge (chin), 0-1000"),
+  face_xmax: z.number().describe("head/face right edge, 0-1000"),
+  photo_ymin: z.number().describe("photo rectangle top edge, 0-1000"),
+  photo_xmin: z.number().describe("photo rectangle left edge, 0-1000"),
+  photo_ymax: z.number().describe("photo rectangle bottom edge, 0-1000"),
+  photo_xmax: z.number().describe("photo rectangle right edge, 0-1000"),
 })
 
-async function locatePortrait(png: Buffer): Promise<{ x: number; y: number; w: number; h: number } | null> {
+function toBox(ymin: number, xmin: number, ymax: number, xmax: number): Box {
+  return {
+    x: Math.min(xmin, xmax) / 1000,
+    y: Math.min(ymin, ymax) / 1000,
+    w: Math.abs(xmax - xmin) / 1000,
+    h: Math.abs(ymax - ymin) / 1000,
+  }
+}
+
+async function locatePortrait(png: Buffer): Promise<{ face: Box; photo: Box } | null> {
   try {
     const { output } = await generateText({
       model: google("gemini-2.5-flash"),
@@ -97,7 +112,11 @@ async function locatePortrait(png: Buffer): Promise<{ x: number; y: number; w: n
             {
               type: "text",
               text:
-                "Das ist die erste Seite eines Lebenslaufs. Enthält sie ein Bewerbungsfoto einer echten Person, gib die Bounding Box GENAU um die Kanten des Fotos zurück (das rechteckige Bild selbst, eng an den Bildrändern, ohne den weißen Seitenhintergrund) - normalisiert 0-1000: ymin, xmin, ymax, xmax - und found=true. Ignoriere Firmenlogos, Icons, Illustrationen und Cliparts. Ist kein echtes Personenfoto vorhanden, setze found=false und alle Werte auf 0.",
+                "Das ist die erste Seite eines Lebenslaufs. Enthält sie ein Bewerbungsfoto einer echten Person, gib ZWEI Bounding Boxes zurück (normalisiert 0-1000): " +
+                "'face' = eng um Kopf und Gesicht der Person (von Haaransatz/Kopfoberkante bis Kinn); " +
+                "'photo' = die Kanten des rechteckigen Fotos selbst (ohne weißen Seitenhintergrund). " +
+                "found=true. Ignoriere Firmenlogos, Icons, Illustrationen und Cliparts. " +
+                "Ist kein echtes Personenfoto vorhanden, setze found=false und alle Werte auf 0.",
             },
             { type: "image", image: png },
           ],
@@ -105,44 +124,53 @@ async function locatePortrait(png: Buffer): Promise<{ x: number; y: number; w: n
       ],
     })
     if (!output || !output.found) return null
-    const x = Math.min(output.xmin, output.xmax) / 1000
-    const y = Math.min(output.ymin, output.ymax) / 1000
-    const w = Math.abs(output.xmax - output.xmin) / 1000
-    const h = Math.abs(output.ymax - output.ymin) / 1000
-    return { x, y, w, h }
+    const face = toBox(output.face_ymin, output.face_xmin, output.face_ymax, output.face_xmax)
+    let photo = toBox(output.photo_ymin, output.photo_xmin, output.photo_ymax, output.photo_xmax)
+    // Fall back to the whole page if the photo rectangle came back degenerate.
+    if (photo.w < 0.02 || photo.h < 0.02) photo = { x: 0, y: 0, w: 1, h: 1 }
+    return { face, photo }
   } catch (err) {
     console.error("[cv-photo] locate failed:", err)
     return null
   }
 }
 
-async function cropSquare(
-  r: Rendered,
-  box: { x: number; y: number; w: number; h: number },
-): Promise<Buffer | null> {
+// Face-centered circular crop: a square sized to show the whole head, centered
+// on the face and clamped inside the photo rectangle (so no white page bleeds
+// in), masked to a circle so it sits flush in the round avatar.
+async function cropCircle(r: Rendered, face: Box, photo: Box): Promise<Buffer | null> {
   try {
     const { createCanvas, loadImage } = await import("@napi-rs/canvas")
     const img = await loadImage(r.png)
 
-    // Inset the detected photo rectangle slightly to eat any thin white border.
-    const inset = 0.03
-    const bx = (box.x + box.w * inset) * r.width
-    const by = (box.y + box.h * inset) * r.height
-    const bw = box.w * (1 - 2 * inset) * r.width
-    const bh = box.h * (1 - 2 * inset) * r.height
+    const fx = face.x * r.width, fy = face.y * r.height
+    const fw = face.w * r.width, fh = face.h * r.height
+    const fcx = fx + fw / 2, fcy = fy + fh / 2
 
-    // Square that fits INSIDE the photo (no page background), centered
-    // horizontally and biased slightly up so the face stays in frame.
-    const side = Math.max(1, Math.min(bw, bh))
+    const px = photo.x * r.width, py = photo.y * r.height
+    const pw = photo.w * r.width, ph = photo.h * r.height
+
+    // Enough around the head to show the full face with a little margin, but
+    // never larger than the photo itself.
+    let side = Math.max(fw, fh) * 1.9
+    side = Math.max(1, Math.min(side, pw, ph, r.width, r.height))
+
     const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(v, hi))
-    const sx = clamp(bx + (bw - side) / 2, bx, bx + bw - side)
-    const sy = clamp(by + (bh - side) * 0.28, by, by + bh - side)
+    const sx = clamp(fcx - side / 2, px, Math.max(px, px + pw - side))
+    const sy = clamp(fcy - side / 2, py, Math.max(py, py + ph - side))
 
     const size = 320
     const out = createCanvas(size, size)
     const octx = out.getContext("2d")
+    octx.clearRect(0, 0, size, size)
+    octx.save()
+    octx.beginPath()
+    octx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
+    octx.closePath()
+    octx.clip()
     octx.drawImage(img, sx, sy, side, side, 0, 0, size, size)
-    return out.toBuffer("image/jpeg")
+    octx.restore()
+    return out.toBuffer("image/png")
   } catch (err) {
     console.error("[cv-photo] crop failed:", err)
     return null
@@ -154,7 +182,7 @@ export type PhotoDiagnostics = {
   rendered?: boolean
   pageSize?: string
   found?: boolean
-  box?: { x: number; y: number; w: number; h: number } | null
+  box?: Box | null
   reason?: string
 }
 
@@ -168,21 +196,22 @@ export async function extractCandidatePhotoDetailed(
   }
   const pageSize = `${rendered.width}x${rendered.height}`
 
-  const box = await locatePortrait(rendered.png)
-  if (!box) {
+  const boxes = await locatePortrait(rendered.png)
+  if (!boxes) {
     return { photo: null, diag: { step: "locate", rendered: true, pageSize, found: false, reason: "Kein Portrait erkannt" } }
   }
+  const { face, photo: photoBox } = boxes
 
-  if (box.w > 0.85 || box.h > 0.85 || box.w < 0.03 || box.h < 0.03) {
-    return { photo: null, diag: { step: "sanity", rendered: true, pageSize, found: true, box, reason: "Erkannte Box unplausibel (zu groß/klein)" } }
+  if (face.w > 0.8 || face.h > 0.8 || face.w < 0.02 || face.h < 0.02) {
+    return { photo: null, diag: { step: "sanity", rendered: true, pageSize, found: true, box: face, reason: "Erkannte Gesichts-Box unplausibel (zu groß/klein)" } }
   }
 
-  const photo = await cropSquare(rendered, box)
+  const photo = await cropCircle(rendered, face, photoBox)
   if (!photo) {
-    return { photo: null, diag: { step: "crop", rendered: true, pageSize, found: true, box, reason: "Zuschnitt fehlgeschlagen" } }
+    return { photo: null, diag: { step: "crop", rendered: true, pageSize, found: true, box: face, reason: "Zuschnitt fehlgeschlagen" } }
   }
 
-  return { photo, diag: { step: "ok", rendered: true, pageSize, found: true, box } }
+  return { photo, diag: { step: "ok", rendered: true, pageSize, found: true, box: face } }
 }
 
 export async function extractCandidatePhoto(pdf: Buffer): Promise<Buffer | null> {

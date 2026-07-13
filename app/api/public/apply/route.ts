@@ -118,9 +118,9 @@ export async function POST(req: NextRequest) {
 
     let photoUrl: string | null = null
     if (photo) {
-      const photoPath = `${ownerId}/${candidate.id}.jpg`
+      const photoPath = `${ownerId}/${candidate.id}.png`
       const { error: upErr } = await supabase.storage.from(PHOTOS).upload(photoPath, photo, {
-        contentType: "image/jpeg", upsert: true,
+        contentType: "image/png", upsert: true,
       })
       if (!upErr) photoUrl = supabase.storage.from(PHOTOS).getPublicUrl(photoPath).data.publicUrl
     }

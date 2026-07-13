@@ -46,9 +46,9 @@ export async function POST(
       return Response.json({ ok: false, reason: diag.reason, diag })
     }
 
-    const photoPath = `${user.id}/${id}.jpg`
+    const photoPath = `${user.id}/${id}.png`
     const { error: upErr } = await admin.storage.from("candidate-photos").upload(photoPath, photo, {
-      contentType: "image/jpeg", upsert: true,
+      contentType: "image/png", upsert: true,
     })
     if (upErr) {
       return Response.json({ ok: false, reason: "Upload ins Foto-Bucket fehlgeschlagen", detail: upErr.message, diag }, { status: 500 })

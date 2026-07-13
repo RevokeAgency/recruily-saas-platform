@@ -162,9 +162,9 @@ export async function POST(req: NextRequest) {
       if (isPdfFile(cvAtt.mimeType, cvAtt.filename)) {
         const photo = await extractCandidatePhoto(buffer)
         if (photo) {
-          const photoPath = `${job.user_id}/${candidate.id}.jpg`
+          const photoPath = `${job.user_id}/${candidate.id}.png`
           const { error: pErr } = await supabase.storage.from("candidate-photos").upload(photoPath, photo, {
-            contentType: "image/jpeg", upsert: true,
+            contentType: "image/png", upsert: true,
           })
           if (!pErr) photoUrl = supabase.storage.from("candidate-photos").getPublicUrl(photoPath).data.publicUrl
         }
