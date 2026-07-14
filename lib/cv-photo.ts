@@ -189,26 +189,57 @@ async function cropFace(r: Rendered, face: Box, photo: Box): Promise<Buffer | nu
     let pw = Math.min(Math.ceil(photo.w * r.width), r.width - px)
     let ph = Math.min(Math.ceil(photo.h * r.height), r.height - py)
 
-    // Pixel-accurate white trim of the detected photo region.
-    if (pw > 8 && ph > 8) {
-      const scan = createCanvas(pw, ph)
+    // Pixel-trim a page-space rect; returns the rect shrunk to non-white content.
+    const pixelTrim = (x: number, y: number, w: number, h: number) => {
+      const scan = createCanvas(w, h)
       const sctx = scan.getContext("2d")
-      sctx.drawImage(img, px, py, pw, ph, 0, 0, pw, ph)
-      const t = trimWhiteBorders(sctx.getImageData(0, 0, pw, ph).data, pw, ph)
-      px += t.x
-      py += t.y
-      pw = t.w
-      ph = t.h
+      sctx.drawImage(img, x, y, w, h, 0, 0, w, h)
+      const t = trimWhiteBorders(sctx.getImageData(0, 0, w, h).data, w, h)
+      return { x: x + t.x, y: y + t.y, w: t.w, h: t.h, rel: t }
+    }
+
+    // The AI box often UNDER-shoots the photo (cutting into it, which makes the
+    // face look over-zoomed). Inflate the box generously and let the pixel trim
+    // pull it back to the true photo edges, recovering the full photo area.
+    if (pw > 8 && ph > 8) {
+      const inflX = Math.round(pw * 0.25)
+      const inflY = Math.round(ph * 0.25)
+      const ix = Math.max(0, px - inflX)
+      const iy = Math.max(0, py - inflY)
+      const iw = Math.min(r.width - ix, px + pw + inflX - ix)
+      const ih = Math.min(r.height - iy, py + ph + inflY - iy)
+
+      const t = pixelTrim(ix, iy, iw, ih)
+
+      // Per-side guard: if the trim consumed almost none of the inflation on a
+      // side, the content touching that inflated edge is likely neighbouring
+      // text rather than photo — fall back to the AI edge for that side.
+      const left = t.rel.x < 2 && ix < px ? px : t.x
+      const top = t.rel.y < 2 && iy < py ? py : t.y
+      const rightEdge = iw - (t.rel.x + t.rel.w) < 2 && ix + iw > px + pw ? px + pw : t.x + t.w
+      const bottomEdge = ih - (t.rel.y + t.rel.h) < 2 && iy + ih > py + ph ? py + ph : t.y + t.h
+
+      if (rightEdge - left > 8 && bottomEdge - top > 8) {
+        // Second pass without inflation: removes any residual white on sides
+        // that fell back to the (over-shooting) AI edge.
+        const clean = pixelTrim(left, top, rightEdge - left, bottomEdge - top)
+        if (clean.w > 8 && clean.h > 8) {
+          px = clean.x
+          py = clean.y
+          pw = clean.w
+          ph = clean.h
+        }
+      }
     }
 
     const fw = face.w * r.width, fh = face.h * r.height
     const fcy = (face.y + face.h / 2) * r.height
     const faceUsable = fw > 4 && fh > 4
 
-    // Square spans the smaller photo dimension, then a slight over-zoom so a
-    // sub-pixel border can never show inside the avatar circle.
+    // Square spans the smaller photo dimension, with just enough over-zoom
+    // that a sub-pixel border can never show inside the avatar circle.
     let side = Math.max(1, Math.min(pw, ph))
-    side = side * 0.96
+    side = side * 0.985
 
     const sx = clamp(px + (pw - side) / 2, px, Math.max(px, px + pw - side))
     const sy = faceUsable
