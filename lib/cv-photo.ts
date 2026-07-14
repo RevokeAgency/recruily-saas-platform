@@ -135,12 +135,48 @@ async function locatePortrait(png: Buffer): Promise<{ face: Box; photo: Box } | 
   }
 }
 
+// Shrinks a rectangle to the tight bounds of its non-white content by scanning
+// pixel rows/columns from each edge. The AI photo box is never pixel-exact, so
+// without this a sliver of the white page ends up inside the avatar circle.
+function trimWhiteBorders(
+  data: Uint8ClampedArray,
+  w: number,
+  h: number,
+): { x: number; y: number; w: number; h: number } {
+  const isWhiteRow = (y: number) => {
+    let white = 0
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4
+      if (data[i] > 238 && data[i + 1] > 238 && data[i + 2] > 238) white++
+    }
+    return white / w > 0.965
+  }
+  const isWhiteCol = (x: number) => {
+    let white = 0
+    for (let y = 0; y < h; y++) {
+      const i = (y * w + x) * 4
+      if (data[i] > 238 && data[i + 1] > 238 && data[i + 2] > 238) white++
+    }
+    return white / h > 0.965
+  }
+
+  let top = 0, bottom = h - 1, left = 0, right = w - 1
+  const maxTrim = 0.45 // never eat more than 45% from one side
+  while (top < h * maxTrim && isWhiteRow(top)) top++
+  while (bottom > h * (1 - maxTrim) && isWhiteRow(bottom)) bottom--
+  while (left < w * maxTrim && isWhiteCol(left)) left++
+  while (right > w * (1 - maxTrim) && isWhiteCol(right)) right--
+
+  if (right - left < 8 || bottom - top < 8) return { x: 0, y: 0, w, h }
+  return { x: left, y: top, w: right - left + 1, h: bottom - top + 1 }
+}
+
 // Square crop of the applicant photo itself. A CV photo is already a framed
 // portrait, so instead of re-framing from the (imprecise) AI face box we trust
-// the photographer: take the full photo rectangle and square it — full photo
-// width, with the face bounding box only used as the vertical anchor. The
-// result looks like the original photo, just square; the round avatar clips it
-// to a circle with a crisp edge.
+// the photographer: pixel-trim the detected photo rectangle to its true edges
+// (no page white), square it at full width with the face box as vertical
+// anchor, and over-zoom ~4% so no hairline border can survive. The round
+// avatar clips the square to a circle that is fully covered by photo.
 async function cropFace(r: Rendered, face: Box, photo: Box): Promise<Buffer | null> {
   try {
     const { createCanvas, loadImage } = await import("@napi-rs/canvas")
@@ -148,25 +184,36 @@ async function cropFace(r: Rendered, face: Box, photo: Box): Promise<Buffer | nu
 
     const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(v, hi))
 
-    const px = photo.x * r.width, py = photo.y * r.height
-    const pw = photo.w * r.width, ph = photo.h * r.height
+    let px = Math.max(0, Math.floor(photo.x * r.width))
+    let py = Math.max(0, Math.floor(photo.y * r.height))
+    let pw = Math.min(Math.ceil(photo.w * r.width), r.width - px)
+    let ph = Math.min(Math.ceil(photo.h * r.height), r.height - py)
+
+    // Pixel-accurate white trim of the detected photo region.
+    if (pw > 8 && ph > 8) {
+      const scan = createCanvas(pw, ph)
+      const sctx = scan.getContext("2d")
+      sctx.drawImage(img, px, py, pw, ph, 0, 0, pw, ph)
+      const t = trimWhiteBorders(sctx.getImageData(0, 0, pw, ph).data, pw, ph)
+      px += t.x
+      py += t.y
+      pw = t.w
+      ph = t.h
+    }
 
     const fw = face.w * r.width, fh = face.h * r.height
     const fcy = (face.y + face.h / 2) * r.height
     const faceUsable = fw > 4 && fh > 4
 
-    // The square spans the full smaller photo dimension (usually the width,
-    // since CV photos are portrait-oriented).
-    const side = Math.max(1, Math.min(pw, ph))
+    // Square spans the smaller photo dimension, then a slight over-zoom so a
+    // sub-pixel border can never show inside the avatar circle.
+    let side = Math.max(1, Math.min(pw, ph))
+    side = side * 0.96
 
-    // Horizontal: photos are centred as shot — keep the photo's centre.
     const sx = clamp(px + (pw - side) / 2, px, Math.max(px, px + pw - side))
-
-    // Vertical: place the face centre at ~45% from the top of the crop; without
-    // a usable face box, anchor at the top (faces live in the upper part).
     const sy = faceUsable
       ? clamp(fcy - side * 0.45, py, Math.max(py, py + ph - side))
-      : py
+      : py + (ph - side) * 0.08
 
     const size = 320
     const out = createCanvas(size, size)
