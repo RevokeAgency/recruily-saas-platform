@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import useSWR from "swr"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -29,6 +29,9 @@ import {
   X,
   FileText,
   Image as ImageIcon,
+  LayoutGrid,
+  List,
+  ChevronRight,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -106,10 +109,39 @@ function getScoreColor(score: number) {
   return "text-destructive"
 }
 
+// German label + badge styling per status (raw enum values read unprofessional).
+function statusMeta(status: Candidate["status"]): { label: string; className: string } {
+  switch (status) {
+    case "scored": return { label: "Bewertet", className: "border-[rgba(22,199,124,.4)] text-[var(--rv-green-deep)] bg-[var(--app-green-wash)]" }
+    case "analyzing": return { label: "Analysiere…", className: "border-border text-muted-foreground" }
+    case "queued": return { label: "Wartet auf Kontingent", className: "border-amber-200 text-amber-600 bg-amber-50" }
+    case "error": return { label: "Fehler", className: "border-destructive/30 text-destructive" }
+    case "new": return { label: "Neu", className: "border-blue-200 text-blue-600 bg-blue-50" }
+    case "shortlisted": return { label: "Shortlist", className: "border-[rgba(22,199,124,.4)] text-[var(--rv-green-deep)]" }
+    case "interviewed":
+    case "Eingeladen": return { label: "Eingeladen", className: "border-amber-200 text-amber-600 bg-amber-50" }
+    case "Abgesagt": return { label: "Abgesagt", className: "border-border text-muted-foreground" }
+    default: return { label: status, className: "border-border text-muted-foreground" }
+  }
+}
+
+const MAX_VISIBLE_SKILLS = 8
+
 export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [sortBy, setSortBy] = useState("match")
+  const [viewMode, setViewMode] = useState<"detail" | "list">("detail")
+
+  // Remember the chosen view across visits.
+  useEffect(() => {
+    const saved = localStorage.getItem("revetly:candidates:view")
+    if (saved === "list" || saved === "detail") setViewMode(saved)
+  }, [])
+  const changeView = (mode: "detail" | "list") => {
+    setViewMode(mode)
+    localStorage.setItem("revetly:candidates:view", mode)
+  }
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
   const [matchModalOpen, setMatchModalOpen] = useState(false)
   const [deleteCandidate, setDeleteCandidate] = useState<Candidate | null>(null)
@@ -132,12 +164,20 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
   const candidates = data?.candidates || []
 
   const filteredCandidates = candidates
-    .filter((c) => 
+    .filter((c) =>
       c.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.skills?.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
     )
-    .sort((a, b) => (b.match_score || 0) - (a.match_score || 0))
+    .filter((c) => filterStatus === "all" || c.status === filterStatus)
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "experience": return (b.years_of_experience || 0) - (a.years_of_experience || 0)
+        case "name": return (a.full_name || "").localeCompare(b.full_name || "", "de")
+        case "date": return new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
+        default: return (b.match_score || 0) - (a.match_score || 0)
+      }
+    })
 
   // Helper to get initials
   const getInitials = (name: string) => {
@@ -241,50 +281,46 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
   return (
     <div className="space-y-6">
       {/* Section Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-foreground">Candidate Pool</h2>
+          <h2 className="text-xl font-bold text-foreground">Kandidaten</h2>
           <p className="text-muted-foreground text-sm">
-            {filteredCandidates.length} candidates for {jobTitle}
+            {filteredCandidates.length} {filteredCandidates.length === 1 ? "Kandidat" : "Kandidaten"} für {jobTitle}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Badge variant="secondary" className="text-sm">
-            {filteredCandidates.length} Total
-          </Badge>
-          <Button asChild>
-            <Link href={`/candidates/new?jobId=${jobId}`}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Kandidat hinzufügen
-            </Link>
-          </Button>
-        </div>
+        <Button asChild>
+          <Link href={`/candidates/new?jobId=${jobId}`}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Kandidat hinzufügen
+          </Link>
+        </Button>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search, Filters, View Toggle */}
       <Card className="border border-border">
         <CardContent className="p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search candidates by name, email, skills, location..." 
+              <Input
+                placeholder="Nach Name, E-Mail oder Skills suchen…"
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-[170px]">
                   <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="All Candidates" />
+                  <SelectValue placeholder="Alle Kandidaten" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Candidates</SelectItem>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="shortlisted">Shortlisted</SelectItem>
-                  <SelectItem value="interviewed">Interviewed</SelectItem>
+                  <SelectItem value="all">Alle Kandidaten</SelectItem>
+                  <SelectItem value="scored">Bewertet</SelectItem>
+                  <SelectItem value="queued">Wartet auf Kontingent</SelectItem>
+                  <SelectItem value="Eingeladen">Eingeladen</SelectItem>
+                  <SelectItem value="Abgesagt">Abgesagt</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={sortBy} onValueChange={setSortBy}>
@@ -294,11 +330,36 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="match">Match Score</SelectItem>
-                  <SelectItem value="experience">Experience</SelectItem>
+                  <SelectItem value="experience">Erfahrung</SelectItem>
                   <SelectItem value="name">Name</SelectItem>
-                  <SelectItem value="date">Date Added</SelectItem>
+                  <SelectItem value="date">Zuletzt hinzugefügt</SelectItem>
                 </SelectContent>
               </Select>
+              {/* View toggle */}
+              <div className="flex items-center rounded-lg border border-border p-0.5" role="group" aria-label="Ansicht">
+                <button
+                  type="button"
+                  onClick={() => changeView("detail")}
+                  aria-pressed={viewMode === "detail"}
+                  className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors ${
+                    viewMode === "detail" ? "bg-[var(--rv-mist)] text-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  Details
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeView("list")}
+                  aria-pressed={viewMode === "list"}
+                  className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors ${
+                    viewMode === "list" ? "bg-[var(--rv-mist)] text-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <List className="h-4 w-4" />
+                  Liste
+                </button>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -325,11 +386,64 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
         </Card>
       )}
 
-      {/* Candidates List */}
+      {/* Compact list view */}
+      {viewMode === "list" && filteredCandidates.length > 0 && (
+        <Card className="overflow-hidden rounded-xl border border-border">
+          <ul className="divide-y divide-border">
+            {filteredCandidates.map((candidate) => (
+              <li key={candidate.id}>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedCandidate(candidate); setMatchModalOpen(true) }}
+                  disabled={candidate.status === "analyzing"}
+                  className="flex w-full items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-[var(--rv-mist)] disabled:cursor-default lg:px-5"
+                >
+                  <Avatar className="h-10 w-10 flex-shrink-0">
+                    {candidate.photo_url && <AvatarImage src={candidate.photo_url} alt={candidate.full_name} className="object-cover" />}
+                    <AvatarFallback
+                      className="text-sm font-semibold text-[#0C1A16]"
+                      style={{ backgroundImage: "var(--rv-gradient)" }}
+                    >
+                      {getInitials(candidate.full_name)}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="min-w-0 flex-1 lg:grid lg:grid-cols-[1.2fr_1.4fr_1fr_0.8fr] lg:items-center lg:gap-4">
+                    <p className="truncate font-semibold text-foreground">{candidate.full_name}</p>
+                    <p className="hidden truncate text-sm text-muted-foreground lg:block">{candidate.email || "–"}</p>
+                    <p className="hidden truncate text-sm text-muted-foreground lg:block">{candidate.location || "–"}</p>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {candidate.years_of_experience} Jahre
+                    </p>
+                  </div>
+
+                  <div className="flex w-24 flex-shrink-0 items-center justify-end gap-2">
+                    {candidate.status === "analyzing" ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-[var(--rv-green-deep)]" />
+                    ) : candidate.status === "queued" ? (
+                      <span className="text-xs font-medium text-amber-600">Wartet</span>
+                    ) : candidate.match_score != null ? (
+                      <span className={`text-lg font-bold tabular-nums ${getScoreColor(candidate.match_score)}`}>
+                        {candidate.match_score}%
+                      </span>
+                    ) : (
+                      <span className="text-sm font-semibold text-muted-foreground">–</span>
+                    )}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {/* Detail cards */}
+      {viewMode === "detail" && (
       <div className="space-y-4">
         {filteredCandidates.map((candidate) => (
-          <Card 
-            key={candidate.id} 
+          <Card
+            key={candidate.id}
             className="rounded-xl transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]"
           >
             <CardContent className="p-6">
@@ -350,16 +464,8 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-foreground text-lg">{candidate.full_name}</h3>
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs capitalize ${
-                            candidate.status === 'new' ? 'border-blue-300 text-blue-600' :
-                            candidate.status === 'shortlisted' ? 'border-teal-300 text-teal-600' :
-                            candidate.status === 'interviewed' ? 'border-amber-300 text-amber-600' :
-                            'border-slate-300 text-slate-600'
-                          }`}
-                        >
-                          {candidate.status}
+                        <Badge variant="outline" className={`text-xs ${statusMeta(candidate.status).className}`}>
+                          {statusMeta(candidate.status).label}
                         </Badge>
                       </div>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -383,28 +489,37 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                     </div>
                   </div>
 
-                  {/* Skills */}
+                  {/* Skills (capped — the full list lives in the details modal) */}
                   {candidate.skills && candidate.skills.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {candidate.skills.map((skill) => (
-                        <span 
-                          key={skill} 
-                          className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-xs font-medium hover:bg-teal-100 transition-colors cursor-default"
+                      {candidate.skills.slice(0, MAX_VISIBLE_SKILLS).map((skill) => (
+                        <span
+                          key={skill}
+                          className="rounded-full bg-[var(--app-green-wash)] px-3 py-1 text-xs font-medium text-[var(--rv-green-deep)]"
                         >
                           {skill}
                         </span>
                       ))}
+                      {candidate.skills.length > MAX_VISIBLE_SKILLS && (
+                        <button
+                          type="button"
+                          onClick={() => { setSelectedCandidate(candidate); setMatchModalOpen(true) }}
+                          className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-[var(--rv-mist)] hover:text-foreground"
+                        >
+                          +{candidate.skills.length - MAX_VISIBLE_SKILLS} weitere
+                        </button>
+                      )}
                     </div>
                   )}
 
                   {/* AI Summary */}
                   {candidate.summary_ai && (
-                    <div className="bg-slate-50 rounded-lg p-4">
+                    <div className="rounded-lg bg-[var(--rv-mist)] p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="h-4 w-4 text-teal-600" />
-                        <span className="font-medium text-sm text-teal-600">KI-Zusammenfassung</span>
+                        <Sparkles className="h-4 w-4 text-[var(--rv-green-deep)]" />
+                        <span className="font-medium text-sm text-[var(--rv-green-deep)]">KI-Zusammenfassung</span>
                       </div>
-                      <p className="text-sm text-slate-600">{candidate.summary_ai}</p>
+                      <p className="text-sm leading-relaxed text-muted-foreground">{candidate.summary_ai}</p>
                     </div>
                   )}
 
@@ -458,9 +573,9 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                     {candidate.status === "analyzing" ? (
                       <div className="flex flex-col items-center xl:items-end">
                         <div className="w-16 h-16 mb-2 flex items-center justify-center">
-                          <Loader2 className="h-8 w-8 text-teal-600 animate-spin" />
+                          <Loader2 className="h-8 w-8 text-[var(--rv-green-deep)] animate-spin" />
                         </div>
-                        <p className="text-sm font-medium text-teal-600">Analysiere...</p>
+                        <p className="text-sm font-medium text-[var(--rv-green-deep)]">Analysiere...</p>
                       </div>
                     ) : candidate.status === "queued" ? (
                       <div className="flex flex-col items-center xl:items-end">
@@ -533,6 +648,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
           </Card>
         ))}
       </div>
+      )}
 
       {/* Rejection Modal */}
       {rejectionCandidate && (

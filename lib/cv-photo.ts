@@ -135,32 +135,38 @@ async function locatePortrait(png: Buffer): Promise<{ face: Box; photo: Box } | 
   }
 }
 
-// Face-centred square crop: sized to frame the whole head, centred on the face
-// and clamped inside the photo rectangle (so no white page bleeds in). Left as a
-// square — the round avatar clips it to a circle with a crisp edge.
+// Square crop of the applicant photo itself. A CV photo is already a framed
+// portrait, so instead of re-framing from the (imprecise) AI face box we trust
+// the photographer: take the full photo rectangle and square it — full photo
+// width, with the face bounding box only used as the vertical anchor. The
+// result looks like the original photo, just square; the round avatar clips it
+// to a circle with a crisp edge.
 async function cropFace(r: Rendered, face: Box, photo: Box): Promise<Buffer | null> {
   try {
     const { createCanvas, loadImage } = await import("@napi-rs/canvas")
     const img = await loadImage(r.png)
 
-    const fx = face.x * r.width, fy = face.y * r.height
-    const fw = face.w * r.width, fh = face.h * r.height
-    const fcx = fx + fw / 2, fcy = fy + fh / 2
+    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(v, hi))
 
     const px = photo.x * r.width, py = photo.y * r.height
     const pw = photo.w * r.width, ph = photo.h * r.height
 
-    // Enough around the head to frame the whole face with a little margin, but
-    // never larger than the photo itself.
-    let side = Math.max(fw, fh) * 1.7
-    side = Math.max(1, Math.min(side, pw, ph, r.width, r.height))
+    const fw = face.w * r.width, fh = face.h * r.height
+    const fcy = (face.y + face.h / 2) * r.height
+    const faceUsable = fw > 4 && fh > 4
 
-    // Classic portrait framing: face slightly above the vertical centre (eyes
-    // in the upper third), horizontally centred. A plain square — the round
-    // avatar clips it to a circle with a crisp edge (no double-mask halo).
-    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(v, hi))
-    const sx = clamp(fcx - side / 2, px, Math.max(px, px + pw - side))
-    const sy = clamp(fcy - side * 0.42, py, Math.max(py, py + ph - side))
+    // The square spans the full smaller photo dimension (usually the width,
+    // since CV photos are portrait-oriented).
+    const side = Math.max(1, Math.min(pw, ph))
+
+    // Horizontal: photos are centred as shot — keep the photo's centre.
+    const sx = clamp(px + (pw - side) / 2, px, Math.max(px, px + pw - side))
+
+    // Vertical: place the face centre at ~45% from the top of the crop; without
+    // a usable face box, anchor at the top (faces live in the upper part).
+    const sy = faceUsable
+      ? clamp(fcy - side * 0.45, py, Math.max(py, py + ph - side))
+      : py
 
     const size = 320
     const out = createCanvas(size, size)
