@@ -237,33 +237,63 @@ async function cropFace(r: Rendered, face: Box, photo: Box): Promise<Buffer | nu
     const fcy = (face.y + face.h / 2) * r.height
     const faceUsable = fw > 4 && fh > 4
 
-    // The largest square that still fits inside the (pixel-trimmed) photo rect —
-    // going bigger would pull in page white. Everything is clamped to this.
     const maxSide = Math.max(1, Math.min(pw, ph))
 
-    // Frame the face prominently instead of showing the whole photo: a square
-    // ~1.9× the face box makes the head fill the circle nicely. Guard against a
-    // tiny/mis-detected face box (never zoom past 60% of the photo) and never
-    // exceed the photo itself. When the face box is unusable, fall back to the
-    // full-width square with a hair of over-zoom.
-    let side = faceUsable
-      ? clamp(Math.max(fw, fh) * 1.9, maxSide * 0.6, maxSide)
-      : maxSide * 0.985
+    // Frame the face: a square ~2.0× the face box, centered horizontally on the
+    // face and sitting it a touch above the middle so the eyes land in the upper
+    // half of the circle. We deliberately DON'T clamp the square inside the photo
+    // rect — a tightly-shot CV photo has no headroom above the hair, so clamping
+    // jams the head against the circle edge. Instead we allow the square to spill
+    // out (up to ~35% padding) and fill the spill with the photo's own backdrop
+    // colour, guaranteeing breathing room around the head.
+    let side: number, sx: number, sy: number
+    if (faceUsable) {
+      side = clamp(Math.max(fw, fh) * 2.0, maxSide * 0.55, maxSide * 1.35)
+      sx = fcx - side / 2
+      sy = fcy - side * 0.46
+    } else {
+      side = maxSide * 0.985
+      sx = px + (pw - side) / 2
+      sy = py + (ph - side) * 0.08
+    }
 
-    // Center on the face horizontally; sit the face a touch above the middle so
-    // the eyes land in the upper third of the circle. Clamp inside the photo
-    // rect so neither page white nor a cut edge can appear.
-    const sx = faceUsable
-      ? clamp(fcx - side / 2, px, Math.max(px, px + pw - side))
-      : clamp(px + (pw - side) / 2, px, Math.max(px, px + pw - side))
-    const sy = faceUsable
-      ? clamp(fcy - side * 0.44, py, Math.max(py, py + ph - side))
-      : py + (ph - side) * 0.08
+    // Sample the photo's background colour from points around the top/upper edges
+    // (behind and beside the head — almost always the backdrop). Median per
+    // channel resists an outlier sample that clips hair or clothing.
+    const sampleC = createCanvas(pw, ph)
+    const sctx2 = sampleC.getContext("2d")
+    sctx2.drawImage(img, px, py, pw, ph, 0, 0, pw, ph)
+    const sdata = sctx2.getImageData(0, 0, pw, ph).data
+    const at = (fx: number, fy: number) => {
+      const x = clamp(Math.round(fx * (pw - 1)), 0, pw - 1)
+      const y = clamp(Math.round(fy * (ph - 1)), 0, ph - 1)
+      const i = (y * pw + x) * 4
+      return [sdata[i], sdata[i + 1], sdata[i + 2]]
+    }
+    const pts = [at(0.04, 0.03), at(0.5, 0.02), at(0.96, 0.03), at(0.04, 0.22), at(0.96, 0.22)]
+    const med = (k: number) => {
+      const v = pts.map((p) => p[k]).sort((a, b) => a - b)
+      return v[Math.floor(v.length / 2)]
+    }
+    const bg = [med(0), med(1), med(2)]
 
     const size = 320
     const out = createCanvas(size, size)
     const octx = out.getContext("2d")
-    octx.drawImage(img, sx, sy, side, side, 0, 0, size, size)
+    octx.fillStyle = `rgb(${bg[0]},${bg[1]},${bg[2]})`
+    octx.fillRect(0, 0, size, size)
+
+    // Draw only the part of the square that overlaps the photo rect; everything
+    // outside stays the sampled backdrop colour (never page white, never text).
+    const ix0 = Math.max(sx, px), iy0 = Math.max(sy, py)
+    const ix1 = Math.min(sx + side, px + pw), iy1 = Math.min(sy + side, py + ph)
+    if (ix1 > ix0 && iy1 > iy0) {
+      const dx = ((ix0 - sx) / side) * size
+      const dy = ((iy0 - sy) / side) * size
+      const dw = ((ix1 - ix0) / side) * size
+      const dh = ((iy1 - iy0) / side) * size
+      octx.drawImage(img, ix0, iy0, ix1 - ix0, iy1 - iy0, dx, dy, dw, dh)
+    }
     return out.toBuffer("image/png")
   } catch (err) {
     console.error("[cv-photo] crop failed:", err)
