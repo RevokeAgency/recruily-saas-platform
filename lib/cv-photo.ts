@@ -233,17 +233,31 @@ async function cropFace(r: Rendered, face: Box, photo: Box): Promise<Buffer | nu
     }
 
     const fw = face.w * r.width, fh = face.h * r.height
+    const fcx = (face.x + face.w / 2) * r.width
     const fcy = (face.y + face.h / 2) * r.height
     const faceUsable = fw > 4 && fh > 4
 
-    // Square spans the smaller photo dimension, with just enough over-zoom
-    // that a sub-pixel border can never show inside the avatar circle.
-    let side = Math.max(1, Math.min(pw, ph))
-    side = side * 0.985
+    // The largest square that still fits inside the (pixel-trimmed) photo rect —
+    // going bigger would pull in page white. Everything is clamped to this.
+    const maxSide = Math.max(1, Math.min(pw, ph))
 
-    const sx = clamp(px + (pw - side) / 2, px, Math.max(px, px + pw - side))
+    // Frame the face prominently instead of showing the whole photo: a square
+    // ~1.9× the face box makes the head fill the circle nicely. Guard against a
+    // tiny/mis-detected face box (never zoom past 60% of the photo) and never
+    // exceed the photo itself. When the face box is unusable, fall back to the
+    // full-width square with a hair of over-zoom.
+    let side = faceUsable
+      ? clamp(Math.max(fw, fh) * 1.9, maxSide * 0.6, maxSide)
+      : maxSide * 0.985
+
+    // Center on the face horizontally; sit the face a touch above the middle so
+    // the eyes land in the upper third of the circle. Clamp inside the photo
+    // rect so neither page white nor a cut edge can appear.
+    const sx = faceUsable
+      ? clamp(fcx - side / 2, px, Math.max(px, px + pw - side))
+      : clamp(px + (pw - side) / 2, px, Math.max(px, px + pw - side))
     const sy = faceUsable
-      ? clamp(fcy - side * 0.45, py, Math.max(py, py + ph - side))
+      ? clamp(fcy - side * 0.44, py, Math.max(py, py + ph - side))
       : py + (ph - side) * 0.08
 
     const size = 320
