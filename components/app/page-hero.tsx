@@ -4,51 +4,55 @@ interface PageHeroProps {
   eyebrow?: string
   title: string
   subtitle?: string
-  /** Right-aligned actions (primary <Button asChild> reads fine on the dark band). */
+  /** Right-aligned actions. */
   actions?: React.ReactNode
   className?: string
 }
 
 /**
- * Slim branded header band shared across the product sub-pages (Jobs, Kandidaten,
- * Abo, Einstellungen). A calmer sibling of the dashboard hero: same dark
- * mesh-glow DNA and gradient family, shorter and without a flagship metric, so
- * every page reads as part of the same Revetly system without repeating the
- * full hero. Presentation only.
+ * Light, airy page header shared across the product sub-pages (Jobs, Kandidaten,
+ * Posteingang, Abo, Einstellungen). Sits directly on the neutral canvas — no
+ * card, no dark band — so every page opens with the same big friendly title and
+ * a quiet accent eyebrow. Presentation only.
  */
 export function PageHero({ eyebrow, title, subtitle, actions, className }: PageHeroProps) {
   return (
     <section
       className={cn(
-        "rv-fade-up relative overflow-hidden rounded-[24px] bg-[var(--rv-ink)] p-7 lg:p-8",
+        "rv-fade-up flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between",
         className,
       )}
     >
-      <div className="rv-patternbg" data-pattern="mesh" style={{ animationDuration: "46s" }} aria-hidden="true" />
-
-      <div className="relative z-[1] flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          {eyebrow && (
-            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-white/45">
-              {eyebrow}
-            </span>
+      <div>
+        {eyebrow && (
+          <span className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[var(--rv-green-deep)]">
+            {eyebrow}
+          </span>
+        )}
+        <h1
+          className={cn(
+            "text-[1.85rem] font-bold leading-[1.1] tracking-tight text-foreground lg:text-[2.1rem]",
+            eyebrow && "mt-1.5",
           )}
-          <h1 className={cn("text-[1.65rem] font-bold leading-tight tracking-tight text-white", eyebrow && "mt-2")}>
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="mt-1.5 max-w-lg text-[0.92rem] leading-relaxed text-white/60">{subtitle}</p>
-          )}
-        </div>
-        {actions && <div className="flex flex-shrink-0 flex-wrap items-center gap-3">{actions}</div>}
+        >
+          {title}
+        </h1>
+        {subtitle && (
+          <p className="mt-2 max-w-xl text-[0.95rem] leading-relaxed text-muted-foreground">
+            {subtitle}
+          </p>
+        )}
       </div>
+      {actions && (
+        <div className="flex flex-shrink-0 flex-wrap items-center gap-3">{actions}</div>
+      )}
     </section>
   )
 }
 
 /**
- * Glass secondary button for use inside PageHero (readable on the dark band,
- * unlike the light `outline` button variant).
+ * Secondary button for the light page header — white surface, hairline border,
+ * quiet hover. Pairs with the primary <Button> for the main action.
  */
 export function HeroGhostButton({
   children,
@@ -64,7 +68,7 @@ export function HeroGhostButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex h-10 items-center justify-center rounded-[var(--radius)] border border-white/15 bg-white/10 px-4 text-sm font-medium text-white backdrop-blur-sm transition-[background-color,border-color] duration-150 ease-out hover:bg-white/[0.16] active:scale-[0.98]",
+        "inline-flex h-10 items-center justify-center rounded-full border border-[var(--app-line)] bg-white px-4 text-sm font-medium text-foreground shadow-[0_1px_2px_rgba(12,26,22,.04)] transition-colors duration-150 ease-out hover:bg-[var(--muted)] active:scale-[0.98]",
         className,
       )}
     >

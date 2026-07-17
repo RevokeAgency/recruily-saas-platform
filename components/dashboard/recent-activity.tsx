@@ -25,10 +25,10 @@ const statusConfig = {
 
 export function RecentActivity({ jobs, className }: { jobs: RecentJob[]; className?: string }) {
   return (
-    <div className={cn("rounded-2xl border bg-card p-6 shadow-card", className)}>
+    <div className={cn("rounded-[22px] border border-[var(--app-line)] bg-card p-6 shadow-[var(--app-shadow-card)]", className)}>
       <div className="mb-4 flex items-center gap-2">
-        <Clock className="h-4 w-4 text-muted-foreground" />
-        <h2 className="text-base font-semibold text-foreground">Letzte Aktivitäten</h2>
+        <Clock className="h-4 w-4 text-[var(--rv-green-deep)]" strokeWidth={2} />
+        <h2 className="text-[0.95rem] font-semibold text-foreground">Letzte Aktivitäten</h2>
       </div>
       <div>
         <div className="space-y-1">
@@ -48,8 +48,8 @@ export function RecentActivity({ jobs, className }: { jobs: RecentJob[]; classNa
                 className="group -mx-2 flex items-center justify-between rounded-xl px-2 py-2.5 transition-colors duration-150 hover:bg-[var(--app-green-wash)]"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Briefcase className="h-5 w-5 text-primary" />
+                  <div className="w-10 h-10 rounded-full bg-[var(--app-green-wash)] flex items-center justify-center flex-shrink-0">
+                    <Briefcase className="h-[18px] w-[18px] text-[var(--rv-green-deep)]" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">

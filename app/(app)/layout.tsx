@@ -21,9 +21,9 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-[var(--sidebar)]">
       <AppSidebar />
-      <main className="flex-1 overflow-auto bg-background">
+      <main className="flex-1 overflow-auto [background:var(--app-canvas)]">
         {children}
       </main>
     </div>

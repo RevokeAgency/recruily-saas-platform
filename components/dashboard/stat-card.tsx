@@ -17,16 +17,16 @@ export interface StatCardProps {
   context?: string
   /** Renders a small green up-arrow in front of the context line when true. */
   positive?: boolean
-  /** Optional 2px brand-gradient accent along the top edge. */
-  accent?: boolean
+  /** Tint of the icon chip: green (default) or cyan. */
+  tone?: "green" | "cyan"
   className?: string
 }
 
 /**
- * KPI tile: label -> big tabular count-up number -> small delta/context line,
- * dezentes Line-Icon (not a filled green circle). Carries the landing's
- * cursor-tracking spotlight glow (.rv-spotlight) and a quiet shadow-lift on
- * hover. The mesh/reveal wrapper on the page staggers these in.
+ * Big-number KPI tile: a small icon chip + label on top, an oversized friendly
+ * number below, and a quiet delta/context line. White surface, generous
+ * rounding, soft shadow — the modern-dashboard look. Keeps the count-up and
+ * cursor spotlight from the previous tile.
  */
 export function StatCard({
   label,
@@ -35,7 +35,7 @@ export function StatCard({
   icon: Icon,
   context,
   positive,
-  accent,
+  tone = "green",
   className,
 }: StatCardProps) {
   const handleMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -44,36 +44,36 @@ export function StatCard({
     e.currentTarget.style.setProperty("--sy", `${e.clientY - rect.top}px`)
   }
 
+  const chip =
+    tone === "cyan"
+      ? "bg-[rgba(34,193,238,.12)] text-[var(--rv-cyan-deep)]"
+      : "bg-[var(--app-green-wash)] text-[var(--rv-green-deep)]"
+
   return (
     <div
       onMouseMove={handleMove}
       className={cn(
-        "rv-spotlight relative overflow-hidden rounded-2xl border bg-card p-6 shadow-card transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]",
+        "rv-spotlight group relative overflow-hidden rounded-[20px] border border-[var(--app-line)] bg-card p-5 shadow-[var(--app-shadow-card)] transition-shadow duration-150 ease-out hover:shadow-[0_2px_4px_rgba(12,26,22,.05),0_18px_40px_-18px_rgba(12,26,22,.16)]",
         className,
       )}
     >
-      {accent && (
-        <span
-          className="absolute inset-x-0 top-0 h-0.5"
-          style={{ backgroundImage: "var(--rv-gradient)" }}
-          aria-hidden="true"
-        />
-      )}
-      <div className="flex items-start justify-between gap-3">
-        <span className="text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
-          {label}
+      <div className="flex items-center gap-2.5">
+        <span className={cn("flex h-8 w-8 flex-none items-center justify-center rounded-full", chip)}>
+          <Icon className="h-[17px] w-[17px]" strokeWidth={2} />
         </span>
-        <Icon className="h-[18px] w-[18px] flex-none text-muted-foreground" strokeWidth={1.75} />
+        <span className="text-[0.78rem] font-medium text-muted-foreground">{label}</span>
       </div>
+
       <CountUp
         value={value}
         suffix={suffix}
-        className="mt-3 block text-3xl font-bold tracking-tight tabular-nums text-foreground"
+        className="mt-4 block text-[2.6rem] font-bold leading-none tracking-tight tabular-nums text-foreground"
       />
+
       {context && (
         <div
           className={cn(
-            "mt-2 flex items-center gap-1 text-xs",
+            "mt-2.5 flex items-center gap-1 text-xs",
             positive ? "text-[var(--rv-green-deep)]" : "text-muted-foreground",
           )}
         >

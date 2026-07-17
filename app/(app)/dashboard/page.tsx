@@ -3,6 +3,8 @@ import { MatchBackfillTrigger } from "@/components/dashboard/match-backfill-trig
 import { DashboardMetrics, type DashboardMetricsData } from "@/components/dashboard/metrics"
 import { RecentActivity, type RecentJob } from "@/components/dashboard/recent-activity"
 import { QuotaProgress } from "@/components/dashboard/quota-progress"
+import { ScoreGauge } from "@/components/dashboard/score-gauge"
+import { Priorities, type PriorityItem } from "@/components/dashboard/priorities"
 import { RevealGroup } from "@/components/app/reveal-group"
 import { createClient } from "@/lib/supabase/server"
 
@@ -38,8 +40,11 @@ export default async function DashboardPage() {
     matchesLimit: 0,
     activeJobsLimit: 1,
     avgMatchScore: 0,
+    scoredCount: 0,
   }
   let recentJobs: RecentJob[] = []
+  let firstName: string | null = null
+  let priorities: PriorityItem[] = []
 
   if (user) {
     const now = new Date()
@@ -55,6 +60,10 @@ export default async function DashboardPage() {
       usageRes,
       matchScoresRes,
       jobsListRes,
+      profileRes,
+      reviewCountRes,
+      queuedCountRes,
+      unassignedCountRes,
     ] = await Promise.all([
       supabase.from("jobs").select("id", { count: "exact", head: true })
         .eq("is_active", true).eq("user_id", user.id),
@@ -71,6 +80,14 @@ export default async function DashboardPage() {
         .eq("user_id", user.id).not("match_score", "is", null),
       supabase.from("jobs").select("id, title, company, is_active, created_at")
         .eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
+      // Read-only signals for the greeting + Prioritäten card.
+      supabase.from("user_profiles").select("first_name").eq("id", user.id).single(),
+      supabase.from("job_candidates").select("id", { count: "exact", head: true })
+        .eq("user_id", user.id).in("status", ["new", "analyzing"]),
+      supabase.from("job_candidates").select("id", { count: "exact", head: true })
+        .eq("user_id", user.id).eq("status", "queued"),
+      supabase.from("inbound_emails").select("id", { count: "exact", head: true })
+        .eq("user_id", user.id).eq("status", "unassigned"),
     ])
 
     const usage = (usageRes.data ?? null) as
@@ -94,7 +111,68 @@ export default async function DashboardPage() {
       matchesLimit: usage?.limit ?? 0,
       activeJobsLimit: usage?.active_jobs_limit ?? 1,
       avgMatchScore,
+      scoredCount: scores.length,
     }
+
+    firstName = (profileRes.data?.first_name as string | null) ?? null
+
+    // Build the Prioritäten list, most urgent first, capped at five.
+    const reviewCount = reviewCountRes.count ?? 0
+    const queuedCount = queuedCountRes.count ?? 0
+    const unassignedCount = unassignedCountRes.count ?? 0
+    const limit = metricsData.matchesLimit
+    const remaining = Math.max(limit - metricsData.matchesUsed, 0)
+    const exhausted = limit > 0 && remaining <= 0
+    const low = limit > 0 && remaining / limit <= 0.2
+
+    if (metricsData.activeJobs === 0) {
+      priorities.push({
+        id: "firstjob", kind: "firstjob",
+        title: "Ersten Job anlegen",
+        subtitle: "Starte dein erstes Matching",
+        href: "/jobs/new",
+      })
+    }
+    if (exhausted) {
+      priorities.push({
+        id: "quota", kind: "quota",
+        title: "Kontingent aufgebraucht",
+        subtitle: "Upgrade für weitere Matches",
+        href: "/subscription",
+      })
+    } else if (low) {
+      priorities.push({
+        id: "quota", kind: "quota",
+        title: `Nur noch ${remaining} Matches übrig`,
+        subtitle: "Kontingent läuft zur Neige",
+        href: "/subscription",
+      })
+    }
+    if (queuedCount > 0) {
+      priorities.push({
+        id: "queued", kind: "queued",
+        title: `${queuedCount} ${queuedCount === 1 ? "Bewerbung wartet" : "Bewerbungen warten"}`,
+        subtitle: "In Warteschlange bis Kontingent frei ist",
+        href: "/subscription",
+      })
+    }
+    if (reviewCount > 0) {
+      priorities.push({
+        id: "review", kind: "review",
+        title: `${reviewCount} ${reviewCount === 1 ? "Kandidat" : "Kandidaten"} in Bewertung`,
+        subtitle: "Analyse läuft oder wartet auf Start",
+        href: "/candidates",
+      })
+    }
+    if (unassignedCount > 0) {
+      priorities.push({
+        id: "inbox", kind: "inbox",
+        title: `${unassignedCount} nicht zugeordnet`,
+        subtitle: "Bewerbungen im Posteingang zuweisen",
+        href: "/inbox",
+      })
+    }
+    priorities = priorities.slice(0, 5)
 
     // Recent jobs with real candidate count + top match score
     const jobsList = jobsListRes.data || []
@@ -131,20 +209,22 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="relative min-h-full overflow-hidden">
-      {/* Faint page-level pattern for depth (landing DNA), fades from top-right */}
-      <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
+    <div className="relative min-h-full">
       <MatchBackfillTrigger />
 
       <RevealGroup className="relative z-[1] space-y-6 p-6 lg:p-8">
-        {/* Signature hero band: greeting + actions | flagship Ø Match-Score */}
-        <DashboardHero avgMatchScore={metricsData.avgMatchScore} matchesUsed={metricsData.matchesUsed} />
+        {/* Light greeting + primary actions */}
+        <DashboardHero firstName={firstName} />
 
-        {/* KPI row (staggered reveal + spotlight) */}
+        {/* Big-number KPI tiles (staggered reveal) */}
         <DashboardMetrics data={metricsData} />
 
-        {/* Matching quota gauge */}
-        <QuotaProgress used={metricsData.matchesUsed} total={metricsData.matchesLimit} className="reveal" />
+        {/* Score gauge · segmented quota · dark priorities focus card */}
+        <div className="reveal grid gap-4 lg:grid-cols-3">
+          <ScoreGauge score={metricsData.avgMatchScore} scoredCount={metricsData.scoredCount} />
+          <QuotaProgress used={metricsData.matchesUsed} total={metricsData.matchesLimit} />
+          <Priorities items={priorities} />
+        </div>
 
         {/* Recent activity */}
         <RecentActivity jobs={recentJobs} className="reveal" />

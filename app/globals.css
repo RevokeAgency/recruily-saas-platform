@@ -43,8 +43,10 @@
   --rv-shadow: 0 30px 70px -40px rgba(12, 26, 22, 0.30);
   --rv-shadow-lg: 0 50px 110px -55px rgba(12, 26, 22, 0.38);
 
-  /* Base */
-  --background: #F7FAF9;
+  /* Base — neutral, airy canvas (white/grey forward). The soft cool gradient
+     echoes the modern-dashboard reference without any colour cast. */
+  --background: #F5F6F8;
+  --app-canvas: radial-gradient(125% 95% at 100% 0%, #FBFCFD 0%, #F4F6F8 52%, #EEF1F4 100%);
   --foreground: var(--rv-ink);
   --card: #FFFFFF;
   --card-foreground: var(--rv-ink);
@@ -56,9 +58,9 @@
   /* Secondary: Light Cyan wash */
   --secondary: #E7F6FC;
   --secondary-foreground: var(--rv-cyan-deep);
-  /* Muted */
-  --muted: var(--rv-mist);
-  --muted-foreground: var(--rv-muted);
+  /* Muted — neutral slate (not greenish) for the white/black/grey direction */
+  --muted: #F1F3F5;
+  --muted-foreground: #667085;
   /* Accent: Light Cyan wash (same family as secondary, kept distinct for shadcn contract) */
   --accent: #E7F6FC;
   --accent-foreground: var(--rv-cyan-deep);
@@ -76,9 +78,9 @@
   --chart-5: var(--rv-mist);
   /* App-UI radius stays subtle; large 20/30/38/pill radii are landing-only (see .rv-* scope) */
   --radius: 0.75rem;
-  /* Sidebar */
-  --sidebar: #F7FAF9;
-  --sidebar-foreground: var(--rv-muted);
+  /* Sidebar — clean white against the neutral canvas */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #667085;
   --sidebar-primary: var(--rv-green);
   --sidebar-primary-foreground: var(--rv-ink);
   --sidebar-accent: #E7F6FC;
