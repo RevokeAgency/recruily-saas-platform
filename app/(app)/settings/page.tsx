@@ -123,8 +123,10 @@ export default function SettingsPage() {
         {/* Profile Section */}
         <Card className="reveal border border-border shadow-card">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--app-green-wash)]">
+                <User className="h-4 w-4 text-[var(--rv-green-deep)]" strokeWidth={2} />
+              </span>
               <CardTitle className="text-lg">Profil</CardTitle>
             </div>
             <CardDescription>
@@ -176,7 +178,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleSaveProfile} disabled={savingProfile}>
+              <Button onClick={handleSaveProfile} disabled={savingProfile} className="h-10 rounded-full px-5">
                 {savingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Speichern
               </Button>
@@ -187,8 +189,10 @@ export default function SettingsPage() {
         {/* Notifications Section */}
         <Card className="reveal border border-border shadow-card">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(34,193,238,.12)]">
+                <Bell className="h-4 w-4 text-[var(--rv-cyan-deep)]" strokeWidth={2} />
+              </span>
               <CardTitle className="text-lg">Benachrichtigungen</CardTitle>
             </div>
             <CardDescription>
@@ -265,8 +269,10 @@ export default function SettingsPage() {
         {/* API & Integrations Section */}
         <Card className="reveal border border-border shadow-card">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--app-green-wash)]">
+                <Key className="h-4 w-4 text-[var(--rv-green-deep)]" strokeWidth={2} />
+              </span>
               <CardTitle className="text-lg">API & Integrationen</CardTitle>
             </div>
             <CardDescription>
@@ -316,8 +322,10 @@ export default function SettingsPage() {
         {/* DSGVO / Data Privacy Section */}
         <Card className="reveal border border-border shadow-card">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(34,193,238,.12)]">
+                <Shield className="h-4 w-4 text-[var(--rv-cyan-deep)]" strokeWidth={2} />
+              </span>
               <CardTitle className="text-lg">Datenschutz (DSGVO)</CardTitle>
             </div>
             <CardDescription>
@@ -393,10 +401,12 @@ export default function SettingsPage() {
         {/* Team Section (Placeholder) */}
         <Card className="reveal border border-border shadow-card">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--muted)]">
+                <Users className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
+              </span>
               <CardTitle className="text-lg">Team</CardTitle>
-              <Badge variant="secondary" className="ml-2">Bald verfügbar</Badge>
+              <Badge variant="secondary" className="ml-2 rounded-full">Bald verfügbar</Badge>
             </div>
             <CardDescription>
               Lade Teammitglieder ein und verwalte Berechtigungen

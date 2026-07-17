@@ -30,7 +30,7 @@ export function JobsHeader({ onRefresh }: JobsHeaderProps) {
               <RefreshCw className="mr-2 h-4 w-4" />
               Aktualisieren
             </HeroGhostButton>
-            <Button asChild>
+            <Button asChild className="h-10 rounded-full px-4">
               <Link href="/jobs/new">
                 <Plus className="mr-2 h-4 w-4" />
                 Job erstellen
@@ -45,12 +45,12 @@ export function JobsHeader({ onRefresh }: JobsHeaderProps) {
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Jobs nach Titel, Unternehmen oder Standort suchen..."
-            className="pl-11"
+            className="pl-11 rounded-full bg-white"
           />
         </div>
         <div className="flex gap-3">
           <Select defaultValue="all">
-            <SelectTrigger className="h-11 w-full sm:w-40">
+            <SelectTrigger className="h-11 w-full rounded-full bg-white sm:w-40">
               <SelectValue placeholder="Alle Status" />
             </SelectTrigger>
             <SelectContent>
@@ -61,7 +61,7 @@ export function JobsHeader({ onRefresh }: JobsHeaderProps) {
             </SelectContent>
           </Select>
           <Select defaultValue="all">
-            <SelectTrigger className="h-11 w-full sm:w-40">
+            <SelectTrigger className="h-11 w-full rounded-full bg-white sm:w-40">
               <SelectValue placeholder="Alle Typen" />
             </SelectTrigger>
             <SelectContent>

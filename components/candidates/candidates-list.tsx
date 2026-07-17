@@ -5,7 +5,7 @@ import useSWR from "swr"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +47,7 @@ interface Candidate {
   education: string | null
   summary_ai: string | null
   location: string | null
+  photo_url?: string | null
   created_at: string
   job_count: number
 }
@@ -196,7 +197,13 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
               <div className="flex items-center gap-4">
                 {/* Avatar */}
                 <Avatar className="h-11 w-11 flex-shrink-0">
-                  <AvatarFallback className="bg-teal-100 text-teal-700 font-semibold text-sm">
+                  {candidate.photo_url && (
+                    <AvatarImage src={candidate.photo_url} alt={candidate.full_name} className="object-cover" />
+                  )}
+                  <AvatarFallback
+                    className="text-[#0C1A16] font-semibold text-sm"
+                    style={{ backgroundImage: "var(--rv-gradient)" }}
+                  >
                     {getInitials(candidate.full_name)}
                   </AvatarFallback>
                 </Avatar>
@@ -206,7 +213,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                   <p className="font-semibold text-foreground truncate">
                     {candidate.full_name}
                   </p>
-                  <Badge className={`mt-1 text-xs ${experienceLevelConfig[candidate.experience_level].color}`}>
+                  <Badge className={`mt-1 rounded-full border-transparent text-xs ${experienceLevelConfig[candidate.experience_level].color}`}>
                     {experienceLevelConfig[candidate.experience_level].label}
                   </Badge>
                 </div>
@@ -214,7 +221,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                 {/* Job Title & Location - Fixed Width */}
                 <div className="w-48 flex-shrink-0 hidden md:block">
                   {candidate.job_title && (
-                    <p className="text-sm text-slate-700 truncate">{candidate.job_title}</p>
+                    <p className="text-sm text-foreground truncate">{candidate.job_title}</p>
                   )}
                   {candidate.location && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -229,13 +236,13 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                   {candidate.skills.slice(0, 4).map((skill) => (
                     <span
                       key={skill}
-                      className="bg-teal-50 text-teal-700 px-2.5 py-1 rounded-full text-xs font-medium"
+                      className="bg-[var(--app-green-wash)] text-[var(--rv-green-deep)] px-2.5 py-1 rounded-full text-xs font-medium"
                     >
                       {skill}
                     </span>
                   ))}
                   {candidate.skills.length > 4 && (
-                    <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-xs font-medium">
+                    <span className="bg-[var(--muted)] text-muted-foreground px-2.5 py-1 rounded-full text-xs font-medium">
                       +{candidate.skills.length - 4}
                     </span>
                   )}
@@ -256,7 +263,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-teal-600 border-teal-200 hover:bg-teal-50"
+                    className="rounded-full border-[var(--app-line)] bg-white"
                     onClick={() => setSelectedCandidate(candidate)}
                   >
                     <Eye className="h-4 w-4 mr-1.5" />
@@ -264,7 +271,7 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-600">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>

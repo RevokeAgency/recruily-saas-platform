@@ -52,25 +52,31 @@ export function InboxItem({ item, jobs }: { item: InboxEmail; jobs: { id: string
   if (done) return null
 
   return (
-    <Card className="rounded-2xl shadow-card">
+    <Card>
       <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4 flex-none text-muted-foreground" />
-            <span className="truncate font-medium text-foreground">
-              {item.subject || "(kein Betreff)"}
-            </span>
-            <Badge variant="neutral">{statusLabel[item.status] ?? item.status}</Badge>
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="mt-0.5 flex h-9 w-9 flex-none items-center justify-center rounded-full bg-[rgba(34,193,238,.12)]">
+            <Mail className="h-4 w-4 text-[var(--rv-cyan-deep)]" strokeWidth={2} />
+          </span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="truncate font-medium text-foreground">
+                {item.subject || "(kein Betreff)"}
+              </span>
+              <Badge variant="neutral" className="rounded-full">
+                {statusLabel[item.status] ?? item.status}
+              </Badge>
+            </div>
+            <p className="mt-0.5 truncate text-sm text-muted-foreground">
+              von {item.from_address || "unbekannt"} · an {item.to_address}
+            </p>
+            {item.reason && <p className="mt-0.5 text-xs text-muted-foreground">{item.reason}</p>}
           </div>
-          <p className="mt-0.5 truncate text-sm text-muted-foreground">
-            von {item.from_address || "unbekannt"} · an {item.to_address}
-          </p>
-          {item.reason && <p className="mt-0.5 text-xs text-muted-foreground">{item.reason}</p>}
         </div>
 
         <div className="flex flex-shrink-0 items-center gap-2">
           <Select value={jobId} onValueChange={setJobId}>
-            <SelectTrigger className="h-10 w-48">
+            <SelectTrigger className="h-10 w-48 rounded-full">
               <SelectValue placeholder="Job wählen" />
             </SelectTrigger>
             <SelectContent>
@@ -79,7 +85,7 @@ export function InboxItem({ item, jobs }: { item: InboxEmail; jobs: { id: string
               ))}
             </SelectContent>
           </Select>
-          <Button size="sm" onClick={handleAssign} disabled={!jobId || pending}>
+          <Button size="sm" className="h-10 rounded-full px-4" onClick={handleAssign} disabled={!jobId || pending}>
             {pending ? "Weise zu…" : "Zuweisen"}
           </Button>
         </div>

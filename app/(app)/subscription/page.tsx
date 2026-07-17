@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Check, Zap, Crown, Sparkles, Building } from "lucide-react"
@@ -81,43 +80,53 @@ export default function SubscriptionPage() {
                   : 'Plan aktiv'}
               </CardDescription>
             </div>
-            <Badge>Aktiv</Badge>
+            <Badge className="rounded-full border-transparent bg-[var(--app-green-wash)] text-[var(--rv-green-deep)]">
+              Aktiv
+            </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Matches Usage */}
-            <div className="space-y-2">
+            {/* Matches usage — same segmented meter as the dashboard quota card */}
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Matches verwendet</span>
-                <span className="font-medium text-foreground">
+                <span className="font-medium text-foreground tabular-nums">
                   {loading ? '...' : `${matchesUsed} / ${matchesLimit}`}
                 </span>
               </div>
-              <Progress value={matchPercentage} gradient />
-              <p className="text-xs text-muted-foreground">
-                {loading ? 'Lädt...' : `Noch ${matchesLimit - matchesUsed} Matches verfügbar`}
+              <div className="flex gap-1.5" role="img" aria-label={`${matchesUsed} von ${matchesLimit} Matches verbraucht`}>
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={cn(
+                      "h-2.5 flex-1 rounded-full",
+                      i < Math.round(Math.min(matchPercentage, 100) / 10)
+                        ? "bg-[image:var(--rv-gradient)]"
+                        : "bg-[var(--muted)]",
+                    )}
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground tabular-nums">
+                {loading ? 'Lädt...' : `Noch ${Math.max(matchesLimit - matchesUsed, 0)} Matches verfügbar`}
               </p>
             </div>
 
-            {/* Active Jobs */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Aktive Jobs Limit</span>
-                <span className="font-medium text-foreground">
-                  {loading ? '...' : profile?.active_jobs_limit === 999 
-                    ? 'Unbegrenzt' 
-                    : `${profile?.active_jobs_limit || 1} Jobs`}
-                </span>
-              </div>
-              <Progress
-                value={profile?.active_jobs_limit === 999 ? 5 : 50}
-                gradient
-              />
-              <p className="text-xs text-muted-foreground">
-                {PLANS[currentPlanId].active_jobs === 999 
+            {/* Active jobs limit — plain statement, no fake meter */}
+            <div className="space-y-1">
+              <span className="text-sm text-muted-foreground">Aktive Jobs</span>
+              <p className="text-2xl font-bold leading-none text-foreground tabular-nums">
+                {loading
+                  ? '…'
+                  : profile?.active_jobs_limit === 999
+                    ? 'Unbegrenzt'
+                    : `bis zu ${profile?.active_jobs_limit || 1}`}
+              </p>
+              <p className="pt-1 text-xs text-muted-foreground">
+                {PLANS[currentPlanId].active_jobs === 999
                   ? 'Unbegrenzte aktive Stellenanzeigen'
-                  : `Bis zu ${PLANS[currentPlanId].active_jobs} aktive Stellenanzeigen`}
+                  : 'gleichzeitig aktive Stellenanzeigen in deinem Plan'}
               </p>
             </div>
           </div>
@@ -196,8 +205,8 @@ export default function SubscriptionPage() {
               <CardHeader className="text-center pb-2">
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2",
-                    plan.featured ? "bg-[rgba(22,199,124,.1)]" : "bg-muted"
+                    "w-12 h-12 rounded-full mx-auto flex items-center justify-center mb-2",
+                    plan.featured ? "bg-[var(--app-green-wash)]" : "bg-muted"
                   )}
                 >
                   <Icon
@@ -253,7 +262,7 @@ export default function SubscriptionPage() {
 
                 {/* CTA */}
                 <Button
-                  className={cn("w-full", isCurrent && "border-[var(--rv-green)] text-[var(--rv-green)]")}
+                  className={cn("w-full h-10 rounded-full", isCurrent && "border-[var(--rv-green)] text-[var(--rv-green)]")}
                   variant={isCurrent ? "outline" : plan.featured ? "default" : "outline"}
                   disabled={isCurrent}
                 >

@@ -36,7 +36,7 @@ export function CandidatesHeader({
                 Aktualisieren
               </HeroGhostButton>
             )}
-            <Button asChild>
+            <Button asChild className="h-10 rounded-full px-4">
               <Link href="/candidates/new">
                 <Plus className="mr-2 h-4 w-4" />
                 Kandidat hinzufügen
@@ -51,17 +51,17 @@ export function CandidatesHeader({
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Kandidaten nach Name, Skills oder Standort suchen..."
-            className="pl-11"
+            className="pl-11 rounded-full bg-white"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
 
         <Tabs value={filter} onValueChange={onFilterChange} className="w-auto">
-          <TabsList className="h-11 bg-[var(--rv-mist)] rounded-[10px] p-1">
-            <TabsTrigger value="all" className="rounded-[7px]">Alle</TabsTrigger>
-            <TabsTrigger value="unmatched" className="rounded-[7px]">Unverknüpft</TabsTrigger>
-            <TabsTrigger value="matched" className="rounded-[7px]">Gematcht</TabsTrigger>
+          <TabsList className="h-11 rounded-full bg-white p-1 shadow-[0_1px_2px_rgba(12,26,22,.06)]">
+            <TabsTrigger value="all" className="rounded-full data-[state=active]:bg-[var(--rv-ink)] data-[state=active]:text-white">Alle</TabsTrigger>
+            <TabsTrigger value="unmatched" className="rounded-full data-[state=active]:bg-[var(--rv-ink)] data-[state=active]:text-white">Unverknüpft</TabsTrigger>
+            <TabsTrigger value="matched" className="rounded-full data-[state=active]:bg-[var(--rv-ink)] data-[state=active]:text-white">Gematcht</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
