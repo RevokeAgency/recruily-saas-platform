@@ -4,6 +4,7 @@ import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
 import { parseCvBuffer, isUsableCandidate, isPdfFile, extractDocumentText } from "@/lib/cv-parse"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
+import { sendApplicationReceived } from "@/lib/email/send"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     // Resolve the job -> owner (the applicant is always filed to the job owner).
     const { data: job, error: jobError } = await supabase
-      .from("jobs").select("id, user_id").eq("id", jobId).eq("is_active", true).single()
+      .from("jobs").select("id, user_id, title, company").eq("id", jobId).eq("is_active", true).single()
     if (jobError || !job) {
       return Response.json({ error: "Job nicht gefunden oder inaktiv" }, { status: 404 })
     }
@@ -160,6 +161,14 @@ export async function POST(req: NextRequest) {
         console.error("[apply] background scoring failed:", err),
       )
     }
+
+    // Send the applicant an eingangsbestätigung (best-effort, never blocks).
+    await sendApplicationReceived({
+      to: email || p?.email,
+      candidateName: fullName,
+      jobTitle: (job.title as string) || null,
+      companyName: (job.company as string) || null,
+    })
 
     return Response.json({ success: true, candidateId: candidate.id, scored: quota.allowed })
   } catch (error) {

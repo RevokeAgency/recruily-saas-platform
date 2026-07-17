@@ -666,7 +666,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
               .update({ status: "Abgesagt" })
               .eq("id", rejectionCandidate.linkId)
               .then(() => {
-                toast.success("Absage wurde gesendet ✓")
+                toast.success("Kandidat abgesagt ✓")
                 mutate()
                 setRejectionCandidate(null)
               })

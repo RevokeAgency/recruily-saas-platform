@@ -24,10 +24,15 @@ export function RejectionModal({
 }: Props) {
   const { profile } = useProfile()
   const [text, setText] = useState('')
+  const [notify, setNotify] = useState(true)
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
+  const [emailed, setEmailed] = useState(false)
 
   const canSendEmail = profile?.plan === 'growth' || profile?.plan === 'pro'
+  // The e-mail is only actually sent when the plan allows it, the toggle is on,
+  // and we have an address. Otherwise the candidate is simply set to "Abgesagt".
+  const willEmail = canSendEmail && notify && !!candidateEmail
 
   if (!isOpen) return null
 
@@ -42,27 +47,30 @@ Wir danken Ihnen für Ihr Interesse und wünschen Ihnen alles Gute.
 Mit freundlichen Grüßen,
 ${companyName}`
 
-  const handleSend = async () => {
+  const handleConfirm = async () => {
     setSending(true)
     try {
-      await fetch('/api/send-rejection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          candidateName,
-          candidateEmail,
-          jobTitle,
-          companyName,
-          customText: text || defaultText,
-        }),
-      })
+      if (willEmail) {
+        await fetch('/api/send-rejection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            candidateName,
+            candidateEmail,
+            jobTitle,
+            companyName,
+            customText: text || defaultText,
+          }),
+        })
+      }
+      setEmailed(willEmail)
       setSending(false)
       setSent(true)
       setTimeout(() => {
         setSent(false)
         onSuccess()
         onClose()
-      }, 1500)
+      }, willEmail ? 1500 : 700)
     } catch (error) {
       setSending(false)
       console.error('Error sending rejection:', error)
@@ -91,56 +99,86 @@ ${companyName}`
             <p className="text-slate-500">Bewerbung: {jobTitle}</p>
           </div>
 
-          {!canSendEmail ? (
-            /* Upsell for free/starter */
-            <div className="text-center py-6">
-              <div className="w-12 h-12 rounded-full bg-[rgba(22,199,124,.1)] flex items-center justify-center mx-auto mb-3">
-                <Lock className="w-6 h-6 text-[var(--rv-green)]" />
-              </div>
-              <p className="font-semibold text-slate-900 mb-1">
-                Branded Emails ab Growth Plan
-              </p>
-              <p className="text-sm text-slate-500 mb-4">
-                Schicke professionelle, gebrandete Absage-Emails direkt aus Revetly heraus.
-              </p>
-              <a 
-                href="/subscription"
-                className="inline-block bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)] text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors"
-              >
-                Auf Growth upgraden
-              </a>
-            </div>
-          ) : sent ? (
+          {sent ? (
             /* Success state */
             <div className="text-center py-6">
               <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
                 <Send className="w-6 h-6 text-green-500" />
               </div>
-              <p className="font-semibold text-slate-900">Absage wurde gesendet</p>
+              <p className="font-semibold text-slate-900">
+                {emailed ? 'Absage wurde gesendet' : 'Kandidat wurde abgesagt'}
+              </p>
             </div>
           ) : (
-            /* Email editor */
             <>
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 block">
-                E-Mail Text
+              {/* Notify toggle — rejecting always works; the e-mail is optional */}
+              <label
+                className={`flex items-start gap-3 rounded-lg border px-4 py-3 mb-4 ${
+                  canSendEmail ? 'border-slate-200 cursor-pointer' : 'border-slate-100 bg-slate-50'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={willEmail}
+                  disabled={!canSendEmail}
+                  onChange={(e) => setNotify(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-[var(--rv-green)]"
+                />
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-slate-900">
+                    Bewerber per E-Mail benachrichtigen
+                  </span>
+                  {canSendEmail ? (
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Der Kandidat erhält eine gebrandete Absage. Ohne Haken wird er nur
+                      still auf „Abgesagt" gesetzt.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                      <Lock className="w-3 h-3 text-[var(--rv-green)]" />
+                      Gebrandete Absage-Mails ab Growth.{' '}
+                      <a href="/subscription" className="text-[var(--rv-green-deep)] font-medium underline">
+                        Upgraden
+                      </a>
+                    </p>
+                  )}
+                </div>
               </label>
-              <textarea
-                value={text || defaultText}
-                onChange={(e) => setText(e.target.value)}
-                rows={10}
-                className="w-full border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-700 leading-relaxed resize-none focus:border-[var(--rv-green)] focus:ring-1 focus:ring-[var(--rv-green)] outline-none"
-              />
-              <p className="text-xs text-slate-400 mt-2">
-                Von: karriere@revetly.ai · An: {candidateEmail}
-              </p>
+
+              {willEmail && (
+                <>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 block">
+                    E-Mail Text
+                  </label>
+                  <textarea
+                    value={text || defaultText}
+                    onChange={(e) => setText(e.target.value)}
+                    rows={10}
+                    className="w-full border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-700 leading-relaxed resize-none focus:border-[var(--rv-green)] focus:ring-1 focus:ring-[var(--rv-green)] outline-none"
+                  />
+                  <p className="text-xs text-slate-400 mt-2">
+                    Von: karriere@revetly.ai · An: {candidateEmail}
+                  </p>
+                </>
+              )}
+
+              {!willEmail && (
+                <p className="text-sm text-slate-500">
+                  Der Kandidat wird auf „Abgesagt" gesetzt, ohne benachrichtigt zu werden.
+                </p>
+              )}
 
               <button
-                onClick={handleSend}
+                onClick={handleConfirm}
                 disabled={sending}
                 className="mt-4 w-full flex items-center justify-center gap-2 bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)] disabled:opacity-60 text-white font-semibold py-3 rounded-lg transition-colors"
               >
                 <Send className="w-4 h-4" />
-                {sending ? 'Wird gesendet...' : 'Absage senden'}
+                {sending
+                  ? 'Wird verarbeitet...'
+                  : willEmail
+                    ? 'Absage senden'
+                    : 'Absage bestätigen'}
               </button>
             </>
           )}

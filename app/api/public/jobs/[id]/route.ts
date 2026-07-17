@@ -10,12 +10,14 @@ export async function GET(
   try {
     const { id } = await params
 
-    // Public, unauthenticated route — uses anon key, RLS read-only.
-    // Created inside the handler so build-time page-data collection
-    // does not require the env vars to be present.
+    // Public, unauthenticated route. Reads with the service role and returns
+    // ONLY the public columns of an ACTIVE job — so `jobs` itself can stay fully
+    // RLS-locked to its owner (no anon read access). Created inside the handler
+    // so build-time page-data collection doesn't require the env vars.
     const supabasePublic = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } },
     )
 
     const { data: job, error } = await supabasePublic

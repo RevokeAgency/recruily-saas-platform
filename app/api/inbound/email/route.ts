@@ -7,6 +7,7 @@ import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { loadInboundAttachment } from "@/lib/email/attachments"
+import { sendApplicationReceived } from "@/lib/email/send"
 
 export const maxDuration = 60
 export const dynamic = "force-dynamic"
@@ -60,13 +61,13 @@ export async function POST(req: NextRequest) {
       ownerId = owner?.id ?? null
     }
 
-    let job: { id: string; user_id: string } | null = null
+    let job: { id: string; user_id: string; title: string | null; company: string | null } | null = null
     if (jobId) {
       const { data: j } = await supabase
-        .from("jobs").select("id, user_id, is_active").eq("id", jobId).single()
+        .from("jobs").select("id, user_id, is_active, title, company").eq("id", jobId).single()
       // Security: the job must belong to the customer named in the address.
       if (j && (!ownerId || j.user_id === ownerId)) {
-        job = { id: j.id, user_id: j.user_id }
+        job = { id: j.id, user_id: j.user_id, title: j.title ?? null, company: j.company ?? null }
         ownerId = ownerId ?? j.user_id
       }
     }
@@ -197,6 +198,14 @@ export async function POST(req: NextRequest) {
         console.error("[inbound] scoring failed:", err),
       )
     }
+
+    // Confirm receipt to the applicant (best-effort, never blocks intake).
+    await sendApplicationReceived({
+      to: parsed.email || email.from,
+      candidateName: parsed.full_name,
+      jobTitle: job.title,
+      companyName: job.company,
+    })
 
     await finalize("assigned", quota.allowed ? undefined : "Kontingent aufgebraucht", candidate.id)
     return Response.json({ success: true, status: "assigned", candidateId: candidate.id, scored: quota.allowed })

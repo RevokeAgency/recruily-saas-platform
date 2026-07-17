@@ -689,7 +689,7 @@ export function CandidateMatchModal({
           .update({ status: "Abgesagt" })
           .eq("id", candidate.linkId)
         setRejected(true)
-        toast.success("Absage wurde gesendet ✓")
+        toast.success("Kandidat abgesagt ✓")
       }}
     />
     </>
