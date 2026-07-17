@@ -25,7 +25,7 @@ const statusConfig = {
 
 export function RecentActivity({ jobs, className }: { jobs: RecentJob[]; className?: string }) {
   return (
-    <div className={cn("rounded-[22px] border border-[var(--app-line)] bg-card p-6 shadow-[var(--app-shadow-card)]", className)}>
+    <div className={cn("rounded-[24px] border border-black/[0.04] bg-card p-6 shadow-[var(--app-shadow-card)]", className)}>
       <div className="mb-4 flex items-center gap-2">
         <Clock className="h-4 w-4 text-[var(--rv-green-deep)]" strokeWidth={2} />
         <h2 className="text-[0.95rem] font-semibold text-foreground">Letzte Aktivitäten</h2>

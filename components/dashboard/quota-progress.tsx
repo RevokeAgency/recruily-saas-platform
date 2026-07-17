@@ -26,7 +26,7 @@ export function QuotaProgress({
   return (
     <div
       className={cn(
-        "flex h-full flex-col rounded-[22px] border border-[var(--app-line)] bg-card p-6 shadow-[var(--app-shadow-card)]",
+        "flex h-full flex-col rounded-[24px] border border-black/[0.04] bg-card p-6 shadow-[var(--app-shadow-card)]",
         className,
       )}
     >

@@ -36,7 +36,6 @@ export default async function InboxPage() {
 
   return (
     <div className="relative min-h-full overflow-hidden">
-      <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
       <RevealGroup className="relative z-[1] space-y-6 p-6 lg:p-8">
         <PageHero
           eyebrow="Posteingang"

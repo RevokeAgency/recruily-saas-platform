@@ -41,7 +41,7 @@ const toneChip: Record<"green" | "cyan" | "amber", string> = {
  */
 export function Priorities({ items }: { items: PriorityItem[] }) {
   return (
-    <div className="flex h-full flex-col rounded-[22px] bg-[var(--rv-ink)] p-6 text-white">
+    <div className="flex h-full flex-col rounded-[24px] bg-[var(--rv-ink)] p-6 text-white">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ClipboardCheck className="h-4 w-4 text-[#45CB8D]" strokeWidth={2} />

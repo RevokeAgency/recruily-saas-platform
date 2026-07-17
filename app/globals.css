@@ -43,10 +43,15 @@
   --rv-shadow: 0 30px 70px -40px rgba(12, 26, 22, 0.30);
   --rv-shadow-lg: 0 50px 110px -55px rgba(12, 26, 22, 0.38);
 
-  /* Base — neutral, airy canvas (white/grey forward). The soft cool gradient
-     echoes the modern-dashboard reference without any colour cast. */
+  /* Base — the app floats as one rounded shell on a grey backdrop (reference
+     look). Inside the shell: white/grey canvas with a whisper of brand tint
+     glowing from the top corners (their yellow → our cyan/green). */
   --background: #F5F6F8;
-  --app-canvas: radial-gradient(125% 95% at 100% 0%, #FBFCFD 0%, #F4F6F8 52%, #EEF1F4 100%);
+  --app-backdrop: #AEB3BA;
+  --app-canvas:
+    radial-gradient(95% 70% at 100% 0%, rgba(22, 199, 124, 0.09) 0%, rgba(247, 249, 250, 0) 48%),
+    radial-gradient(80% 60% at 0% 0%, rgba(34, 193, 238, 0.07) 0%, rgba(247, 249, 250, 0) 45%),
+    linear-gradient(180deg, #FAFBFC 0%, #F1F3F5 100%);
   --foreground: var(--rv-ink);
   --card: #FFFFFF;
   --card-foreground: var(--rv-ink);
@@ -106,6 +111,10 @@
   --app-focus-ring: 0 0 0 3px rgba(22, 199, 124, 0.25);
   --app-green-wash: rgba(22, 199, 124, 0.10);
 }
+
+/* Hide scrollbars on horizontally scrolling pill rows (topbar nav). */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 .dark {
   --background: oklch(0.145 0 0);

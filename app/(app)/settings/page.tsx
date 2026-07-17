@@ -113,7 +113,6 @@ export default function SettingsPage() {
 
   return (
     <div className="relative min-h-full overflow-hidden">
-      <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
       <RevealGroup className="relative z-[1] max-w-4xl space-y-8 p-6 lg:p-8">
         <PageHero
           eyebrow="Einstellungen"

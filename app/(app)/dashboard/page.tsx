@@ -1,6 +1,6 @@
-import { DashboardHero } from "@/components/dashboard/dashboard-hero"
+import { DashboardHero, type PipelineBreakdown } from "@/components/dashboard/dashboard-hero"
 import { MatchBackfillTrigger } from "@/components/dashboard/match-backfill-trigger"
-import { DashboardMetrics, type DashboardMetricsData } from "@/components/dashboard/metrics"
+import { type DashboardMetricsData } from "@/components/dashboard/metrics"
 import { RecentActivity, type RecentJob } from "@/components/dashboard/recent-activity"
 import { QuotaProgress } from "@/components/dashboard/quota-progress"
 import { ScoreGauge } from "@/components/dashboard/score-gauge"
@@ -45,6 +45,7 @@ export default async function DashboardPage() {
   let recentJobs: RecentJob[] = []
   let firstName: string | null = null
   let priorities: PriorityItem[] = []
+  let pipeline: PipelineBreakdown = { scored: 0, invited: 0, waiting: 0, rejected: 0 }
 
   if (user) {
     const now = new Date()
@@ -64,6 +65,7 @@ export default async function DashboardPage() {
       reviewCountRes,
       queuedCountRes,
       unassignedCountRes,
+      statusRowsRes,
     ] = await Promise.all([
       supabase.from("jobs").select("id", { count: "exact", head: true })
         .eq("is_active", true).eq("user_id", user.id),
@@ -88,6 +90,7 @@ export default async function DashboardPage() {
         .eq("user_id", user.id).eq("status", "queued"),
       supabase.from("inbound_emails").select("id", { count: "exact", head: true })
         .eq("user_id", user.id).eq("status", "unassigned"),
+      supabase.from("job_candidates").select("status").eq("user_id", user.id),
     ])
 
     const usage = (usageRes.data ?? null) as
@@ -115,6 +118,15 @@ export default async function DashboardPage() {
     }
 
     firstName = (profileRes.data?.first_name as string | null) ?? null
+
+    // Pipeline distribution for the hero meter (status → bucket).
+    for (const row of statusRowsRes.data ?? []) {
+      const s = (row.status as string) || ""
+      if (s === "scored" || s === "shortlisted") pipeline.scored++
+      else if (s === "Eingeladen" || s === "interviewed") pipeline.invited++
+      else if (s === "Abgesagt") pipeline.rejected++
+      else pipeline.waiting++
+    }
 
     // Build the Prioritäten list, most urgent first, capped at five.
     const reviewCount = reviewCountRes.count ?? 0
@@ -213,11 +225,14 @@ export default async function DashboardPage() {
       <MatchBackfillTrigger />
 
       <RevealGroup className="relative z-[1] space-y-6 p-6 lg:p-8">
-        {/* Light greeting + primary actions */}
-        <DashboardHero firstName={firstName} />
-
-        {/* Big-number KPI tiles (staggered reveal) */}
-        <DashboardMetrics data={metricsData} />
+        {/* Greeting + bare big numbers + pipeline meter (reference hero) */}
+        <DashboardHero
+          firstName={firstName}
+          activeJobs={metricsData.activeJobs}
+          totalCandidates={metricsData.totalCandidates}
+          scoredCount={metricsData.scoredCount}
+          pipeline={pipeline}
+        />
 
         {/* Score gauge · segmented quota · dark priorities focus card */}
         <div className="reveal grid gap-4 lg:grid-cols-3">

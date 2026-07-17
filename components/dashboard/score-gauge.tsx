@@ -15,7 +15,7 @@ export function ScoreGauge({ score, scoredCount }: { score: number; scoredCount:
   const offset = circ - (pct / 100) * circ
 
   return (
-    <div className="flex h-full flex-col rounded-[22px] border border-[var(--app-line)] bg-card p-6 shadow-[var(--app-shadow-card)]">
+    <div className="flex h-full flex-col rounded-[24px] border border-black/[0.04] bg-card p-6 shadow-[var(--app-shadow-card)]">
       <div className="flex items-center gap-2 text-muted-foreground">
         <TrendingUp className="h-4 w-4 text-[var(--rv-green-deep)]" strokeWidth={2} />
         <span className="text-[0.82rem] font-semibold text-foreground">Ø Match-Score</span>

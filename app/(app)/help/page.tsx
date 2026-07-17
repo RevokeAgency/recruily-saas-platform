@@ -90,7 +90,6 @@ const SECTIONS: Section[] = [
 export default function HelpPage() {
   return (
     <div className="relative min-h-full overflow-hidden">
-      <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
       <div className="relative z-[1] mx-auto max-w-3xl space-y-8 p-6 lg:p-8">
         <PageHero
           eyebrow="Hilfe"

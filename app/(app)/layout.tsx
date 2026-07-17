@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppTopbar } from "@/components/app-topbar"
 
 export default async function AppLayout({
   children,
@@ -21,11 +21,14 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--sidebar)]">
-      <AppSidebar />
-      <main className="flex-1 overflow-auto [background:var(--app-canvas)]">
-        {children}
-      </main>
+    <div className="h-screen overflow-hidden bg-[var(--app-backdrop)] p-2 sm:p-3">
+      {/* The whole app floats as one rounded shell on the grey backdrop. */}
+      <div className="flex h-full flex-col overflow-hidden rounded-[28px] [background:var(--app-canvas)] shadow-[0_40px_90px_-40px_rgba(15,23,32,.5)]">
+        <AppTopbar />
+        <main className="min-h-0 flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }

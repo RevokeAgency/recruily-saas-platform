@@ -58,7 +58,6 @@ export default function SubscriptionPage() {
 
   return (
     <div className="relative min-h-full overflow-hidden">
-      <div className="rv-patternbg" data-pattern="grid" aria-hidden="true" />
       <RevealGroup className="relative z-[1] flex flex-col gap-8 p-6 lg:p-8">
         <PageHero
           eyebrow="Abonnement"
