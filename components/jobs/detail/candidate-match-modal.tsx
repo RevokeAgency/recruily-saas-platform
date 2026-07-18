@@ -294,6 +294,14 @@ export function CandidateMatchModal({
       return
     }
 
+    // Best-effort time-to-interview stamp (migration 016); separate call so a
+    // missing column can never break the invite itself.
+    await supabase
+      .from("job_candidates")
+      .update({ invited_at: new Date().toISOString() })
+      .eq("id", candidate.linkId)
+      .then(({ error }) => { if (error) console.error("[invite] invited_at skipped:", error.message) })
+
     // 2. Send email with .ics attachment if candidate has an email address
     if (candidate.email) {
       try {
