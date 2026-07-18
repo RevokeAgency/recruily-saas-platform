@@ -121,8 +121,8 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
         <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
-                <Users className="h-5 w-5 text-teal-600" />
+              <div className="w-10 h-10 rounded-full bg-[var(--app-green-wash)] flex items-center justify-center">
+                <Users className="h-5 w-5 text-[var(--rv-green-deep)]" strokeWidth={2} />
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{data.totalCandidates}</p>
@@ -135,8 +135,8 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
         <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-emerald-600" />
+              <div className="w-10 h-10 rounded-full bg-[var(--app-green-wash)] flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-[var(--rv-green-deep)]" strokeWidth={2} />
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{data.avgScore}%</p>
@@ -149,8 +149,8 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
         <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                <Target className="h-5 w-5 text-amber-600" />
+              <div className="w-10 h-10 rounded-full bg-[rgba(34,193,238,.12)] flex items-center justify-center">
+                <Target className="h-5 w-5 text-[var(--rv-cyan-deep)]" strokeWidth={2} />
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{data.conversionRate}%</p>
@@ -163,8 +163,8 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
         <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-purple-600" />
+              <div className="w-10 h-10 rounded-full bg-[var(--muted)] flex items-center justify-center">
+                <Clock className="h-5 w-5 text-muted-foreground" strokeWidth={2} />
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{data.daysSinceFirstCandidate}</p>
@@ -196,7 +196,7 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
                 </div>
                 <Progress 
                   value={((data.statusCounts.new + data.statusCounts.analyzing + data.statusCounts.scored) / pipelineMax) * 100} 
-                  className="h-2 bg-muted [&>div]:bg-slate-400" 
+                  className="h-2 bg-muted [&>div]:bg-[rgba(12,26,22,.30)]" 
                 />
               </div>
               <div>
@@ -206,7 +206,7 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
                 </div>
                 <Progress 
                   value={(data.statusCounts.shortlisted / pipelineMax) * 100} 
-                  className="h-2 bg-muted [&>div]:bg-blue-500" 
+                  className="h-2 bg-muted [&>div]:bg-[var(--rv-cyan)]" 
                 />
               </div>
               <div>
@@ -214,9 +214,9 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
                   <span className="text-sm text-muted-foreground">Interviewed</span>
                   <span className="text-sm font-medium">{data.statusCounts.interviewed}</span>
                 </div>
-                <Progress 
-                  value={(data.statusCounts.interviewed / pipelineMax) * 100} 
-                  className="h-2 bg-muted [&>div]:bg-amber-500" 
+                <Progress
+                  value={(data.statusCounts.interviewed / pipelineMax) * 100}
+                  className="h-2 bg-muted [&>div]:bg-[var(--rv-cyan-deep)]"
                 />
               </div>
               <div>
@@ -226,7 +226,7 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
                 </div>
                 <Progress 
                   value={(data.statusCounts.offered / pipelineMax) * 100} 
-                  className="h-2 bg-muted [&>div]:bg-purple-500" 
+                  className="h-2 bg-muted [&>div]:bg-[var(--rv-green)]" 
                 />
               </div>
               <div>
@@ -234,9 +234,9 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
                   <span className="text-sm text-muted-foreground">Eingestellt</span>
                   <span className="text-sm font-medium">{data.statusCounts.hired}</span>
                 </div>
-                <Progress 
-                  value={(data.statusCounts.hired / pipelineMax) * 100} 
-                  className="h-2 bg-muted [&>div]:bg-emerald-500" 
+                <Progress
+                  value={(data.statusCounts.hired / pipelineMax) * 100}
+                  className="h-2 bg-muted [&>div]:bg-[var(--rv-green-deep)]"
                 />
               </div>
             </div>
@@ -258,9 +258,9 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
                   <span className="text-sm text-muted-foreground">90-100% (Exzellent)</span>
                   <span className="text-sm font-medium">{data.scoreDistribution.excellent}</span>
                 </div>
-                <Progress 
-                  value={(data.scoreDistribution.excellent / scoreMax) * 100} 
-                  className="h-2 bg-muted [&>div]:bg-emerald-500" 
+                <Progress
+                  value={(data.scoreDistribution.excellent / scoreMax) * 100}
+                  className="h-2 bg-muted [&>div]:bg-[var(--rv-green-deep)]"
                 />
               </div>
               <div>
@@ -290,7 +290,7 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
                 </div>
                 <Progress 
                   value={(data.scoreDistribution.belowAverage / scoreMax) * 100} 
-                  className="h-2 bg-muted [&>div]:bg-orange-500" 
+                  className="h-2 bg-muted [&>div]:bg-amber-600" 
                 />
               </div>
               <div>

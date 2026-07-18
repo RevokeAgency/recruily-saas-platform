@@ -51,11 +51,11 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const getEmploymentLabel = (type: string | null) => {
   switch (type) {
-    case "full-time": return "Full Time"
-    case "part-time": return "Part Time"
-    case "contract": return "Contract"
+    case "full-time": return "Vollzeit"
+    case "part-time": return "Teilzeit"
+    case "contract": return "Befristet"
     case "remote": return "Remote"
-    default: return type || "Full Time"
+    default: return type || "Vollzeit"
   }
 }
 
@@ -85,10 +85,10 @@ export default function JobDetailPage() {
   if (error || !data?.job) {
     return (
       <div className="p-6 lg:p-8">
-        <Button variant="outline" asChild className="mb-4">
+        <Button variant="outline" asChild className="mb-4 rounded-full">
           <Link href="/jobs">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Jobs
+            Zurück zu Jobs
           </Link>
         </Button>
         <div className="text-center py-12">
@@ -157,18 +157,18 @@ export default function JobDetailPage() {
     <div className="p-6 lg:p-8">
       {/* Header Row */}
       <div className="flex items-center justify-between mb-6">
-        <Button variant="outline" asChild size="sm">
+        <Button variant="outline" asChild size="sm" className="rounded-full bg-white">
           <Link href="/jobs">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Jobs
+            Zurück zu Jobs
           </Link>
         </Button>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setChannelsOpen(true)}>
+          <Button variant="outline" size="sm" className="rounded-full bg-white" onClick={() => setChannelsOpen(true)}>
             <Share2 className="mr-2 h-4 w-4" />
             Kanäle & Bewerbungslink
           </Button>
-          <Button variant="outline" size="sm" onClick={toggleActive} disabled={toggling}>
+          <Button variant="outline" size="sm" className="rounded-full bg-white" onClick={toggleActive} disabled={toggling}>
             {job.is_active ? (
               <><Lock className="mr-2 h-4 w-4" /> Job schließen</>
             ) : (
@@ -180,94 +180,54 @@ export default function JobDetailPage() {
 
       {/* Job Title Section */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground mb-1">{job.title}</h1>
-        <p className="text-muted-foreground">
+        <span className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[var(--rv-green-deep)]">
+          Stellenangebot
+        </span>
+        <h1 className="mt-1.5 text-[1.85rem] font-bold leading-[1.1] tracking-tight text-foreground">{job.title}</h1>
+        <p className="mt-1.5 text-muted-foreground">
           {job.company} {shortDescription && `• ${shortDescription}`}
         </p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards — dashboard tile language: round brand chips + big numbers */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {/* Applications */}
-        <Card className="rounded-xl transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-              <Users className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Applications</p>
-              <p className="text-2xl font-bold text-foreground tabular-nums">{job.application_count || 0}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Matches */}
-        <Card className="rounded-xl transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[var(--app-green-wash)] flex items-center justify-center">
-              <BarChart3 className="h-6 w-6 text-[var(--rv-green-deep)]" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Matches</p>
-              <p className="text-2xl font-bold text-foreground tabular-nums">{job.match_count || 0}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Posted */}
-        <Card className="rounded-xl transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-pink-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Posted</p>
-              <p className="text-2xl font-bold text-foreground">{formattedDate}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Type */}
-        <Card className="rounded-xl transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-              <Clock className="h-6 w-6 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Type</p>
-              <p className="text-2xl font-bold text-foreground">{getEmploymentLabel(job.employment_type)}</p>
-            </div>
-          </CardContent>
-        </Card>
+        {[
+          { label: "Bewerbungen", value: String(job.application_count || 0), icon: Users, chip: "bg-[rgba(34,193,238,.12)] text-[var(--rv-cyan-deep)]" },
+          { label: "Matches", value: String(job.match_count || 0), icon: BarChart3, chip: "bg-[var(--app-green-wash)] text-[var(--rv-green-deep)]" },
+          { label: "Erstellt", value: formattedDate, icon: Calendar, chip: "bg-[var(--muted)] text-muted-foreground" },
+          { label: "Art", value: getEmploymentLabel(job.employment_type), icon: Clock, chip: "bg-[var(--muted)] text-muted-foreground" },
+        ].map(({ label, value, icon: Icon, chip }) => (
+          <Card key={label} className="transition-shadow duration-150 ease-out hover:shadow-[0_2px_4px_rgba(12,26,22,.05),0_18px_40px_-18px_rgba(12,26,22,.16)]">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2.5">
+                <span className={`flex h-8 w-8 flex-none items-center justify-center rounded-full ${chip}`}>
+                  <Icon className="h-[17px] w-[17px]" strokeWidth={2} />
+                </span>
+                <span className="text-[0.78rem] font-medium text-muted-foreground">{label}</span>
+              </div>
+              <p className="mt-3.5 text-2xl font-bold leading-none tracking-tight text-foreground tabular-nums">{value}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-4 mb-6 h-12 bg-muted/50">
-          <TabsTrigger 
-            value="candidates" 
-            className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
-          >
-            Candidates
-          </TabsTrigger>
-          <TabsTrigger 
-            value="overview"
-            className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
-          >
-            Overview
-          </TabsTrigger>
-          <TabsTrigger 
-            value="applications"
-            className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
-          >
-            Applications
-          </TabsTrigger>
-          <TabsTrigger 
-            value="analytics"
-            className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
-          >
-            Analytics
-          </TabsTrigger>
+        <TabsList className="mb-6 h-12 w-full max-w-xl rounded-full bg-white p-1 shadow-[0_1px_2px_rgba(12,26,22,.06),0_6px_16px_-8px_rgba(12,26,22,.10)]">
+          {[
+            { value: "candidates", label: "Kandidaten" },
+            { value: "overview", label: "Überblick" },
+            { value: "applications", label: "Bewerbungen" },
+            { value: "analytics", label: "Statistiken" },
+          ].map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="flex-1 rounded-full data-[state=active]:bg-[var(--rv-ink)] data-[state=active]:text-white"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="candidates">

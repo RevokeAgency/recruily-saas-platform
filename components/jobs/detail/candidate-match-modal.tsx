@@ -114,19 +114,19 @@ const categories = [
 
 // Get score color based on value
 function getScoreColor(score: number): string {
-  if (score >= 80) return "text-emerald-600"
+  if (score >= 80) return "text-[var(--rv-green-deep)]"
   if (score >= 60) return "text-amber-500"
   return "text-red-500"
 }
 
 function getScoreBgColor(score: number): string {
-  if (score >= 80) return "bg-emerald-500"
+  if (score >= 80) return "bg-[var(--rv-green)]"
   if (score >= 60) return "bg-amber-500"
   return "bg-red-500"
 }
 
 function getScoreStrokeColor(score: number): string {
-  if (score >= 80) return "#10b981"
+  if (score >= 80) return "#16C77C"
   if (score >= 60) return "#f59e0b"
   return "#ef4444"
 }
@@ -166,7 +166,7 @@ function CircularProgress({ value, size = 160 }: { value: number; size?: number 
         <span className={`text-4xl font-bold ${getScoreColor(value)}`}>
           {value}%
         </span>
-        <span className="text-sm text-slate-500">IMLRS Score</span>
+        <span className="text-sm text-muted-foreground">IMLRS Score</span>
       </div>
     </div>
   )
@@ -179,13 +179,13 @@ function CareerPrognosisBadge({ prognosis }: { prognosis: string }) {
       icon: TrendingUp,
       label: "Aufsteigend",
       description: "Kandidat zeigt starkes Wachstumspotenzial",
-      className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      className: "bg-[var(--app-green-wash)] text-[var(--rv-green-deep)] border-[rgba(22,199,124,.35)]",
     },
     stable: {
       icon: Minus,
       label: "Stabil",
       description: "Kandidat zeigt konsistente Entwicklung",
-      className: "bg-blue-50 text-blue-700 border-blue-200",
+      className: "bg-[rgba(34,193,238,.10)] text-[var(--rv-cyan-deep)] border-[rgba(34,193,238,.35)]",
     },
     risk: {
       icon: TrendingDown,
@@ -198,7 +198,7 @@ function CareerPrognosisBadge({ prognosis }: { prognosis: string }) {
   const { icon: Icon, label, description, className } = config[prognosis as keyof typeof config] || config.stable
 
   return (
-    <div className={`rounded-xl border p-4 ${className}`}>
+    <div className={`rounded-2xl border p-4 ${className}`}>
       <div className="flex items-center gap-2 mb-1">
         <Icon className="h-4 w-4" />
         <span className="font-semibold text-sm">Karriereprognose: {label}</span>
@@ -222,18 +222,18 @@ function CategoryBar({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-        <Icon className="h-3.5 w-3.5 text-slate-600" />
+      <div className="w-7 h-7 rounded-lg bg-[var(--muted)] flex items-center justify-center flex-shrink-0">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-medium text-slate-700">{label}</span>
-          <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+          <span className="text-xs font-medium text-foreground/85">{label}</span>
+          <span className="text-[10px] text-muted-foreground/70 bg-[var(--muted)] px-1.5 py-0.5 rounded">
             {weight}%
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div className="flex-1 h-2 bg-[var(--muted)] rounded-full overflow-hidden">
             <div 
               className={`h-full rounded-full transition-[width] duration-700 ease-out ${getScoreBgColor(score)}`}
               style={{ width: `${score}%` }}
@@ -351,7 +351,7 @@ export function CandidateMatchModal({
             <Sparkles className="h-5 w-5 text-teal-600" />
             <SheetTitle className="text-xl">IMLRS Match-Analyse</SheetTitle>
           </div>
-          <p className="text-xs text-slate-500">Intelligent Multi-Layer Ranking System</p>
+          <p className="text-xs text-muted-foreground">Intelligent Multi-Layer Ranking System</p>
         </SheetHeader>
 
         <div className="py-6 space-y-6">
@@ -367,9 +367,9 @@ export function CandidateMatchModal({
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-lg text-slate-900">{candidate.full_name}</h3>
-              <p className="text-sm text-slate-500">{candidate.job_title || "Kandidat"}</p>
-              <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
+              <h3 className="font-bold text-lg text-foreground">{candidate.full_name}</h3>
+              <p className="text-sm text-muted-foreground">{candidate.job_title || "Kandidat"}</p>
+              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground/70">
                 {candidate.email && (
                   <span className="flex items-center gap-1">
                     <Mail className="h-3 w-3" />
@@ -387,10 +387,10 @@ export function CandidateMatchModal({
           </div>
 
           {/* Job Context */}
-          <div className="bg-slate-50 rounded-xl p-4">
-            <p className="text-xs text-slate-500 mb-1">Analysiert für</p>
-            <p className="font-semibold text-slate-900">{job.title}</p>
-            <p className="text-sm text-slate-500">{job.company}</p>
+          <div className="bg-[var(--muted)]/60 rounded-xl p-4">
+            <p className="text-xs text-muted-foreground mb-1">Analysiert für</p>
+            <p className="font-semibold text-foreground">{job.title}</p>
+            <p className="text-sm text-muted-foreground">{job.company}</p>
           </div>
 
           {/* Match Result - Show stored data */}
@@ -409,9 +409,9 @@ export function CandidateMatchModal({
                   )}
 
                   {/* IMLRS 9 Categories */}
-                  <Card className="border-slate-200">
+                  <Card className="border-black/[0.06]">
                     <CardContent className="p-4">
-                      <h4 className="font-semibold text-sm text-slate-900 mb-4 flex items-center gap-2">
+                      <h4 className="font-semibold text-sm text-foreground mb-4 flex items-center gap-2">
                         <Target className="h-4 w-4 text-teal-600" />
                         IMLRS 9-Kategorien Breakdown
                       </h4>
@@ -471,22 +471,22 @@ export function CandidateMatchModal({
 
               {/* Candidate Summary */}
               {candidate.summary_ai && !pitchPoints.length && (
-                <Card className="border-slate-200">
+                <Card className="border-black/[0.06]">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Sparkles className="h-4 w-4 text-teal-600" />
-                      <h4 className="font-semibold text-sm text-slate-900">KI-Zusammenfassung</h4>
+                      <h4 className="font-semibold text-sm text-foreground">KI-Zusammenfassung</h4>
                     </div>
-                    <p className="text-sm text-slate-600">{candidate.summary_ai}</p>
+                    <p className="text-sm text-muted-foreground">{candidate.summary_ai}</p>
                   </CardContent>
                 </Card>
               )}
 
               {/* Skills */}
               {candidate.skills && candidate.skills.length > 0 && (
-                <Card className="border-slate-200">
+                <Card className="border-black/[0.06]">
                   <CardContent className="p-4">
-                    <h4 className="font-semibold text-sm text-slate-900 mb-3">Skills</h4>
+                    <h4 className="font-semibold text-sm text-foreground mb-3">Skills</h4>
                     <div className="flex flex-wrap gap-2">
                       {candidate.skills.map((skill) => (
                         <span 
@@ -502,27 +502,27 @@ export function CandidateMatchModal({
               )}
 
               {/* Experience & Education */}
-              <Card className="border-slate-200">
+              <Card className="border-black/[0.06]">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                      <Briefcase className="h-4 w-4 text-slate-600" />
+                    <div className="w-8 h-8 rounded-lg bg-[var(--muted)] flex items-center justify-center">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">Erfahrung</p>
-                      <p className="text-sm font-medium text-slate-900">
+                      <p className="text-xs text-muted-foreground">Erfahrung</p>
+                      <p className="text-sm font-medium text-foreground">
                         {candidate.years_of_experience} Jahre ({candidate.experience_level})
                       </p>
                     </div>
                   </div>
                   {candidate.education && (
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                        <GraduationCap className="h-4 w-4 text-slate-600" />
+                      <div className="w-8 h-8 rounded-lg bg-[var(--muted)] flex items-center justify-center">
+                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500">Ausbildung</p>
-                        <p className="text-sm font-medium text-slate-900">{candidate.education}</p>
+                        <p className="text-xs text-muted-foreground">Ausbildung</p>
+                        <p className="text-sm font-medium text-foreground">{candidate.education}</p>
                       </div>
                     </div>
                   )}
@@ -535,14 +535,14 @@ export function CandidateMatchModal({
                   <Button
                     variant="outline"
                     onClick={() => onOpenChange(false)}
-                    className="flex-1"
+                    className="flex-1 rounded-full"
                   >
                     Schliessen
                   </Button>
                   {invited ? (
                     <Button
                       disabled
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-600 disabled:opacity-100 text-white"
+                      className="flex-1 rounded-full bg-[var(--rv-green-deep)] hover:bg-[var(--rv-green-deep)] disabled:opacity-100 text-white"
                     >
                       <CheckCircle2 className="mr-2 h-4 w-4" />
                       Einladung gesendet ✓
@@ -550,7 +550,7 @@ export function CandidateMatchModal({
                   ) : (
                     <Button
                       onClick={() => setInviteOpen(true)}
-                      className="flex-1"
+                      className="flex-1 rounded-full"
                       disabled={rejected}
                     >
                       <Calendar className="mr-2 h-4 w-4" />
@@ -572,7 +572,7 @@ export function CandidateMatchModal({
                     variant="ghost"
                     size="sm"
                     disabled
-                    className="text-slate-400 w-full"
+                    className="text-muted-foreground/70 w-full"
                   >
                     Abgesagt
                   </Button>
@@ -585,8 +585,8 @@ export function CandidateMatchModal({
           {candidate.match_score === null && (
             <div className="flex flex-col items-center justify-center py-12">
               <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
-              <p className="text-slate-700 font-medium">Keine IMLRS-Daten verfügbar</p>
-              <p className="text-sm text-slate-500">Die Analyse wurde nicht abgeschlossen</p>
+              <p className="text-foreground/85 font-medium">Keine IMLRS-Daten verfügbar</p>
+              <p className="text-sm text-muted-foreground">Die Analyse wurde nicht abgeschlossen</p>
             </div>
           )}
         </div>
@@ -606,7 +606,7 @@ export function CandidateMatchModal({
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label htmlFor="invite-candidate">Kandidat</Label>
-            <Input id="invite-candidate" value={candidate.full_name} readOnly className="bg-slate-50" />
+            <Input id="invite-candidate" value={candidate.full_name} readOnly className="bg-[var(--muted)]/60" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">

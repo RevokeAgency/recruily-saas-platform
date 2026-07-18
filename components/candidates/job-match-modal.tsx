@@ -161,8 +161,8 @@ export function JobMatchModal({
 
         {matchStatus === "success" ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
-              <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+            <div className="w-16 h-16 rounded-full bg-[var(--app-green-wash)] flex items-center justify-center mb-4">
+              <CheckCircle2 className="h-8 w-8 text-[var(--rv-green-deep)]" />
             </div>
             <p className="text-lg font-semibold text-foreground">Matching gestartet!</p>
             <p className="text-sm text-muted-foreground mt-1">

@@ -61,7 +61,7 @@ export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle, jobSlug }: 
           {/* Section 1 — Apply Link */}
           <div className="rounded-xl border border-border bg-card p-4 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[var(--app-green-wash)] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-[var(--app-green-wash)] flex items-center justify-center">
                 <Link2 className="h-4 w-4 text-[var(--rv-green-deep)]" />
               </div>
               <span className="font-medium text-sm">Öffentliche Job-Page</span>
@@ -72,14 +72,14 @@ export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle, jobSlug }: 
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1" disabled={!jobPageUrl} onClick={() => jobPageUrl && copy(jobPageUrl, "link")}>
+              <Button variant="outline" size="sm" className="flex-1 rounded-full" disabled={!jobPageUrl} onClick={() => jobPageUrl && copy(jobPageUrl, "link")}>
                 {copiedKey === "link" ? (
                   <><Check className="mr-2 h-4 w-4 text-[var(--rv-green-deep)]" /> Kopiert!</>
                 ) : (
                   <><Copy className="mr-2 h-4 w-4" /> Link kopieren</>
                 )}
               </Button>
-              <Button variant="outline" size="sm" className="flex-1" disabled={!jobPageUrl} onClick={() => jobPageUrl && window.open(jobPageUrl, "_blank")}>
+              <Button variant="outline" size="sm" className="flex-1 rounded-full" disabled={!jobPageUrl} onClick={() => jobPageUrl && window.open(jobPageUrl, "_blank")}>
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Öffnen
               </Button>
@@ -89,7 +89,7 @@ export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle, jobSlug }: 
           {/* Section 2 — Bewerbungs-Email (auto-inbound) */}
           <div className="rounded-xl border border-border bg-card p-4 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[var(--app-green-wash)] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-[var(--app-green-wash)] flex items-center justify-center">
                 <Mail className="h-4 w-4 text-[var(--rv-green-deep)]" />
               </div>
               <span className="font-medium text-sm">Bewerbungs-Email</span>
@@ -130,7 +130,7 @@ export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle, jobSlug }: 
           </p>
         </div>
 
-        <Button onClick={onClose} className="w-full">
+        <Button onClick={onClose} className="w-full h-10 rounded-full">
           Fertig
         </Button>
       </DialogContent>

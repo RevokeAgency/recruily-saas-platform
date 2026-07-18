@@ -40,7 +40,7 @@ export function JobOverviewTab({ job }: JobOverviewTabProps) {
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {job.requiredSkills.map((skill) => (
-                <Badge key={skill} variant="secondary" className="text-sm">
+                <Badge key={skill} className="rounded-full border-transparent bg-[var(--app-green-wash)] text-[var(--rv-green-deep)] text-sm font-medium">
                   {skill}
                 </Badge>
               ))}
@@ -56,7 +56,7 @@ export function JobOverviewTab({ job }: JobOverviewTabProps) {
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {job.niceToHaveSkills.map((skill) => (
-                  <Badge key={skill} variant="outline" className="text-sm">
+                  <Badge key={skill} variant="outline" className="rounded-full text-sm font-medium text-muted-foreground">
                     {skill}
                   </Badge>
                 ))}
@@ -76,7 +76,7 @@ export function JobOverviewTab({ job }: JobOverviewTabProps) {
           <CardContent className="space-y-4">
             {job.salaryRange && (
               <div className="flex items-start gap-3">
-                <Banknote className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <span className="mt-0.5 flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[var(--muted)]"><Banknote className="h-4 w-4 text-muted-foreground" strokeWidth={2} /></span>
                 <div>
                   <p className="text-sm font-medium text-foreground">Gehalt</p>
                   <p className="text-sm text-muted-foreground">{job.salaryRange}</p>
@@ -85,7 +85,7 @@ export function JobOverviewTab({ job }: JobOverviewTabProps) {
             )}
 
             <div className="flex items-start gap-3">
-              <Briefcase className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+              <span className="mt-0.5 flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[var(--muted)]"><Briefcase className="h-4 w-4 text-muted-foreground" strokeWidth={2} /></span>
               <div>
                 <p className="text-sm font-medium text-foreground">Erfahrung</p>
                 <p className="text-sm text-muted-foreground">{job.yearsExperience}</p>
@@ -93,7 +93,7 @@ export function JobOverviewTab({ job }: JobOverviewTabProps) {
             </div>
 
             <div className="flex items-start gap-3">
-              <GraduationCap className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+              <span className="mt-0.5 flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[var(--muted)]"><GraduationCap className="h-4 w-4 text-muted-foreground" strokeWidth={2} /></span>
               <div>
                 <p className="text-sm font-medium text-foreground">Ausbildung</p>
                 <p className="text-sm text-muted-foreground">{job.education}</p>
@@ -101,7 +101,7 @@ export function JobOverviewTab({ job }: JobOverviewTabProps) {
             </div>
 
             <div className="flex items-start gap-3">
-              <Languages className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+              <span className="mt-0.5 flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[var(--muted)]"><Languages className="h-4 w-4 text-muted-foreground" strokeWidth={2} /></span>
               <div>
                 <p className="text-sm font-medium text-foreground">Sprachen</p>
                 <div className="flex flex-wrap gap-1 mt-1">

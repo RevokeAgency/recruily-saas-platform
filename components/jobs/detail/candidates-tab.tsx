@@ -116,7 +116,7 @@ function statusMeta(status: Candidate["status"]): { label: string; className: st
     case "analyzing": return { label: "Analysiere…", className: "border-border text-muted-foreground" }
     case "queued": return { label: "Wartet auf Kontingent", className: "border-amber-200 text-amber-600 bg-amber-50" }
     case "error": return { label: "Fehler", className: "border-destructive/30 text-destructive" }
-    case "new": return { label: "Neu", className: "border-blue-200 text-blue-600 bg-blue-50" }
+    case "new": return { label: "Neu", className: "border-transparent text-[var(--rv-cyan-deep)] bg-[rgba(34,193,238,.12)]" }
     case "shortlisted": return { label: "Shortlist", className: "border-[rgba(22,199,124,.4)] text-[var(--rv-green-deep)]" }
     case "interviewed":
     case "Eingeladen": return { label: "Eingeladen", className: "border-amber-200 text-amber-600 bg-amber-50" }
@@ -288,7 +288,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
             {filteredCandidates.length} {filteredCandidates.length === 1 ? "Kandidat" : "Kandidaten"} für {jobTitle}
           </p>
         </div>
-        <Button asChild>
+        <Button asChild className="h-10 rounded-full px-4">
           <Link href={`/candidates/new?jobId=${jobId}`}>
             <UserPlus className="mr-2 h-4 w-4" />
             Kandidat hinzufügen
@@ -304,14 +304,14 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Nach Name, E-Mail oder Skills suchen…"
-                className="pl-9"
+                className="pl-9 rounded-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[170px]">
+                <SelectTrigger className="w-[170px] rounded-full">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Alle Kandidaten" />
                 </SelectTrigger>
@@ -324,7 +324,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                 </SelectContent>
               </Select>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-[150px] rounded-full">
                   <ArrowUpDown className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Match Score" />
                 </SelectTrigger>
@@ -335,14 +335,14 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                   <SelectItem value="date">Zuletzt hinzugefügt</SelectItem>
                 </SelectContent>
               </Select>
-              {/* View toggle */}
-              <div className="flex items-center rounded-lg border border-border p-0.5" role="group" aria-label="Ansicht">
+              {/* View toggle — pill group, active = black pill (topbar language) */}
+              <div className="flex items-center rounded-full border border-black/[0.06] bg-white p-1" role="group" aria-label="Ansicht">
                 <button
                   type="button"
                   onClick={() => changeView("detail")}
                   aria-pressed={viewMode === "detail"}
-                  className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors ${
-                    viewMode === "detail" ? "bg-[var(--rv-mist)] text-foreground" : "text-muted-foreground hover:text-foreground"
+                  className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors ${
+                    viewMode === "detail" ? "bg-[var(--rv-ink)] text-white" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <LayoutGrid className="h-4 w-4" />
@@ -352,8 +352,8 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                   type="button"
                   onClick={() => changeView("list")}
                   aria-pressed={viewMode === "list"}
-                  className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors ${
-                    viewMode === "list" ? "bg-[var(--rv-mist)] text-foreground" : "text-muted-foreground hover:text-foreground"
+                  className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors ${
+                    viewMode === "list" ? "bg-[var(--rv-ink)] text-white" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <List className="h-4 w-4" />
@@ -367,13 +367,13 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
 
       {/* Empty State */}
       {filteredCandidates.length === 0 && (
-        <Card className="border border-slate-200 bg-white rounded-xl">
+        <Card>
           <CardContent className="p-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-              <UserPlus className="h-8 w-8 text-slate-400" />
+            <div className="w-16 h-16 rounded-full bg-[var(--muted)] flex items-center justify-center mx-auto mb-4">
+              <UserPlus className="h-8 w-8 text-muted-foreground" strokeWidth={1.75} />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Noch keine Kandidaten</h3>
-            <p className="text-slate-500 mb-6">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Noch keine Kandidaten</h3>
+            <p className="text-muted-foreground mb-6">
               Füge den ersten Kandidaten zu diesem Job hinzu um das Matching zu starten.
             </p>
             <Button asChild>
@@ -514,7 +514,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
 
                   {/* AI Summary */}
                   {candidate.summary_ai && (
-                    <div className="rounded-lg bg-[var(--rv-mist)] p-4">
+                    <div className="rounded-2xl bg-[var(--muted)]/60 p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Sparkles className="h-4 w-4 text-[var(--rv-green-deep)]" />
                         <span className="font-medium text-sm text-[var(--rv-green-deep)]">KI-Zusammenfassung</span>
@@ -528,7 +528,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                     <div className="mt-4 flex flex-wrap gap-2">
                       {candidate.resume_path && (
                         <Button
-                          variant="outline" size="sm" className="gap-2"
+                          variant="outline" size="sm" className="gap-2 rounded-full"
                           disabled={openingDoc === `${candidate.id}-resume`}
                           onClick={() => openDocument(candidate.id, "resume")}
                         >
@@ -540,7 +540,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                       )}
                       {candidate.cover_letter_path && (
                         <Button
-                          variant="outline" size="sm" className="gap-2"
+                          variant="outline" size="sm" className="gap-2 rounded-full"
                           disabled={openingDoc === `${candidate.id}-cover`}
                           onClick={() => openDocument(candidate.id, "cover")}
                         >
@@ -552,7 +552,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                       )}
                       {candidate.resume_path && !candidate.photo_url && candidate.resume_path.toLowerCase().endsWith(".pdf") && (
                         <Button
-                          variant="outline" size="sm" className="gap-2"
+                          variant="outline" size="sm" className="gap-2 rounded-full"
                           disabled={retryingPhoto === candidate.id}
                           onClick={() => retryPhoto(candidate.id)}
                         >
@@ -596,7 +596,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                       </div>
                     ) : (
                       <div className="flex flex-col items-center xl:items-end">
-                        <div className="text-3xl font-bold text-slate-300">--</div>
+                        <div className="text-3xl font-bold text-muted-foreground/40">--</div>
                         <p className="text-sm text-muted-foreground mt-1">Kein Score</p>
                       </div>
                     )}
@@ -607,7 +607,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        className="flex-1 gap-2"
+                        className="flex-1 gap-2 rounded-full"
                         onClick={() => {
                           setSelectedCandidate(candidate)
                           setMatchModalOpen(true)
@@ -620,7 +620,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                        className="rounded-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                         onClick={() => setDeleteCandidate(candidate)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -631,7 +631,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                         size="sm"
                         variant="outline"
                         onClick={() => setRejectionCandidate(candidate)}
-                        className="w-full gap-1.5 border-border text-muted-foreground hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive"
+                        className="w-full gap-1.5 rounded-full border-border text-muted-foreground hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive"
                       >
                         <X className="h-3.5 w-3.5" />
                         Absage senden
