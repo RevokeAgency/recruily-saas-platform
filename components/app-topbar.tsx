@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { hasCheckoutIntent } from "@/lib/stripe/client"
 import { HelpCircle, LogOut, Settings, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ActivityBell } from "@/components/app/activity-bell"
@@ -98,6 +99,14 @@ export function AppTopbar() {
     }
     loadUser()
   }, [])
+
+  // A plan chosen on the landing page before signup is fulfilled on the
+  // subscription page (auto-checkout there consumes the stored intent).
+  useEffect(() => {
+    if (pathname !== "/subscription" && hasCheckoutIntent()) {
+      router.replace("/subscription")
+    }
+  }, [pathname, router])
 
   const handleLogout = async () => {
     const supabase = createClient()

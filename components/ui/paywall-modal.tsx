@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
-import { X, Check, Zap } from 'lucide-react'
+import { X, Check, Zap, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { PLANS, type PlanId } from '@/lib/plans'
+import { startCheckout } from '@/lib/stripe/client'
 
 interface Props {
   isOpen: boolean
@@ -11,6 +13,17 @@ interface Props {
 
 export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
   const [interval, setInterval] = useState<'monthly' | 'yearly'>('monthly')
+  const [busyPlan, setBusyPlan] = useState<string | null>(null)
+
+  const upgrade = async (planId: 'starter' | 'growth' | 'pro') => {
+    setBusyPlan(planId)
+    const error = await startCheckout(planId, interval)
+    if (error) {
+      toast.error(error)
+      setBusyPlan(null)
+    }
+  }
+
   if (!isOpen) return null
 
   const paidPlans: PlanId[] = ['starter', 'growth', 'pro']
@@ -122,16 +135,19 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
                   ))}
                 </ul>
 
-                <a 
-                  href="/subscription"
-                  className={`w-full py-2.5 rounded-lg text-sm font-semibold text-center transition-colors block ${
+                <button
+                  type="button"
+                  onClick={() => upgrade(planId as 'starter' | 'growth' | 'pro')}
+                  disabled={busyPlan !== null}
+                  className={`w-full py-2.5 rounded-full text-sm font-semibold text-center transition-colors flex items-center justify-center gap-2 disabled:opacity-60 ${
                     plan.featured
                       ? 'bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)] text-white'
                       : 'bg-[var(--rv-ink)] hover:bg-[#1a2b26] text-white'
                   }`}
                 >
-                  Jetzt upgraden
-                </a>
+                  {busyPlan === planId && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {busyPlan === planId ? 'Weiter zu Stripe…' : 'Jetzt upgraden'}
+                </button>
               </div>
             )
           })}

@@ -253,7 +253,17 @@ export function RvPricing() {
                 className="w-full"
                 asChild
               >
-                <Link href={tier.name === "Enterprise" ? "#faq" : "/auth/register"}>{tier.cta}</Link>
+                <Link
+                  href={
+                    tier.name === "Enterprise"
+                      ? "#faq"
+                      : tier.name === "Free"
+                        ? "/auth/register"
+                        : `/auth/register?plan=${tier.name.toLowerCase()}&interval=${yearly ? "yearly" : "monthly"}`
+                  }
+                >
+                  {tier.cta}
+                </Link>
               </RvButton>
             </div>
           ))}

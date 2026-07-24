@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Loader2, Mail } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { storeCheckoutIntent } from "@/lib/stripe/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,6 +17,14 @@ import { toast } from "sonner"
 export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+
+  // Landing-pricing → register carries ?plan=&interval=; remember the choice
+  // so the subscription page can start checkout right after the first login.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const plan = params.get("plan")
+    if (plan) storeCheckoutIntent(plan, params.get("interval") ?? "monthly")
+  }, [])
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",

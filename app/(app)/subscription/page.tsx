@@ -1,6 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
+import { Loader2, ExternalLink } from "lucide-react"
+import { startCheckout, openBillingPortal, consumeCheckoutIntent } from "@/lib/stripe/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -38,6 +41,56 @@ const planDescriptions: Record<PlanId, string> = {
 export default function SubscriptionPage() {
   const [isAnnual, setIsAnnual] = useState(false)
   const { profile, loading } = useProfile()
+  const [busyPlan, setBusyPlan] = useState<string | null>(null)
+  const [portalBusy, setPortalBusy] = useState(false)
+  const bootRan = useRef(false)
+
+  const checkout = async (planId: "starter" | "growth" | "pro", interval: "monthly" | "yearly") => {
+    setBusyPlan(planId)
+    const error = await startCheckout(planId, interval)
+    if (error) {
+      toast.error(error)
+      setBusyPlan(null)
+    }
+  }
+
+  const portal = async () => {
+    setPortalBusy(true)
+    const error = await openBillingPortal()
+    if (error) {
+      toast.error(error)
+      setPortalBusy(false)
+    }
+  }
+
+  // Success/cancel feedback after returning from Stripe + auto-checkout when
+  // the visitor arrived from the landing pricing (stored intent) or a
+  // ?checkout=<plan> link.
+  useEffect(() => {
+    if (bootRan.current) return
+    bootRan.current = true
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("success") === "1") {
+      toast.success("Zahlung erfolgreich — dein Plan ist in wenigen Sekunden aktiv.")
+      window.history.replaceState(null, "", "/subscription")
+      return
+    }
+    if (params.get("canceled") === "1") {
+      toast.info("Checkout abgebrochen — dein bisheriger Plan bleibt aktiv.")
+      window.history.replaceState(null, "", "/subscription")
+      return
+    }
+    const fromParam = params.get("checkout")
+    if (fromParam && ["starter", "growth", "pro"].includes(fromParam)) {
+      const interval = params.get("interval") === "yearly" ? "yearly" : "monthly"
+      window.history.replaceState(null, "", "/subscription")
+      checkout(fromParam as "starter" | "growth" | "pro", interval)
+      return
+    }
+    const intent = consumeCheckoutIntent()
+    if (intent) checkout(intent.plan, intent.interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const currentPlanId = profile?.plan || 'free'
   const matchesUsed = profile?.matches_used || 0
@@ -80,9 +133,25 @@ export default function SubscriptionPage() {
                   : 'Plan aktiv'}
               </CardDescription>
             </div>
-            <Badge className="rounded-full border-transparent bg-[var(--app-green-wash)] text-[var(--rv-green-deep)]">
-              Aktiv
-            </Badge>
+            <div className="flex items-center gap-2">
+              {currentPlanId !== "free" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full bg-white"
+                  onClick={portal}
+                  disabled={portalBusy}
+                >
+                  {portalBusy
+                    ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    : <ExternalLink className="mr-2 h-4 w-4" />}
+                  Abo verwalten
+                </Button>
+              )}
+              <Badge className="rounded-full border-transparent bg-[var(--app-green-wash)] text-[var(--rv-green-deep)]">
+                Aktiv
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -264,9 +333,21 @@ export default function SubscriptionPage() {
                 <Button
                   className={cn("w-full h-10 rounded-full", isCurrent && "border-[var(--rv-green)] text-[var(--rv-green)]")}
                   variant={isCurrent ? "outline" : plan.featured ? "default" : "outline"}
-                  disabled={isCurrent}
+                  disabled={isCurrent || planId === "free" || busyPlan !== null}
+                  onClick={() =>
+                    planId !== "free" &&
+                    checkout(planId as "starter" | "growth" | "pro", isAnnual ? "yearly" : "monthly")
+                  }
                 >
-                  {isCurrent ? "Aktueller Plan" : "Auswählen"}
+                  {busyPlan === planId ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Weiter zu Stripe…</>
+                  ) : isCurrent ? (
+                    "Aktueller Plan"
+                  ) : planId === "free" ? (
+                    "Kostenlos"
+                  ) : (
+                    "Auswählen"
+                  )}
                 </Button>
               </CardContent>
             </Card>
