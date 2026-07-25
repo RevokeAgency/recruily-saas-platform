@@ -14,6 +14,12 @@ export type BillingInterval = "monthly" | "yearly"
 
 export const PAID_PLANS: PaidPlanId[] = ["starter", "growth", "pro"]
 
+/** Higher = better; used to pick the effective plan when a customer somehow
+ * ends up with more than one active subscription. */
+export const PLAN_RANK: Record<PaidPlanId, number> = { starter: 1, growth: 2, pro: 3 }
+
+const ACTIVE_SUB_STATUSES = new Set(["active", "trialing", "past_due"])
+
 export function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set")
@@ -22,6 +28,34 @@ export function getStripe(): Stripe {
 
 export function lookupKeyFor(plan: PaidPlanId, interval: BillingInterval): string {
   return `revetly_${plan}_${interval}`
+}
+
+export function subLookupKey(sub: Stripe.Subscription): string | null {
+  return sub.items?.data?.[0]?.price?.lookup_key ?? null
+}
+
+/**
+ * The customer's *effective* subscription = the highest-ranked plan among all
+ * currently-active subscriptions (active/trialing/past_due). Returns null when
+ * none are active. This is the source of truth the webhook and checkout use, so
+ * duplicate or partially-cancelled subscriptions always resolve deterministically
+ * to the plan the customer is actually entitled to.
+ */
+export async function bestActiveSubscription(
+  stripe: Stripe,
+  customerId: string,
+): Promise<Stripe.Subscription | null> {
+  const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 100 })
+  let best: Stripe.Subscription | null = null
+  let bestRank = -1
+  for (const s of subs.data) {
+    if (!ACTIVE_SUB_STATUSES.has(s.status)) continue
+    const mapped = planFromLookupKey(subLookupKey(s))
+    if (!mapped) continue
+    const rank = PLAN_RANK[mapped.plan]
+    if (rank > bestRank) { bestRank = rank; best = s }
+  }
+  return best
 }
 
 /** Reverse of lookupKeyFor — used by the webhook to map a price to a plan. */

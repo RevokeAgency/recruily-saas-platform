@@ -5,6 +5,7 @@ import {
   getStripe,
   ensurePrice,
   ensurePortalConfiguration,
+  bestActiveSubscription,
   PAID_PLANS,
   type PaidPlanId,
   type BillingInterval,
@@ -59,8 +60,11 @@ export async function POST(req: NextRequest) {
         .then(({ error }) => { if (error) console.error("[stripe] customer save skipped:", error.message) })
     }
 
-    // Existing paid subscription → manage in the portal instead of re-buying.
-    if (profile?.stripe_subscription_id && profile.plan !== "free") {
+    // Existing active subscription → manage in the portal instead of buying a
+    // second one. Checked against Stripe directly (source of truth) so a stale
+    // profile column can never let a customer stack duplicate subscriptions.
+    const existing = await bestActiveSubscription(stripe, customerId)
+    if (existing) {
       const configuration = await ensurePortalConfiguration(stripe)
       const portal = await stripe.billingPortal.sessions.create({
         customer: customerId,
