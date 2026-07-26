@@ -96,18 +96,7 @@ export async function GET(_req: NextRequest) {
       resolved = { state, wouldWrite: profileUpdateFor(state) }
     }
 
-    // Definitive write test: set matches_limit=1000 directly and read it back.
-    // If it reads back != 1000, a DB trigger/rule is clamping the column.
-    // (Writes the correct Pro value anyway, then re-syncs to the real state.)
-    let writeTest: Record<string, unknown> | null = null
-    if (customerId) {
-      await db.from("user_profiles").update({ matches_limit: 1000 }).eq("id", user.id)
-      const { data: back } = await db
-        .from("user_profiles").select("matches_limit").eq("id", user.id).single()
-      writeTest = { wrote: 1000, readBack: back?.matches_limit }
-    }
-
-    return Response.json({ db: profile, subscriptions, resolved, writeTest })
+    return Response.json({ db: profile, subscriptions, resolved })
   } catch (error) {
     console.error("[stripe sync diag] error:", error)
     return Response.json({ error: "Diagnose fehlgeschlagen", detail: String(error) }, { status: 500 })
