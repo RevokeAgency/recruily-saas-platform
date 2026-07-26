@@ -69,9 +69,10 @@ Reihenfolge egal, alle additiv:
 
 ## DSGVO
 
-- [ ] **Datenschutzseite (`/datenschutz`) juristisch prüfen lassen** und die
-      Platzhalter ([Firmenname/Anschrift/Kontakt]) ausfüllen. Impressum + AGB
-      im Footer sind noch Platzhalter (`#`).
+- [ ] **Rechtstexte juristisch prüfen lassen** und alle `[Platzhalter]`
+      ausfüllen: `/datenschutz`, `/impressum` (Firmenbuchnr., UID, Anschrift,
+      Behörde, WKO-Fachgruppe …) und `/agb` (Gerichtsstand). Firmenname steht
+      fix als **Revetly e.U.** (österr. eingetragener Unternehmer).
 - [ ] Aufbewahrungsfrist bestätigen: Auto-Löschung läuft nach **180 Tagen**
       (Konstante `RETENTION_DAYS` in `app/api/cron/purge-candidates/route.ts`).
 - [ ] Self-Service-Löschung testen: `/datenschutz/loeschung` → Mail →

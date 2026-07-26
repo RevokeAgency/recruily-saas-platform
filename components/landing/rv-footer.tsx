@@ -58,10 +58,9 @@ export function RvFooter() {
         <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-[rgba(12,26,22,.10)] pt-[26px] text-[.85rem] text-[var(--rv-muted)]">
           <span>&copy; 2026 Revetly. Alle Rechte vorbehalten.</span>
           <div className="flex gap-[18px]">
-            {/* Impressum/AGB copy still to be provided (legal). Datenschutz is live. */}
             <a href="/datenschutz" className="hover:text-[var(--rv-green-deep)]">Datenschutz</a>
-            <a href="#" className="hover:text-[var(--rv-green-deep)]">Impressum</a>
-            <a href="#" className="hover:text-[var(--rv-green-deep)]">AGB</a>
+            <a href="/impressum" className="hover:text-[var(--rv-green-deep)]">Impressum</a>
+            <a href="/agb" className="hover:text-[var(--rv-green-deep)]">AGB</a>
           </div>
         </div>
       </div>
