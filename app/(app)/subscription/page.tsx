@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
-import { Loader2, ExternalLink } from "lucide-react"
+import { Loader2, ExternalLink, Clock } from "lucide-react"
 import { startCheckout, openBillingPortal, consumeCheckoutIntent } from "@/lib/stripe/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -44,13 +44,55 @@ export default function SubscriptionPage() {
   const [busyPlan, setBusyPlan] = useState<string | null>(null)
   const [portalBusy, setPortalBusy] = useState(false)
   const [diag, setDiag] = useState<unknown>(null)
+  const [pending, setPending] = useState<{ plan: string; at: number | null } | null>(null)
   const bootRan = useRef(false)
+
+  const rankOrder = ['free', 'starter', 'growth', 'pro']
 
   const checkout = async (planId: "starter" | "growth" | "pro", interval: "monthly" | "yearly") => {
     setBusyPlan(planId)
     const error = await startCheckout(planId, interval)
     if (error) {
       toast.error(error)
+      setBusyPlan(null)
+    }
+  }
+
+  // Card CTA: new subscribers go through Checkout; existing ones change plan
+  // in place (upgrade immediate, downgrade scheduled to period end).
+  const selectPlan = async (planId: "starter" | "growth" | "pro", interval: "monthly" | "yearly") => {
+    const hasPaid = !!profile && profile.plan !== "free" && !!profile.stripe_customer_id
+    if (!hasPaid) return checkout(planId, interval)
+
+    const label = PLANS[planId].label
+    const isDowngrade = rankOrder.indexOf(planId) < rankOrder.indexOf(profile!.plan)
+    if (isDowngrade && !window.confirm(
+      `Downgrade auf ${label}: Dein aktueller Plan läuft bezahlt bis zum Ende der Abrechnungsperiode weiter, danach wird automatisch auf ${label} gewechselt. Fortfahren?`,
+    )) return
+
+    setBusyPlan(planId)
+    try {
+      const res = await fetch("/api/stripe/change-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: planId, interval }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (data.needsCheckout) { await checkout(planId, interval); return }
+      if (!res.ok || data.error) { toast.error(data.error || "Planwechsel fehlgeschlagen"); return }
+      if (data.noop) { toast.info("Das ist bereits dein aktueller Plan."); return }
+      if (data.direction === "upgrade") {
+        toast.success(`Auf ${label} hochgestuft — sofort aktiv.`)
+      } else {
+        const d = data.effectiveAt
+          ? new Date(data.effectiveAt * 1000).toLocaleDateString("de-DE")
+          : "zum Periodenende"
+        toast.success(`Wechsel zu ${label} zum ${d} geplant — dein aktueller Plan bleibt bis dahin aktiv.`)
+      }
+      await refreshProfile()
+      fetch("/api/stripe/sync", { method: "POST" })
+        .then((r) => r.json()).then((j) => setPending(j.pending ?? null)).catch(() => {})
+    } finally {
       setBusyPlan(null)
     }
   }
@@ -75,7 +117,8 @@ export default function SubscriptionPage() {
     // counter, so the account can never drift from what's active at Stripe
     // (e.g. after a webhook was temporarily unreachable).
     fetch("/api/stripe/sync", { method: "POST" })
-      .then(() => refreshProfile())
+      .then((r) => r.json())
+      .then((j) => { setPending(j?.pending ?? null); refreshProfile() })
       .catch(() => {})
 
     const params = new URLSearchParams(window.location.search)
@@ -134,6 +177,17 @@ export default function SubscriptionPage() {
           title="Plan & Nutzung"
           subtitle="Verwalte dein Abo, behalte dein Kontingent im Blick und wechsle jederzeit den Plan."
         />
+
+        {pending && (
+          <div className="flex items-center gap-3 rounded-2xl border border-[rgba(34,193,238,.3)] bg-[rgba(34,193,238,.08)] px-5 py-3.5 text-sm">
+            <Clock className="h-4 w-4 flex-none text-[var(--rv-cyan-deep)]" strokeWidth={2} />
+            <span className="text-foreground">
+              Geplanter Wechsel zu <strong>{PLANS[pending.plan as PlanId]?.label ?? pending.plan}</strong>
+              {pending.at ? ` am ${new Date(pending.at * 1000).toLocaleDateString("de-DE")}` : " zum Periodenende"}.
+              Dein aktueller Plan bleibt bis dahin aktiv.
+            </span>
+          </div>
+        )}
 
         {diag != null && (
           <pre className="overflow-x-auto rounded-2xl border border-black/[0.06] bg-[var(--rv-ink)] p-4 text-xs leading-relaxed text-[#9fe8c6]">
@@ -360,11 +414,11 @@ export default function SubscriptionPage() {
                   disabled={isCurrent || planId === "free" || busyPlan !== null}
                   onClick={() =>
                     planId !== "free" &&
-                    checkout(planId as "starter" | "growth" | "pro", isAnnual ? "yearly" : "monthly")
+                    selectPlan(planId as "starter" | "growth" | "pro", isAnnual ? "yearly" : "monthly")
                   }
                 >
                   {busyPlan === planId ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Weiter zu Stripe…</>
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Wird verarbeitet…</>
                   ) : isCurrent ? (
                     "Aktueller Plan"
                   ) : planId === "free" ? (

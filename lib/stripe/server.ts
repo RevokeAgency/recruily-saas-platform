@@ -34,6 +34,86 @@ export function subLookupKey(sub: Stripe.Subscription): string | null {
   return sub.items?.data?.[0]?.price?.lookup_key ?? null
 }
 
+export function subPriceId(sub: Stripe.Subscription): string | null {
+  return sub.items?.data?.[0]?.price?.id ?? null
+}
+
+export function subItemId(sub: Stripe.Subscription): string | null {
+  return sub.items?.data?.[0]?.id ?? null
+}
+
+// current_period_end lives on the subscription in older API versions and on the
+// subscription item in newer ones — accept both.
+export function subCurrentPeriodEnd(sub: Stripe.Subscription): number | null {
+  const direct = (sub as unknown as { current_period_end?: number }).current_period_end
+  if (typeof direct === "number") return direct
+  const item = sub.items?.data?.[0] as unknown as { current_period_end?: number } | undefined
+  return typeof item?.current_period_end === "number" ? item.current_period_end : null
+}
+
+/** Orders plans for up-/downgrade decisions; yearly ranks just above monthly of
+ * the same tier so an interval switch resolves deterministically too. */
+export function effectiveRank(plan: PaidPlanId, interval: BillingInterval): number {
+  return PLAN_RANK[plan] * 10 + (interval === "yearly" ? 1 : 0)
+}
+
+/**
+ * Belt-and-suspenders "one subscription per customer": cancels every *other*
+ * active subscription, keeping `keepId`. A no-op when there are no extras.
+ * Returns the number cancelled.
+ */
+export async function cancelExtraSubscriptions(
+  stripe: Stripe,
+  customerId: string,
+  keepId: string | null,
+): Promise<number> {
+  const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 100 })
+  let cancelled = 0
+  for (const s of subs.data) {
+    if (s.id === keepId) continue
+    if (!ACTIVE_SUB_STATUSES.has(s.status)) continue
+    try {
+      await stripe.subscriptions.cancel(s.id)
+      cancelled++
+    } catch (err) {
+      console.error("[stripe] failed to cancel duplicate subscription", s.id, err)
+    }
+  }
+  return cancelled
+}
+
+export interface PendingChange {
+  plan: PaidPlanId
+  interval: BillingInterval
+  at: number | null
+}
+
+/**
+ * If the subscription has a schedule with a future phase whose price differs
+ * from the current one (a queued downgrade), returns what it switches to and
+ * when. Otherwise null.
+ */
+export async function pendingChangeOf(
+  stripe: Stripe,
+  sub: Stripe.Subscription,
+): Promise<PendingChange | null> {
+  const scheduleId = typeof sub.schedule === "string" ? sub.schedule : sub.schedule?.id
+  if (!scheduleId) return null
+  const schedule = await stripe.subscriptionSchedules.retrieve(scheduleId)
+  const currentLookup = subLookupKey(sub)
+  for (const phase of schedule.phases) {
+    const priceRef = phase.items?.[0]?.price
+    const priceId = typeof priceRef === "string" ? priceRef : priceRef?.id
+    if (!priceId) continue
+    const price = await stripe.prices.retrieve(priceId)
+    if (price.lookup_key && price.lookup_key !== currentLookup) {
+      const mapped = planFromLookupKey(price.lookup_key)
+      if (mapped) return { plan: mapped.plan, interval: mapped.interval, at: phase.start_date }
+    }
+  }
+  return null
+}
+
 /**
  * The customer's *effective* subscription = the highest-ranked plan among all
  * currently-active subscriptions (active/trialing/past_due). Returns null when

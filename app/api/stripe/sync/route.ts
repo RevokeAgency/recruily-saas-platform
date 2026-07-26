@@ -2,7 +2,13 @@ import { NextRequest } from "next/server"
 import type Stripe from "stripe"
 import { createClient as createServer } from "@/lib/supabase/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
-import { getStripe, bestActiveSubscription, subLookupKey } from "@/lib/stripe/server"
+import {
+  getStripe,
+  bestActiveSubscription,
+  pendingChangeOf,
+  subLookupKey,
+  subCurrentPeriodEnd,
+} from "@/lib/stripe/server"
 import { syncSubscriptionToProfile, profileUpdateFor, type SubscriptionState } from "@/lib/stripe/sync"
 
 export const dynamic = "force-dynamic"
@@ -15,17 +21,10 @@ function admin() {
   )
 }
 
-function periodEndOf(sub: Stripe.Subscription): number | null {
-  const direct = (sub as unknown as { current_period_end?: number }).current_period_end
-  if (typeof direct === "number") return direct
-  const item = sub.items?.data?.[0] as unknown as { current_period_end?: number } | undefined
-  return typeof item?.current_period_end === "number" ? item.current_period_end : null
-}
-
 async function resolve(stripe: Stripe, customerId: string, userId: string): Promise<SubscriptionState> {
   const best = await bestActiveSubscription(stripe, customerId)
   return best
-    ? { userId, customerId, subscriptionId: best.id, status: best.status, lookupKey: subLookupKey(best), periodEnd: periodEndOf(best) }
+    ? { userId, customerId, subscriptionId: best.id, status: best.status, lookupKey: subLookupKey(best), periodEnd: subCurrentPeriodEnd(best) }
     : { userId, customerId, subscriptionId: null, status: "canceled", lookupKey: null, periodEnd: null }
 }
 
@@ -48,12 +47,19 @@ export async function POST() {
     if (!customerId) return Response.json({ ok: true, plan: "free", note: "kein Stripe-Kunde" })
 
     const stripe = getStripe()
-    const state = await resolve(stripe, customerId, user.id)
+    const best = await bestActiveSubscription(stripe, customerId)
+    const state: SubscriptionState = best
+      ? { userId: user.id, customerId, subscriptionId: best.id, status: best.status, lookupKey: subLookupKey(best), periodEnd: subCurrentPeriodEnd(best) }
+      : { userId: user.id, customerId, subscriptionId: null, status: "canceled", lookupKey: null, periodEnd: null }
+
     const error = await syncSubscriptionToProfile(db, state)
     if (error) return Response.json({ ok: false, error }, { status: 500 })
 
+    // A queued downgrade (Pro → Growth at period end) so the page can show it.
+    const pending = best ? await pendingChangeOf(stripe, best) : null
+
     const update = profileUpdateFor(state)
-    return Response.json({ ok: true, plan: update.plan, matches_limit: update.matches_limit })
+    return Response.json({ ok: true, plan: update.plan, matches_limit: update.matches_limit, pending })
   } catch (error) {
     console.error("[stripe sync] error:", error)
     return Response.json({ error: "Sync fehlgeschlagen" }, { status: 500 })
@@ -90,7 +96,7 @@ export async function GET(_req: NextRequest) {
         status: s.status,
         lookup_key: subLookupKey(s),
         unit_amount: s.items?.data?.[0]?.price?.unit_amount ?? null,
-        current_period_end: periodEndOf(s),
+        current_period_end: subCurrentPeriodEnd(s),
       }))
       const state = await resolve(stripe, customerId, user.id)
       resolved = { state, wouldWrite: profileUpdateFor(state) }

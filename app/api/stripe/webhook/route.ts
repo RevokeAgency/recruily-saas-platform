@@ -1,7 +1,13 @@
 import { NextRequest } from "next/server"
 import type Stripe from "stripe"
 import { createClient as createAdmin } from "@supabase/supabase-js"
-import { getStripe, bestActiveSubscription, subLookupKey } from "@/lib/stripe/server"
+import {
+  getStripe,
+  bestActiveSubscription,
+  cancelExtraSubscriptions,
+  subLookupKey,
+  subCurrentPeriodEnd,
+} from "@/lib/stripe/server"
 import { syncSubscriptionToProfile, type SubscriptionState } from "@/lib/stripe/sync"
 
 export const dynamic = "force-dynamic"
@@ -12,15 +18,6 @@ function serviceClient() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { persistSession: false } },
   )
-}
-
-// current_period_end lives on the subscription in older API versions and on
-// the subscription item in newer ones — accept both.
-function periodEndOf(sub: Stripe.Subscription): number | null {
-  const direct = (sub as unknown as { current_period_end?: number }).current_period_end
-  if (typeof direct === "number") return direct
-  const item = sub.items?.data?.[0] as unknown as { current_period_end?: number } | undefined
-  return typeof item?.current_period_end === "number" ? item.current_period_end : null
 }
 
 type Admin = ReturnType<typeof serviceClient>
@@ -39,6 +36,14 @@ async function syncCustomer(
   userId: string | null,
 ): Promise<void> {
   const best = await bestActiveSubscription(stripe, customerId)
+
+  // One subscription per customer: cancel any other active ones (guards the
+  // rare parallel-checkout race that could otherwise stack duplicates).
+  if (best) {
+    const cancelled = await cancelExtraSubscriptions(stripe, customerId, best.id)
+    if (cancelled > 0) console.warn(`[stripe webhook] cancelled ${cancelled} duplicate subscription(s) for ${customerId}`)
+  }
+
   const state: SubscriptionState = best
     ? {
         userId,
@@ -46,7 +51,7 @@ async function syncCustomer(
         subscriptionId: best.id,
         status: best.status,
         lookupKey: subLookupKey(best),
-        periodEnd: periodEndOf(best),
+        periodEnd: subCurrentPeriodEnd(best),
       }
     : { userId, customerId, subscriptionId: null, status: "canceled", lookupKey: null, periodEnd: null }
 
