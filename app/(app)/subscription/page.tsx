@@ -43,6 +43,7 @@ export default function SubscriptionPage() {
   const { profile, loading, refreshProfile } = useProfile()
   const [busyPlan, setBusyPlan] = useState<string | null>(null)
   const [portalBusy, setPortalBusy] = useState(false)
+  const [diag, setDiag] = useState<unknown>(null)
   const bootRan = useRef(false)
 
   const checkout = async (planId: "starter" | "growth" | "pro", interval: "monthly" | "yearly") => {
@@ -78,6 +79,15 @@ export default function SubscriptionPage() {
       .catch(() => {})
 
     const params = new URLSearchParams(window.location.search)
+
+    // Owner diagnostics (same-origin fetch = authenticated): /subscription?debug=1
+    if (params.get("debug") === "1") {
+      fetch("/api/stripe/sync")
+        .then((r) => r.json())
+        .then((j) => setDiag(j))
+        .catch((e) => setDiag({ error: String(e) }))
+    }
+
     if (params.get("success") === "1") {
       toast.success("Zahlung erfolgreich — dein Plan ist in wenigen Sekunden aktiv.")
       window.history.replaceState(null, "", "/subscription")
@@ -124,6 +134,12 @@ export default function SubscriptionPage() {
           title="Plan & Nutzung"
           subtitle="Verwalte dein Abo, behalte dein Kontingent im Blick und wechsle jederzeit den Plan."
         />
+
+        {diag != null && (
+          <pre className="overflow-x-auto rounded-2xl border border-black/[0.06] bg-[var(--rv-ink)] p-4 text-xs leading-relaxed text-[#9fe8c6]">
+            {JSON.stringify(diag, null, 2)}
+          </pre>
+        )}
 
       {/* Current Plan Usage */}
       <Card className="order-3 border border-border shadow-card">
