@@ -25,6 +25,7 @@ export type JobFormData = {
   yearsExperience: string
   education: string
   languages: string[]
+  koCriteria: string[]
   isActive: boolean
 }
 
@@ -43,6 +44,7 @@ const initialFormData: JobFormData = {
   yearsExperience: "",
   education: "",
   languages: [],
+  koCriteria: [],
   isActive: true,
 }
 

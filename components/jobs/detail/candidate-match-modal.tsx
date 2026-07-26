@@ -44,6 +44,7 @@ import {
   Wallet,
   Heart,
   MessageSquare,
+  ShieldAlert,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -74,6 +75,8 @@ interface Candidate {
   culture_score: number | null
   career_prognosis: string | null
   ai_summary: string | null
+  knockout?: boolean
+  knockout_reasons?: string[]
   notes: string | null
   added_at: string
 }
@@ -408,6 +411,30 @@ export function CandidateMatchModal({
               <div className="flex justify-center">
                 <CircularProgress value={candidate.match_score} />
               </div>
+
+              {/* KO-Kriterien verletzt — hard warning, shown to every plan */}
+              {candidate.knockout && (candidate.knockout_reasons?.length ?? 0) > 0 && (
+                <Card className="border-red-200 bg-red-50">
+                  <CardContent className="p-4">
+                    <div className="mb-2 flex items-center gap-2">
+                      <ShieldAlert className="h-5 w-5 text-red-600" />
+                      <h4 className="text-sm font-semibold text-red-700">KO-Kriterium nicht erfüllt</h4>
+                    </div>
+                    <p className="mb-2 text-xs text-red-700/80">
+                      Dieser Kandidat erfüllt eine harte Muss-Anforderung nachweislich nicht. Der
+                      Score bleibt zur Nachvollziehbarkeit erhalten.
+                    </p>
+                    <ul className="space-y-1">
+                      {candidate.knockout_reasons?.map((r, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-red-800">
+                          <span className="mt-0.5 flex-shrink-0 text-red-500">•</span>
+                          {r}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
 
               {showFull ? (
                 <>

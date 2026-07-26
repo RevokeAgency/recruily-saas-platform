@@ -41,6 +41,7 @@ interface Job {
   required_skills: string[] | null
   nice_to_have_skills: string[] | null
   languages: string[] | null
+  ko_criteria: string[] | null
   candidate_count: number
   application_count: number
   match_count: number
@@ -140,6 +141,7 @@ export default function JobDetailPage() {
     requiredSkills: job.required_skills || [],
     niceToHaveSkills: job.nice_to_have_skills || [],
     languages: job.languages || [],
+    koCriteria: job.ko_criteria || [],
   }
 
   const formattedDate = new Date(job.created_at).toLocaleDateString("de-DE", {

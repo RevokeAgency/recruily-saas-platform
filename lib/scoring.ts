@@ -57,6 +57,7 @@ export async function scoreJobCandidateLink(
         education: job.education,
         location: job.location,
         description: job.description,
+        ko_criteria: job.ko_criteria || [],
       },
     )
 
@@ -77,6 +78,8 @@ export async function scoreJobCandidateLink(
         culture_score: roundScore(c?.culture?.score),
         career_prognosis: match?.careerPrognosis,
         ai_summary: match?.whyTheyFit?.join(" | "),
+        knockout: match?.knockout ?? false,
+        knockout_reasons: match?.knockoutReasons ?? [],
       })
       .eq("id", linkId)
   } catch (err) {

@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ArrowLeft, ArrowRight, X, Plus } from "lucide-react"
+import { ArrowLeft, ArrowRight, X, Plus, ShieldAlert } from "lucide-react"
 import { useState } from "react"
 import type { JobFormData } from "@/app/(app)/jobs/new/page"
 
@@ -28,6 +28,18 @@ export function JobWizardStep2({ formData, updateFormData, onNext, onBack }: Ste
   const [newRequiredSkill, setNewRequiredSkill] = useState("")
   const [newNiceSkill, setNewNiceSkill] = useState("")
   const [newLanguage, setNewLanguage] = useState("")
+  const [newKo, setNewKo] = useState("")
+
+  const addKo = () => {
+    if (newKo.trim()) {
+      updateFormData({ koCriteria: [...formData.koCriteria, newKo.trim()] })
+      setNewKo("")
+    }
+  }
+
+  const removeKo = (crit: string) => {
+    updateFormData({ koCriteria: formData.koCriteria.filter((k) => k !== crit) })
+  }
 
   const addSkill = (type: "required" | "nice") => {
     if (type === "required" && newRequiredSkill.trim()) {
@@ -273,6 +285,44 @@ export function JobWizardStep2({ formData, updateFormData, onNext, onBack }: Ste
               size="icon"
               onClick={addLanguage}
             >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* KO-Kriterien (harte Ausschlusskriterien) */}
+      <Card className="border border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <ShieldAlert className="h-5 w-5 text-[var(--rv-green-deep)]" />
+            KO-Kriterien
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Harte Muss-Anforderungen. Kandidaten, die eine davon nachweislich nicht erfüllen,
+            werden im Matching als „KO" markiert und ans Ende gereiht – der Score bleibt zur
+            Nachvollziehbarkeit erhalten. Im Zweifel (nicht eindeutig belegbar) wird niemand ausgeschlossen.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {formData.koCriteria.map((crit) => (
+              <Badge key={crit} variant="outline" className="gap-1 border-amber-200 bg-amber-50 pr-1 text-amber-700">
+                {crit}
+                <button onClick={() => removeKo(crit)} className="ml-1 hover:text-destructive">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              value={newKo}
+              onChange={(e) => setNewKo(e.target.value)}
+              placeholder="z.B. Führerschein Klasse B, Arbeitsberechtigung in Österreich…"
+              onKeyDown={(e) => e.key === "Enter" && addKo()}
+            />
+            <Button type="button" variant="outline" size="icon" onClick={addKo}>
               <Plus className="h-4 w-4" />
             </Button>
           </div>

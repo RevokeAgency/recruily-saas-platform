@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Banknote, GraduationCap, Languages, Briefcase } from "lucide-react"
+import { Banknote, GraduationCap, Languages, Briefcase, ShieldAlert } from "lucide-react"
 import { formatJobDescription } from "@/components/jobs/formatted-description"
 
 interface Job {
@@ -11,6 +11,7 @@ interface Job {
   requiredSkills: string[]
   niceToHaveSkills: string[]
   languages: string[]
+  koCriteria?: string[]
 }
 
 interface JobOverviewTabProps {
@@ -58,6 +59,31 @@ export function JobOverviewTab({ job }: JobOverviewTabProps) {
                 {job.niceToHaveSkills.map((skill) => (
                   <Badge key={skill} variant="outline" className="rounded-full text-sm font-medium text-muted-foreground">
                     {skill}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {job.koCriteria && job.koCriteria.length > 0 && (
+          <Card className="border border-border">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <ShieldAlert className="h-5 w-5 text-[var(--rv-green-deep)]" />
+                KO-Kriterien
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Harte Muss-Anforderungen. Kandidaten, die eine davon nachweislich nicht erfüllen,
+                werden im Matching als „KO" markiert.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {job.koCriteria.map((crit) => (
+                  <Badge key={crit} variant="outline" className="gap-1 rounded-full border-amber-200 bg-amber-50 text-sm font-medium text-amber-700">
+                    <ShieldAlert className="h-3 w-3" />
+                    {crit}
                   </Badge>
                 ))}
               </div>

@@ -32,6 +32,7 @@ import {
   LayoutGrid,
   List,
   ChevronRight,
+  ShieldAlert,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -99,6 +100,8 @@ interface Candidate {
   culture_score: number | null
   career_prognosis: string | null
   ai_summary: string | null
+  knockout: boolean
+  knockout_reasons: string[]
   notes: string | null
   added_at: string
 }
@@ -171,6 +174,8 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
     )
     .filter((c) => filterStatus === "all" || c.status === filterStatus)
     .sort((a, b) => {
+      // Knocked-out candidates always sink to the bottom, whatever the sort.
+      if (!!a.knockout !== !!b.knockout) return a.knockout ? 1 : -1
       switch (sortBy) {
         case "experience": return (b.years_of_experience || 0) - (a.years_of_experience || 0)
         case "name": return (a.full_name || "").localeCompare(b.full_name || "", "de")
@@ -409,7 +414,15 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                   </Avatar>
 
                   <div className="min-w-0 flex-1 lg:grid lg:grid-cols-[1.2fr_1.4fr_1fr_0.8fr] lg:items-center lg:gap-4">
-                    <p className="truncate font-semibold text-foreground">{candidate.full_name}</p>
+                    <p className="flex items-center gap-2 truncate font-semibold text-foreground">
+                      <span className="truncate">{candidate.full_name}</span>
+                      {candidate.knockout && (
+                        <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
+                          <ShieldAlert className="h-2.5 w-2.5" />
+                          KO
+                        </span>
+                      )}
+                    </p>
                     <p className="hidden truncate text-sm text-muted-foreground lg:block">{candidate.email || "–"}</p>
                     <p className="hidden truncate text-sm text-muted-foreground lg:block">{candidate.location || "–"}</p>
                     <p className="truncate text-sm text-muted-foreground">
@@ -467,6 +480,12 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                         <Badge variant="outline" className={`text-xs ${statusMeta(candidate.status).className}`}>
                           {statusMeta(candidate.status).label}
                         </Badge>
+                        {candidate.knockout && (
+                          <Badge variant="outline" className="gap-1 border-red-200 bg-red-50 text-xs font-semibold text-red-600">
+                            <ShieldAlert className="h-3 w-3" />
+                            KO
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                         {candidate.email && (
@@ -509,6 +528,24 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                           +{candidate.skills.length - MAX_VISIBLE_SKILLS} weitere
                         </button>
                       )}
+                    </div>
+                  )}
+
+                  {/* KO-Kriterien verletzt */}
+                  {candidate.knockout && candidate.knockout_reasons.length > 0 && (
+                    <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4">
+                      <div className="mb-2 flex items-center gap-2">
+                        <ShieldAlert className="h-4 w-4 text-red-600" />
+                        <span className="text-sm font-semibold text-red-700">KO-Kriterium nicht erfüllt</span>
+                      </div>
+                      <ul className="space-y-1">
+                        {candidate.knockout_reasons.map((r, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-red-700">
+                            <span className="mt-0.5 flex-shrink-0">•</span>
+                            {r}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
 

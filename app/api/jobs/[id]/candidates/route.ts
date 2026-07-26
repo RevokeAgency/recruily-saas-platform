@@ -26,6 +26,8 @@ export async function GET(
         culture_score,
         career_prognosis,
         ai_summary,
+        knockout,
+        knockout_reasons,
         notes,
         created_at,
         candidate:candidates(*)
@@ -68,6 +70,8 @@ export async function GET(
       culture_score: jc.culture_score,
       career_prognosis: jc.career_prognosis,
       ai_summary: jc.ai_summary,
+      knockout: jc.knockout ?? false,
+      knockout_reasons: jc.knockout_reasons ?? [],
       notes: jc.notes,
       added_at: jc.created_at,
     })) || []

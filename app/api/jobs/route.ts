@@ -108,6 +108,7 @@ export async function POST(req: Request) {
       years_experience: body.yearsExperience || null,
       education: body.education || null,
       languages: body.languages || [],
+      ko_criteria: body.koCriteria || [],
       is_active: body.isActive ?? true,
       user_id: user.id,
     }

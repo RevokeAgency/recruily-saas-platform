@@ -82,6 +82,7 @@ export async function PUT(
       years_experience: body.yearsExperience || null,
       education: body.education || null,
       languages: body.languages || [],
+      ko_criteria: body.koCriteria || [],
     }
 
     const { data: job, error } = await supabase

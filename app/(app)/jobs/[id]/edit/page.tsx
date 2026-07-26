@@ -20,6 +20,7 @@ interface Job {
   required_skills: string[] | null
   nice_to_have_skills: string[] | null
   languages: string[] | null
+  ko_criteria: string[] | null
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -64,6 +65,7 @@ export default function JobEditPage() {
     requiredSkills: j.required_skills || [],
     niceToHaveSkills: j.nice_to_have_skills || [],
     languages: j.languages || [],
+    koCriteria: j.ko_criteria || [],
   }
 
   return <JobEditForm jobId={jobId} initial={initial} />

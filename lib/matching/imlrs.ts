@@ -28,6 +28,17 @@ const imlrsMatchSchema = z.object({
   // === Career Prognosis ===
   careerPrognosis: z.enum(["ascending", "stable", "risk"]).describe("Career trajectory: ascending (growing fast), stable (consistent performer), risk (gaps or concerns)"),
   prognosisReason: z.string().describe("Brief reason for the career prognosis"),
+
+  // === KO-Kriterien (harte Ausschlusskriterien) ===
+  knockoutResults: z
+    .array(
+      z.object({
+        criterion: z.string().describe("Der exakte Wortlaut des geprüften KO-Kriteriums"),
+        failed: z.boolean().describe("true NUR wenn eindeutig belegbar ist, dass der Kandidat dieses Muss-Kriterium NICHT erfüllt. Bei Unklarheit/fehlender Info: false."),
+        reason: z.string().describe("Kurze Begründung auf Deutsch, warum das Kriterium erfüllt / nicht erfüllt / nicht eindeutig belegbar ist"),
+      })
+    )
+    .describe("Bewertung jedes einzelnen KO-Kriteriums. Leeres Array, wenn keine KO-Kriterien vorgegeben wurden."),
 })
 
 // IMLRS Weights according to spec
@@ -73,6 +84,7 @@ export interface IMLRSJobInput {
   location?: string | null
   employment_type?: string
   description?: string | null
+  ko_criteria?: string[] | null
 }
 
 export interface IMLRSMatchResult {
@@ -93,6 +105,12 @@ export interface IMLRSMatchResult {
   interviewFocus: string
   careerPrognosis: "ascending" | "stable" | "risk"
   prognosisReason: string
+  /** true if the candidate clearly fails at least one KO criterion. */
+  knockout: boolean
+  /** Short reasons for each failed KO criterion (e.g. "Führerschein Klasse B: nicht vorhanden"). */
+  knockoutReasons: string[]
+  /** Full per-criterion evaluation for transparency. */
+  knockoutResults: { criterion: string; failed: boolean; reason: string }[]
 }
 
 const systemPrompt = `Du bist das "IMLRS" (Intelligent Multi-Layer Ranking System) von Recruily - ein semantisches KI-Matching-System der nächsten Generation.
@@ -156,6 +174,18 @@ GUT: "Bringt 4 Jahre React-Erfahrung aus seiner Zeit bei Firma X mit, wo er das 
 - "stable": Konsistente Karriere, zuverlässiger Performer
 - "risk": Lücken im Lebenslauf, häufige Jobwechsel, Abstieg in Verantwortung
 
+## KO-Kriterien (harte Ausschlusskriterien) — SEHR WICHTIG
+Falls die Stelle KO-Kriterien vorgibt, prüfe JEDES einzeln. Das sind Muss-Anforderungen:
+Wer sie nicht erfüllt, ist grundsätzlich ungeeignet — unabhängig vom Score.
+- Setze "failed": true NUR, wenn aus den vorliegenden Daten EINDEUTIG hervorgeht, dass
+  der Kandidat das Kriterium NICHT erfüllt (z. B. Kriterium "Führerschein Klasse B",
+  aber im Lebenslauf steht ausdrücklich kein Führerschein / nicht ableitbar und explizit gefordert).
+- Ist die Erfüllung aus den Daten NICHT eindeutig feststellbar, setze "failed": false und
+  vermerke in "reason", dass es im Interview zu klären ist ("nicht eindeutig belegbar").
+- Bei klarer Erfüllung: "failed": false mit kurzer Begründung.
+- Sei bewusst KONSERVATIV: Im Zweifel NICHT ausschließen. Ein KO ist eine starke Aussage.
+Wurden keine KO-Kriterien vorgegeben, gib ein leeres Array zurück.
+
 Antworte IMMER auf Deutsch.`
 
 /**
@@ -194,6 +224,9 @@ Geforderte Skills (Must-Have): ${(job.required_skills || []).join(", ") || "Kein
 Nice-to-Have Skills: ${(job.nice_to_have_skills || []).join(", ") || "Keine angegeben"}
 Benötigte Erfahrung: ${job.years_experience || "Nicht angegeben"}
 Geforderte Ausbildung: ${job.education || "Nicht angegeben"}
+${(job.ko_criteria && job.ko_criteria.length > 0)
+  ? `KO-Kriterien (harte Muss-Anforderungen, einzeln prüfen):\n${job.ko_criteria.map((k) => `- ${k}`).join("\n")}`
+  : "KO-Kriterien: Keine vorgegeben"}
 Stellenbeschreibung: ${job.description || "Keine Beschreibung verfügbar"}
 `
 
@@ -223,6 +256,16 @@ Stellenbeschreibung: ${job.description || "Keine Beschreibung verfügbar"}
       output.culture * IMLRS_WEIGHTS.culture
   )
 
+  // Only trust KO evaluations for criteria the job actually defined (the model
+  // must never invent knockouts). Match on the criterion text it echoed back.
+  const definedKo = job.ko_criteria || []
+  const koResults =
+    definedKo.length === 0
+      ? []
+      : (output.knockoutResults || []).filter((r) =>
+          definedKo.some((k) => k.trim().toLowerCase() === r.criterion.trim().toLowerCase())
+        )
+
   return {
     overallScore,
     categories: {
@@ -241,5 +284,8 @@ Stellenbeschreibung: ${job.description || "Keine Beschreibung verfügbar"}
     interviewFocus: output.interviewFocus,
     careerPrognosis: output.careerPrognosis,
     prognosisReason: output.prognosisReason,
+    knockout: koResults.some((r) => r.failed),
+    knockoutReasons: koResults.filter((r) => r.failed).map((r) => `${r.criterion}: ${r.reason}`),
+    knockoutResults: koResults,
   }
 }
