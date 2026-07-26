@@ -285,7 +285,16 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
           <div className="flex items-start gap-3">
             <Checkbox id="dsgvo" checked={dsgvo} onCheckedChange={(v) => setDsgvo(v === true)} className="mt-0.5" />
             <Label htmlFor="dsgvo" className="cursor-pointer text-sm font-normal leading-relaxed text-muted-foreground">
-              Ich stimme der Verarbeitung meiner Daten gemäß Datenschutzerklärung zu. *
+              Ich stimme der Verarbeitung meiner Daten gemäß{" "}
+              <a
+                href="/datenschutz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-[var(--rv-green-deep)] underline"
+              >
+                Datenschutzerklärung
+              </a>{" "}
+              zu. *
             </Label>
           </div>
           {errors.dsgvo && <p className="text-xs text-destructive">{errors.dsgvo}</p>}

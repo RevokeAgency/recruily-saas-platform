@@ -83,3 +83,47 @@ export async function sendApplicationReceived(opts: {
     return false
   }
 }
+
+/**
+ * Double-opt-in confirmation for an applicant's self-service deletion request.
+ * The link carries a signed, time-limited token; deletion only happens after the
+ * applicant clicks and confirms. Best-effort.
+ */
+export async function sendDeletionConfirmation(opts: {
+  to: string
+  confirmUrl: string
+}): Promise<boolean> {
+  if (!opts.to || !process.env.RESEND_API_KEY) return false
+
+  const body = `
+    <p style="margin: 0 0 16px;">Hallo,</p>
+    <p style="margin: 0 0 16px;">
+      du hast die Löschung deiner Bewerberdaten angefragt. Bitte bestätige die
+      Löschung über den folgenden Button. Der Link ist 48 Stunden gültig.
+    </p>
+    <p style="margin: 0 0 24px;">
+      <a href="${opts.confirmUrl}" style="display:inline-block;background:#0C1A16;color:#fff;font-weight:700;text-decoration:none;padding:12px 20px;border-radius:999px;font-size:14px;">
+        Löschung bestätigen
+      </a>
+    </p>
+    <p style="margin: 0 0 16px; color:#64707B; font-size:13px;">
+      Wenn du diese Anfrage nicht gestellt hast, ignoriere diese E-Mail einfach —
+      es wird nichts gelöscht.
+    </p>
+    <p style="margin: 24px 0 0;">Freundliche Grüße<br>Revetly</p>
+  `
+
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    await resend.emails.send({
+      from: FROM,
+      to: opts.to,
+      subject: "Löschung deiner Bewerberdaten bestätigen",
+      html: shell("Revetly", body),
+    })
+    return true
+  } catch (err) {
+    console.error("[email] deletion-confirmation send failed:", err)
+    return false
+  }
+}

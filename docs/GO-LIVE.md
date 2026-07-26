@@ -63,6 +63,19 @@ Reihenfolge egal, alle additiv:
       `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - [ ] `RESEND_API_KEY`
 - [ ] `INBOUND_WEBHOOK_SECRET` (EmailConnect-Signatur)
+- [ ] `CRON_SECRET` — schützt den täglichen Auto-Löschungs-Cron
+      (`/api/cron/purge-candidates`). Vercel sendet ihn als Bearer-Token an
+      Cron-Aufrufe. In Vercel setzen; ohne ihn liefert der Endpoint 401.
+
+## DSGVO
+
+- [ ] **Datenschutzseite (`/datenschutz`) juristisch prüfen lassen** und die
+      Platzhalter ([Firmenname/Anschrift/Kontakt]) ausfüllen. Impressum + AGB
+      im Footer sind noch Platzhalter (`#`).
+- [ ] Aufbewahrungsfrist bestätigen: Auto-Löschung läuft nach **180 Tagen**
+      (Konstante `RETENTION_DAYS` in `app/api/cron/purge-candidates/route.ts`).
+- [ ] Self-Service-Löschung testen: `/datenschutz/loeschung` → Mail →
+      Bestätigen → Datensatz + Storage weg.
 
 ---
 
