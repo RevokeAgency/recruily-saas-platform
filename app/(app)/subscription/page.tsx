@@ -65,9 +65,14 @@ export default function SubscriptionPage() {
     if (!hasPaid) return checkout(planId, interval)
 
     const label = PLANS[planId].label
-    const isDowngrade = rankOrder.indexOf(planId) < rankOrder.indexOf(profile!.plan)
+    // Interval-aware rank so yearly→monthly (same tier) is also a downgrade.
+    const rank = (p: string, iv: string) => rankOrder.indexOf(p) * 10 + (iv === "yearly" ? 1 : 0)
+    const isDowngrade = rank(planId, interval) < rank(profile!.plan, profile!.billing_interval || "monthly")
+    const samePlan = planId === profile!.plan
     if (isDowngrade && !window.confirm(
-      `Downgrade auf ${label}: Dein aktueller Plan läuft bezahlt bis zum Ende der Abrechnungsperiode weiter, danach wird automatisch auf ${label} gewechselt. Fortfahren?`,
+      samePlan
+        ? `Wechsel auf ${label} (monatlich): Dein Jahresabo läuft bezahlt bis zum Ende der Laufzeit weiter, danach wird auf monatliche Abrechnung umgestellt. Fortfahren?`
+        : `Downgrade auf ${label}: Dein aktueller Plan läuft bezahlt bis zum Ende der Abrechnungsperiode weiter, danach wird automatisch auf ${label} gewechselt. Fortfahren?`,
     )) return
 
     setBusyPlan(planId)
@@ -154,6 +159,8 @@ export default function SubscriptionPage() {
   }, [])
 
   const currentPlanId = profile?.plan || 'free'
+  const currentInterval = profile?.billing_interval || 'monthly'
+  const selectedInterval: "monthly" | "yearly" = isAnnual ? "yearly" : "monthly"
   const matchesUsed = profile?.matches_used || 0
   const matchesLimit = profile?.matches_limit || 10
   const matchPercentage = (matchesUsed / matchesLimit) * 100
@@ -314,10 +321,14 @@ export default function SubscriptionPage() {
       <div className="order-2 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {planOrder.map((planId) => {
           const plan = PLANS[planId]
-          const price = isAnnual 
-            ? Math.round(plan.price_yearly / 12) 
+          const price = isAnnual
+            ? Math.round(plan.price_yearly / 12)
             : plan.price_monthly
-          const isCurrent = planId === currentPlanId
+          const isCurrentPlan = planId === currentPlanId
+          // "Exact" = same plan AND same interval → nothing to change.
+          const isCurrentExact = isCurrentPlan && selectedInterval === currentInterval
+          // Same plan, different interval → an actionable interval switch.
+          const isIntervalSwitch = isCurrentPlan && !isCurrentExact && planId !== "free"
           const Icon = planIcons[planId]
 
           return (
@@ -328,7 +339,7 @@ export default function SubscriptionPage() {
                 "rv-spotlight relative border transition-shadow duration-150 ease-out hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_14px_32px_-14px_rgba(12,26,22,.14)]",
                 plan.featured
                   ? "border-[var(--rv-green)] shadow-card"
-                  : isCurrent
+                  : isCurrentPlan
                   ? "border-[rgba(22,199,124,.5)]"
                   : "border-border"
               )}
@@ -341,7 +352,7 @@ export default function SubscriptionPage() {
                 </div>
               )}
               
-              {isCurrent && !plan.featured && (
+              {isCurrentPlan && !plan.featured && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <Badge variant="outline" className="border-[var(--rv-green)] text-[var(--rv-green)] bg-white">
                     Dein aktueller Plan
@@ -409,18 +420,20 @@ export default function SubscriptionPage() {
 
                 {/* CTA */}
                 <Button
-                  className={cn("w-full h-10 rounded-full", isCurrent && "border-[var(--rv-green)] text-[var(--rv-green)]")}
-                  variant={isCurrent ? "outline" : plan.featured ? "default" : "outline"}
-                  disabled={isCurrent || planId === "free" || busyPlan !== null}
+                  className={cn("w-full h-10 rounded-full", isCurrentExact && "border-[var(--rv-green)] text-[var(--rv-green)]")}
+                  variant={isCurrentExact ? "outline" : plan.featured ? "default" : "outline"}
+                  disabled={isCurrentExact || planId === "free" || busyPlan !== null}
                   onClick={() =>
                     planId !== "free" &&
-                    selectPlan(planId as "starter" | "growth" | "pro", isAnnual ? "yearly" : "monthly")
+                    selectPlan(planId as "starter" | "growth" | "pro", selectedInterval)
                   }
                 >
                   {busyPlan === planId ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Wird verarbeitet…</>
-                  ) : isCurrent ? (
+                  ) : isCurrentExact ? (
                     "Aktueller Plan"
+                  ) : isIntervalSwitch ? (
+                    selectedInterval === "yearly" ? "Auf Jährlich wechseln" : "Auf Monatlich wechseln"
                   ) : planId === "free" ? (
                     "Kostenlos"
                   ) : (
