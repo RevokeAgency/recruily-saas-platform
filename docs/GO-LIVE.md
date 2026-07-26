@@ -50,6 +50,8 @@ Reihenfolge egal, alle additiv:
 - [ ] `scripts/015_rls_hardening.sql` — RLS owner-scoped (Sicherheits-Pflicht)
 - [ ] `scripts/016_invited_at.sql` — Time-to-Interview-Messung
 - [ ] `scripts/017_stripe_billing.sql` — Stripe-Billing-Spalten
+- [ ] `scripts/018_fix_plan_limits_trigger.sql` — korrigiert den alten
+      `on_plan_change`-Trigger, der `matches_limit` auf veraltete Werte klemmte
 
 ---
 
