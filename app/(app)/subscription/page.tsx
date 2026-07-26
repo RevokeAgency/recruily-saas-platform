@@ -40,7 +40,7 @@ const planDescriptions: Record<PlanId, string> = {
 
 export default function SubscriptionPage() {
   const [isAnnual, setIsAnnual] = useState(false)
-  const { profile, loading } = useProfile()
+  const { profile, loading, refreshProfile } = useProfile()
   const [busyPlan, setBusyPlan] = useState<string | null>(null)
   const [portalBusy, setPortalBusy] = useState(false)
   const bootRan = useRef(false)
@@ -69,6 +69,14 @@ export default function SubscriptionPage() {
   useEffect(() => {
     if (bootRan.current) return
     bootRan.current = true
+
+    // Self-heal: re-derive the plan from live Stripe state and refresh the
+    // counter, so the account can never drift from what's active at Stripe
+    // (e.g. after a webhook was temporarily unreachable).
+    fetch("/api/stripe/sync", { method: "POST" })
+      .then(() => refreshProfile())
+      .catch(() => {})
+
     const params = new URLSearchParams(window.location.search)
     if (params.get("success") === "1") {
       toast.success("Zahlung erfolgreich — dein Plan ist in wenigen Sekunden aktiv.")
