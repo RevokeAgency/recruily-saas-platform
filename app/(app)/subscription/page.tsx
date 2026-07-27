@@ -284,6 +284,29 @@ export default function SubscriptionPage() {
               </p>
             </div>
           </div>
+
+          {/* Cancellation / management hint — the portal is where you cancel */}
+          {currentPlanId !== "free" && (
+            <div className="flex flex-col gap-3 rounded-2xl border border-[var(--app-line)] bg-[var(--muted)]/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted-foreground">
+                Zahlungsdaten ändern, Rechnungen einsehen oder dein Abo{" "}
+                <span className="font-medium text-foreground">zum Ende der Laufzeit kündigen</span> —
+                alles über das Stripe-Kundenportal.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0 rounded-full bg-white"
+                onClick={portal}
+                disabled={portalBusy}
+              >
+                {portalBusy
+                  ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  : <ExternalLink className="mr-2 h-4 w-4" />}
+                Abo verwalten & kündigen
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
