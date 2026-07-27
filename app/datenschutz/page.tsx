@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import type { Metadata } from "next"
 
@@ -14,17 +15,26 @@ export default function DatenschutzPage() {
   return (
     <main className="min-h-screen bg-[var(--background)] px-5 py-16">
       <article className="mx-auto max-w-2xl">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--app-line)] bg-white px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Zurück zur Startseite
-        </Link>
-        <p className="mt-6 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[var(--rv-green-deep)]">
-          Revetly
-        </p>
-        <h1 className="mt-2 text-[2rem] font-bold leading-tight tracking-tight text-foreground">
+        <div className="flex items-center justify-between gap-4">
+          <Link href="/" className="inline-flex items-center" aria-label="Zur Startseite">
+            <Image
+              src="/revetly/LogoEntwurf-trim.png"
+              alt="Revetly"
+              width={116}
+              height={28}
+              className="h-7 w-auto"
+              priority
+            />
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--app-line)] bg-white px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Zurück zur Startseite
+          </Link>
+        </div>
+        <h1 className="mt-8 text-[2rem] font-bold leading-tight tracking-tight text-foreground">
           Datenschutzerklärung
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">Stand: {new Date().getFullYear()}</p>
