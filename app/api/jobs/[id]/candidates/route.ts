@@ -8,10 +8,8 @@ export async function GET(
     const { id: jobId } = await params
     const supabase = await createClient()
 
-    // Get all candidates linked to this job with their details
-    const { data: jobCandidates, error } = await supabase
-      .from("job_candidates")
-      .select(`
+    // Base columns present in every deployment.
+    const baseColumns = `
         id,
         status,
         match_score,
@@ -26,14 +24,29 @@ export async function GET(
         culture_score,
         career_prognosis,
         ai_summary,
-        knockout,
-        knockout_reasons,
         notes,
         created_at,
-        candidate:candidates(*)
-      `)
+        candidate:candidates(*)`
+
+    // KO columns (migration 019). Try them first, but never let a pending
+    // migration break the whole candidate list — fall back gracefully if the
+    // columns don't exist yet.
+    let { data: jobCandidates, error } = await supabase
+      .from("job_candidates")
+      .select(`${baseColumns},
+        knockout,
+        knockout_reasons`)
       .eq("job_id", jobId)
       .order("created_at", { ascending: false })
+
+    if (error && /knockout/i.test(error.message || "")) {
+      console.warn("[candidates] KO-Spalten fehlen — Migration 019 noch nicht ausgeführt. Fallback ohne KO.")
+      ;({ data: jobCandidates, error } = await supabase
+        .from("job_candidates")
+        .select(baseColumns)
+        .eq("job_id", jobId)
+        .order("created_at", { ascending: false }))
+    }
 
     if (error) {
       console.error("Error fetching job candidates:", error)

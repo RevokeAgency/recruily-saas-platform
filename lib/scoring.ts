@@ -78,10 +78,21 @@ export async function scoreJobCandidateLink(
         culture_score: roundScore(c?.culture?.score),
         career_prognosis: match?.careerPrognosis,
         ai_summary: match?.whyTheyFit?.join(" | "),
+      })
+      .eq("id", linkId)
+
+    // KO result is written separately and best-effort so a pending migration
+    // (019_ko_criteria) can never break the core scoring update.
+    await supabase
+      .from("job_candidates")
+      .update({
         knockout: match?.knockout ?? false,
         knockout_reasons: match?.knockoutReasons ?? [],
       })
       .eq("id", linkId)
+      .then(({ error }) => {
+        if (error) console.error("[scoring] knockout skipped:", error.message)
+      })
   } catch (err) {
     console.error("scoreJobCandidateLink failed:", err)
     await supabase.from("job_candidates").update({ status: "error" }).eq("id", linkId)

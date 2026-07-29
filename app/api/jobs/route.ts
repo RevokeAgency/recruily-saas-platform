@@ -113,11 +113,19 @@ export async function POST(req: Request) {
       user_id: user.id,
     }
 
-    const { data: job, error } = await supabase
+    let { data: job, error } = await supabase
       .from("jobs")
       .insert(jobData)
       .select()
       .single()
+
+    // KO criteria need migration 019. If it isn't applied yet, don't fail the
+    // whole job creation — retry without ko_criteria.
+    if (error && /ko_criteria/i.test(error.message || "")) {
+      console.warn("[jobs] KO-Spalte fehlt — Migration 019 noch nicht ausgeführt. Job wird ohne KO-Kriterien angelegt.")
+      const { ko_criteria: _omit, ...withoutKo } = jobData
+      ;({ data: job, error } = await supabase.from("jobs").insert(withoutKo).select().single())
+    }
 
     if (error) {
       console.error("[v0] Error creating job:", error)

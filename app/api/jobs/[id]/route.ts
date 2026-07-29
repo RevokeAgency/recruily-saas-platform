@@ -85,8 +85,17 @@ export async function PUT(
       ko_criteria: body.koCriteria || [],
     }
 
-    const { data: job, error } = await supabase
+    let { data: job, error } = await supabase
       .from("jobs").update(jobData).eq("id", id).eq("user_id", user.id).select().single()
+
+    // KO criteria need migration 019 — don't fail the whole save if it's pending.
+    if (error && /ko_criteria/i.test(error.message || "")) {
+      console.warn("[jobs] KO-Spalte fehlt — Migration 019 noch nicht ausgeführt. Job wird ohne KO-Kriterien gespeichert.")
+      const { ko_criteria: _omit, ...withoutKo } = jobData
+      ;({ data: job, error } = await supabase
+        .from("jobs").update(withoutKo).eq("id", id).eq("user_id", user.id).select().single())
+    }
+
     if (error) return Response.json({ error: error.message }, { status: 500 })
 
     return Response.json({ job })
