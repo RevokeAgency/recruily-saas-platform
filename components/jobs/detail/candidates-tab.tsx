@@ -33,6 +33,7 @@ import {
   List,
   ChevronRight,
   ShieldAlert,
+  RefreshCw,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -213,6 +214,29 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
     }
   }
 
+  const [rescoring, setRescoring] = useState(false)
+  const rescoreAll = async () => {
+    setRescoring(true)
+    try {
+      const res = await fetch(`/api/jobs/${jobId}/rescore`, { method: "POST" })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || "Neubewertung fehlgeschlagen")
+        return
+      }
+      toast.success(
+        data.hasMore
+          ? `${data.rescored} Kandidaten neu bewertet — nochmal klicken für die restlichen.`
+          : `${data.rescored} Kandidaten neu bewertet ✓`,
+      )
+      mutate()
+    } catch {
+      toast.error("Neubewertung fehlgeschlagen")
+    } finally {
+      setRescoring(false)
+    }
+  }
+
   const [openingDoc, setOpeningDoc] = useState<string | null>(null)
   const openDocument = async (candidateId: string, type: "resume" | "cover") => {
     setOpeningDoc(`${candidateId}-${type}`)
@@ -293,12 +317,28 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
             {filteredCandidates.length} {filteredCandidates.length === 1 ? "Kandidat" : "Kandidaten"} für {jobTitle}
           </p>
         </div>
-        <Button asChild className="h-10 rounded-full px-4">
-          <Link href={`/candidates/new?jobId=${jobId}`}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Kandidat hinzufügen
-          </Link>
-        </Button>
+        <div className="flex flex-shrink-0 items-center gap-2">
+          {candidates.some((c) => c.status === "scored" || c.status === "error") && (
+            <Button
+              variant="outline"
+              className="h-10 rounded-full bg-white px-4"
+              onClick={rescoreAll}
+              disabled={rescoring}
+              title="Bewertet alle Kandidaten erneut — nötig, um neue KO-Kriterien oder geänderte Anforderungen anzuwenden. Verbraucht kein Kontingent."
+            >
+              {rescoring
+                ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                : <RefreshCw className="mr-2 h-4 w-4" />}
+              Neu bewerten
+            </Button>
+          )}
+          <Button asChild className="h-10 rounded-full px-4">
+            <Link href={`/candidates/new?jobId=${jobId}`}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Kandidat hinzufügen
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Search, Filters, View Toggle */}
