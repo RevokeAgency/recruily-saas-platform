@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server"
+import { createClient as createAdmin } from "@supabase/supabase-js"
+import { after } from "next/server"
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
+
+export const dynamic = "force-dynamic"
+export const maxDuration = 60
 
 export async function POST(
   req: Request,
@@ -77,10 +82,24 @@ export async function POST(
       return Response.json({ error: linkError?.message ?? "Fehler beim Verknüpfen" }, { status: 500 })
     }
 
-    // Fire-and-forget scoring — do not block the response.
-    scoreJobCandidateLink(supabase, linkData.id).catch((err) =>
-      console.error("[match] background scoring failed:", err)
-    )
+    // Score AFTER the response is sent. after() keeps the serverless function
+    // alive until scoring finishes — a plain fire-and-forget promise gets
+    // frozen/killed on Vercel once the response returns, which left candidates
+    // stuck in "analyzing". A service-role client is used so the background work
+    // doesn't depend on the request's (now torn-down) cookie context.
+    const linkId = linkData.id
+    after(async () => {
+      try {
+        const admin = createAdmin(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          { auth: { persistSession: false } },
+        )
+        await scoreJobCandidateLink(admin, linkId)
+      } catch (err) {
+        console.error("[match] background scoring failed:", err)
+      }
+    })
 
     return Response.json({
       success: true,

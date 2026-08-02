@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
-import { NextRequest } from "next/server"
+import { NextRequest, after } from "next/server"
 import { parseEmailConnectPayload, verifyEmailConnectSignature } from "@/lib/email/emailconnect"
 import { parseInboundRecipient } from "@/lib/email/routing"
 import { parseCvBuffer, isSupportedCvType, isUsableCandidate, isPdfFile } from "@/lib/cv-parse"
@@ -194,9 +194,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (link && quota.allowed) {
-      scoreJobCandidateLink(supabase, link.id).catch((err) =>
-        console.error("[inbound] scoring failed:", err),
-      )
+      // Score after the response — after() keeps the function alive so scoring
+      // completes (fire-and-forget was killed on serverless, leaving candidates
+      // stuck "analyzing"). supabase is already a service-role client.
+      const linkId = link.id
+      after(async () => {
+        try { await scoreJobCandidateLink(supabase, linkId) }
+        catch (err) { console.error("[inbound] scoring failed:", err) }
+      })
     }
 
     // Confirm receipt to the applicant (best-effort, never blocks intake).

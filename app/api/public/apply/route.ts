@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import { NextRequest } from "next/server"
+import { NextRequest, after } from "next/server"
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
 import { parseCvBuffer, isUsableCandidate, isPdfFile, extractDocumentText } from "@/lib/cv-parse"
@@ -157,9 +157,14 @@ export async function POST(req: NextRequest) {
       .then(({ error }) => { if (error) console.error("[apply] source skipped:", error.message) })
 
     if (quota.allowed) {
-      scoreJobCandidateLink(supabase, link.id).catch((err) =>
-        console.error("[apply] background scoring failed:", err),
-      )
+      // Score after the response — after() ensures the work survives on
+      // serverless (fire-and-forget got killed and left "analyzing" forever).
+      // supabase here is already a service-role client, safe post-response.
+      const linkId = link.id
+      after(async () => {
+        try { await scoreJobCandidateLink(supabase, linkId) }
+        catch (err) { console.error("[apply] background scoring failed:", err) }
+      })
     }
 
     // Send the applicant an eingangsbestätigung (best-effort, never blocks).
