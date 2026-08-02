@@ -1,8 +1,50 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { createClient as createAdmin } from "@supabase/supabase-js"
 import { runIMLRSMatch } from "@/lib/matching/imlrs"
+import { extractCandidatePhoto } from "@/lib/cv-photo"
 
 const roundScore = (s: number | undefined | null): number | null =>
   s == null ? null : Math.round(s)
+
+/**
+ * Self-heals a missing profile photo: if the candidate has a PDF CV but no
+ * stored photo, extract it now and save it. Best-effort — never throws, never
+ * blocks scoring. Uses a service-role client for the private-bucket download +
+ * public-bucket upload, so it works from any scoring context (incl. re-scoring
+ * candidates that were added before photo extraction was fixed).
+ */
+async function backfillCandidatePhoto(candidate: {
+  id: string
+  user_id?: string | null
+  photo_url?: string | null
+  resume_path?: string | null
+}): Promise<void> {
+  try {
+    if (candidate.photo_url) return
+    const path = candidate.resume_path
+    if (!path || !path.toLowerCase().endsWith(".pdf") || !candidate.user_id) return
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!url || !key) return
+    const admin = createAdmin(url, key, { auth: { persistSession: false } })
+
+    const { data: file } = await admin.storage.from("resumes").download(path)
+    if (!file) return
+    const photo = await extractCandidatePhoto(Buffer.from(await file.arrayBuffer()))
+    if (!photo) return
+
+    const photoPath = `${candidate.user_id}/${candidate.id}.png`
+    const { error } = await admin.storage.from("candidate-photos").upload(photoPath, photo, {
+      contentType: "image/png", upsert: true,
+    })
+    if (error) return
+    const publicUrl = admin.storage.from("candidate-photos").getPublicUrl(photoPath).data.publicUrl
+    await admin.from("candidates").update({ photo_url: publicUrl }).eq("id", candidate.id)
+  } catch (err) {
+    console.error("[scoring] photo backfill skipped:", err)
+  }
+}
 
 /**
  * Scores a single job_candidates link in place: loads the linked job +
@@ -93,6 +135,10 @@ export async function scoreJobCandidateLink(
       .then(({ error }) => {
         if (error) console.error("[scoring] knockout skipped:", error.message)
       })
+
+    // Self-heal a missing profile photo (e.g. candidate added before photo
+    // extraction was fixed). Best-effort; runs only when no photo is stored.
+    await backfillCandidatePhoto(candidate)
   } catch (err) {
     console.error("scoreJobCandidateLink failed:", err)
     await supabase.from("job_candidates").update({ status: "error" }).eq("id", linkId)
