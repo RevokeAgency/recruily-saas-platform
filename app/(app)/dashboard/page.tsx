@@ -8,6 +8,7 @@ import { Priorities, type PriorityItem } from "@/components/dashboard/priorities
 import { RecentApplications, type RecentApplication } from "@/components/dashboard/recent-applications"
 import { TopCandidates, type TopCandidate } from "@/components/dashboard/top-candidates"
 import { KpiPanel, type KpiData } from "@/components/dashboard/kpi-panel"
+import { MatchQuality } from "@/components/dashboard/match-quality"
 import { RevealGroup } from "@/components/app/reveal-group"
 import { createClient } from "@/lib/supabase/server"
 
@@ -350,6 +351,12 @@ export default async function DashboardPage() {
           <RecentApplications items={recentApplications} />
           <TopCandidates items={topCandidates} />
           <KpiPanel data={kpis} />
+        </div>
+
+        {/* How well the matching predicted this tenant's own decisions.
+            Renders nothing until there are enough decisions to be honest. */}
+        <div className="reveal grid gap-4 lg:grid-cols-3">
+          <MatchQuality />
         </div>
 
         {/* Recent activity */}

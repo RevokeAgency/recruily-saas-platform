@@ -31,11 +31,13 @@ export async function GET(
     const koColumns = "knockout, knockout_reasons"
     const interviewColumns = "interview_score, interview_completed_at"
     const matchV2Columns = "match_detail, match_engine"
+    const poolRankColumns = "pool_rank, pool_rank_reason"
 
     // Optional columns come from later migrations (019 KO, 020 interview,
-    // 021 matching v2). Never let a pending migration break the whole list —
-    // try the richest select and fall back progressively.
+    // 021 matching v2, 022 feedback loop). Never let a pending migration break
+    // the whole list — try the richest select and fall back progressively.
     const selects = [
+      `${baseColumns}, ${koColumns}, ${interviewColumns}, ${matchV2Columns}, ${poolRankColumns}`,
       `${baseColumns}, ${koColumns}, ${interviewColumns}, ${matchV2Columns}`,
       `${baseColumns}, ${koColumns}, ${interviewColumns}`,
       `${baseColumns}, ${koColumns}`,
@@ -51,7 +53,7 @@ export async function GET(
         .order("created_at", { ascending: false })
       if (!res.error) { jobCandidates = res.data as unknown as Record<string, unknown>[]; error = null; break }
       error = res.error
-      if (!/knockout|interview_|match_detail|match_engine/i.test(res.error.message || "")) break // real error → stop
+      if (!/knockout|interview_|match_detail|match_engine|pool_rank/i.test(res.error.message || "")) break // real error → stop
     }
 
     if (error) {
@@ -96,6 +98,8 @@ export async function GET(
       interview_completed_at: jc.interview_completed_at ?? null,
       match_detail: jc.match_detail ?? null,
       match_engine: jc.match_engine ?? null,
+      pool_rank: jc.pool_rank ?? null,
+      pool_rank_reason: jc.pool_rank_reason ?? null,
       notes: jc.notes,
       added_at: jc.created_at,
     })) || []

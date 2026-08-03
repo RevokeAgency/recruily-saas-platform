@@ -62,6 +62,11 @@ Reihenfolge egal, alle additiv:
       Prüfinstanz laufen auf `gemini-2.5-pro` (gleicher API-Key; per Env
       `IMLRS_JUDGE_MODEL` übersteuerbar). Bestehende Scores bleiben, bis pro
       Job „Neu bewerten" geklickt wird.
+- [ ] `scripts/022_feedback_loop.sql` — Feedback-Loop + Bestenvergleich:
+      Outcome (`job_candidates.hired_at`, Status „Eingestellt"), Ranking
+      (`pool_rank`, `pool_rank_reason`) und Kalibrierung pro Kunde
+      (`user_profiles.match_calibration`, `imlrs_weights`). Danach läuft der
+      nächtliche Cron `/api/cron/calibrate-matching` (04:00 UTC).
 
 ---
 
@@ -73,9 +78,12 @@ Reihenfolge egal, alle additiv:
       `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - [ ] `RESEND_API_KEY`
 - [ ] `INBOUND_WEBHOOK_SECRET` (EmailConnect-Signatur)
-- [ ] `CRON_SECRET` — schützt den täglichen Auto-Löschungs-Cron
-      (`/api/cron/purge-candidates`). Vercel sendet ihn als Bearer-Token an
-      Cron-Aufrufe. In Vercel setzen; ohne ihn liefert der Endpoint 401.
+- [ ] `CRON_SECRET` — schützt die täglichen Cron-Jobs (`/api/cron/purge-candidates`
+      um 03:00 und `/api/cron/calibrate-matching` um 04:00 UTC). Vercel sendet ihn
+      als Bearer-Token an Cron-Aufrufe. In Vercel setzen; ohne ihn liefern die
+      Endpoints 401 (fail-closed).
+- [ ] `IMLRS_JUDGE_MODEL` *(optional)* — übersteuert das Modell für Richter,
+      Prüfinstanz und Bestenvergleich (Default `gemini-2.5-pro`).
 
 ## DSGVO
 

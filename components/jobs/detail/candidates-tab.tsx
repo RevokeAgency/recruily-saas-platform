@@ -35,6 +35,7 @@ import {
   ShieldAlert,
   RefreshCw,
   ClipboardList,
+  Trophy,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -90,7 +91,7 @@ interface Candidate {
   photo_url: string | null
   resume_path: string | null
   cover_letter_path: string | null
-  status: "queued" | "analyzing" | "scored" | "error" | "stale" | "new" | "shortlisted" | "interviewed" | "Eingeladen" | "Abgesagt"
+  status: "queued" | "analyzing" | "scored" | "error" | "stale" | "new" | "shortlisted" | "interviewed" | "Eingeladen" | "Eingestellt" | "Abgesagt"
   match_score: number | null
   hard_skills_score: number | null
   experience_score: number | null
@@ -109,6 +110,8 @@ interface Candidate {
   interview_completed_at: string | null
   match_detail?: import("./candidate-match-modal").MatchDetail | null
   match_engine?: string | null
+  pool_rank: number | null
+  pool_rank_reason: string | null
   notes: string | null
   added_at: string
 }
@@ -139,6 +142,7 @@ function statusMeta(status: Candidate["status"]): { label: string; className: st
     case "shortlisted": return { label: "Shortlist", className: "border-[rgba(22,199,124,.4)] text-[var(--rv-green-deep)]" }
     case "interviewed":
     case "Eingeladen": return { label: "Eingeladen", className: "border-amber-200 text-amber-600 bg-amber-50" }
+    case "Eingestellt": return { label: "Eingestellt", className: "border-transparent bg-[image:var(--rv-gradient)] text-[#0C1A16]" }
     case "Abgesagt": return { label: "Abgesagt", className: "border-border text-muted-foreground" }
     default: return { label: status, className: "border-border text-muted-foreground" }
   }
@@ -204,6 +208,8 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
         case "date": return new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
         case "interview": return (b.interview_score ?? -1) - (a.interview_score ?? -1)
         case "combined": return combinedScore(b) - combinedScore(a)
+        // Bestenvergleich: ranked candidates first (1 = best), unranked after.
+        case "pool_rank": return (a.pool_rank ?? 9999) - (b.pool_rank ?? 9999)
         default: return (b.match_score || 0) - (a.match_score || 0)
       }
     })
@@ -257,6 +263,30 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
       toast.error("Neubewertung fehlgeschlagen")
     } finally {
       setRescoring(false)
+    }
+  }
+
+  // Bestenvergleich: comparative ranking of this job's candidates.
+  const [ranking, setRanking] = useState(false)
+  const rankPool = async () => {
+    setRanking(true)
+    try {
+      const res = await fetch(`/api/jobs/${jobId}/pool-rank`, { method: "POST" })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || "Bestenvergleich fehlgeschlagen")
+        return
+      }
+      toast.success(
+        data.topName ? `Bestenvergleich fertig — Nr. 1: ${data.topName}` : "Bestenvergleich fertig",
+        { description: data.topEmpfehlung, duration: 9000 },
+      )
+      setSortBy("pool_rank")
+      mutate()
+    } catch {
+      toast.error("Bestenvergleich fehlgeschlagen")
+    } finally {
+      setRanking(false)
     }
   }
 
@@ -341,6 +371,20 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
           </p>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
+          {candidates.filter((c) => c.match_score != null && !c.knockout && c.status !== "Abgesagt").length >= 2 && (
+            <Button
+              variant="outline"
+              className="h-10 rounded-full bg-white px-4"
+              onClick={rankPool}
+              disabled={ranking}
+              title="Vergleicht die bewerteten Kandidaten direkt miteinander und reiht sie — genauer als absolute Scores allein. Verbraucht kein Kontingent."
+            >
+              {ranking
+                ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                : <Trophy className="mr-2 h-4 w-4 text-[var(--rv-cyan-deep)]" />}
+              Bestenvergleich
+            </Button>
+          )}
           {candidates.some((c) => c.status === "scored" || c.status === "error") && (
             <Button
               variant="outline"
@@ -403,6 +447,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="match">Match Score</SelectItem>
+                  <SelectItem value="pool_rank">Bestenvergleich</SelectItem>
                   <SelectItem value="interview">Interview-Score</SelectItem>
                   <SelectItem value="combined">Kombiniert</SelectItem>
                   <SelectItem value="experience">Erfahrung</SelectItem>
@@ -485,6 +530,18 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
 
                   <div className="min-w-0 flex-1 lg:grid lg:grid-cols-[1.2fr_1.4fr_1fr_0.8fr] lg:items-center lg:gap-4">
                     <p className="flex items-center gap-2 truncate font-semibold text-foreground">
+                      {candidate.pool_rank != null && (
+                        <span
+                          title="Platz im Bestenvergleich"
+                          className={`inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                            candidate.pool_rank === 1
+                              ? "bg-[image:var(--rv-gradient)] text-[#0C1A16]"
+                              : "bg-[var(--muted)] text-muted-foreground"
+                          }`}
+                        >
+                          {candidate.pool_rank}
+                        </span>
+                      )}
                       <span className="truncate">{candidate.full_name}</span>
                       {candidate.knockout && (
                         <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
@@ -554,6 +611,18 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
+                        {candidate.pool_rank != null && (
+                          <span
+                            title="Platz im Bestenvergleich"
+                            className={`inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                              candidate.pool_rank === 1
+                                ? "bg-[image:var(--rv-gradient)] text-[#0C1A16]"
+                                : "bg-[var(--muted)] text-muted-foreground"
+                            }`}
+                          >
+                            {candidate.pool_rank}
+                          </span>
+                        )}
                         <h3 className="font-semibold text-foreground text-lg">{candidate.full_name}</h3>
                         <Badge variant="outline" className={`text-xs ${statusMeta(candidate.status).className}`}>
                           {statusMeta(candidate.status).label}
@@ -624,6 +693,19 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                           </li>
                         ))}
                       </ul>
+                    </div>
+                  )}
+
+                  {/* Bestenvergleich — comparative reasoning */}
+                  {candidate.pool_rank != null && candidate.pool_rank_reason && (
+                    <div className="mb-4 rounded-2xl border border-[rgba(34,193,238,.25)] bg-[rgba(34,193,238,.05)] p-4">
+                      <div className="mb-1.5 flex items-center gap-2">
+                        <Trophy className="h-4 w-4 text-[var(--rv-cyan-deep)]" />
+                        <span className="text-sm font-semibold text-[var(--rv-cyan-deep)]">
+                          Bestenvergleich · Platz {candidate.pool_rank}
+                        </span>
+                      </div>
+                      <p className="text-sm leading-relaxed text-muted-foreground">{candidate.pool_rank_reason}</p>
                     </div>
                   )}
 

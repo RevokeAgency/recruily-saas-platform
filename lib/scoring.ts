@@ -84,10 +84,22 @@ export async function scoreJobCandidateLink(
   try {
     const { data: link } = await supabase
       .from("job_candidates")
-      .select("id, job_id, candidate_id")
+      .select("id, job_id, candidate_id, user_id")
       .eq("id", linkId)
       .single()
     if (!link) return
+
+    // Tenant-calibrated IMLRS weights (nightly cron, migration 022). Missing
+    // column or row → defaults; runIMLRSMatch re-validates the bounds anyway.
+    let tenantWeights: Record<string, number> | null = null
+    if (link.user_id) {
+      const { data: prof } = await supabase
+        .from("user_profiles")
+        .select("imlrs_weights")
+        .eq("id", link.user_id)
+        .single()
+      tenantWeights = (prof?.imlrs_weights as Record<string, number> | null) ?? null
+    }
 
     const [{ data: job }, { data: candidate }] = await Promise.all([
       supabase.from("jobs").select("*").eq("id", link.job_id).single(),
@@ -145,6 +157,7 @@ export async function scoreJobCandidateLink(
         languages: job.languages || [],
         ko_criteria: job.ko_criteria || [],
       },
+      { weights: tenantWeights },
     )
 
     // Cache the freshly built dossier on the candidate (reused across jobs).

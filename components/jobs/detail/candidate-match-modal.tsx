@@ -49,6 +49,7 @@ import {
   ShieldCheck,
   ChevronDown,
   ChevronUp,
+  Loader2,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -306,6 +307,39 @@ export function CandidateMatchModal({
   const [inviteNote, setInviteNote] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [invited, setInvited] = useState(false)
+  const [hired, setHired] = useState(false)
+  const [markingHired, setMarkingHired] = useState(false)
+
+  // Records the hire outcome. hired_at is written separately so a pending
+  // migration 022 can never block the status update itself.
+  const markHired = async () => {
+    if (!candidate) return
+    setMarkingHired(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from("job_candidates")
+        .update({ status: "Eingestellt" })
+        .eq("id", candidate.linkId)
+      if (error) {
+        toast.error("Status konnte nicht gespeichert werden")
+        return
+      }
+      await supabase
+        .from("job_candidates")
+        .update({ hired_at: new Date().toISOString() })
+        .eq("id", candidate.linkId)
+        .then(({ error: e }) => { if (e) console.error("[hire] hired_at skipped:", e.message) })
+      setHired(true)
+      toast.success("Als eingestellt markiert ✓", {
+        description: "Fließt in die Kalibrierung deiner Match-Qualität ein.",
+      })
+    } catch {
+      toast.error("Status konnte nicht gespeichert werden")
+    } finally {
+      setMarkingHired(false)
+    }
+  }
   const { profile } = useProfile()
   // Free plan gets the "Basic AI Matching Score" (overall only); every paid plan
   // gets the full 9-category breakdown + prognosis + pitch.
@@ -313,8 +347,9 @@ export function CandidateMatchModal({
 
   // Reflect already-saved statuses when the candidate changes
   useEffect(() => {
-    setInvited(candidate?.status === "Eingeladen")
+    setInvited(candidate?.status === "Eingeladen" || candidate?.status === "Eingestellt")
     setRejected(candidate?.status === "Abgesagt")
+    setHired(candidate?.status === "Eingestellt")
   }, [candidate])
 
   const handleSubmitInvite = async () => {
@@ -698,6 +733,34 @@ export function CandidateMatchModal({
                     </Button>
                   )}
                 </div>
+                {/* Outcome: closes the decision chain Score → Interview → Hire
+                    and feeds the nightly matching calibration. */}
+                {hired ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled
+                    className="w-full text-[var(--rv-green-deep)] disabled:opacity-100"
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Eingestellt ✓
+                  </Button>
+                ) : (
+                  !rejected && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={markHired}
+                      disabled={markingHired}
+                      className="w-full rounded-full border-[rgba(22,199,124,.4)] text-[var(--rv-green-deep)] hover:bg-[var(--app-green-wash)]"
+                    >
+                      {markingHired
+                        ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                      Als eingestellt markieren
+                    </Button>
+                  )
+                )}
                 {!rejected ? (
                   <Button
                     variant="ghost"

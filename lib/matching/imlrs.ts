@@ -63,7 +63,27 @@ const CATEGORY_KEYS = [
   "hardSkills", "experience", "education", "softSkills", "languages",
   "location", "industry", "salary", "culture",
 ] as const
-type CategoryKey = (typeof CATEGORY_KEYS)[number]
+export type CategoryKey = (typeof CATEGORY_KEYS)[number]
+
+// Tenant weight overrides come from the nightly calibration job (bounded to
+// ±5 pp there). This gate re-validates before use — malformed or out-of-bound
+// data silently falls back to the defaults.
+function sanitizeWeights(w: unknown): Record<CategoryKey, number> | null {
+  if (!w || typeof w !== "object") return null
+  const rec = w as Record<string, unknown>
+  const out = {} as Record<CategoryKey, number>
+  let sum = 0
+  for (const key of CATEGORY_KEYS) {
+    const v = rec[key]
+    if (typeof v !== "number" || !Number.isFinite(v)) return null
+    if (v < 0.01 || v > 0.5) return null
+    if (Math.abs(v - IMLRS_WEIGHTS[key]) > 0.06) return null // bound + rounding slack
+    out[key] = v
+    sum += v
+  }
+  if (Math.abs(sum - 1) > 0.02) return null
+  return out
+}
 
 const verifierSchema = z.object({
   reviews: z.array(z.object({
@@ -154,6 +174,9 @@ export interface IMLRSMatchDetail {
   hardFacts: HardFacts
   verifierNote: string
   dossierSummary: string
+  /** Which weight profile aggregated the overall score (audit trail). */
+  weightsSource: "standard" | "kunden-kalibriert"
+  weightsUsed: Record<CategoryKey, number>
 }
 
 export interface IMLRSMatchResult {
@@ -242,7 +265,10 @@ function evidenceSupported(evidence: string, haystack: string): boolean {
 export async function runIMLRSMatch(
   candidate: IMLRSCandidateInput,
   job: IMLRSJobInput,
+  opts?: { weights?: Record<string, number> | null },
 ): Promise<IMLRSMatchResult> {
+  const tenantWeights = sanitizeWeights(opts?.weights)
+  const weights: Record<CategoryKey, number> = tenantWeights ?? IMLRS_WEIGHTS
   // ── Stage A: dossier (reuse cache when provided) ──────────────────────────
   let dossier: CareerDossier | null = candidate.dossier ?? null
   let dossierIsFresh = false
@@ -351,12 +377,12 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
       detail.konfidenz = "niedrig"
     }
 
-    categories[key] = { score, weight: Math.round(IMLRS_WEIGHTS[key] * 100), label: CATEGORY_LABELS[key] }
+    categories[key] = { score, weight: Math.round(weights[key] * 100), label: CATEGORY_LABELS[key] }
     detailCategories[key] = detail
   }
 
   const overallScore = Math.round(
-    CATEGORY_KEYS.reduce((sum, key) => sum + categories[key].score * IMLRS_WEIGHTS[key], 0),
+    CATEGORY_KEYS.reduce((sum, key) => sum + categories[key].score * weights[key], 0),
   )
 
   // KO: only criteria the job actually defined count (model can't invent KOs).
@@ -385,6 +411,8 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
       hardFacts,
       verifierNote,
       dossierSummary: dossier?.summary ?? "Kein Dossier — Bewertung auf Basis der Strukturdaten.",
+      weightsSource: tenantWeights ? "kunden-kalibriert" : "standard",
+      weightsUsed: weights,
     },
     dossier: dossierIsFresh ? dossier : null,
   }

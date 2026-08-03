@@ -1,0 +1,128 @@
+{
+  "$comment": "Golden-Set für das IMLRS-Eval-Harness. Jeder Fall ist ein Kandidat/Job-Paar mit einem erwarteten Score-BAND (kein Punktwert — Bänder sind stabil, Punkte nicht). Neue Fälle einfach anhängen; am wertvollsten sind reale Grenzfälle, bei denen ihr anderer Meinung wart als das System.",
+  "cases": [
+    {
+      "id": "perfect-senior-frontend",
+      "note": "Deckt alle Muss-Skills, mehr Erfahrung als gefordert, gleiche Stadt.",
+      "expect": { "minOverall": 78, "maxOverall": 100, "knockout": false },
+      "candidate": {
+        "full_name": "Anna Berger",
+        "job_title": "Senior Frontend Engineer",
+        "years_of_experience": 8,
+        "experience_level": "senior",
+        "skills": ["React", "TypeScript", "Next.js", "GraphQL", "Node.js"],
+        "education": "BSc Informatik, TU Wien",
+        "location": "Wien",
+        "resume_text": "Anna Berger — Senior Frontend Engineer.\n2019-03 bis heute: Senior Frontend Engineer @ ShopTech GmbH (E-Commerce, Wien). Leitung eines 4-köpfigen Frontend-Teams. Migration der Plattform auf Next.js und TypeScript, Aufbau eines Design-Systems, GraphQL-Anbindung.\n2016-01 bis 2019-02: Frontend Developer @ WebAgentur Wien. React-SPAs für Kunden aus Handel und Industrie, Node.js-BFF-Services.\nAusbildung: BSc Informatik, TU Wien (2015).\nSprachen: Deutsch (Muttersprache), Englisch (verhandlungssicher)."
+      },
+      "job": {
+        "title": "Senior Frontend Engineer",
+        "company": "Revetly Demo GmbH",
+        "required_skills": ["React", "TypeScript", "Node.js"],
+        "nice_to_have_skills": ["GraphQL", "AWS"],
+        "years_experience": "5+ Jahre",
+        "education": "Informatik-Studium oder vergleichbar",
+        "location": "Wien",
+        "languages": ["Deutsch (fließend)"],
+        "description": "Wir suchen eine erfahrene Frontend-Person für unsere React/TypeScript-Plattform. Verantwortung für Architektur und Mentoring."
+      }
+    },
+    {
+      "id": "career-changer-weak",
+      "note": "Fachfremd: darf trotz langer Berufserfahrung nicht hoch scoren (Hard-Fact-Deckel greift).",
+      "expect": { "minOverall": 0, "maxOverall": 45, "knockout": false },
+      "candidate": {
+        "full_name": "Sabine Maier",
+        "job_title": "Floristin",
+        "years_of_experience": 16,
+        "experience_level": "senior",
+        "skills": ["Floristik", "Kundenberatung", "Mitarbeiterkoordination"],
+        "education": "Floristmeisterin",
+        "location": "Musterstadt",
+        "resume_text": "Sabine Maier — Floristmeisterin.\n2008 bis heute: Filialleiterin @ Blumenhaus Musterstadt. Koordination von 5 Mitarbeitenden, Kundenberatung, Gestaltung festlicher Arrangements.\nAusbildung: Meisterprüfung Floristik (2007)."
+      },
+      "job": {
+        "title": "Senior Frontend Engineer",
+        "company": "Revetly Demo GmbH",
+        "required_skills": ["React", "TypeScript", "Node.js"],
+        "nice_to_have_skills": ["GraphQL"],
+        "years_experience": "5+ Jahre",
+        "education": "Informatik-Studium oder vergleichbar",
+        "location": "Wien",
+        "description": "Frontend-Entwicklung mit React und TypeScript."
+      }
+    },
+    {
+      "id": "semantic-skill-coverage",
+      "note": "Listet 'Next.js' statt 'React' und 'PostgreSQL' statt 'SQL' — semantische Deckung muss greifen.",
+      "expect": { "minOverall": 60, "maxOverall": 95, "knockout": false },
+      "candidate": {
+        "full_name": "Tom Fischer",
+        "job_title": "Fullstack Developer",
+        "years_of_experience": 5,
+        "experience_level": "mid",
+        "skills": ["Next.js", "PostgreSQL", "TypeScript"],
+        "education": "FH Software Engineering",
+        "location": "Graz",
+        "resume_text": "Tom Fischer — Fullstack Developer.\n2019-06 bis heute: Fullstack Developer @ DataWerk GmbH (SaaS, Graz). Entwicklung einer Next.js-Anwendung mit TypeScript, PostgreSQL-Datenmodellierung und Query-Optimierung.\nAusbildung: FH Joanneum, Software Engineering (2019).\nSprachen: Deutsch (Muttersprache), Englisch (gut)."
+      },
+      "job": {
+        "title": "Fullstack Developer",
+        "company": "Revetly Demo GmbH",
+        "required_skills": ["React", "SQL"],
+        "nice_to_have_skills": ["TypeScript"],
+        "years_experience": "3-5 Jahre",
+        "location": "Remote",
+        "description": "React-Frontend und SQL-Datenbanken."
+      }
+    },
+    {
+      "id": "ko-criterion-failed",
+      "note": "KO-Kriterium nachweislich nicht erfüllt (kein Führerschein im CV, explizit gefordert).",
+      "expect": { "minOverall": 0, "maxOverall": 100, "knockout": true },
+      "candidate": {
+        "full_name": "Lena Wolf",
+        "job_title": "Außendienstmitarbeiterin",
+        "years_of_experience": 4,
+        "experience_level": "mid",
+        "skills": ["Vertrieb", "Kundenbetreuung", "CRM"],
+        "education": "HAK Matura",
+        "location": "Linz",
+        "resume_text": "Lena Wolf — Vertrieb.\n2020 bis heute: Innendienst-Vertrieb @ TechSales GmbH, Linz. Betreuung von Bestandskunden per Telefon und E-Mail, CRM-Pflege.\nHinweis: Ich besitze keinen Führerschein und nutze ausschließlich öffentliche Verkehrsmittel.\nAusbildung: HAK Matura (2019)."
+      },
+      "job": {
+        "title": "Außendienstmitarbeiter (m/w/d)",
+        "company": "Revetly Demo GmbH",
+        "required_skills": ["Vertrieb", "Kundenbetreuung"],
+        "years_experience": "2-5 Jahre",
+        "location": "Oberösterreich",
+        "ko_criteria": ["Führerschein Klasse B"],
+        "description": "Betreuung von Kunden im Außendienst in ganz Oberösterreich."
+      }
+    },
+    {
+      "id": "ko-criterion-unclear",
+      "note": "KO-Kriterium im CV weder bestätigt noch widerlegt — darf NICHT ausschließen (konservativ).",
+      "expect": { "minOverall": 0, "maxOverall": 100, "knockout": false },
+      "candidate": {
+        "full_name": "Marco Huber",
+        "job_title": "Servicetechniker",
+        "years_of_experience": 6,
+        "experience_level": "mid",
+        "skills": ["Wartung", "Fehlerdiagnose", "Elektrotechnik"],
+        "education": "HTL Elektrotechnik",
+        "location": "Salzburg",
+        "resume_text": "Marco Huber — Servicetechniker.\n2018 bis heute: Servicetechniker @ Anlagenbau Salzburg. Wartung und Reparatur von Produktionsanlagen beim Kunden vor Ort.\nAusbildung: HTL Elektrotechnik (2017)."
+      },
+      "job": {
+        "title": "Servicetechniker (m/w/d)",
+        "company": "Revetly Demo GmbH",
+        "required_skills": ["Wartung", "Elektrotechnik"],
+        "years_experience": "3+ Jahre",
+        "location": "Salzburg",
+        "ko_criteria": ["Führerschein Klasse B"],
+        "description": "Serviceeinsätze bei Kunden im Raum Salzburg."
+      }
+    }
+  ]
+}
