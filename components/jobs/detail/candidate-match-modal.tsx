@@ -26,6 +26,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useProfile } from "@/lib/hooks/useProfile"
 import { hasFullScore } from "@/lib/quota"
 import { RejectionModal } from "@/components/ui/rejection-modal"
+import { InterviewGuidePanel } from "./interview-guide-panel"
 import {
   Mail,
   MapPin,
@@ -503,6 +504,10 @@ export function CandidateMatchModal({
                   </CardContent>
                 </Card>
               )}
+
+              {/* Structured interview — turns the score's weak spots into a
+                  guided, rated interview (paid feature). */}
+              {showFull && <InterviewGuidePanel linkId={candidate.linkId} />}
 
               {/* Candidate Summary */}
               {candidate.summary_ai && !pitchPoints.length && (

@@ -54,6 +54,8 @@ Reihenfolge egal, alle additiv:
       `on_plan_change`-Trigger, der `matches_limit` auf veraltete Werte klemmte
 - [ ] `scripts/019_ko_criteria.sql` — KO-Kriterien pro Job (`jobs.ko_criteria`)
       + KO-Ergebnis pro Kandidat (`job_candidates.knockout`, `knockout_reasons`)
+- [ ] `scripts/020_interview_guide.sql` — strukturierter Interviewleitfaden +
+      Bewertung pro Kandidat (`job_candidates.interview_*`)
 
 ---
 
