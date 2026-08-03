@@ -48,6 +48,7 @@ import {
 import { toast } from "sonner"
 import Link from "next/link"
 import { CandidateMatchModal } from "./candidate-match-modal"
+import { PoolSuggestions } from "./pool-suggestions"
 import { RejectionModal } from "@/components/ui/rejection-modal"
 import { createClient } from "@/lib/supabase/client"
 
@@ -340,6 +341,9 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
           </Button>
         </div>
       </div>
+
+      {/* Talent-Pool rediscovery — suggest existing candidates for this job */}
+      <PoolSuggestions jobId={jobId} onAdded={() => mutate()} />
 
       {/* Search, Filters, View Toggle */}
       <Card className="border border-border">
