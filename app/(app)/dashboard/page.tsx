@@ -218,6 +218,16 @@ export default async function DashboardPage() {
     const reviewCount = reviewCountRes.count ?? 0
     const queuedCount = queuedCountRes.count ?? 0
     const unassignedCount = unassignedCountRes.count ?? 0
+
+    // Interviews to evaluate: invited candidates without a saved interview score
+    // (migration 020 — fails harmlessly with 0 until applied).
+    const interviewPendingRes = await supabase
+      .from("job_candidates")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .in("status", ["Eingeladen", "interviewed"])
+      .is("interview_score", null)
+    const interviewPending = interviewPendingRes.error ? 0 : interviewPendingRes.count ?? 0
     const limit = metricsData.matchesLimit
     const remaining = Math.max(limit - metricsData.matchesUsed, 0)
     const exhausted = limit > 0 && remaining <= 0
@@ -260,6 +270,14 @@ export default async function DashboardPage() {
         title: `${reviewCount} ${reviewCount === 1 ? "Kandidat" : "Kandidaten"} in Bewertung`,
         subtitle: "Analyse läuft oder wartet auf Start",
         href: "/candidates",
+      })
+    }
+    if (interviewPending > 0) {
+      priorities.push({
+        id: "interview", kind: "interview",
+        title: `${interviewPending} ${interviewPending === 1 ? "Interview auszuwerten" : "Interviews auszuwerten"}`,
+        subtitle: "Eingeladene Kandidaten strukturiert bewerten",
+        href: "/jobs",
       })
     }
     if (unassignedCount > 0) {

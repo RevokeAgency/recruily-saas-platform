@@ -34,6 +34,7 @@ import {
   ChevronRight,
   ShieldAlert,
   RefreshCw,
+  ClipboardList,
 } from "lucide-react"
 import {
   AlertDialog,
@@ -104,6 +105,8 @@ interface Candidate {
   ai_summary: string | null
   knockout: boolean
   knockout_reasons: string[]
+  interview_score: number | null
+  interview_completed_at: string | null
   notes: string | null
   added_at: string
 }
@@ -474,15 +477,23 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                     </p>
                   </div>
 
-                  <div className="flex w-24 flex-shrink-0 items-center justify-end gap-2">
+                  <div className="flex w-28 flex-shrink-0 items-center justify-end gap-2">
                     {candidate.status === "analyzing" ? (
                       <Loader2 className="h-5 w-5 animate-spin text-[var(--rv-green-deep)]" />
                     ) : candidate.status === "queued" ? (
                       <span className="text-xs font-medium text-amber-600">Wartet</span>
                     ) : candidate.match_score != null ? (
-                      <span className={`text-lg font-bold tabular-nums ${getScoreColor(candidate.match_score)}`}>
-                        {candidate.match_score}%
-                      </span>
+                      <div className="flex flex-col items-end leading-tight">
+                        <span className={`text-lg font-bold tabular-nums ${getScoreColor(candidate.match_score)}`}>
+                          {candidate.match_score}%
+                        </span>
+                        {candidate.interview_score != null && (
+                          <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold tabular-nums text-[var(--rv-cyan-deep)]">
+                            <ClipboardList className="h-2.5 w-2.5" />
+                            IV {candidate.interview_score}
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-sm font-semibold text-muted-foreground">–</span>
                     )}
@@ -674,6 +685,14 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                           {candidate.match_score}%
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">Match Score</p>
+                        {candidate.interview_score != null && (
+                          <div className="mt-2 flex items-center gap-1.5 rounded-full bg-[rgba(34,193,238,.1)] px-2.5 py-1">
+                            <ClipboardList className="h-3.5 w-3.5 text-[var(--rv-cyan-deep)]" />
+                            <span className="text-xs font-semibold text-[var(--rv-cyan-deep)] tabular-nums">
+                              Interview {candidate.interview_score}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center xl:items-end">

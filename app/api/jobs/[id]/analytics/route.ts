@@ -8,11 +8,18 @@ export async function GET(
     const { id: jobId } = await params
     const supabase = await createClient()
 
-    // Get all candidates for this job with their scores and status
-    const { data: jobCandidates, error } = await supabase
+    // Get all candidates for this job with their scores and status.
+    // interview_score comes from migration 020 — fall back if not applied yet.
+    let { data: jobCandidates, error } = await supabase
       .from("job_candidates")
-      .select("id, status, match_score, created_at")
+      .select("id, status, match_score, interview_score, created_at")
       .eq("job_id", jobId)
+    if (error && /interview_/i.test(error.message || "")) {
+      ;({ data: jobCandidates, error } = await supabase
+        .from("job_candidates")
+        .select("id, status, match_score, created_at")
+        .eq("job_id", jobId))
+    }
 
     if (error) {
       console.error("Error fetching job analytics:", error)
@@ -86,8 +93,17 @@ export async function GET(
 
     // Calculate conversion rate (shortlisted + interviewed + offered + hired vs total)
     const progressedCount = statusCounts.shortlisted + statusCounts.interviewed + statusCounts.offered + statusCounts.hired
-    const conversionRate = totalCandidates > 0 
-      ? Math.round((progressedCount / totalCandidates) * 100) 
+    const conversionRate = totalCandidates > 0
+      ? Math.round((progressedCount / totalCandidates) * 100)
+      : 0
+
+    // Structured-interview metrics (migration 020).
+    const interviewed = candidates.filter(
+      (c) => typeof (c as { interview_score?: number | null }).interview_score === "number",
+    ) as { interview_score: number }[]
+    const interviewedCount = interviewed.length
+    const avgInterviewScore = interviewedCount > 0
+      ? Math.round(interviewed.reduce((sum, c) => sum + c.interview_score, 0) / interviewedCount)
       : 0
 
     return Response.json({
@@ -98,6 +114,8 @@ export async function GET(
       daysSinceFirstCandidate,
       statusCounts,
       scoreDistribution,
+      interviewedCount,
+      avgInterviewScore,
     })
   } catch (error) {
     console.error("Error in job analytics API:", error)

@@ -28,24 +28,28 @@ export async function GET(
         created_at,
         candidate:candidates(*)`
 
-    // KO columns (migration 019). Try them first, but never let a pending
-    // migration break the whole candidate list — fall back gracefully if the
-    // columns don't exist yet.
-    let { data: jobCandidates, error } = await supabase
-      .from("job_candidates")
-      .select(`${baseColumns},
-        knockout,
-        knockout_reasons`)
-      .eq("job_id", jobId)
-      .order("created_at", { ascending: false })
+    const koColumns = "knockout, knockout_reasons"
+    const interviewColumns = "interview_score, interview_completed_at"
 
-    if (error && /knockout/i.test(error.message || "")) {
-      console.warn("[candidates] KO-Spalten fehlen — Migration 019 noch nicht ausgeführt. Fallback ohne KO.")
-      ;({ data: jobCandidates, error } = await supabase
+    // Optional columns come from later migrations (019 KO, 020 interview). Never
+    // let a pending migration break the whole list — try the richest select and
+    // fall back progressively if columns don't exist yet.
+    const selects = [
+      `${baseColumns}, ${koColumns}, ${interviewColumns}`,
+      `${baseColumns}, ${koColumns}`,
+      baseColumns,
+    ]
+    let jobCandidates: Record<string, unknown>[] | null = null
+    let error: { message?: string } | null = null
+    for (const sel of selects) {
+      const res = await supabase
         .from("job_candidates")
-        .select(baseColumns)
+        .select(sel)
         .eq("job_id", jobId)
-        .order("created_at", { ascending: false }))
+        .order("created_at", { ascending: false })
+      if (!res.error) { jobCandidates = res.data as Record<string, unknown>[]; error = null; break }
+      error = res.error
+      if (!/knockout|interview_/i.test(res.error.message || "")) break // real error → stop
     }
 
     if (error) {
@@ -54,7 +58,8 @@ export async function GET(
     }
 
     // Transform the data to flatten candidate info
-    const candidates = jobCandidates?.map((jc) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const candidates = jobCandidates?.map((jc: any) => ({
       id: jc.candidate?.id,
       linkId: jc.id,
       full_name: jc.candidate?.full_name,
@@ -85,6 +90,8 @@ export async function GET(
       ai_summary: jc.ai_summary,
       knockout: jc.knockout ?? false,
       knockout_reasons: jc.knockout_reasons ?? [],
+      interview_score: jc.interview_score ?? null,
+      interview_completed_at: jc.interview_completed_at ?? null,
       notes: jc.notes,
       added_at: jc.created_at,
     })) || []

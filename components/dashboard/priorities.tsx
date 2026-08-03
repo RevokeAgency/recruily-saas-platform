@@ -1,6 +1,7 @@
 import Link from "next/link"
 import {
   ClipboardCheck,
+  ClipboardList,
   Inbox,
   Zap,
   Plus,
@@ -9,7 +10,7 @@ import {
   CheckCircle2,
 } from "lucide-react"
 
-export type PriorityKind = "review" | "queued" | "inbox" | "quota" | "firstjob"
+export type PriorityKind = "review" | "queued" | "inbox" | "quota" | "firstjob" | "interview"
 
 export interface PriorityItem {
   id: string
@@ -25,6 +26,7 @@ const meta: Record<PriorityKind, { icon: typeof Zap; tone: "green" | "cyan" | "a
   inbox: { icon: Inbox, tone: "cyan" },
   quota: { icon: Zap, tone: "amber" },
   firstjob: { icon: Plus, tone: "green" },
+  interview: { icon: ClipboardList, tone: "cyan" },
 }
 
 const toneChip: Record<"green" | "cyan" | "amber", string> = {

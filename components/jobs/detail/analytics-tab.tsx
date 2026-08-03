@@ -10,6 +10,7 @@ import {
   Clock,
   Target,
   Sparkles,
+  ClipboardList,
 } from "lucide-react"
 import useSWR from "swr"
 
@@ -23,6 +24,8 @@ interface AnalyticsData {
   avgScore: number
   conversionRate: number
   daysSinceFirstCandidate: number
+  interviewedCount: number
+  avgInterviewScore: number
   statusCounts: {
     new: number
     analyzing: number
@@ -117,7 +120,7 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="border border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -169,6 +172,24 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
               <div>
                 <p className="text-2xl font-bold text-foreground">{data.daysSinceFirstCandidate}</p>
                 <p className="text-xs text-muted-foreground">Tage aktiv</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-border">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[rgba(34,193,238,.12)] flex items-center justify-center">
+                <ClipboardList className="h-5 w-5 text-[var(--rv-cyan-deep)]" strokeWidth={2} />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">
+                  {data.interviewedCount > 0 ? `${data.avgInterviewScore}` : "–"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Ø Interview{data.interviewedCount > 0 ? ` (${data.interviewedCount})` : ""}
+                </p>
               </div>
             </div>
           </CardContent>
