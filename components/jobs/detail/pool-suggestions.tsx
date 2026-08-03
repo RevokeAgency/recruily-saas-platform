@@ -7,8 +7,9 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Sparkles, Plus, Loader2, Users, ChevronDown, ChevronUp } from "lucide-react"
+import { Sparkles, Plus, Loader2, Users, ChevronDown, ChevronUp, Zap } from "lucide-react"
 import { toast } from "sonner"
+import { useProfile } from "@/lib/hooks/useProfile"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
@@ -54,8 +55,10 @@ export function PoolSuggestions({
   onAdded?: () => void
 }) {
   const router = useRouter()
+  const { profile } = useProfile()
   const [expanded, setExpanded] = useState(false)
   const [addingId, setAddingId] = useState<string | null>(null)
+  const [bulkAdding, setBulkAdding] = useState(false)
   const { data, isLoading, mutate } = useSWR<PoolResponse>(
     `/api/jobs/${jobId}/pool-suggestions`,
     fetcher,
@@ -65,6 +68,10 @@ export function PoolSuggestions({
 
   const { suggestions, strongCount, matchCount } = data
   const shown = expanded ? suggestions : suggestions.slice(0, 3)
+
+  // Bulk action targets the strong (≥80) suggestions in the returned list.
+  const strongOnes = suggestions.filter((s) => s.score >= 80)
+  const remaining = Math.max(0, (profile?.matches_limit ?? 0) - (profile?.matches_used ?? 0))
 
   const headline =
     strongCount > 0
@@ -99,6 +106,43 @@ export function PoolSuggestions({
     }
   }
 
+  // Add + score every strong match in one go. Sequential so quota is spent
+  // predictably; stops as soon as the plan's match limit is hit.
+  const addTopMatches = async () => {
+    if (strongOnes.length === 0 || bulkAdding) return
+    const ok = window.confirm(
+      `${strongOnes.length} Top-Kandidaten hinzufügen und per IMLRS bewerten?\n\n` +
+        `Das verbraucht bis zu ${strongOnes.length} Matches ` +
+        `(aktuell ${remaining} verfügbar).`,
+    )
+    if (!ok) return
+
+    setBulkAdding(true)
+    let added = 0
+    try {
+      for (const s of strongOnes) {
+        const res = await fetch(`/api/candidates/${s.id}/match`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId }),
+        })
+        if (res.status === 403) {
+          toast.error("Match-Limit erreicht — die restlichen wurden nicht hinzugefügt.")
+          router.push("/subscription")
+          break
+        }
+        if (res.ok) added++
+      }
+    } finally {
+      setBulkAdding(false)
+      if (added > 0) {
+        toast.success(`${added} ${added === 1 ? "Kandidat" : "Kandidaten"} hinzugefügt — werden bewertet`)
+        mutate()
+        onAdded?.()
+      }
+    }
+  }
+
   return (
     <Card className="border border-[rgba(34,193,238,.25)] bg-[rgba(34,193,238,.04)]">
       <CardContent className="p-5">
@@ -117,6 +161,25 @@ export function PoolSuggestions({
             </p>
           </div>
         </div>
+
+        {strongOnes.length >= 2 && (
+          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl border border-black/[0.05] bg-white px-4 py-2.5">
+            <Button
+              size="sm"
+              className="rounded-full"
+              onClick={addTopMatches}
+              disabled={bulkAdding}
+            >
+              {bulkAdding
+                ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                : <Zap className="mr-1.5 h-4 w-4" />}
+              Top {strongOnes.length} hinzufügen
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              verbraucht bis zu {strongOnes.length} Matches · {remaining} verfügbar
+            </span>
+          </div>
+        )}
 
         <ul className="space-y-2">
           {shown.map((s) => (

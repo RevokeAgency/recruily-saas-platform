@@ -63,7 +63,29 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
         setIsSubmitting(false)
         return
       }
-      
+
+      // Talent-Pool: check whether existing candidates already fit the new job
+      // and nudge the recruiter to look (heuristic, no quota).
+      const newJobId = result.job?.id
+      if (newJobId) {
+        fetch(`/api/jobs/${newJobId}/pool-suggestions`)
+          .then((r) => r.json())
+          .then((pool) => {
+            const count = pool?.strongCount > 0 ? pool.strongCount : pool?.matchCount || 0
+            if (count > 0) {
+              toast.success(
+                `${count} ${count === 1 ? "Kandidat" : "Kandidaten"} aus deinem Talent-Pool passen`,
+                {
+                  description: "Ohne neue Akquise — direkt aus deiner Datenbank.",
+                  action: { label: "Ansehen", onClick: () => router.push(`/jobs/${newJobId}`) },
+                  duration: 9000,
+                },
+              )
+            }
+          })
+          .catch(() => {})
+      }
+
       if (asDraft) {
         toast.success("Job als Entwurf gespeichert", {
           description: "Du kannst ihn jederzeit aktivieren.",
