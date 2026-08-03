@@ -117,6 +117,15 @@ function getScoreColor(score: number) {
   return "text-destructive"
 }
 
+// Combined Screening + Interview score: average of both when an interview has
+// been rated, otherwise just the match score. Used for the "combined" sort.
+function combinedScore(c: { match_score: number | null; interview_score: number | null }): number {
+  if (c.match_score != null && c.interview_score != null) {
+    return (c.match_score + c.interview_score) / 2
+  }
+  return c.match_score ?? 0
+}
+
 // German label + badge styling per status (raw enum values read unprofessional).
 function statusMeta(status: Candidate["status"]): { label: string; className: string } {
   switch (status) {
@@ -177,7 +186,13 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
       c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.skills?.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
     )
-    .filter((c) => filterStatus === "all" || c.status === filterStatus)
+    .filter((c) => {
+      if (filterStatus === "all") return true
+      if (filterStatus === "interviewed") return c.interview_score != null
+      if (filterStatus === "interview_open")
+        return (c.status === "Eingeladen" || c.status === "interviewed") && c.interview_score == null
+      return c.status === filterStatus
+    })
     .sort((a, b) => {
       // Knocked-out candidates always sink to the bottom, whatever the sort.
       if (!!a.knockout !== !!b.knockout) return a.knockout ? 1 : -1
@@ -185,6 +200,8 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
         case "experience": return (b.years_of_experience || 0) - (a.years_of_experience || 0)
         case "name": return (a.full_name || "").localeCompare(b.full_name || "", "de")
         case "date": return new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
+        case "interview": return (b.interview_score ?? -1) - (a.interview_score ?? -1)
+        case "combined": return combinedScore(b) - combinedScore(a)
         default: return (b.match_score || 0) - (a.match_score || 0)
       }
     })
@@ -372,16 +389,20 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                   <SelectItem value="scored">Bewertet</SelectItem>
                   <SelectItem value="queued">Wartet auf Kontingent</SelectItem>
                   <SelectItem value="Eingeladen">Eingeladen</SelectItem>
+                  <SelectItem value="interviewed">Interview bewertet</SelectItem>
+                  <SelectItem value="interview_open">Interview offen</SelectItem>
                   <SelectItem value="Abgesagt">Abgesagt</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[150px] rounded-full">
+                <SelectTrigger className="w-[160px] rounded-full">
                   <ArrowUpDown className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Match Score" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="match">Match Score</SelectItem>
+                  <SelectItem value="interview">Interview-Score</SelectItem>
+                  <SelectItem value="combined">Kombiniert</SelectItem>
                   <SelectItem value="experience">Erfahrung</SelectItem>
                   <SelectItem value="name">Name</SelectItem>
                   <SelectItem value="date">Zuletzt hinzugefügt</SelectItem>
