@@ -13,18 +13,28 @@ function isMissingColumn(msg?: string | null): boolean {
 }
 
 // Loads the owner's link with everything needed for the interview flow.
+// match_detail (migration 021) is tried first and dropped gracefully.
 async function loadLink(supabase: Awaited<ReturnType<typeof createClient>>, linkId: string, userId: string) {
-  const { data, error } = await supabase
+  const base =
+    "id, user_id, job_id, candidate_id, " +
+    "hard_skills_score, experience_score, education_score, soft_skills_score, languages_score, " +
+    "location_score, industry_score, salary_score, culture_score, career_prognosis, ai_summary, " +
+    "interview_guide, interview_ratings, interview_score, interview_notes, interview_completed_at"
+
+  let { data, error } = await supabase
     .from("job_candidates")
-    .select(
-      "id, user_id, job_id, candidate_id, " +
-        "hard_skills_score, experience_score, education_score, soft_skills_score, languages_score, " +
-        "location_score, industry_score, salary_score, culture_score, career_prognosis, ai_summary, " +
-        "interview_guide, interview_ratings, interview_score, interview_notes, interview_completed_at",
-    )
+    .select(`${base}, match_detail`)
     .eq("id", linkId)
     .eq("user_id", userId)
     .single()
+  if (error && /match_detail/i.test(error.message || "")) {
+    ;({ data, error } = await supabase
+      .from("job_candidates")
+      .select(base)
+      .eq("id", linkId)
+      .eq("user_id", userId)
+      .single())
+  }
   return { data, error }
 }
 

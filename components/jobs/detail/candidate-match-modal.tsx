@@ -46,8 +46,26 @@ import {
   Heart,
   MessageSquare,
   ShieldAlert,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 import { toast } from "sonner"
+
+// Reasoning trail written by IMLRS 2.0 (migration 021) — optional on older rows.
+export interface MatchDetail {
+  engine: string
+  categories: Record<string, {
+    begruendung: string
+    belege: string[]
+    konfidenz: "hoch" | "mittel" | "niedrig"
+    rohScore: number
+    verifier?: { urteil: string; begruendung: string }
+    capped?: boolean
+  }>
+  verifierNote?: string
+  dossierSummary?: string
+}
 
 interface Candidate {
   id: string
@@ -78,6 +96,8 @@ interface Candidate {
   ai_summary: string | null
   knockout?: boolean
   knockout_reasons?: string[]
+  match_detail?: MatchDetail | null
+  match_engine?: string | null
   notes: string | null
   added_at: string
 }
@@ -103,18 +123,24 @@ interface CandidateMatchModalProps {
   onInviteToInterview?: (candidateId: string) => void
 }
 
-// Category config
+// Category config (detailKey = key inside match_detail.categories, IMLRS 2.0)
 const categories = [
-  { key: "hard_skills_score", label: "Hard Skills", weight: 25, icon: Target },
-  { key: "experience_score", label: "Berufserfahrung", weight: 20, icon: Briefcase },
-  { key: "education_score", label: "Ausbildung", weight: 10, icon: GraduationCap },
-  { key: "soft_skills_score", label: "Soft Skills", weight: 10, icon: MessageSquare },
-  { key: "languages_score", label: "Sprachen", weight: 5, icon: Globe },
-  { key: "location_score", label: "Standort", weight: 5, icon: MapPin },
-  { key: "industry_score", label: "Branche", weight: 10, icon: Building },
-  { key: "salary_score", label: "Gehalt", weight: 5, icon: Wallet },
-  { key: "culture_score", label: "Kultur", weight: 10, icon: Heart },
+  { key: "hard_skills_score", detailKey: "hardSkills", label: "Hard Skills", weight: 25, icon: Target },
+  { key: "experience_score", detailKey: "experience", label: "Berufserfahrung", weight: 20, icon: Briefcase },
+  { key: "education_score", detailKey: "education", label: "Ausbildung", weight: 10, icon: GraduationCap },
+  { key: "soft_skills_score", detailKey: "softSkills", label: "Soft Skills", weight: 10, icon: MessageSquare },
+  { key: "languages_score", detailKey: "languages", label: "Sprachen", weight: 5, icon: Globe },
+  { key: "location_score", detailKey: "location", label: "Standort", weight: 5, icon: MapPin },
+  { key: "industry_score", detailKey: "industry", label: "Branche", weight: 10, icon: Building },
+  { key: "salary_score", detailKey: "salary", label: "Gehalt", weight: 5, icon: Wallet },
+  { key: "culture_score", detailKey: "culture", label: "Kultur", weight: 10, icon: Heart },
 ]
+
+const konfidenzMeta: Record<string, { dot: string; label: string }> = {
+  hoch: { dot: "bg-[var(--rv-green)]", label: "Konfidenz hoch" },
+  mittel: { dot: "bg-amber-400", label: "Konfidenz mittel" },
+  niedrig: { dot: "bg-red-400", label: "Konfidenz niedrig — im Interview klären" },
+}
 
 // Get score color based on value
 function getScoreColor(score: number): string {
@@ -213,16 +239,18 @@ function CareerPrognosisBadge({ prognosis }: { prognosis: string }) {
 }
 
 // IMLRS Category Bar Component
-function CategoryBar({ 
-  label, 
-  score, 
-  weight, 
-  icon: Icon 
-}: { 
+function CategoryBar({
+  label,
+  score,
+  weight,
+  icon: Icon,
+  konfidenz,
+}: {
   label: string
   score: number
   weight: number
-  icon: React.ElementType 
+  icon: React.ElementType
+  konfidenz?: "hoch" | "mittel" | "niedrig"
 }) {
   return (
     <div className="flex items-center gap-3">
@@ -231,7 +259,15 @@ function CategoryBar({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-medium text-foreground/85">{label}</span>
+          <span className="flex items-center gap-1.5 text-xs font-medium text-foreground/85">
+            {label}
+            {konfidenz && (
+              <span
+                title={konfidenzMeta[konfidenz]?.label}
+                className={`inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full ${konfidenzMeta[konfidenz]?.dot}`}
+              />
+            )}
+          </span>
           <span className="text-[10px] text-muted-foreground/70 bg-[var(--muted)] px-1.5 py-0.5 rounded">
             {weight}%
           </span>
@@ -261,6 +297,7 @@ export function CandidateMatchModal({
 }: CandidateMatchModalProps) {
 
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [auditOpen, setAuditOpen] = useState(false)
   const [rejectionOpen, setRejectionOpen] = useState(false)
   const [rejected, setRejected] = useState(false)
   const [inviteDate, setInviteDate] = useState("")
@@ -454,6 +491,7 @@ export function CandidateMatchModal({
                       <div className="space-y-3">
                         {categories.map((cat) => {
                           const score = candidate[cat.key as keyof Candidate] as number | null
+                          const catDetail = candidate.match_detail?.categories?.[cat.detailKey]
                           return (
                             <CategoryBar
                               key={cat.key}
@@ -461,10 +499,72 @@ export function CandidateMatchModal({
                               score={score || 0}
                               weight={cat.weight}
                               icon={cat.icon}
+                              konfidenz={catDetail?.konfidenz}
                             />
                           )
                         })}
                       </div>
+
+                      {/* IMLRS 2.0 audit trail: Begründungen, Belege, Prüf-Urteile */}
+                      {candidate.match_detail?.categories && (
+                        <div className="mt-4 border-t border-border pt-3">
+                          <button
+                            type="button"
+                            onClick={() => setAuditOpen((v) => !v)}
+                            className="flex w-full items-center justify-between text-left text-sm font-medium text-[var(--rv-cyan-deep)] hover:underline"
+                          >
+                            <span className="flex items-center gap-1.5">
+                              <ShieldCheck className="h-4 w-4" />
+                              Begründungen & Prüfprotokoll
+                            </span>
+                            {auditOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </button>
+
+                          {auditOpen && (
+                            <div className="mt-3 space-y-3">
+                              {candidate.match_detail.verifierNote && (
+                                <p className="rounded-xl bg-[rgba(34,193,238,.07)] p-3 text-xs leading-relaxed text-muted-foreground">
+                                  <span className="font-semibold text-[var(--rv-cyan-deep)]">Unabhängige Prüfung: </span>
+                                  {candidate.match_detail.verifierNote}
+                                </p>
+                              )}
+                              {categories.map((cat) => {
+                                const d = candidate.match_detail?.categories?.[cat.detailKey]
+                                if (!d) return null
+                                return (
+                                  <div key={cat.key} className="rounded-xl border border-black/[0.05] p-3">
+                                    <div className="mb-1 flex items-center gap-1.5">
+                                      <span className={`inline-block h-1.5 w-1.5 rounded-full ${konfidenzMeta[d.konfidenz]?.dot}`} />
+                                      <span className="text-xs font-semibold text-foreground">{cat.label}</span>
+                                      {d.verifier && (
+                                        <span className="rounded-full bg-[var(--muted)] px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                          Prüfung: {d.verifier.urteil === "zu_hoch" ? "korrigiert ↓" : d.verifier.urteil === "zu_niedrig" ? "korrigiert ↑" : "bestätigt"}
+                                        </span>
+                                      )}
+                                      {d.capped && (
+                                        <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-600">
+                                          Hard-Fact-Limit
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-xs leading-relaxed text-muted-foreground">{d.begruendung}</p>
+                                    {d.belege.length > 0 && (
+                                      <ul className="mt-1.5 space-y-0.5">
+                                        {d.belege.map((b, i) => (
+                                          <li key={i} className="flex items-start gap-1.5 text-[11px] text-muted-foreground/80">
+                                            <span className="mt-0.5 flex-shrink-0 text-[var(--rv-green-deep)]">▸</span>
+                                            {b}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 

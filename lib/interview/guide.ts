@@ -71,6 +71,11 @@ export interface GuideScores {
   culture_score?: number | null
   career_prognosis?: string | null
   ai_summary?: string | null
+  /** IMLRS 2.0 reasoning trail — low-confidence categories become interview targets. */
+  match_detail?: {
+    categories?: Record<string, { konfidenz?: string; begruendung?: string }>
+    dossierSummary?: string
+  } | null
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -139,11 +144,25 @@ Geforderte Ausbildung: ${job.education || "—"}
 Beschreibung: ${(job.description || "—").slice(0, 1500)}
 `
 
+  // IMLRS 2.0: categories the matcher itself marked as weakly evidenced are
+  // explicit interview targets — this is exactly what an interview is for.
+  const DETAIL_LABELS: Record<string, string> = {
+    hardSkills: "Hard Skills", experience: "Berufserfahrung", education: "Ausbildung",
+    softSkills: "Soft Skills", languages: "Sprachen", location: "Standort",
+    industry: "Branche", salary: "Gehalt", culture: "Kultur",
+  }
+  const detailCats = scores.match_detail?.categories ?? {}
+  const uncertain = Object.entries(detailCats)
+    .filter(([, d]) => d?.konfidenz === "niedrig" || d?.konfidenz === "mittel")
+    .map(([key, d]) => `- ${DETAIL_LABELS[key] ?? key} (Konfidenz ${d.konfidenz}): ${d.begruendung ?? ""}`)
+
   const scoreInfo = `
 === IMLRS-SCORE (nach Kategorie, aufsteigend) ===
 ${scoreLines || "Keine Kategoriewerte verfügbar"}
 Karriere-Prognose: ${scores.career_prognosis || "—"}
 ${scores.ai_summary ? `Kurzeinschätzung: ${scores.ai_summary}` : ""}
+${scores.match_detail?.dossierSummary ? `Dossier-Fazit: ${scores.match_detail.dossierSummary}` : ""}
+${uncertain.length ? `\n=== SCHWACH BELEGTE BEREICHE (laut Matching-Prüfung — im Interview klären!) ===\n${uncertain.join("\n")}` : ""}
 
 Die schwächsten/unsichersten Bereiche sind: ${weakest || "—"}. Priorisiere diese im Leitfaden.
 `

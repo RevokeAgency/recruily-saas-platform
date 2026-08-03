@@ -107,6 +107,8 @@ interface Candidate {
   knockout_reasons: string[]
   interview_score: number | null
   interview_completed_at: string | null
+  match_detail?: import("./candidate-match-modal").MatchDetail | null
+  match_engine?: string | null
   notes: string | null
   added_at: string
 }

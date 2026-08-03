@@ -9,7 +9,7 @@ import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { loadInboundAttachment } from "@/lib/email/attachments"
 import { sendApplicationReceived } from "@/lib/email/send"
 
-export const maxDuration = 60
+export const maxDuration = 300
 export const dynamic = "force-dynamic"
 
 function serviceClient(): SupabaseClient {

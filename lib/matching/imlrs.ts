@@ -1,48 +1,82 @@
 import { generateText, Output } from "ai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { z } from "zod"
+import { generateDossier, renderDossier, type CareerDossier } from "./dossier"
+import { computeHardFacts, renderHardFacts, hardFactCaps, type HardFacts } from "./hard-facts"
 
-// Create Google Gemini provider
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 })
 
-// IMLRS 9-Categories Schema according to Recruily Spec
-const imlrsMatchSchema = z.object({
-  // === IMLRS 9 Categories ===
-  hardSkills: z.number().describe("Score 0-100 for technical/hard skills match (25% weight)"),
-  experience: z.number().describe("Score 0-100 for years and relevance of experience (20% weight)"),
-  education: z.number().describe("Score 0-100 for educational background match (10% weight)"),
-  softSkills: z.number().describe("Score 0-100 for soft skills and communication (10% weight)"),
-  languages: z.number().describe("Score 0-100 for language proficiency match (5% weight)"),
-  location: z.number().describe("Score 0-100 for location/remote preference match (5% weight)"),
-  industry: z.number().describe("Score 0-100 for industry/domain experience (10% weight)"),
-  salary: z.number().describe("Score 0-100 for salary expectations alignment (5% weight) - assume 80 if unknown"),
-  culture: z.number().describe("Score 0-100 for culture fit indicators (10% weight)"),
+// Judge + verifier run on the strongest model (ops-overridable without deploy).
+const JUDGE_MODEL = process.env.IMLRS_JUDGE_MODEL || "gemini-2.5-pro"
 
-  // === Contextual Analysis ===
-  whyTheyFit: z.array(z.string()).describe("Exactly 3 compelling bullet points explaining WHY this candidate fits - be specific with examples from their background"),
-  potentialConcerns: z.array(z.string()).nullable().describe("1-2 potential gaps or concerns to address in interview"),
-  interviewFocus: z.string().describe("One sentence recommendation on what to focus on in the interview"),
+// ─────────────────────────────────────────────────────────────────────────────
+// IMLRS 2.0 — evidence-based matching pipeline.
+//
+//   Stage A  Dossier: full CV text → structured career dossier (cached).
+//   Stage B  Hard facts: skill coverage, years, languages — deterministic.
+//   Stage C  Judge: strict rubric, Begründung BEFORE score, mandatory
+//            evidence citations, per-category confidence. Temperature 0.
+//   Stage D  Verifier: independent second model pass reviews every score
+//            against rubric + evidence (Vier-Augen-Prinzip).
+//   Code     Aggregation: verifier corrections bounded, hard-fact caps
+//            applied, weighted sum computed deterministically.
+//
+// The result carries the full reasoning trail (detail) for explainability.
+// ─────────────────────────────────────────────────────────────────────────────
 
-  // === Career Prognosis ===
-  careerPrognosis: z.enum(["ascending", "stable", "risk"]).describe("Career trajectory: ascending (growing fast), stable (consistent performer), risk (gaps or concerns)"),
-  prognosisReason: z.string().describe("Brief reason for the career prognosis"),
+const KONFIDENZ = z.enum(["hoch", "mittel", "niedrig"])
 
-  // === KO-Kriterien (harte Ausschlusskriterien) ===
-  knockoutResults: z
-    .array(
-      z.object({
-        criterion: z.string().describe("Der exakte Wortlaut des geprüften KO-Kriteriums"),
-        failed: z.boolean().describe("true NUR wenn eindeutig belegbar ist, dass der Kandidat dieses Muss-Kriterium NICHT erfüllt. Bei Unklarheit/fehlender Info: false."),
-        reason: z.string().describe("Kurze Begründung auf Deutsch, warum das Kriterium erfüllt / nicht erfüllt / nicht eindeutig belegbar ist"),
-      })
-    )
-    .describe("Bewertung jedes einzelnen KO-Kriteriums. Leeres Array, wenn keine KO-Kriterien vorgegeben wurden."),
+// Field order is deliberate: the model must write evidence and reasoning
+// BEFORE it may emit a number (chain-of-thought enforced by schema order).
+const categoryJudgment = z.object({
+  belege: z.array(z.string()).describe("Wörtliche Belege aus Dossier/Hard-Facts, die die Bewertung stützen (1-3). Leer NUR wenn nichts belegt ist"),
+  begruendung: z.string().describe("2-3 Sätze Abwägung: Was spricht dafür, was dagegen — ERST argumentieren, DANN bewerten"),
+  konfidenz: KONFIDENZ.describe("hoch = klar belegt; mittel = teilweise belegt; niedrig = kaum/nicht belegt (im Interview klären)"),
+  score: z.number().describe("0-100 gemäß der strengen Rubrik, konsistent mit Begründung und Belegen"),
 })
 
-// IMLRS Weights according to spec
-const IMLRS_WEIGHTS = {
+const judgeSchema = z.object({
+  hardSkills: categoryJudgment,
+  experience: categoryJudgment,
+  education: categoryJudgment,
+  softSkills: categoryJudgment,
+  languages: categoryJudgment,
+  location: categoryJudgment,
+  industry: categoryJudgment,
+  salary: categoryJudgment,
+  culture: categoryJudgment,
+  whyTheyFit: z.array(z.string()).describe("Genau 3 spezifische, belegte Gründe, warum der Kandidat passt"),
+  potentialConcerns: z.array(z.string()).nullable().describe("1-3 konkrete Lücken/Risiken für das Interview"),
+  interviewFocus: z.string().describe("Ein Satz: worauf sich das Interview konzentrieren sollte"),
+  careerPrognosis: z.enum(["ascending", "stable", "risk"]).describe("Karriereverlauf laut Dossier-Trajektorie und Stationen"),
+  prognosisReason: z.string().describe("Kurze belegte Begründung der Prognose"),
+  knockoutResults: z.array(z.object({
+    criterion: z.string().describe("Der exakte Wortlaut des geprüften KO-Kriteriums"),
+    failed: z.boolean().describe("true NUR wenn eindeutig belegbar ist, dass der Kandidat dieses Muss-Kriterium NICHT erfüllt. Bei Unklarheit: false"),
+    reason: z.string().describe("Kurze Begründung auf Deutsch"),
+  })).describe("Bewertung jedes KO-Kriteriums. Leeres Array, wenn keine vorgegeben"),
+})
+
+const CATEGORY_KEYS = [
+  "hardSkills", "experience", "education", "softSkills", "languages",
+  "location", "industry", "salary", "culture",
+] as const
+type CategoryKey = (typeof CATEGORY_KEYS)[number]
+
+const verifierSchema = z.object({
+  reviews: z.array(z.object({
+    category: z.enum(CATEGORY_KEYS),
+    begruendung: z.string().describe("Kurze Prüf-Begründung: Ist der Score durch Belege und Rubrik gedeckt?"),
+    urteil: z.enum(["bestätigt", "zu_hoch", "zu_niedrig"]),
+    korrigierterScore: z.number().describe("Der korrekte Score laut Rubrik. Bei 'bestätigt' identisch mit dem geprüften Score"),
+  })).describe("Prüfung ALLER 9 Kategorien"),
+  gesamtanmerkung: z.string().describe("1-2 Sätze Gesamturteil der Prüfung"),
+})
+
+// IMLRS weights (unchanged for continuity with stored data).
+const IMLRS_WEIGHTS: Record<CategoryKey, number> = {
   hardSkills: 0.25,
   experience: 0.2,
   education: 0.1,
@@ -52,6 +86,18 @@ const IMLRS_WEIGHTS = {
   industry: 0.1,
   salary: 0.05,
   culture: 0.1,
+}
+
+const CATEGORY_LABELS: Record<CategoryKey, string> = {
+  hardSkills: "Hard Skills",
+  experience: "Erfahrung",
+  education: "Ausbildung",
+  softSkills: "Soft Skills",
+  languages: "Sprachen",
+  location: "Standort",
+  industry: "Branche",
+  salary: "Gehalt",
+  culture: "Kultur",
 }
 
 export interface IMLRSCandidateInput {
@@ -71,6 +117,10 @@ export interface IMLRSCandidateInput {
   summary?: string
   summary_ai?: string
   cover_letter_text?: string | null
+  /** Full CV text — unlocks the real dossier (IMLRS 2.0). */
+  resume_text?: string | null
+  /** Cached dossier from a previous run — skips Stage A entirely. */
+  dossier?: CareerDossier | null
 }
 
 export interface IMLRSJobInput {
@@ -84,208 +134,258 @@ export interface IMLRSJobInput {
   location?: string | null
   employment_type?: string
   description?: string | null
+  languages?: string[] | null
   ko_criteria?: string[] | null
+}
+
+export interface CategoryDetail {
+  begruendung: string
+  belege: string[]
+  konfidenz: "hoch" | "mittel" | "niedrig"
+  /** Score as the judge saw it, before verifier + caps (audit trail). */
+  rohScore: number
+  verifier?: { urteil: string; begruendung: string }
+  capped?: boolean
+}
+
+export interface IMLRSMatchDetail {
+  engine: "imlrs-2"
+  categories: Record<CategoryKey, CategoryDetail>
+  hardFacts: HardFacts
+  verifierNote: string
+  dossierSummary: string
 }
 
 export interface IMLRSMatchResult {
   overallScore: number
-  categories: {
-    hardSkills: { score: number; weight: number; label: string }
-    experience: { score: number; weight: number; label: string }
-    education: { score: number; weight: number; label: string }
-    softSkills: { score: number; weight: number; label: string }
-    languages: { score: number; weight: number; label: string }
-    location: { score: number; weight: number; label: string }
-    industry: { score: number; weight: number; label: string }
-    salary: { score: number; weight: number; label: string }
-    culture: { score: number; weight: number; label: string }
-  }
+  categories: Record<CategoryKey, { score: number; weight: number; label: string }>
   whyTheyFit: string[]
   potentialConcerns: string[] | null
   interviewFocus: string
   careerPrognosis: "ascending" | "stable" | "risk"
   prognosisReason: string
-  /** true if the candidate clearly fails at least one KO criterion. */
   knockout: boolean
-  /** Short reasons for each failed KO criterion (e.g. "Führerschein Klasse B: nicht vorhanden"). */
   knockoutReasons: string[]
-  /** Full per-criterion evaluation for transparency. */
   knockoutResults: { criterion: string; failed: boolean; reason: string }[]
+  detail: IMLRSMatchDetail
+  /** Freshly built dossier (when Stage A ran) — caller should persist it. */
+  dossier: CareerDossier | null
 }
 
-const systemPrompt = `Du bist das "IMLRS" (Intelligent Multi-Layer Ranking System) von Recruily - ein semantisches KI-Matching-System der nächsten Generation.
+const judgeSystemPrompt = `Du bist der Bewertungs-Richter des IMLRS 2.0 (Intelligent Multi-Layer Ranking System) von Revetly — ein Eignungsdiagnostiker auf Enterprise-Niveau.
 
-## Deine Mission
-Analysiere Kandidaten-Job-Paare mit höchster Präzision über 9 gewichtete Dimensionen.
+## Arbeitsweise (nicht verhandelbar)
+1. Du bewertest AUSSCHLIESSLICH auf Basis des Dossiers und der deterministisch geprüften Hard Facts. Was dort nicht steht, existiert nicht.
+2. Für jede Kategorie: ERST Belege zitieren, DANN abwägen (dafür/dagegen), DANN Konfidenz, ERST ZULETZT der Score.
+3. Fehlende Information wird NIE wohlwollend geraten. Unbelegtes → Konfidenz "niedrig" und neutral-vorsichtiger Score (50-65), mit Hinweis fürs Interview.
+4. Die Hard Facts sind bindend: Widersprich der Skill-Deckung und den Erfahrungszahlen nicht — interpretiere sie.
 
-## Die 9 IMLRS Kategorien (Gewichtungen):
+## Strenge Rubrik (gilt für JEDE Kategorie)
+- 90-100  Außergewöhnlich: Anforderung klar übertroffen, mehrfach stark belegt. SELTEN — im typischen Bewerberfeld < 10 %.
+- 75-89   Sehr gut: Anforderung voll erfüllt, solide belegt.
+- 60-74   Solide: erfüllt mit erkennbaren Lücken oder dünner Beleglage.
+- 40-59   Deutliche Lücken: Anforderung nur teilweise erfüllt.
+- 0-39    Unpassend: Anforderung verfehlt.
+Kalibrierung: Sei streng und differenziert. Ein Gesamtbild über 80 bedeutet "sofort einladen" — das trifft auf die wenigsten zu. Nutze die ganze Skala.
 
-### 1. Hard Skills (25%)
-- Technische Fähigkeiten, Tools, Frameworks, Programmiersprachen
-- NUTZE SEMANTISCHES MAPPING: "Next.js" → impliziert React; "PostgreSQL" → impliziert SQL; "AWS" → impliziert Cloud
-- Bewerte auch verwandte/übertragbare Skills
+## Kategorien-Hinweise
+- Hard Skills (25 %): Deckungsgrad laut Hard Facts + TIEFE laut Dossier (erwähnt < angewendet < vertieft).
+- Erfahrung (20 %): Jahre laut Hard Facts + Relevanz und Seniorität der Stationen + Lücken.
+- Ausbildung (10 %), Soft Skills (10 %), Sprachen (5 %), Standort (5 %), Branche (10 %), Gehalt (5 %; unbelegt → 60, Konfidenz niedrig), Kultur (10 %).
 
-### 2. Berufserfahrung (20%)
-- Jahre der Erfahrung vs. Anforderung
-- Relevanz der bisherigen Positionen
-- Karriereprogression (Aufstieg in Verantwortung)
-
-### 3. Ausbildung (10%)
-- Akademischer Abschluss vs. Anforderung
-- Relevanz des Studienfachs
-- Zusätzliche Zertifizierungen
-
-### 4. Soft Skills (10%)
-- Kommunikationsfähigkeit (erkennbar aus Lebenslauf-Formulierungen)
-- Teamarbeit, Führungsqualitäten
-- Projektmanagement-Erfahrung
-
-### 5. Sprachen (5%)
-- Sprachkenntnisse vs. Anforderungen
-- Deutsch/Englisch für DACH-Region besonders relevant
-- Business-Level vs. Native
-
-### 6. Standort (5%)
-- Übereinstimmung Kandidaten-Standort mit Job-Standort
-- Remote-Möglichkeiten
-- Umzugsbereitschaft (wenn erkennbar)
-
-### 7. Branche (10%)
-- Branchenerfahrung (z.B. FinTech, Healthcare, E-Commerce)
-- Übertragbare Domänenkenntnisse
-- Verständnis für branchenspezifische Anforderungen
-
-### 8. Gehalt (5%)
-- Wenn keine Gehaltsinfo: Vergib 80 Punkte (neutral)
-- Bei Mismatch: entsprechend niedriger bewerten
-
-### 9. Kultur (10%)
-- Unternehmenskultur-Fit basierend auf Lebenslauf-Signalen
-- Arbeitsweise (Startup vs. Konzern Erfahrung)
-- Werte-Alignment
-
-## Contextual Pitch (WICHTIG!)
-Generiere 3 SPEZIFISCHE Gründe, warum dieser Kandidat passt. Beziehe dich konkret auf Details aus dem Lebenslauf.
-SCHLECHT: "Hat relevante Erfahrung"
-GUT: "Bringt 4 Jahre React-Erfahrung aus seiner Zeit bei Firma X mit, wo er das Frontend-Team leitete"
-
-## Karriere-Prognose
-- "ascending": Klarer Aufwärtstrend, schnelles Wachstum, zunehmende Verantwortung
-- "stable": Konsistente Karriere, zuverlässiger Performer
-- "risk": Lücken im Lebenslauf, häufige Jobwechsel, Abstieg in Verantwortung
-
-## KO-Kriterien (harte Ausschlusskriterien) — SEHR WICHTIG
-Falls die Stelle KO-Kriterien vorgibt, prüfe JEDES einzeln. Das sind Muss-Anforderungen:
-Wer sie nicht erfüllt, ist grundsätzlich ungeeignet — unabhängig vom Score.
-- Setze "failed": true NUR, wenn aus den vorliegenden Daten EINDEUTIG hervorgeht, dass
-  der Kandidat das Kriterium NICHT erfüllt (z. B. Kriterium "Führerschein Klasse B",
-  aber im Lebenslauf steht ausdrücklich kein Führerschein / nicht ableitbar und explizit gefordert).
-- Ist die Erfüllung aus den Daten NICHT eindeutig feststellbar, setze "failed": false und
-  vermerke in "reason", dass es im Interview zu klären ist ("nicht eindeutig belegbar").
-- Bei klarer Erfüllung: "failed": false mit kurzer Begründung.
-- Sei bewusst KONSERVATIV: Im Zweifel NICHT ausschließen. Ein KO ist eine starke Aussage.
-Wurden keine KO-Kriterien vorgegeben, gib ein leeres Array zurück.
+## KO-Kriterien
+Prüfe jedes vorgegebene KO-Kriterium einzeln und KONSERVATIV: "failed" nur bei eindeutigem Beleg der Nicht-Erfüllung. Unklar → nicht ausschließen, im Interview klären.
 
 Antworte IMMER auf Deutsch.`
 
-/**
- * Runs the IMLRS matching analysis for a candidate-job pair.
- * This is a direct function call (no HTTP) so it can be invoked from
- * server routes and background tasks without hitting Vercel auth.
- */
-export async function runIMLRSMatch(
-  candidate: IMLRSCandidateInput,
-  job: IMLRSJobInput
-): Promise<IMLRSMatchResult> {
-  const candidateInfo = `
-=== KANDIDAT ===
-Name: ${candidate.full_name || candidate.name}
-Aktuelle/Letzte Position: ${candidate.job_title || "Nicht angegeben"}
-Erfahrungslevel: ${candidate.experienceLevel || candidate.experience_level || "Nicht angegeben"}
-Jahre Berufserfahrung: ${candidate.years_of_experience ?? candidate.experience ?? "Nicht angegeben"}
-Standort: ${candidate.location || "Nicht angegeben"}
-Skills: ${(candidate.skills || []).join(", ") || "Keine Skills angegeben"}
-Ausbildung: ${candidate.education || "Nicht angegeben"}
-E-Mail: ${candidate.email || "Nicht angegeben"}
-Telefon: ${candidate.phone || "Nicht angegeben"}
-KI-Zusammenfassung: ${candidate.summary_ai || candidate.summary || "Keine Zusammenfassung verfügbar"}
-${candidate.cover_letter_text?.trim()
-  ? `\n=== ANSCHREIBEN / MOTIVATIONSSCHREIBEN ===\n${candidate.cover_letter_text.trim().slice(0, 4000)}\nBerücksichtige das Anschreiben besonders für Soft Skills, Kultur-Fit und Motivation.`
-  : ""}
-`
+const verifierSystemPrompt = `Du bist die unabhängige Prüfinstanz des IMLRS 2.0 — ein zweiter, kritischer Eignungsdiagnostiker (Vier-Augen-Prinzip).
 
-  const jobInfo = `
-=== STELLENAUSSCHREIBUNG ===
-Jobtitel: ${job.title}
+Du erhältst Dossier, Hard Facts und die Bewertung des Richters. Prüfe JEDE der 9 Kategorien:
+- Ist der Score durch die zitierten Belege gedeckt?
+- Entspricht er der strengen Rubrik? (90-100 außergewöhnlich/selten; 75-89 voll erfüllt; 60-74 solide mit Lücken; 40-59 deutliche Lücken; 0-39 unpassend)
+- Typische Fehler, auf die du achtest: Score-Inflation ohne Belege, Ignorieren der Hard Facts, wohlwollendes Raten bei fehlender Information, Halo-Effekt einer starken Kategorie auf andere.
+
+Urteil "bestätigt" nur, wenn Score und Beleglage zusammenpassen. Sonst "zu_hoch"/"zu_niedrig" mit korrigiertem Score laut Rubrik. Antworte auf Deutsch.`
+
+function renderJob(job: IMLRSJobInput): string {
+  return `=== STELLE ===
+Titel: ${job.title}
 Unternehmen: ${job.company}
 Standort: ${job.location || "Nicht angegeben"}
 Beschäftigungsart: ${job.employment_type || "Vollzeit"}
-Geforderte Skills (Must-Have): ${(job.required_skills || []).join(", ") || "Keine angegeben"}
-Nice-to-Have Skills: ${(job.nice_to_have_skills || []).join(", ") || "Keine angegeben"}
-Benötigte Erfahrung: ${job.years_experience || "Nicht angegeben"}
-Geforderte Ausbildung: ${job.education || "Nicht angegeben"}
+Muss-Skills: ${(job.required_skills || []).join(", ") || "Keine definiert"}
+Nice-to-have: ${(job.nice_to_have_skills || []).join(", ") || "Keine"}
+Erfahrung: ${job.years_experience || "Nicht angegeben"}
+Ausbildung: ${job.education || "Nicht angegeben"}
+Sprachen: ${(job.languages || []).join(", ") || "Keine angegeben"}
 ${(job.ko_criteria && job.ko_criteria.length > 0)
   ? `KO-Kriterien (harte Muss-Anforderungen, einzeln prüfen):\n${job.ko_criteria.map((k) => `- ${k}`).join("\n")}`
   : "KO-Kriterien: Keine vorgegeben"}
-Stellenbeschreibung: ${job.description || "Keine Beschreibung verfügbar"}
-`
+Beschreibung: ${(job.description || "Keine").slice(0, 4000)}`
+}
 
-  const { output } = await generateText({
-    model: google("gemini-2.5-flash"),
-    output: Output.object({
-      schema: imlrsMatchSchema,
-    }),
-    system: systemPrompt,
-    prompt: `Führe eine vollständige IMLRS-Analyse für dieses Kandidaten-Job-Paar durch:\n\n${candidateInfo}\n\n${jobInfo}`,
-  })
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 
-  if (!output) {
-    throw new Error("Failed to generate IMLRS match result")
+// Soft evidence check: a citation should actually occur in the material the
+// judge was shown. Unverifiable evidence downgrades confidence (never crashes).
+function evidenceSupported(evidence: string, haystack: string): boolean {
+  const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim()
+  const e = normalize(evidence)
+  if (e.length < 12) return true // too short to verify meaningfully
+  return normalize(haystack).includes(e.slice(0, 40))
+}
+
+/**
+ * Runs the full IMLRS 2.0 pipeline for a candidate-job pair.
+ * Same call signature as v1 — existing callers upgrade automatically.
+ */
+export async function runIMLRSMatch(
+  candidate: IMLRSCandidateInput,
+  job: IMLRSJobInput,
+): Promise<IMLRSMatchResult> {
+  // ── Stage A: dossier (reuse cache when provided) ──────────────────────────
+  let dossier: CareerDossier | null = candidate.dossier ?? null
+  let dossierIsFresh = false
+  if (!dossier) {
+    try {
+      dossier = await generateDossier({
+        resumeText: candidate.resume_text,
+        coverLetterText: candidate.cover_letter_text,
+        fullName: candidate.full_name || candidate.name,
+        jobTitle: candidate.job_title,
+        skills: candidate.skills,
+        yearsOfExperience: candidate.years_of_experience,
+        education: candidate.education,
+        location: candidate.location,
+        summaryAi: candidate.summary_ai || candidate.summary,
+      })
+      dossierIsFresh = true
+    } catch (err) {
+      console.error("[imlrs2] dossier failed, judging from structured fields:", err)
+    }
   }
 
-  // Calculate overall score using IMLRS weights
+  // ── Stage B: deterministic hard facts ─────────────────────────────────────
+  const hardFacts = await computeHardFacts({
+    dossier,
+    candidateSkills: candidate.skills || [],
+    candidateLocation: candidate.location,
+    job,
+  })
+
+  const dossierText = dossier
+    ? renderDossier(dossier)
+    : `KEIN DOSSIER VERFÜGBAR — nur Strukturdaten:
+Name: ${candidate.full_name || candidate.name || "?"} · Position: ${candidate.job_title || "?"} · ${candidate.years_of_experience ?? "?"} Jahre
+Skills: ${(candidate.skills || []).join(", ") || "keine"} · Ausbildung: ${candidate.education || "?"} · Standort: ${candidate.location || "?"}
+Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
+  const hardFactsText = renderHardFacts(hardFacts)
+  const jobText = renderJob(job)
+  const coverText = candidate.cover_letter_text?.trim()
+    ? `\n=== ANSCHREIBEN (für Soft Skills / Kultur / Motivation) ===\n${candidate.cover_letter_text.trim().slice(0, 4000)}`
+    : ""
+
+  // ── Stage C: judge ────────────────────────────────────────────────────────
+  const { output: judged } = await generateText({
+    model: google(JUDGE_MODEL),
+    temperature: 0,
+    output: Output.object({ schema: judgeSchema }),
+    system: judgeSystemPrompt,
+    prompt: `Bewerte dieses Kandidaten-Job-Paar nach der strengen Rubrik.\n\n=== KARRIERE-DOSSIER ===\n${dossierText}\n\n=== HARD FACTS (deterministisch, bindend) ===\n${hardFactsText}${coverText}\n\n${jobText}`,
+  })
+  if (!judged) throw new Error("IMLRS judge failed")
+
+  // ── Stage D: independent verifier ─────────────────────────────────────────
+  let verifierNote = "Prüfung nicht verfügbar — Richter-Scores unverändert übernommen."
+  const verifierReviews = new Map<CategoryKey, { urteil: string; begruendung: string; korrigierterScore: number }>()
+  try {
+    const judgedRendered = CATEGORY_KEYS
+      .map((k) => `${CATEGORY_LABELS[k]} (${k}): ${judged[k].score}/100, Konfidenz ${judged[k].konfidenz}\n  Belege: ${judged[k].belege.join(" | ") || "KEINE"}\n  Begründung: ${judged[k].begruendung}`)
+      .join("\n")
+    const { output: verified } = await generateText({
+      model: google(JUDGE_MODEL),
+      temperature: 0,
+      output: Output.object({ schema: verifierSchema }),
+      system: verifierSystemPrompt,
+      prompt: `=== KARRIERE-DOSSIER ===\n${dossierText}\n\n=== HARD FACTS ===\n${hardFactsText}\n\n${jobText}\n\n=== ZU PRÜFENDE BEWERTUNG ===\n${judgedRendered}`,
+    })
+    if (verified) {
+      verifierNote = verified.gesamtanmerkung
+      for (const r of verified.reviews) verifierReviews.set(r.category, r)
+    }
+  } catch (err) {
+    console.error("[imlrs2] verifier failed, keeping judge scores:", err)
+  }
+
+  // ── Deterministic aggregation: verifier (bounded) + hard-fact caps ────────
+  const caps = hardFactCaps(hardFacts)
+  const evidenceHaystack = `${dossierText}\n${hardFactsText}`
+
+  const categories = {} as IMLRSMatchResult["categories"]
+  const detailCategories = {} as IMLRSMatchDetail["categories"]
+
+  for (const key of CATEGORY_KEYS) {
+    const j = judged[key]
+    let score = clamp(Math.round(j.score), 0, 100)
+    const detail: CategoryDetail = {
+      begruendung: j.begruendung,
+      belege: j.belege,
+      konfidenz: j.konfidenz,
+      rohScore: score,
+    }
+
+    // Verifier corrections, bounded to ±15 so a runaway review can't flip a score.
+    const review = verifierReviews.get(key)
+    if (review && review.urteil !== "bestätigt") {
+      score = clamp(Math.round(review.korrigierterScore), score - 15, score + 15)
+      score = clamp(score, 0, 100)
+      detail.verifier = { urteil: review.urteil, begruendung: review.begruendung }
+    }
+
+    // Hard-fact ceilings — no prompt can override arithmetic.
+    if (key === "hardSkills" && score > caps.hardSkillsCap) { score = caps.hardSkillsCap; detail.capped = true }
+    if (key === "experience" && score > caps.experienceCap) { score = caps.experienceCap; detail.capped = true }
+
+    // Unverifiable evidence → confidence can only go down.
+    if (detail.belege.length > 0 && !detail.belege.some((b) => evidenceSupported(b, evidenceHaystack))) {
+      detail.konfidenz = "niedrig"
+    }
+
+    categories[key] = { score, weight: Math.round(IMLRS_WEIGHTS[key] * 100), label: CATEGORY_LABELS[key] }
+    detailCategories[key] = detail
+  }
+
   const overallScore = Math.round(
-    output.hardSkills * IMLRS_WEIGHTS.hardSkills +
-      output.experience * IMLRS_WEIGHTS.experience +
-      output.education * IMLRS_WEIGHTS.education +
-      output.softSkills * IMLRS_WEIGHTS.softSkills +
-      output.languages * IMLRS_WEIGHTS.languages +
-      output.location * IMLRS_WEIGHTS.location +
-      output.industry * IMLRS_WEIGHTS.industry +
-      output.salary * IMLRS_WEIGHTS.salary +
-      output.culture * IMLRS_WEIGHTS.culture
+    CATEGORY_KEYS.reduce((sum, key) => sum + categories[key].score * IMLRS_WEIGHTS[key], 0),
   )
 
-  // Only trust KO evaluations for criteria the job actually defined (the model
-  // must never invent knockouts). Match on the criterion text it echoed back.
+  // KO: only criteria the job actually defined count (model can't invent KOs).
   const definedKo = job.ko_criteria || []
   const koResults =
     definedKo.length === 0
       ? []
-      : (output.knockoutResults || []).filter((r) =>
-          definedKo.some((k) => k.trim().toLowerCase() === r.criterion.trim().toLowerCase())
+      : (judged.knockoutResults || []).filter((r) =>
+          definedKo.some((k) => k.trim().toLowerCase() === r.criterion.trim().toLowerCase()),
         )
 
   return {
     overallScore,
-    categories: {
-      hardSkills: { score: output.hardSkills, weight: 25, label: "Hard Skills" },
-      experience: { score: output.experience, weight: 20, label: "Erfahrung" },
-      education: { score: output.education, weight: 10, label: "Ausbildung" },
-      softSkills: { score: output.softSkills, weight: 10, label: "Soft Skills" },
-      languages: { score: output.languages, weight: 5, label: "Sprachen" },
-      location: { score: output.location, weight: 5, label: "Standort" },
-      industry: { score: output.industry, weight: 10, label: "Branche" },
-      salary: { score: output.salary, weight: 5, label: "Gehalt" },
-      culture: { score: output.culture, weight: 10, label: "Kultur" },
-    },
-    whyTheyFit: output.whyTheyFit,
-    potentialConcerns: output.potentialConcerns,
-    interviewFocus: output.interviewFocus,
-    careerPrognosis: output.careerPrognosis,
-    prognosisReason: output.prognosisReason,
+    categories,
+    whyTheyFit: judged.whyTheyFit,
+    potentialConcerns: judged.potentialConcerns,
+    interviewFocus: judged.interviewFocus,
+    careerPrognosis: judged.careerPrognosis,
+    prognosisReason: judged.prognosisReason,
     knockout: koResults.some((r) => r.failed),
     knockoutReasons: koResults.filter((r) => r.failed).map((r) => `${r.criterion}: ${r.reason}`),
     knockoutResults: koResults,
+    detail: {
+      engine: "imlrs-2",
+      categories: detailCategories,
+      hardFacts,
+      verifierNote,
+      dossierSummary: dossier?.summary ?? "Kein Dossier — Bewertung auf Basis der Strukturdaten.",
+    },
+    dossier: dossierIsFresh ? dossier : null,
   }
 }

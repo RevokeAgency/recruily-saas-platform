@@ -2,9 +2,31 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { createClient as createAdmin } from "@supabase/supabase-js"
 import { runIMLRSMatch } from "@/lib/matching/imlrs"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
+import { extractDocumentText } from "@/lib/cv-parse"
 
 const roundScore = (s: number | undefined | null): number | null =>
   s == null ? null : Math.round(s)
+
+/**
+ * Downloads the stored CV and extracts its full text (IMLRS 2.0 input).
+ * Best-effort — returns null on any failure, never throws.
+ */
+async function extractResumeText(resumePath: string): Promise<string | null> {
+  try {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!url || !key) return null
+    const admin = createAdmin(url, key, { auth: { persistSession: false } })
+    const { data: file } = await admin.storage.from("resumes").download(resumePath)
+    if (!file) return null
+    const buf = Buffer.from(await file.arrayBuffer())
+    const text = await extractDocumentText(buf, null, resumePath)
+    return text?.trim() ? text : null
+  } catch (err) {
+    console.error("[scoring] resume text extraction skipped:", err)
+    return null
+  }
+}
 
 /**
  * Self-heals a missing profile photo: if the candidate has a PDF CV but no
@@ -77,17 +99,38 @@ export async function scoreJobCandidateLink(
       return
     }
 
+    // IMLRS 2.0 works from the FULL CV text. If it isn't stored yet (candidate
+    // predates migration 021 or arrived via an older path), extract it now from
+    // the stored PDF/DOCX and persist it for every future match.
+    let resumeText: string | null = candidate.resume_text ?? null
+    if (!resumeText && candidate.resume_path) {
+      resumeText = await extractResumeText(candidate.resume_path)
+      if (resumeText) {
+        await supabase
+          .from("candidates")
+          .update({ resume_text: resumeText })
+          .eq("id", candidate.id)
+          .then(({ error }) => {
+            if (error) console.error("[scoring] resume_text skipped:", error.message)
+          })
+      }
+    }
+
     const match = await runIMLRSMatch(
       {
         id: candidate.id,
         name: candidate.full_name,
+        job_title: candidate.job_title,
         skills: candidate.skills,
         experience: `${candidate.years_of_experience} years`,
         experienceLevel: candidate.experience_level,
+        years_of_experience: candidate.years_of_experience,
         education: candidate.education,
         location: candidate.location,
         summary_ai: candidate.summary_ai,
         cover_letter_text: candidate.cover_letter_text ?? null,
+        resume_text: resumeText,
+        dossier: candidate.dossier ?? null, // cached Stage A from a previous match
       },
       {
         id: job.id,
@@ -99,9 +142,21 @@ export async function scoreJobCandidateLink(
         education: job.education,
         location: job.location,
         description: job.description,
+        languages: job.languages || [],
         ko_criteria: job.ko_criteria || [],
       },
     )
+
+    // Cache the freshly built dossier on the candidate (reused across jobs).
+    if (match.dossier) {
+      await supabase
+        .from("candidates")
+        .update({ dossier: match.dossier, dossier_updated_at: new Date().toISOString() })
+        .eq("id", candidate.id)
+        .then(({ error }) => {
+          if (error) console.error("[scoring] dossier cache skipped:", error.message)
+        })
+    }
 
     const c = match?.categories
     await supabase
@@ -134,6 +189,16 @@ export async function scoreJobCandidateLink(
       .eq("id", linkId)
       .then(({ error }) => {
         if (error) console.error("[scoring] knockout skipped:", error.message)
+      })
+
+    // Full reasoning trail (Begründungen, Belege, Konfidenz, Hard Facts,
+    // Prüf-Urteile) — best-effort until migration 021 is applied.
+    await supabase
+      .from("job_candidates")
+      .update({ match_detail: match.detail, match_engine: match.detail.engine })
+      .eq("id", linkId)
+      .then(({ error }) => {
+        if (error) console.error("[scoring] match_detail skipped:", error.message)
       })
 
     // Self-heal a missing profile photo (e.g. candidate added before photo

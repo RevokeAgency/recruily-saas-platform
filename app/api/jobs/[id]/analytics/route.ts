@@ -15,10 +15,12 @@ export async function GET(
       .select("id, status, match_score, interview_score, created_at")
       .eq("job_id", jobId)
     if (error && /interview_/i.test(error.message || "")) {
-      ;({ data: jobCandidates, error } = await supabase
+      const fallback = await supabase
         .from("job_candidates")
         .select("id, status, match_score, created_at")
-        .eq("job_id", jobId))
+        .eq("job_id", jobId)
+      jobCandidates = (fallback.data ?? null) as typeof jobCandidates
+      error = fallback.error
     }
 
     if (error) {

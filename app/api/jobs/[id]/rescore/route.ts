@@ -3,12 +3,15 @@ import { NextRequest } from "next/server"
 import { scoreJobCandidateLink } from "@/lib/scoring"
 
 // Re-scoring an existing job can take a few seconds per candidate.
-export const maxDuration = 60
+export const maxDuration = 300
 
 // Re-score at most this many candidates per call, to stay within the
-// serverless time budget. Completed scores persist immediately, so a job with
-// more candidates just needs the button pressed again.
-const BATCH = 15
+// serverless time budget. IMLRS 2.0 runs a full judge+verifier pipeline
+// (~30-60s per candidate), so the batch is small and processed 2 at a time.
+// Completed scores persist immediately, so a job with more candidates just
+// needs the button pressed again.
+const BATCH = 6
+const CONCURRENCY = 2
 
 /**
  * Re-runs the IMLRS match for candidates already linked to this job — used to
@@ -53,12 +56,17 @@ export async function POST(
     const batch = all.slice(0, BATCH)
     const hasMore = all.length > BATCH
 
+    // Process the batch with limited concurrency (pipeline is slow per head).
     let rescored = 0
-    for (const link of batch) {
-      await supabase.from("job_candidates").update({ status: "analyzing" }).eq("id", link.id)
-      await scoreJobCandidateLink(supabase, link.id)
-      rescored++
+    const queue = [...batch]
+    const worker = async () => {
+      for (let link = queue.shift(); link; link = queue.shift()) {
+        await supabase.from("job_candidates").update({ status: "analyzing" }).eq("id", link.id)
+        await scoreJobCandidateLink(supabase, link.id)
+        rescored++
+      }
     }
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, queue.length) }, worker))
 
     return Response.json({ rescored, hasMore })
   } catch (error) {

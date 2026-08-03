@@ -56,6 +56,12 @@ Reihenfolge egal, alle additiv:
       + KO-Ergebnis pro Kandidat (`job_candidates.knockout`, `knockout_reasons`)
 - [ ] `scripts/020_interview_guide.sql` — strukturierter Interviewleitfaden +
       Bewertung pro Kandidat (`job_candidates.interview_*`)
+- [ ] `scripts/021_matching_v2.sql` — IMLRS 2.0: CV-Volltext + Karriere-Dossier
+      pro Kandidat (`candidates.resume_text/dossier`), Begründungs-Trail pro
+      Match (`job_candidates.match_detail/match_engine`). Hinweis: Richter +
+      Prüfinstanz laufen auf `gemini-2.5-pro` (gleicher API-Key; per Env
+      `IMLRS_JUDGE_MODEL` übersteuerbar). Bestehende Scores bleiben, bis pro
+      Job „Neu bewerten" geklickt wird.
 
 ---
 

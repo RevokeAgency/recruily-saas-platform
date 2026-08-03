@@ -7,7 +7,7 @@ import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { sendApplicationReceived } from "@/lib/email/send"
 
 export const dynamic = "force-dynamic"
-export const maxDuration = 60
+export const maxDuration = 300
 
 // Service-role client — bypasses RLS for public application submissions.
 // Every write is scoped to the job owner's user_id explicitly.
