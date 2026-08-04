@@ -85,10 +85,33 @@ export default function DatenschutzPage() {
               E-Mail-Versand, KI-gestützte Auswertung der Unterlagen und
               Zahlungsabwicklung. Mit diesen bestehen Verträge zur Auftragsverarbeitung.
             </p>
+            <p className="mt-2">
+              Die <strong>KI-gestützte Auswertung erfolgt bei Mistral AI (Frankreich)</strong> und
+              damit innerhalb der EU. Bewerbungsunterlagen werden ausschließlich zur Erstellung
+              der Analyse verarbeitet und dort nicht zum Training fremder Modelle verwendet.
+            </p>
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">5. Speicherdauer</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">5. Verbesserung unseres KI-Modells</h2>
+            <p>
+              Kundinnen und Kunden können in ihren Kontoeinstellungen freiwillig einwilligen, dass
+              ihre eigenen Auswahlentscheidungen (z. B. Interview-Bewertungen) zur Verbesserung
+              unseres Matching-Modells genutzt werden (Art. 6 Abs. 1 lit. a DSGVO). Diese
+              Einwilligung ist <strong>standardmäßig deaktiviert</strong> und jederzeit mit Wirkung
+              für die Zukunft widerrufbar; ein Widerruf löscht die bereits gespeicherten
+              Trainingsdaten des Kontos.
+            </p>
+            <p className="mt-2">
+              Vor der Speicherung werden die Daten <strong>pseudonymisiert</strong>: Namen,
+              Kontaktdaten, Anschriften, Geburtsdaten und Arbeitgeberbezeichnungen werden durch
+              Platzhalter ersetzt. Es werden keine vollständigen Lebensläufe und keine
+              Bewerbungsfotos für das Training gespeichert. Die Verarbeitung findet in der EU statt.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">6. Speicherdauer</h2>
             <p>
               Bewerberdaten werden nur so lange gespeichert, wie es für den
               Bewerbungsprozess erforderlich ist, und spätestens <strong>6 Monate</strong>{" "}
@@ -99,7 +122,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">6. Deine Rechte</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">7. Deine Rechte</h2>
             <p>
               Dir stehen die Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung
               der Verarbeitung, Datenübertragbarkeit und Widerspruch zu. Außerdem hast du
@@ -121,7 +144,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">7. Kontakt</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">8. Kontakt</h2>
             <p>
               Bei Fragen zum Datenschutz erreichst du uns unter [Datenschutz-Kontakt,
               E-Mail]. Für Bewerbungen bei einem bestimmten Unternehmen wende dich bitte

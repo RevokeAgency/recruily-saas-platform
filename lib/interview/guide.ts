@@ -1,10 +1,6 @@
-import { generateText, Output } from "ai"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-})
 
 // A single structured-interview question with an anchored rating scale — the
 // part that makes structured interviews predictive: every rater judges the same
@@ -167,9 +163,10 @@ ${uncertain.length ? `\n=== SCHWACH BELEGTE BEREICHE (laut Matching-Prüfung —
 Die schwächsten/unsichersten Bereiche sind: ${weakest || "—"}. Priorisiere diese im Leitfaden.
 `
 
-  const { output } = await generateText({
-    model: google("gemini-2.5-flash"),
-    output: Output.object({ schema: interviewGuideSchema }),
+  const { output } = await generateStructured({
+    task: "utility",
+    label: "Interviewleitfaden",
+    schema: interviewGuideSchema,
     system: systemPrompt,
     prompt: `Erstelle einen strukturierten Interviewleitfaden für dieses Kandidaten-Job-Paar. Zielge­nau auf die schwachen/unsicheren Score-Bereiche.\n${candidateInfo}\n${jobInfo}\n${scoreInfo}`,
   })

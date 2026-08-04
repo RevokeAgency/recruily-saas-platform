@@ -1,11 +1,7 @@
-import { generateText, Output } from "ai"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
 import mammoth from "mammoth"
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-})
 
 // Structured candidate data — mirrors the schema used by /api/candidates/parse
 // so the manual-upload and email-inbound paths produce identical shapes.
@@ -73,9 +69,10 @@ export async function parseCvBuffer(
     if (isDocx(mimeType, filename)) {
       const { value: text } = await mammoth.extractRawText({ buffer })
       if (!text || text.trim().length < 30) return null
-      const { output } = await generateText({
-        model: google("gemini-2.5-flash"),
-        output: Output.object({ schema: candidateSchema }),
+      const { output } = await generateStructured({
+        task: "extraction",
+        label: "CV-Analyse",
+        schema: candidateSchema,
         system: systemPrompt,
         prompt: `CV-Inhalt:\n${text}${coverBlock}`,
       })
@@ -83,23 +80,17 @@ export async function parseCvBuffer(
     }
 
     if (isPdf(mimeType, filename)) {
-      const { output } = await generateText({
-        model: google("gemini-2.5-flash"),
-        output: Output.object({ schema: candidateSchema }),
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: `${systemPrompt}\n\nAnalysiere diesen Lebenslauf:${coverBlock}` },
-              {
-                type: "file",
-                data: buffer.toString("base64"),
-                mediaType: mimeType || "application/pdf",
-                filename: filename || "cv.pdf",
-              },
-            ],
-          },
-        ],
+      // Text wird lokal aus dem PDF extrahiert und als Text übergeben — so
+      // bleibt der Pfad provider-unabhängig (Mistral hat keine native
+      // PDF-Eingabe) und es wandert kein Rohdokument zum Modell.
+      const text = await extractDocumentText(buffer, mimeType, filename)
+      if (!text || text.trim().length < 30) return null
+      const { output } = await generateStructured({
+        task: "extraction",
+        label: "CV-Analyse",
+        schema: candidateSchema,
+        system: systemPrompt,
+        prompt: `CV-Inhalt:\n${text}${coverBlock}`,
       })
       return output ?? null
     }

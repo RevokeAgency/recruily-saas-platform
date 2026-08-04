@@ -1,11 +1,7 @@
-import { generateText, Output } from "ai"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
 import { fileURLToPath } from "node:url"
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-})
 
 // pdfjs needs its worker file at runtime, but the serverless tracer never
 // bundles it (pdfjs imports it dynamically) and require.resolve() gets rewritten
@@ -377,9 +373,11 @@ function toBox(ymin: number, xmin: number, ymax: number, xmax: number): Box {
 
 async function locatePortrait(png: Buffer): Promise<{ face: Box; photo: Box } | null> {
   try {
-    const { output } = await generateText({
-      model: google("gemini-2.5-flash"),
-      output: Output.object({ schema: boxSchema }),
+    const { output } = await generateStructured({
+      task: "vision",
+      label: "Foto-Erkennung",
+      schema: boxSchema,
+      system: "Du analysierst Lebenslauf-Seiten und lokalisierst Bewerbungsfotos.",
       messages: [
         {
           role: "user",

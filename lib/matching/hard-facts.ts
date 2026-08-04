@@ -1,11 +1,7 @@
-import { generateText, Output } from "ai"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
 import type { CareerDossier } from "./dossier"
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-})
 
 // ─────────────────────────────────────────────────────────────────────────────
 // IMLRS 2.0 — Stage B: deterministic hard facts.
@@ -169,10 +165,10 @@ export async function computeHardFacts(input: {
   const open = [...openRequired, ...openNice]
   if (open.length > 0 && candidateSkills.length > 0) {
     try {
-      const { output } = await generateText({
-        model: google("gemini-2.5-flash"),
-        temperature: 0,
-        output: Output.object({ schema: skillMatrixSchema }),
+      const { output } = await generateStructured({
+    task: "utility",
+    label: "Skill-Deckung",
+    schema: skillMatrixSchema,
         system:
           "Du prüfst semantische Skill-Deckung für Recruiting-Matching. Sei präzise und konservativ: " +
           "'voll' nur, wenn die Kandidaten-Fähigkeit die Anforderung fachlich klar einschließt (z. B. Next.js → React, PostgreSQL → SQL). " +

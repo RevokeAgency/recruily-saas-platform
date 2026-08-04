@@ -58,15 +58,17 @@ Reihenfolge egal, alle additiv:
       Bewertung pro Kandidat (`job_candidates.interview_*`)
 - [ ] `scripts/021_matching_v2.sql` — IMLRS 2.0: CV-Volltext + Karriere-Dossier
       pro Kandidat (`candidates.resume_text/dossier`), Begründungs-Trail pro
-      Match (`job_candidates.match_detail/match_engine`). Hinweis: Richter +
-      Prüfinstanz laufen auf `gemini-2.5-pro` (gleicher API-Key; per Env
-      `IMLRS_JUDGE_MODEL` übersteuerbar). Bestehende Scores bleiben, bis pro
-      Job „Neu bewerten" geklickt wird.
+      Match (`job_candidates.match_detail/match_engine`). Richter + Prüfinstanz
+      laufen über die zentrale Provider-Schicht (Standard: Mistral Large, EU).
+      Bestehende Scores bleiben, bis pro Job „Neu bewerten" geklickt wird.
 - [ ] `scripts/022_feedback_loop.sql` — Feedback-Loop + Bestenvergleich:
       Outcome (`job_candidates.hired_at`, Status „Eingestellt"), Ranking
       (`pool_rank`, `pool_rank_reason`) und Kalibrierung pro Kunde
       (`user_profiles.match_calibration`, `imlrs_weights`). Danach läuft der
       nächtliche Cron `/api/cron/calibrate-matching` (04:00 UTC).
+- [ ] `scripts/023_ai_training_consent.sql` — Einwilligung (Opt-in) + Tabelle
+      `ai_training_examples` für ein eigenes, feingetuntes Revetly-Modell.
+      Enthält einen Trigger, der bei Widerruf die Trainingsdaten löscht.
 
 ---
 
@@ -82,8 +84,17 @@ Reihenfolge egal, alle additiv:
       um 03:00 und `/api/cron/calibrate-matching` um 04:00 UTC). Vercel sendet ihn
       als Bearer-Token an Cron-Aufrufe. In Vercel setzen; ohne ihn liefern die
       Endpoints 401 (fail-closed).
-- [ ] `IMLRS_JUDGE_MODEL` *(optional)* — übersteuert das Modell für Richter,
-      Prüfinstanz und Bestenvergleich (Default `gemini-2.5-pro`).
+- [ ] `MISTRAL_API_KEY` — **Pflicht.** Standard-KI-Provider (Mistral AI,
+      Frankreich). Ohne diesen Key läuft kein Matching.
+- [ ] `AI_MODEL_REASONING` / `AI_MODEL_EXTRACTION` / `AI_MODEL_UTILITY` /
+      `AI_MODEL_VISION` *(optional)* — übersteuern die Modellwahl je Aufgabe
+      (Defaults: `mistral-large-latest`, `mistral-small-latest`,
+      `mistral-small-latest`, `pixtral-12b-2409`).
+- [ ] `AI_ALLOW_NON_EU_FALLBACK` *(optional, Default AUS)* — erlaubt bei einem
+      Mistral-Ausfall den Rückfall auf Google/Gemini. **Bewusst deaktiviert
+      lassen**: Nur so ist zugesichert, dass Bewerberdaten die EU nie verlassen.
+      Wird er aktiviert, muss Google als Auftragsverarbeiter in der
+      Datenschutzerklärung genannt werden.
 
 ## DSGVO
 
@@ -95,6 +106,16 @@ Reihenfolge egal, alle additiv:
       (Konstante `RETENTION_DAYS` in `app/api/cron/purge-candidates/route.ts`).
 - [ ] Self-Service-Löschung testen: `/datenschutz/loeschung` → Mail →
       Bestätigen → Datensatz + Storage weg.
+- [ ] **AVV mit Mistral AI abschließen** (Data Processing Agreement) und in die
+      Auftragsverarbeiter-Liste aufnehmen. Ebenso prüfen: eigener AVV mit den
+      Kunden (Revetly ist bezüglich Bewerberdaten Auftragsverarbeiter).
+- [ ] **Einwilligungstext zum Modelltraining juristisch prüfen lassen**
+      (`components/settings/ai-training-consent.tsx`, Datenschutz §5, AGB §10).
+      Bei inhaltlicher Änderung `CONSENT_VERSION` hochzählen — die Fassung wird
+      pro Einwilligung gespeichert (Nachweispflicht Art. 7 Abs. 1 DSGVO).
+- [ ] Vor dem ersten Fine-Tune: Export stichprobenartig auf Restdaten prüfen
+      (`/api/training/export?task=judge&stats=1` und eine Zeile des JSONL
+      manuell ansehen).
 
 ---
 

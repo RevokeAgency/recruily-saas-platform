@@ -104,7 +104,20 @@ export default function AgbPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="10. Änderungen der AGB">
+      <LegalSection title="10. KI-Verarbeitung & Modellverbesserung">
+        <p>
+          Die KI-gestützte Analyse erfolgt über einen Auftragsverarbeiter mit Sitz in der
+          Europäischen Union; Bewerberdaten werden dabei nicht zum Training fremder Modelle
+          verwendet. Der Kunde kann darüber hinaus in den Kontoeinstellungen freiwillig
+          einwilligen, dass seine eigenen Auswahlentscheidungen in pseudonymisierter Form zur
+          Verbesserung des Revetly-Matching-Modells genutzt werden. Diese Einwilligung ist
+          standardmäßig deaktiviert, freiwillig und jederzeit mit Wirkung für die Zukunft
+          widerrufbar; der Widerruf löscht die betreffenden Trainingsdaten. Aus der Erteilung
+          oder Verweigerung entstehen keine Nachteile bei der Nutzung der Plattform.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="11. Änderungen der AGB">
         <p>
           Revetly kann diese AGB mit Wirkung für die Zukunft ändern. Über Änderungen wird der Kunde in
           angemessener Frist vor Inkrafttreten informiert. Widerspricht der Kunde nicht innerhalb der
@@ -113,7 +126,7 @@ export default function AgbPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="11. Schlussbestimmungen">
+      <LegalSection title="12. Schlussbestimmungen">
         <p>
           Es gilt österreichisches Recht unter Ausschluss des UN-Kaufrechts und der
           Verweisungsnormen des internationalen Privatrechts. Ausschließlicher Gerichtsstand für

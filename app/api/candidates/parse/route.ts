@@ -1,5 +1,5 @@
-import { generateText, Output } from "ai"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { generateStructured } from "@/lib/ai/generate"
+import { extractDocumentText } from "@/lib/cv-parse"
 import { z } from "zod"
 import mammoth from "mammoth"
 import { NextRequest } from "next/server"
@@ -9,9 +9,6 @@ export const maxDuration = 60 // Allow up to 60 seconds for AI processing
 export const dynamic = "force-dynamic"
 
 // Create Google Gemini provider with API key from environment
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-})
 
 // Schema for parsed candidate data - using nullable() for OpenAI strict mode compatibility
 const candidateSchema = z.object({
@@ -67,11 +64,10 @@ export async function POST(req: NextRequest) {
 
     // If text content is provided (fallback method)
     if (textContent) {
-      const { output } = await generateText({
-        model: google("gemini-2.5-flash"),
-        output: Output.object({
-          schema: candidateSchema,
-        }),
+      const { output } = await generateStructured({
+        task: "extraction",
+        label: "CV-Analyse",
+        schema: candidateSchema,
         system: systemPrompt,
         prompt: `CV-Inhalt:\n${textContent}`,
       })
@@ -106,11 +102,10 @@ export async function POST(req: NextRequest) {
         }
 
         // Now analyze the extracted text
-        const { output } = await generateText({
-          model: google("gemini-2.5-flash"),
-          output: Output.object({
-            schema: candidateSchema,
-          }),
+        const { output } = await generateStructured({
+          task: "extraction",
+          label: "CV-Analyse",
+          schema: candidateSchema,
           system: systemPrompt,
           prompt: `CV-Inhalt:\n${extractedText}`,
         })
@@ -125,29 +120,26 @@ export async function POST(req: NextRequest) {
         return Response.json({ data: output })
       }
 
-      // For PDF files, use direct file upload to Gemini
-      const { output } = await generateText({
-        model: google("gemini-2.5-flash"),
-        output: Output.object({
-          schema: candidateSchema,
-        }),
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `${systemPrompt}\n\nAnalysiere diesen Lebenslauf:`,
-              },
-              {
-                type: "file",
-                data: fileData,
-                mediaType: mimeType || "application/pdf",
-                filename: fileName || "cv.pdf",
-              },
-            ],
-          },
-        ],
+      // PDFs: Text lokal extrahieren und als Text analysieren — provider-
+      // unabhängig (Mistral hat keine native PDF-Eingabe) und es verlässt kein
+      // Rohdokument die Anwendung.
+      const pdfText = await extractDocumentText(
+        Buffer.from(fileData, "base64"),
+        mimeType || "application/pdf",
+        fileName || "cv.pdf",
+      )
+      if (!pdfText || pdfText.trim().length < 30) {
+        return Response.json(
+          { error: "Konnte keinen Text aus dem PDF extrahieren" },
+          { status: 400 }
+        )
+      }
+      const { output } = await generateStructured({
+        task: "extraction",
+        label: "CV-Analyse",
+        schema: candidateSchema,
+        system: systemPrompt,
+        prompt: `CV-Inhalt:\n${pdfText}`,
       })
 
       if (!output) {

@@ -38,6 +38,7 @@ import { PageHero } from "@/components/app/page-hero"
 import { RevealGroup } from "@/components/app/reveal-group"
 import { useProfile } from "@/lib/hooks/useProfile"
 import { updateCompanyName } from "@/app/actions/onboarding"
+import { AiTrainingConsent } from "@/components/settings/ai-training-consent"
 
 export default function SettingsPage() {
   const { profile: account } = useProfile()
@@ -424,6 +425,8 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+
+        <AiTrainingConsent />
       </RevealGroup>
     </div>
   )

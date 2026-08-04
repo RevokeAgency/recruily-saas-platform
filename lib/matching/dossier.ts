@@ -1,10 +1,6 @@
-import { generateText, Output } from "ai"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-})
 
 // ─────────────────────────────────────────────────────────────────────────────
 // IMLRS 2.0 — Stage A: career dossier extraction.
@@ -95,10 +91,10 @@ Zusammenfassung: ${input.summaryAi || "—"}`
     ? `\n\n=== ANSCHREIBEN ===\n${input.coverLetterText.trim().slice(0, 6000)}`
     : ""
 
-  const { output } = await generateText({
-    model: google("gemini-2.5-flash"),
-    temperature: 0,
-    output: Output.object({ schema: dossierSchema }),
+  const { output } = await generateStructured({
+    task: "extraction",
+    label: "Dossier-Extraktion",
+    schema: dossierSchema,
     system: systemPrompt,
     prompt: `Erstelle das Karriere-Dossier für diesen Kandidaten:\n\n${source}${cover}`,
   })

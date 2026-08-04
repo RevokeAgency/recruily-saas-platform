@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
-import { NextRequest } from "next/server"
+import { NextRequest, after } from "next/server"
+import { createClient as createAdmin } from "@supabase/supabase-js"
 import { generateInterviewGuide } from "@/lib/interview/guide"
+import { recordTrainingExample, buildJudgeExample } from "@/lib/training/collect"
+import { renderDossier } from "@/lib/matching/dossier"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -143,9 +146,87 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ link
       return Response.json({ error: error.message }, { status: 500 })
     }
 
+    // Ein abgeschlossenes strukturiertes Interview ist ein MENSCHLICHES Urteil
+    // — das wertvollste Trainingssignal, das Revetly erzeugt. Sammeln läuft
+    // nur mit Einwilligung, pseudonymisiert und strikt best-effort.
+    if (interviewScore != null) {
+      after(async () => {
+        try {
+          await collectInterviewExample(linkId, user.id, interviewScore, notes)
+        } catch (err) {
+          console.error("[interview] Trainingsbeispiel übersprungen:", err)
+        }
+      })
+    }
+
     return Response.json({ score: interviewScore })
   } catch (error) {
     console.error("[interview PUT] error:", error)
     return Response.json({ error: "Bewertung konnte nicht gespeichert werden" }, { status: 500 })
   }
+}
+
+/**
+ * Baut aus einem abgeschlossenen Interview ein Trainingsbeispiel für den
+ * Richter: Eingabe = das, was das Matching wusste; Ziel = das, was der Mensch
+ * nach dem Gespräch entschieden hat. Läuft ausschließlich mit Einwilligung.
+ */
+async function collectInterviewExample(
+  linkId: string,
+  userId: string,
+  interviewScore: number,
+  notes: string | null,
+): Promise<void> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return
+  const admin = createAdmin(url, key, { auth: { persistSession: false } })
+
+  const { data: link } = await admin
+    .from("job_candidates")
+    .select("id, status, match_detail, job:jobs(title, company, required_skills, years_experience, description), candidate:candidates(full_name, dossier)")
+    .eq("id", linkId)
+    .single()
+  if (!link) return
+
+  const one = <T,>(v: unknown): T => (Array.isArray(v) ? v[0] : v) as T
+  const job = one<{ title?: string; company?: string; required_skills?: string[]; years_experience?: string; description?: string }>(link.job) || {}
+  const candidate = one<{ full_name?: string; dossier?: unknown }>(link.candidate) || {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dossier = candidate.dossier as any
+  if (!dossier) return // ohne Dossier fehlt die Eingabeseite des Beispiels
+
+  const detail = link.match_detail as { hardFacts?: unknown } | null
+  const hardFactsText = detail?.hardFacts ? JSON.stringify(detail.hardFacts) : "Keine Hard Facts gespeichert"
+  const jobText = [
+    "=== STELLE ===",
+    `Titel: ${job.title ?? "—"}`,
+    `Muss-Skills: ${(job.required_skills || []).join(", ") || "—"}`,
+    `Erfahrung: ${job.years_experience ?? "—"}`,
+    `Beschreibung: ${(job.description || "").slice(0, 1500)}`,
+  ].join("\n")
+
+  const outcome: "eingestellt" | "abgesagt" | "interviewt" =
+    link.status === "Eingestellt" ? "eingestellt" : link.status === "Abgesagt" ? "abgesagt" : "interviewt"
+
+  const names = [candidate.full_name, job.company]
+  const example = buildJudgeExample({
+    dossierText: renderDossier(dossier),
+    hardFactsText,
+    jobText,
+    interviewScore,
+    interviewNotes: notes,
+    outcome,
+    names,
+  })
+
+  await recordTrainingExample(admin, {
+    userId,
+    task: "judge",
+    labelSource: "interview",
+    labelStrength: interviewScore,
+    jobCandidateId: linkId,
+    names,
+    ...example,
+  })
 }

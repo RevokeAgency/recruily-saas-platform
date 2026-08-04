@@ -1,12 +1,10 @@
-import { generateText, Output } from "ai"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import type { ModelMessage } from "ai"
+import { generateStructured } from "@/lib/ai/generate"
+import { extractDocumentText } from "@/lib/cv-parse"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 
 // Create Google Gemini provider with API key from environment
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-})
 
 // --- URL import helpers -----------------------------------------------------
 
@@ -145,7 +143,7 @@ export async function POST(req: Request) {
       }
     }
 
-    let messages: Parameters<typeof generateText>[0]["messages"]
+    let messages: ModelMessage[]
 
     if (type === "url") {
       // Fetch the page like a browser — job boards block obvious bots.
@@ -197,25 +195,28 @@ ${pageText}`,
         },
       ]
     } else if (type === "file" && fileData) {
-      // Handle file upload (PDF/DOCX)
+      // Text lokal extrahieren statt das Rohdokument an das Modell zu senden —
+      // provider-unabhängig und datensparsam.
+      const docText = await extractDocumentText(
+        Buffer.from(fileData, "base64"),
+        mimeType || "application/pdf",
+        fileName || "document.pdf",
+      )
+      if (!docText || docText.trim().length < 50) {
+        return Response.json(
+          { error: "Aus der Datei konnte kein lesbarer Text extrahiert werden. Kopiere alternativ den Anzeigentext." },
+          { status: 400 }
+        )
+      }
       messages = [
         {
           role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Analysiere diese Stellenausschreibung und extrahiere alle relevanten Informationen.
+          content: `Analysiere diese Stellenausschreibung und extrahiere alle relevanten Informationen.
 Die Stellenausschreibung ist auf Deutsch oder Englisch.
 Antworte IMMER auf Deutsch.
-Dateiname: ${fileName}`,
-            },
-            {
-              type: "file",
-              data: fileData,
-              mediaType: mimeType || "application/pdf",
-              filename: fileName || "document.pdf",
-            },
-          ],
+Dateiname: ${fileName}
+
+${docText}`,
         },
       ]
     } else if (type === "text" && content) {
@@ -238,8 +239,10 @@ ${content}`,
       )
     }
 
-    const { output } = await generateText({
-      model: google("gemini-2.5-flash"),
+    const { output } = await generateStructured({
+      task: "extraction",
+      label: "Stellenanzeigen-Analyse",
+      schema: jobSchema,
       system: `Du bist ein Experte für HR und Recruiting.
 Deine Aufgabe ist es, Stellenausschreibungen zu analysieren und strukturierte Daten zu extrahieren.
 Extrahiere alle relevanten Informationen und fülle die Felder so vollständig wie möglich aus.
@@ -251,9 +254,6 @@ und Stichpunkten (jeweils mit "- " am Zeilenanfang), getrennt durch Leerzeilen. 
 Zeilenumbrüche (\\n). Kopiere keine rohen, mit "|" getrennten Schlagwortketten aus dem Original.
 
 Antworte IMMER auf Deutsch.`,
-      output: Output.object({
-        schema: jobSchema,
-      }),
       messages,
     })
 

@@ -1,10 +1,6 @@
-import { generateText, Output } from "ai"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-})
 
 const RANK_MODEL = process.env.IMLRS_JUDGE_MODEL || "gemini-2.5-pro"
 
@@ -67,10 +63,10 @@ Profil: ${(c.dossierSummary || c.aiSummary || "—").slice(0, 400)}
 Schwach belegt: ${c.lowConfidence.length ? c.lowConfidence.join(", ") : "nichts"}`,
   )
 
-  const { output } = await generateText({
-    model: google(RANK_MODEL),
-    temperature: 0,
-    output: Output.object({ schema: rankSchema }),
+  const { output } = await generateStructured({
+    task: "reasoning",
+    label: "Bestenvergleich",
+    schema: rankSchema,
     system: systemPrompt,
     prompt: `Reihe diese ${candidates.length} Kandidaten für die Stelle vergleichend.
 
