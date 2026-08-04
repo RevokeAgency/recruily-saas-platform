@@ -3,7 +3,7 @@
  * IMLRS Eval-Harness — replays the golden set against the live matching
  * pipeline so no prompt/rubric change ships blind.
  *
- *   GOOGLE_GENERATIVE_AI_API_KEY=... node --experimental-strip-types scripts/eval/run-eval.mjs
+ *   MISTRAL_API_KEY=... node --experimental-strip-types scripts/eval/run-eval.mjs
  *
  * Options:
  *   --runs=2        score each case N times to measure consistency (drift)
@@ -28,8 +28,8 @@ const RUNS = Math.max(1, Number(opt("runs", "1")) || 1)
 const ONLY = opt("case", null)
 const AS_JSON = args.includes("--json")
 
-if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-  console.error("GOOGLE_GENERATIVE_AI_API_KEY fehlt — Eval braucht echte Modell-Aufrufe.")
+if (!process.env.MISTRAL_API_KEY && !process.env.MISTRAL_GENERATIVE_AI_API_KEY) {
+  console.error("MISTRAL_API_KEY fehlt — das Eval braucht echte Modell-Aufrufe.")
   process.exit(2)
 }
 
