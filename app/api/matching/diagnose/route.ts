@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { generateText } from "ai"
-import { modelChain, nonEuFallbackAllowed, type AiTask } from "@/lib/ai/provider"
+import { modelChain, nonEuFallbackAllowed, mistralApiKey, type AiTask } from "@/lib/ai/provider"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -57,14 +57,30 @@ export async function GET() {
       }
     }
 
+    // Welcher Env-Name den Key tatsächlich liefert (häufigste Fehlerquelle).
+    const keyVar = process.env.MISTRAL_API_KEY
+      ? "MISTRAL_API_KEY"
+      : process.env.MISTRAL_GENERATIVE_AI_API_KEY
+        ? "MISTRAL_GENERATIVE_AI_API_KEY"
+        : process.env.NEXT_MISTRAL_API_KEY
+          ? "NEXT_MISTRAL_API_KEY"
+          : null
+
     const failing = results.filter((r) => !r.ok)
     return Response.json({
       ok: failing.length === 0,
       euOnly: !nonEuFallbackAllowed(),
+      apiKey: {
+        gefunden: !!mistralApiKey(),
+        variable: keyVar,
+        hinweis: keyVar && keyVar !== "MISTRAL_API_KEY"
+          ? `Funktioniert, empfohlen ist aber der Name MISTRAL_API_KEY.`
+          : undefined,
+      },
       results,
       hint:
         failing.length === results.length
-          ? "Kein Modell erreichbar — MISTRAL_API_KEY prüfen (gesetzt? gültig? Abrechnung aktiv?)."
+          ? "Kein Modell erreichbar — Mistral-Key prüfen (gesetzt? gültig? Abrechnung aktiv?)."
           : failing.length > 0
             ? `Nicht erreichbar: ${failing.map((f) => f.task).join(", ")}.`
             : "Alle Aufgaben laufen über EU-Modelle.",

@@ -52,8 +52,22 @@ const GOOGLE_MODELS: Record<AiTask, string> = {
   vision: "gemini-2.5-flash",
 }
 
+/**
+ * Der Mistral-Key wird unter mehreren gebräuchlichen Namen akzeptiert, damit
+ * eine abweichende Benennung in der Hosting-Umgebung nicht das gesamte
+ * Matching lahmlegt. Kanonisch ist MISTRAL_API_KEY.
+ */
+export function mistralApiKey(): string | undefined {
+  return (
+    process.env.MISTRAL_API_KEY ||
+    process.env.MISTRAL_GENERATIVE_AI_API_KEY ||
+    process.env.NEXT_MISTRAL_API_KEY ||
+    undefined
+  )
+}
+
 function mistralClient() {
-  const apiKey = process.env.MISTRAL_API_KEY
+  const apiKey = mistralApiKey()
   if (!apiKey) return null
   return createMistral({ apiKey })
 }

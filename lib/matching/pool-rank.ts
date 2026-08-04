@@ -2,7 +2,6 @@ import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
 
 
-const RANK_MODEL = process.env.IMLRS_JUDGE_MODEL || "gemini-2.5-pro"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bestenvergleich: comparative ranking of a job's scored candidates.
