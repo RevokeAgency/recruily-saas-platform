@@ -87,9 +87,16 @@ Reihenfolge egal, alle additiv:
 - [ ] `MISTRAL_API_KEY` — **Pflicht.** Standard-KI-Provider (Mistral AI,
       Frankreich). Ohne diesen Key läuft kein Matching.
 - [ ] `AI_MODEL_REASONING` / `AI_MODEL_EXTRACTION` / `AI_MODEL_UTILITY` /
-      `AI_MODEL_VISION` *(optional)* — übersteuern die Modellwahl je Aufgabe
-      (Defaults: `mistral-large-latest`, `mistral-small-latest`,
-      `mistral-small-latest`, `pixtral-12b-2409`).
+      `AI_MODEL_VERIFICATION` / `AI_MODEL_VISION` *(optional)* — übersteuern die
+      Modellwahl je Aufgabe (Defaults: `mistral-large-latest`,
+      `mistral-small-latest`, `mistral-small-latest`, `mistral-large-latest`,
+      `pixtral-12b-2409`).
+      **Laufzeit-Hebel:** Eine vollständige Bewertung dauert ~60 s (4 sequenzielle
+      Modell-Aufrufe: Dossier → Skill-Deckung → Richter → Prüfinstanz). Beim
+      erneuten Matchen desselben Kandidaten entfällt das Dossier (gecacht) →
+      ~45 s. Wer schneller sein will, setzt `AI_MODEL_VERIFICATION` auf
+      `mistral-small-latest` und prüft anschließend mit `/api/matching/eval`,
+      ob die erwarteten Score-Bänder weiter halten.
 - [ ] `AI_ALLOW_NON_EU_FALLBACK` *(optional, Default AUS)* — erlaubt bei einem
       Mistral-Ausfall den Rückfall auf Google/Gemini. **Bewusst deaktiviert
       lassen**: Nur so ist zugesichert, dass Bewerberdaten die EU nie verlassen.

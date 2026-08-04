@@ -23,6 +23,8 @@ export type AiTask =
   | "extraction"
   /** Kürzere Hilfsaufgaben: Skill-Matrix, Interview-Leitfaden. */
   | "utility"
+  /** Prüfinstanz (Vier-Augen-Prinzip) — Kontrolle gegen feste Kriterien. */
+  | "verification"
   /** Bildverstehen (nur noch Fallback bei der Foto-Extraktion). */
   | "vision"
 
@@ -41,6 +43,10 @@ const MISTRAL_MODELS: Record<AiTask, string> = {
   reasoning: process.env.AI_MODEL_REASONING || "mistral-large-latest",
   extraction: process.env.AI_MODEL_EXTRACTION || "mistral-small-latest",
   utility: process.env.AI_MODEL_UTILITY || "mistral-small-latest",
+  // Default bewusst das große Modell: Die Prüfung ist die Qualitätssicherung
+  // der Bewertung. Wer Laufzeit sparen will, kann hier auf small umstellen —
+  // danach das Eval laufen lassen und prüfen, ob die Bänder halten.
+  verification: process.env.AI_MODEL_VERIFICATION || "mistral-large-latest",
   vision: process.env.AI_MODEL_VISION || "pixtral-12b-2409",
 }
 
@@ -49,6 +55,7 @@ const GOOGLE_MODELS: Record<AiTask, string> = {
   reasoning: "gemini-2.5-pro",
   extraction: "gemini-2.5-flash",
   utility: "gemini-2.5-flash",
+  verification: "gemini-2.5-pro",
   vision: "gemini-2.5-flash",
 }
 

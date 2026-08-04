@@ -325,7 +325,7 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
       .map((k) => `${CATEGORY_LABELS[k]} (${k}): ${judged[k].score}/100, Konfidenz ${judged[k].konfidenz}\n  Belege: ${judged[k].belege.join(" | ") || "KEINE"}\n  Begründung: ${judged[k].begruendung}`)
       .join("\n")
     const { output: verified } = await generateStructured({
-      task: "reasoning",
+      task: "verification",
       schema: verifierSchema,
       system: verifierSystemPrompt,
       prompt: `=== KARRIERE-DOSSIER ===\n${dossierText}\n\n=== HARD FACTS ===\n${hardFactsText}\n\n${jobText}\n\n=== ZU PRÜFENDE BEWERTUNG ===\n${judgedRendered}`,

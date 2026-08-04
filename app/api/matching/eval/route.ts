@@ -8,6 +8,11 @@ import goldenSet from "@/scripts/eval/golden-set.json"
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
 
+// Ein voller Durchlauf dauert ~60 s. Wir stoppen vor dem Plattform-Limit und
+// melden ehrlich, was noch offen ist — statt in einen Timeout zu laufen, bei
+// dem der Aufrufer gar nichts sieht.
+const ZEITBUDGET_MS = 240_000
+
 interface GoldenCase {
   id: string
   note: string
@@ -47,8 +52,15 @@ export async function GET(req: NextRequest) {
       )
     }
 
+    const gestartet = Date.now()
     const results = []
+    const offen: string[] = []
     for (const c of cases) {
+      // Reicht die Restzeit für einen weiteren Durchlauf?
+      if (results.length > 0 && Date.now() - gestartet > ZEITBUDGET_MS - 70_000) {
+        offen.push(c.id)
+        continue
+      }
       const started = Date.now()
       try {
         const match = await runIMLRSMatch(c.candidate, c.job)
@@ -79,13 +91,17 @@ export async function GET(req: NextRequest) {
 
     const bestanden = results.filter((r) => r.ok).length
     return Response.json({
-      ok: bestanden === results.length,
+      ok: bestanden === results.length && offen.length === 0,
       bestanden: `${bestanden}/${results.length}`,
+      dauerSekunden: Math.round((Date.now() - gestartet) / 100) / 10,
       results,
+      offen: offen.length ? offen : undefined,
       hinweis:
-        bestanden === results.length
-          ? "Alle Fälle im erwarteten Band — die Pipeline arbeitet wie vorgesehen."
-          : "Abweichungen: Score-Bänder bzw. KO-Urteile prüfen (siehe 'note' je Fall).",
+        offen.length
+          ? `Zeitbudget erreicht — ${offen.length} Fall/Fälle offen. Einzeln nachholen: ?case=${offen[0]}`
+          : bestanden === results.length
+            ? "Alle Fälle im erwarteten Band — die Pipeline arbeitet wie vorgesehen."
+            : "Abweichungen: Score-Bänder bzw. KO-Urteile prüfen (siehe 'note' je Fall).",
     })
   } catch (error) {
     console.error("[matching eval] error:", error)
