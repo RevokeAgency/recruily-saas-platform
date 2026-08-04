@@ -38,15 +38,20 @@ export async function POST(
       .from("jobs").select("id").eq("id", jobId).eq("user_id", user.id).single()
     if (!job) return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
 
+    // Optional: retry a single candidate (used by "Erneut versuchen" on errors).
+    const body = await req.json().catch(() => ({} as { linkId?: string }))
+    const singleLinkId = typeof body?.linkId === "string" ? body.linkId : null
+
     // Candidates that already went through matching (skip queued/analyzing).
-    const { data: links, error: linksError } = await supabase
+    let query = supabase
       .from("job_candidates")
       .select("id")
       .eq("job_id", jobId)
       .eq("user_id", user.id)
-      .in("status", ["scored", "error"])
-      .order("created_at", { ascending: true })
-      .limit(BATCH + 1)
+    query = singleLinkId
+      ? query.eq("id", singleLinkId)
+      : query.in("status", ["scored", "error"]).order("created_at", { ascending: true }).limit(BATCH + 1)
+    const { data: links, error: linksError } = await query
 
     if (linksError) {
       return Response.json({ error: linksError.message }, { status: 500 })

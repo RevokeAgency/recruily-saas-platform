@@ -219,6 +219,14 @@ export async function scoreJobCandidateLink(
     await backfillCandidatePhoto(candidate)
   } catch (err) {
     console.error("scoreJobCandidateLink failed:", err)
+    const reason = err instanceof Error ? err.message : String(err)
     await supabase.from("job_candidates").update({ status: "error" }).eq("id", linkId)
+    // Persist WHY it failed so "Fehler" is diagnosable in the UI instead of
+    // being a dead end. Best-effort (needs migration 021).
+    await supabase
+      .from("job_candidates")
+      .update({ match_detail: { engine: "imlrs-2", error: reason.slice(0, 500), failedAt: new Date().toISOString() } })
+      .eq("id", linkId)
+      .then(({ error }) => { if (error) console.error("[scoring] error detail skipped:", error.message) })
   }
 }

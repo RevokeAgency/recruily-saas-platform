@@ -290,6 +290,30 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
     }
   }
 
+  // Retry a single failed match (surfaces the stored failure reason as tooltip).
+  const [retryingScore, setRetryingScore] = useState<string | null>(null)
+  const rescoreOne = async (candidate: Candidate) => {
+    setRetryingScore(candidate.linkId)
+    try {
+      const res = await fetch(`/api/jobs/${jobId}/rescore`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ linkId: candidate.linkId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || "Erneuter Versuch fehlgeschlagen")
+        return
+      }
+      toast.success(`${candidate.full_name} wurde neu bewertet`)
+      mutate()
+    } catch {
+      toast.error("Erneuter Versuch fehlgeschlagen")
+    } finally {
+      setRetryingScore(null)
+    }
+  }
+
   const [openingDoc, setOpeningDoc] = useState<string | null>(null)
   const openDocument = async (candidateId: string, type: "resume" | "cover") => {
     setOpeningDoc(`${candidateId}-${type}`)
@@ -803,6 +827,21 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                       <div className="flex flex-col items-center xl:items-end">
                         <div className="text-3xl font-bold text-muted-foreground/40">--</div>
                         <p className="text-sm text-muted-foreground mt-1">Kein Score</p>
+                        {candidate.status === "error" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="mt-2 gap-1.5 rounded-full"
+                            onClick={() => rescoreOne(candidate)}
+                            disabled={retryingScore === candidate.linkId}
+                            title={candidate.match_detail?.error || "Bewertung erneut versuchen"}
+                          >
+                            {retryingScore === candidate.linkId
+                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              : <RefreshCw className="h-3.5 w-3.5" />}
+                            Erneut versuchen
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>

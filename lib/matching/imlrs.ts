@@ -8,8 +8,56 @@ const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 })
 
-// Judge + verifier run on the strongest model (ops-overridable without deploy).
+// Judge + verifier run on the strongest model, with an automatic fallback so a
+// missing Pro entitlement, a rate limit or an overloaded model can never break
+// scoring outright (that showed up as status "Fehler" with no explanation).
 const JUDGE_MODEL = process.env.IMLRS_JUDGE_MODEL || "gemini-2.5-pro"
+const FALLBACK_MODEL = process.env.IMLRS_FALLBACK_MODEL || "gemini-2.5-flash"
+
+/** Models to try in order, de-duplicated. */
+export function judgeModelChain(): string[] {
+  return Array.from(new Set([JUDGE_MODEL, FALLBACK_MODEL]))
+}
+
+/**
+ * Runs a structured generation across the model chain. If the primary model is
+ * unavailable (404/permission), rate-limited (429) or overloaded (503), the
+ * next model takes over instead of failing the whole match.
+ */
+async function generateStructured<T>(
+  args: { schema: z.ZodType<T>; system: string; prompt: string; label: string },
+): Promise<{ output: T; modelUsed: string }> {
+  const chain = judgeModelChain()
+  let lastError: unknown = null
+
+  for (const modelId of chain) {
+    try {
+      const { output } = await generateText({
+        model: google(modelId),
+        temperature: 0,
+        output: Output.object({ schema: args.schema }),
+        system: args.system,
+        prompt: args.prompt,
+      })
+      if (!output) throw new Error("Leere Modellantwort")
+      if (modelId !== chain[0]) {
+        console.warn(`[imlrs2] ${args.label}: Fallback auf ${modelId} (Primärmodell ${chain[0]} nicht nutzbar)`)
+      }
+      return { output, modelUsed: modelId }
+    } catch (err) {
+      lastError = err
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error(`[imlrs2] ${args.label} mit ${modelId} fehlgeschlagen: ${msg}`)
+      // Schema/validation problems won't be fixed by another model — stop early.
+      if (/schema|validation|zod/i.test(msg)) break
+    }
+  }
+  throw new Error(
+    `${args.label} fehlgeschlagen (${chain.join(" → ")}): ${
+      lastError instanceof Error ? lastError.message : String(lastError)
+    }`,
+  )
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // IMLRS 2.0 — evidence-based matching pipeline.
@@ -177,6 +225,8 @@ export interface IMLRSMatchDetail {
   /** Which weight profile aggregated the overall score (audit trail). */
   weightsSource: "standard" | "kunden-kalibriert"
   weightsUsed: Record<CategoryKey, number>
+  /** Model that produced the judgment (the chain may have fallen back). */
+  modelUsed: string
 }
 
 export interface IMLRSMatchResult {
@@ -311,34 +361,29 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
     ? `\n=== ANSCHREIBEN (für Soft Skills / Kultur / Motivation) ===\n${candidate.cover_letter_text.trim().slice(0, 4000)}`
     : ""
 
-  // ── Stage C: judge ────────────────────────────────────────────────────────
-  const { output: judged } = await generateText({
-    model: google(JUDGE_MODEL),
-    temperature: 0,
-    output: Output.object({ schema: judgeSchema }),
+  // ── Stage C: judge (model chain with automatic fallback) ─────────────────
+  const { output: judged, modelUsed } = await generateStructured({
+    schema: judgeSchema,
     system: judgeSystemPrompt,
     prompt: `Bewerte dieses Kandidaten-Job-Paar nach der strengen Rubrik.\n\n=== KARRIERE-DOSSIER ===\n${dossierText}\n\n=== HARD FACTS (deterministisch, bindend) ===\n${hardFactsText}${coverText}\n\n${jobText}`,
+    label: "IMLRS-Bewertung",
   })
-  if (!judged) throw new Error("IMLRS judge failed")
 
-  // ── Stage D: independent verifier ─────────────────────────────────────────
+  // ── Stage D: independent verifier (optional — never fails the match) ──────
   let verifierNote = "Prüfung nicht verfügbar — Richter-Scores unverändert übernommen."
   const verifierReviews = new Map<CategoryKey, { urteil: string; begruendung: string; korrigierterScore: number }>()
   try {
     const judgedRendered = CATEGORY_KEYS
       .map((k) => `${CATEGORY_LABELS[k]} (${k}): ${judged[k].score}/100, Konfidenz ${judged[k].konfidenz}\n  Belege: ${judged[k].belege.join(" | ") || "KEINE"}\n  Begründung: ${judged[k].begruendung}`)
       .join("\n")
-    const { output: verified } = await generateText({
-      model: google(JUDGE_MODEL),
-      temperature: 0,
-      output: Output.object({ schema: verifierSchema }),
+    const { output: verified } = await generateStructured({
+      schema: verifierSchema,
       system: verifierSystemPrompt,
       prompt: `=== KARRIERE-DOSSIER ===\n${dossierText}\n\n=== HARD FACTS ===\n${hardFactsText}\n\n${jobText}\n\n=== ZU PRÜFENDE BEWERTUNG ===\n${judgedRendered}`,
+      label: "IMLRS-Prüfung",
     })
-    if (verified) {
-      verifierNote = verified.gesamtanmerkung
-      for (const r of verified.reviews) verifierReviews.set(r.category, r)
-    }
+    verifierNote = verified.gesamtanmerkung
+    for (const r of verified.reviews) verifierReviews.set(r.category, r)
   } catch (err) {
     console.error("[imlrs2] verifier failed, keeping judge scores:", err)
   }
@@ -413,6 +458,7 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
       dossierSummary: dossier?.summary ?? "Kein Dossier — Bewertung auf Basis der Strukturdaten.",
       weightsSource: tenantWeights ? "kunden-kalibriert" : "standard",
       weightsUsed: weights,
+      modelUsed,
     },
     dossier: dossierIsFresh ? dossier : null,
   }

@@ -56,7 +56,8 @@ import { toast } from "sonner"
 // Reasoning trail written by IMLRS 2.0 (migration 021) — optional on older rows.
 export interface MatchDetail {
   engine: string
-  categories: Record<string, {
+  /** Absent when scoring failed — see `error` below. */
+  categories?: Record<string, {
     begruendung: string
     belege: string[]
     konfidenz: "hoch" | "mittel" | "niedrig"
@@ -66,6 +67,10 @@ export interface MatchDetail {
   }>
   verifierNote?: string
   dossierSummary?: string
+  modelUsed?: string
+  /** Set instead of categories when scoring failed — the reason, for diagnosis. */
+  error?: string
+  failedAt?: string
 }
 
 interface Candidate {
