@@ -1,20 +1,7 @@
 import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
-import { fileURLToPath } from "node:url"
+import { loadPdfjs } from "@/lib/pdf-runtime"
 
-
-// pdfjs needs its worker file at runtime, but the serverless tracer never
-// bundles it (pdfjs imports it dynamically) and require.resolve() gets rewritten
-// by the bundler into a module id (-> "Invalid workerSrc type"). So the worker
-// is vendored into the repo (lib/pdfjs-worker.mjs) and referenced via new URL,
-// which webpack emits as an asset and gives us a real file path for.
-// NOTE: keep lib/pdfjs-worker.mjs in sync with the installed pdfjs-dist version.
-let WORKER_SRC: string | undefined
-try {
-  WORKER_SRC = fileURLToPath(new URL("./pdfjs-worker.mjs", import.meta.url))
-} catch {
-  /* falls back to pdfjs' default resolution */
-}
 
 /**
  * Applicant-photo extraction from a CV PDF. Two strategies, best-first:
@@ -35,18 +22,6 @@ try {
  * to the initials avatar. Never throws.
  */
 
-// pdfjs (legacy build) expects a few browser globals in Node; @napi-rs/canvas
-// provides them. Missing DOMMatrix/Path2D/ImageData is the classic serverless
-// "cannot render" cause once a PDF actually contains fonts/vector content.
-async function ensurePdfGlobals() {
-  const canvas = await import("@napi-rs/canvas")
-  const g = globalThis as unknown as Record<string, unknown>
-  if (!g.DOMMatrix && canvas.DOMMatrix) g.DOMMatrix = canvas.DOMMatrix
-  if (!g.Path2D && canvas.Path2D) g.Path2D = canvas.Path2D
-  if (!g.ImageData && canvas.ImageData) g.ImageData = canvas.ImageData
-  if (!g.DOMPoint && canvas.DOMPoint) g.DOMPoint = canvas.DOMPoint
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PdfDoc = any
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,9 +29,7 @@ type PdfPage = any
 
 async function loadPdf(pdf: Buffer): Promise<PdfDoc | null> {
   try {
-    await ensurePdfGlobals()
-    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs")
-    if (WORKER_SRC) pdfjs.GlobalWorkerOptions.workerSrc = WORKER_SRC
+    const pdfjs = await loadPdfjs()
     return await pdfjs.getDocument({ data: new Uint8Array(pdf), useSystemFonts: true }).promise
   } catch (err) {
     console.error("[cv-photo] pdf load failed:", err)

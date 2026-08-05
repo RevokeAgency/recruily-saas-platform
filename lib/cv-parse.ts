@@ -1,4 +1,5 @@
 import { generateStructured } from "@/lib/ai/generate"
+import { loadPdfjs, renderPdfPagesToPng } from "@/lib/pdf-runtime"
 import { z } from "zod"
 import mammoth from "mammoth"
 
@@ -84,15 +85,19 @@ export async function parseCvBuffer(
       // bleibt der Pfad provider-unabhängig (Mistral hat keine native
       // PDF-Eingabe) und es wandert kein Rohdokument zum Modell.
       const text = await extractDocumentText(buffer, mimeType, filename)
-      if (!text || text.trim().length < 30) return null
-      const { output } = await generateStructured({
-        task: "extraction",
-        label: "CV-Analyse",
-        schema: candidateSchema,
-        system: systemPrompt,
-        prompt: `CV-Inhalt:\n${text}${coverBlock}`,
-      })
-      return output ?? null
+      if (text && text.trim().length >= 30) {
+        const { output } = await generateStructured({
+          task: "extraction",
+          label: "CV-Analyse",
+          schema: candidateSchema,
+          system: systemPrompt,
+          prompt: `CV-Inhalt:\n${text}${coverBlock}`,
+        })
+        return output ?? null
+      }
+      // Keine Textebene → gescanntes/fotografiertes PDF. Seiten als Bild an
+      // das Bildmodell geben, statt den Lebenslauf abzuweisen.
+      return await parseScannedPdf(buffer, coverBlock)
     }
 
     return null
@@ -127,11 +132,12 @@ export async function extractDocumentText(
       return (value || "").trim()
     }
     if (isPdf(mimeType, filename)) {
-      const pdfjs: typeof import("pdfjs-dist/legacy/build/pdf.mjs") = await import(
-        "pdfjs-dist/legacy/build/pdf.mjs"
-      )
+      // Über die gemeinsame Laufzeitumgebung — ohne gesetzten Worker und
+      // Browser-Globals scheitert pdfjs in Serverless bei praktisch jedem PDF.
+      const pdfjs = await loadPdfjs()
       const doc = await pdfjs.getDocument({
         data: new Uint8Array(buffer),
+        useSystemFonts: true,
       }).promise
       const pages = Math.min(doc.numPages, 6)
       let text = ""
@@ -147,5 +153,36 @@ export async function extractDocumentText(
   } catch (err) {
     console.error("extractDocumentText failed:", err)
     return ""
+  }
+}
+
+/**
+ * Liest einen gescannten Lebenslauf (PDF ohne Textebene), indem die Seiten
+ * gerendert und von einem Bildmodell ausgewertet werden. In der Praxis kommt
+ * das häufiger vor, als man denkt — eingescannte oder abfotografierte CVs.
+ */
+async function parseScannedPdf(buffer: Buffer, coverBlock: string): Promise<ParsedCandidate | null> {
+  const pages = await renderPdfPagesToPng(buffer, 2)
+  if (pages.length === 0) return null
+  try {
+    const { output } = await generateStructured({
+      task: "vision",
+      label: "CV-Analyse (gescannt)",
+      schema: candidateSchema,
+      system: systemPrompt,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: `Analysiere diesen eingescannten Lebenslauf.${coverBlock}` },
+            ...pages.map((png) => ({ type: "image" as const, image: png })),
+          ],
+        },
+      ],
+    })
+    return output ?? null
+  } catch (err) {
+    console.error("[cv-parse] Auswertung des gescannten PDFs fehlgeschlagen:", err)
+    return null
   }
 }

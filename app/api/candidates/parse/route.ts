@@ -1,5 +1,5 @@
 import { generateStructured } from "@/lib/ai/generate"
-import { extractDocumentText } from "@/lib/cv-parse"
+import { parseCvBuffer } from "@/lib/cv-parse"
 import { z } from "zod"
 import mammoth from "mammoth"
 import { NextRequest } from "next/server"
@@ -123,24 +123,19 @@ export async function POST(req: NextRequest) {
       // PDFs: Text lokal extrahieren und als Text analysieren — provider-
       // unabhängig (Mistral hat keine native PDF-Eingabe) und es verlässt kein
       // Rohdokument die Anwendung.
-      const pdfText = await extractDocumentText(
+      // parseCvBuffer deckt beide Fälle ab: PDF mit Textebene und — als
+      // Rückfall — gescannte PDFs über das Bildmodell.
+      const output = await parseCvBuffer(
         Buffer.from(fileData, "base64"),
         mimeType || "application/pdf",
         fileName || "cv.pdf",
       )
-      if (!pdfText || pdfText.trim().length < 30) {
+      if (!output) {
         return Response.json(
-          { error: "Konnte keinen Text aus dem PDF extrahieren" },
+          { error: "Aus diesem PDF konnten keine Daten gelesen werden. Bitte eine andere Datei verwenden oder den CV-Text einfügen." },
           { status: 400 }
         )
       }
-      const { output } = await generateStructured({
-        task: "extraction",
-        label: "CV-Analyse",
-        schema: candidateSchema,
-        system: systemPrompt,
-        prompt: `CV-Inhalt:\n${pdfText}`,
-      })
 
       if (!output) {
         return Response.json(
