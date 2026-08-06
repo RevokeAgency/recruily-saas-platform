@@ -11,6 +11,7 @@ import { RvGrow } from "@/components/landing/rv-grow"
 import { RvTestimonials } from "@/components/landing/rv-testimonials"
 import { RvPricing } from "@/components/landing/rv-pricing"
 import { RvFaq } from "@/components/landing/rv-faq"
+import { RvBlog } from "@/components/landing/rv-blog"
 import { RvCta } from "@/components/landing/rv-cta"
 import { RvFooter } from "@/components/landing/rv-footer"
 import { LoginModal } from "@/components/landing/login-modal"
@@ -31,6 +32,7 @@ export default function LandingPage() {
         <RvTestimonials />
         <RvPricing />
         <RvFaq />
+        <RvBlog />
         <RvCta />
       </main>
       <RvFooter />

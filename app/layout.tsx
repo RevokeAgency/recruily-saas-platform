@@ -3,6 +3,7 @@ import localFont from 'next/font/local'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
+import { SITE_URL } from '@/lib/site'
 
 // Self-hosted, no Google-Fonts hotlink (DSGVO). Latin subset covers German
 // (äöüß live in Latin-1 Supplement); latin-ext is not wired since it only
@@ -21,6 +22,8 @@ const description =
   'Revetly ist KI-gestütztes Recruiting für den DACH-Markt. Matching, Absagen-Mails und Bewerberverwaltung – automatisiert, erklärbar, DSGVO-konform.'
 
 export const metadata: Metadata = {
+  // Basis für relative canonical-/OG-URLs (z. B. der Blog-Beiträge).
+  metadataBase: new URL(SITE_URL),
   title,
   description,
   generator: 'v0.app',

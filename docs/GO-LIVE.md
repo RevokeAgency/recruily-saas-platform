@@ -24,6 +24,13 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
 - [ ] **EmailConnect / Inbound**: Inbound-Adressen/DNS auf die Live-Domain.
 - [ ] **Resend**: Absenderdomain `revetly.ai` verifizieren (SPF/DKIM), damit
       Auto-Reply / Interview / Absage nicht im Spam landen.
+- [ ] **`NEXT_PUBLIC_SITE_URL`** auf `https://revetly.ai` setzen. Daraus bauen
+      sich `metadataBase`, die canonical-Links der Blog-Beiträge, `robots.txt`
+      und `sitemap.xml`. Ohne die Variable greift der Default `revetly.ai`,
+      solange die App aber noch unter der Vercel-URL läuft, zeigen die
+      canonical-Links auf eine Domain, die es noch nicht gibt.
+- [ ] **Sitemap in der Google Search Console einreichen**:
+      `https://revetly.ai/sitemap.xml`.
 
 ---
 

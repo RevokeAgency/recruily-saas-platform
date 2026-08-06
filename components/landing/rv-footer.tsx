@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { label: "Produkt", href: "#services" },
   { label: "Preise", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
+  { label: "Blog", href: "/blog" },
 ]
 
 const SOCIAL_LINKS = ["LinkedIn", "X / Twitter", "XING", "YouTube"]
