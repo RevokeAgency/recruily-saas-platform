@@ -76,6 +76,11 @@ Reihenfolge egal, alle additiv:
 - [ ] `scripts/023_ai_training_consent.sql` — Einwilligung (Opt-in) + Tabelle
       `ai_training_examples` für ein eigenes, feingetuntes Revetly-Modell.
       Enthält einen Trigger, der bei Widerruf die Trainingsdaten löscht.
+- [ ] `scripts/024_product_feedback.sql` — Produktumfrage nach den ersten
+      Matches: Lebenszeit-Zähler (`user_profiles.matches_lifetime`, wird von
+      `consume_match()` mitgeführt), Zustand der Abfrage und die Tabelle
+      `product_feedback`. Ohne diese Migration bleibt die Umfrage still aus,
+      die Anwendung läuft unverändert weiter.
 
 ---
 
@@ -87,6 +92,9 @@ Reihenfolge egal, alle additiv:
       `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - [ ] `RESEND_API_KEY`
 - [ ] `INBOUND_WEBHOOK_SECRET` (EmailConnect-Signatur)
+- [ ] `FEEDBACK_NOTIFY_EMAIL` *(optional)* — Adresse, an die eine Kopie jeder
+      Produkt-Rückmeldung geht. Ohne die Variable landet das Feedback nur in
+      der Tabelle `product_feedback`.
 - [ ] `CRON_SECRET` — schützt die täglichen Cron-Jobs (`/api/cron/purge-candidates`
       um 03:00 und `/api/cron/calibrate-matching` um 04:00 UTC). Vercel sendet ihn
       als Bearer-Token an Cron-Aufrufe. In Vercel setzen; ohne ihn liefern die

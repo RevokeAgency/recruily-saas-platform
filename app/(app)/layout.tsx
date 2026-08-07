@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { AppTopbar } from "@/components/app-topbar"
+import { FeedbackPrompt } from "@/components/feedback/feedback-prompt"
 
 export default async function AppLayout({
   children,
@@ -29,6 +30,8 @@ export default async function AppLayout({
           {children}
         </main>
       </div>
+      {/* Produktumfrage nach den ersten Matches. Meldet sich von selbst. */}
+      <FeedbackPrompt />
     </div>
   )
 }

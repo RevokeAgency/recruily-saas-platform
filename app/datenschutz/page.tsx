@@ -63,6 +63,12 @@ export default function DatenschutzPage() {
               <li>Bewerbungsunterlagen (Lebenslauf, Anschreiben) inkl. der darin enthaltenen Angaben und ggf. eines Bewerbungsfotos</li>
               <li>Aus den Unterlagen automatisiert extrahierte Angaben (Qualifikationen, Erfahrung, Skills) sowie ein KI-gestützter Match-Score</li>
               <li>Bei registrierten Kunden: Konto- und Abrechnungsdaten</li>
+              <li>
+                Bei registrierten Kunden: freiwillig abgegebene Rückmeldungen zum Produkt
+                (Bewertung und Freitext), verarbeitet zur Weiterentwicklung von Revetly auf
+                Grundlage unseres berechtigten Interesses (Art. 6 Abs. 1 lit. f DSGVO).
+                Bitte gib in den Freitextfeldern keine Bewerberdaten an.
+              </li>
             </ul>
           </section>
 

@@ -39,6 +39,7 @@ import { RevealGroup } from "@/components/app/reveal-group"
 import { useProfile } from "@/lib/hooks/useProfile"
 import { updateCompanyName } from "@/app/actions/onboarding"
 import { AiTrainingConsent } from "@/components/settings/ai-training-consent"
+import { FeedbackCard } from "@/components/settings/feedback-card"
 
 export default function SettingsPage() {
   const { profile: account } = useProfile()
@@ -427,6 +428,8 @@ export default function SettingsPage() {
         </Card>
 
         <AiTrainingConsent />
+
+        <FeedbackCard />
       </RevealGroup>
     </div>
   )
