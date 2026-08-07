@@ -202,13 +202,16 @@ export default function RegisterPage() {
             }
             className="mt-0.5"
           />
-          <Label htmlFor="agb" className="text-sm text-muted-foreground leading-relaxed cursor-pointer font-normal">
+          {/* `block` ist nötig: Label ist per Vorgabe ein Flex-Container, wodurch
+              jedes Wort und jeder Link zu einem eigenen Flex-Element würde und
+              der Satz in Blöcken statt im Textfluss umbricht. */}
+          <Label htmlFor="agb" className="block text-sm text-muted-foreground leading-relaxed cursor-pointer font-normal">
             Ich akzeptiere die{" "}
-            <Link href="/terms" className="text-[var(--rv-green-deep)] hover:underline">
+            <Link href="/agb" target="_blank" rel="noopener" className="text-[var(--rv-green-deep)] hover:underline">
               Allgemeinen Geschäftsbedingungen
             </Link>{" "}
             und habe die{" "}
-            <Link href="/privacy" className="text-[var(--rv-green-deep)] hover:underline">
+            <Link href="/datenschutz" target="_blank" rel="noopener" className="text-[var(--rv-green-deep)] hover:underline">
               Datenschutzerklärung
             </Link>{" "}
             gelesen.
