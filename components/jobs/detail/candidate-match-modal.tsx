@@ -311,6 +311,12 @@ export function CandidateMatchModal({
   const [inviteFormat, setInviteFormat] = useState("remote")
   const [inviteNote, setInviteNote] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // "link"  = Bewerber wählt selbst aus den freien Zeiten (Standard)
+  // "fixed" = fester Termin wie bisher, für den Fall, dass er schon steht
+  const [inviteMode, setInviteMode] = useState<"link" | "fixed">("link")
+  const [meetingTypes, setMeetingTypes] = useState<{ id: string; name: string; durationMinutes: number; isDefault: boolean; active: boolean }[]>([])
+  const [meetingTypeId, setMeetingTypeId] = useState<string>("")
+  const [schedulingReady, setSchedulingReady] = useState(true)
   const [invited, setInvited] = useState(false)
   const [hired, setHired] = useState(false)
   const [markingHired, setMarkingHired] = useState(false)
@@ -356,6 +362,66 @@ export function CandidateMatchModal({
     setRejected(candidate?.status === "Abgesagt")
     setHired(candidate?.status === "Eingestellt")
   }, [candidate])
+
+  // Terminarten erst laden, wenn der Dialog aufgeht. Fehlt Migration 025,
+  // bleibt nur der feste Termin übrig und der Dialog verhält sich wie bisher.
+  useEffect(() => {
+    if (!inviteOpen) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch("/api/scheduling/meeting-types", { cache: "no-store" })
+        if (!res.ok) throw new Error()
+        const data = await res.json()
+        if (cancelled) return
+        const active = (data.meetingTypes ?? []).filter((t: { active: boolean }) => t.active)
+        setMeetingTypes(active)
+        setMeetingTypeId(active.find((t: { isDefault: boolean }) => t.isDefault)?.id ?? active[0]?.id ?? "")
+        setSchedulingReady(active.length > 0)
+        if (active.length === 0) setInviteMode("fixed")
+      } catch {
+        if (!cancelled) {
+          setSchedulingReady(false)
+          setInviteMode("fixed")
+        }
+      }
+    })()
+    return () => { cancelled = true }
+  }, [inviteOpen])
+
+  /** Persönlichen Buchungslink erzeugen und per Mail schicken. */
+  const handleSendBookingLink = async () => {
+    if (!candidate) return
+    if (!candidate.email) {
+      toast.error("Für diesen Bewerber ist keine E-Mail-Adresse hinterlegt.")
+      return
+    }
+    setIsSubmitting(true)
+    try {
+      const res = await fetch("/api/scheduling/invites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobCandidateId: candidate.linkId,
+          meetingTypeId: meetingTypeId || undefined,
+          note: inviteNote,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Einladung fehlgeschlagen")
+
+      setInviteOpen(false)
+      setInvited(true)
+      toast.success("Buchungslink verschickt", {
+        description: `${candidate.full_name} kann jetzt selbst einen Termin aus deinen freien Zeiten wählen.`,
+      })
+      onInviteToInterview?.(candidate.id)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Einladung fehlgeschlagen")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const handleSubmitInvite = async () => {
     if (!candidate) return
@@ -817,44 +883,106 @@ export function CandidateMatchModal({
             <Input id="invite-candidate" value={candidate.full_name} readOnly className="bg-[var(--muted)]/60" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="invite-date">Datum</Label>
-              <Input
-                id="invite-date"
-                type="date"
-                value={inviteDate}
-                onChange={(e) => setInviteDate(e.target.value)}
-              />
+          {/* Zwei Wege zum selben Ziel: Der Bewerber sucht sich eine Zeit aus,
+              oder der Termin steht bereits fest. */}
+          {schedulingReady && (
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { key: "link", title: "Bewerber wählt", hint: "Er bucht aus deinen freien Zeiten" },
+                { key: "fixed", title: "Fester Termin", hint: "Du gibst Datum und Uhrzeit vor" },
+              ] as const).map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => setInviteMode(option.key)}
+                  className={`rounded-xl border p-3 text-left transition-colors ${
+                    inviteMode === option.key
+                      ? "border-[var(--rv-green)] bg-[var(--app-green-wash)]"
+                      : "border-[var(--app-line)] hover:border-foreground/20"
+                  }`}
+                >
+                  <span className="block text-sm font-medium text-foreground">{option.title}</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">{option.hint}</span>
+                </button>
+              ))}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="invite-time">Uhrzeit</Label>
-              <Input
-                id="invite-time"
-                type="time"
-                value={inviteTime}
-                onChange={(e) => setInviteTime(e.target.value)}
-              />
-            </div>
-          </div>
+          )}
 
-          <div className="space-y-2">
-            <Label>Format</Label>
-            <RadioGroup
-              value={inviteFormat}
-              onValueChange={setInviteFormat}
-              className="flex gap-6"
-            >
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="remote" id="format-remote" />
-                <Label htmlFor="format-remote" className="font-normal cursor-pointer">Remote</Label>
+          {inviteMode === "link" ? (
+            <>
+              {meetingTypes.length > 1 && (
+                <div className="space-y-2">
+                  <Label htmlFor="invite-type">Terminart</Label>
+                  <select
+                    id="invite-type"
+                    value={meetingTypeId}
+                    onChange={(e) => setMeetingTypeId(e.target.value)}
+                    className="h-10 w-full rounded-xl border border-[var(--app-line)] bg-transparent px-3 text-sm"
+                  >
+                    {meetingTypes.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name} ({t.durationMinutes} Min.)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {!candidate.email && (
+                <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  Ohne E-Mail-Adresse lässt sich kein Buchungslink verschicken.
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                {candidate.full_name.split(" ")[0]} bekommt eine E-Mail mit einem persönlichen Link
+                und wählt daraus eine Zeit. Der Termin landet danach in deinem Kalender und unter{" "}
+                <Link href="/termine" className="text-[var(--rv-green-deep)] hover:underline">
+                  Termine
+                </Link>
+                .
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="invite-date">Datum</Label>
+                  <Input
+                    id="invite-date"
+                    type="date"
+                    value={inviteDate}
+                    onChange={(e) => setInviteDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="invite-time">Uhrzeit</Label>
+                  <Input
+                    id="invite-time"
+                    type="time"
+                    value={inviteTime}
+                    onChange={(e) => setInviteTime(e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="onsite" id="format-onsite" />
-                <Label htmlFor="format-onsite" className="font-normal cursor-pointer">Vor Ort</Label>
+
+              <div className="space-y-2">
+                <Label>Format</Label>
+                <RadioGroup
+                  value={inviteFormat}
+                  onValueChange={setInviteFormat}
+                  className="flex gap-6"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="remote" id="format-remote" />
+                    <Label htmlFor="format-remote" className="font-normal cursor-pointer">Remote</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="onsite" id="format-onsite" />
+                    <Label htmlFor="format-onsite" className="font-normal cursor-pointer">Vor Ort</Label>
+                  </div>
+                </RadioGroup>
               </div>
-            </RadioGroup>
-          </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="invite-note">Optionale Notiz</Label>
@@ -873,11 +1001,14 @@ export function CandidateMatchModal({
             Abbrechen
           </Button>
           <Button
-            onClick={handleSubmitInvite}
-            disabled={isSubmitting}
-           
+            onClick={inviteMode === "link" ? handleSendBookingLink : handleSubmitInvite}
+            disabled={isSubmitting || (inviteMode === "link" && !candidate.email)}
           >
-            {isSubmitting ? "Wird gespeichert..." : "Einladung senden"}
+            {isSubmitting
+              ? "Wird gesendet..."
+              : inviteMode === "link"
+                ? "Buchungslink senden"
+                : "Einladung senden"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -31,6 +31,12 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
       canonical-Links auf eine Domain, die es noch nicht gibt.
 - [ ] **Sitemap in der Google Search Console einreichen**:
       `https://revetly.ai/sitemap.xml`.
+- [ ] **OAuth-Weiterleitungs-URIs der Kalender-Apps** auf die Live-Domain
+      umstellen (falls Kalenderanbindung genutzt wird):
+      Google Cloud Console → `https://revetly.ai/api/calendar/callback/google`,
+      Entra ID → `https://revetly.ai/api/calendar/callback/microsoft`. Sie
+      werden aus `NEXT_PUBLIC_SITE_URL` gebildet und müssen beim Anbieter exakt
+      übereinstimmen, sonst schlägt das Verbinden fehl.
 
 ---
 
@@ -76,6 +82,11 @@ Reihenfolge egal, alle additiv:
 - [ ] `scripts/023_ai_training_consent.sql` — Einwilligung (Opt-in) + Tabelle
       `ai_training_examples` für ein eigenes, feingetuntes Revetly-Modell.
       Enthält einen Trigger, der bei Widerruf die Trainingsdaten löscht.
+- [ ] `scripts/025_scheduling.sql` — Terminplanung: Verfügbarkeitsprofil,
+      Terminarten, Buchungen, persönliche Buchungslinks und verbundene
+      Kalenderkonten. Einrichtung der OAuth-Apps siehe
+      `scripts/025_scheduling.md`. Ohne diese Migration zeigt `/termine` einen
+      Hinweis, der Rest der Anwendung läuft unverändert.
 - [ ] `scripts/024_product_feedback.sql` — Produktumfrage nach den ersten
       Matches: Lebenszeit-Zähler (`user_profiles.matches_lifetime`, wird von
       `consume_match()` mitgeführt), Zustand der Abfrage und die Tabelle
@@ -95,6 +106,16 @@ Reihenfolge egal, alle additiv:
 - [ ] `FEEDBACK_NOTIFY_EMAIL` *(optional)* — Adresse, an die eine Kopie jeder
       Produkt-Rückmeldung geht. Ohne die Variable landet das Feedback nur in
       der Tabelle `product_feedback`.
+- [ ] `SCHEDULING_TOKEN_KEY` — **Pflicht, sobald Kalender verbunden werden.**
+      32 Byte, base64 (`openssl rand -base64 32`). Verschlüsselt die
+      OAuth-Tokens der Kalenderkonten und signiert den OAuth-`state`. Ohne ihn
+      speichert Revetly bewusst gar keine Zugänge (fail-closed). **Nicht
+      tauschen**, sonst müssen alle Kunden ihren Kalender neu verbinden.
+- [ ] `GOOGLE_CALENDAR_CLIENT_ID` / `GOOGLE_CALENDAR_CLIENT_SECRET`
+      *(optional)* — Google-Workspace-Anbindung. Einrichtung siehe
+      `scripts/025_scheduling.md`.
+- [ ] `MICROSOFT_CALENDAR_CLIENT_ID` / `MICROSOFT_CALENDAR_CLIENT_SECRET` /
+      `MICROSOFT_CALENDAR_TENANT` *(optional)* — Microsoft-365-Anbindung.
 - [ ] `CRON_SECRET` — schützt die täglichen Cron-Jobs (`/api/cron/purge-candidates`
       um 03:00 und `/api/cron/calibrate-matching` um 04:00 UTC). Vercel sendet ihn
       als Bearer-Token an Cron-Aufrufe. In Vercel setzen; ohne ihn liefern die

@@ -8,7 +8,8 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // Anwendungsbereich und Bewerbungsformulare gehören nicht in den Index.
-      disallow: ["/api/", "/auth/", "/onboarding/", "/apply/"],
+      // Persönliche Buchungslinks (/termin/...) gehören ebenfalls nicht in den Index.
+      disallow: ["/api/", "/auth/", "/onboarding/", "/apply/", "/termin/"],
     },
     sitemap: absoluteUrl("/sitemap.xml"),
   }

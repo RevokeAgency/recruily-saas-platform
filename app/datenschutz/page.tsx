@@ -64,6 +64,14 @@ export default function DatenschutzPage() {
               <li>Aus den Unterlagen automatisiert extrahierte Angaben (Qualifikationen, Erfahrung, Skills) sowie ein KI-gestützter Match-Score</li>
               <li>Bei registrierten Kunden: Konto- und Abrechnungsdaten</li>
               <li>
+                Bei Terminbuchungen: gewählter Zeitpunkt sowie die vom Bewerber freiwillig
+                angegebene Telefonnummer und Nachricht. Verbindet ein Kunde seinen Google- oder
+                Microsoft-Kalender, fragt Revetly dort ausschließlich ab, wann er belegt ist
+                (Zeitspannen ohne Inhalte), und trägt gebuchte Termine ein. Google Ireland Ltd.
+                bzw. Microsoft Ireland Operations Ltd. sind insoweit Auftragsverarbeiter des
+                Kunden; ohne verbundenen Kalender findet diese Übermittlung nicht statt.
+              </li>
+              <li>
                 Bei registrierten Kunden: freiwillig abgegebene Rückmeldungen zum Produkt
                 (Bewertung und Freitext), verarbeitet zur Weiterentwicklung von Revetly auf
                 Grundlage unseres berechtigten Interesses (Art. 6 Abs. 1 lit. f DSGVO).
