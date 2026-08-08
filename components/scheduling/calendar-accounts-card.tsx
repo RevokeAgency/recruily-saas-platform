@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { AlertTriangle, CalendarSync, Link2Off, Loader2, ShieldCheck } from "lucide-react"
+import { AlertTriangle, CalendarSync, Check, Link2Off, Loader2, ShieldCheck, Stethoscope, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -28,6 +28,21 @@ export interface SchedulingSetup {
 
 const PROVIDER_LABEL = { google: "Google Workspace", microsoft: "Microsoft 365" } as const
 
+interface DiagnoseCheck {
+  name: string
+  ok: boolean
+  detail: string
+  hint?: string
+  verifiziert?: boolean
+}
+interface DiagnoseResult {
+  bereit: boolean
+  zusammenfassung: string
+  hinweisMicrosoft: string
+  pruefungen: DiagnoseCheck[]
+  weiterleitungsUris: { hinweis: string; google: string; microsoft: string }
+}
+
 export function CalendarAccountsCard({
   accounts,
   setup,
@@ -38,6 +53,22 @@ export function CalendarAccountsCard({
   onChanged: () => void
 }) {
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [diagnose, setDiagnose] = useState<DiagnoseResult | null>(null)
+  const [checking, setChecking] = useState(false)
+
+  const runDiagnose = async () => {
+    setChecking(true)
+    try {
+      const res = await fetch("/api/calendar/diagnose", { cache: "no-store" })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Prüfung fehlgeschlagen")
+      setDiagnose(data)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Prüfung fehlgeschlagen")
+    } finally {
+      setChecking(false)
+    }
+  }
 
   const toggle = async (id: string, field: "busyEnabled" | "writeEnabled", value: boolean) => {
     setBusyId(id)
@@ -188,7 +219,57 @@ export function CalendarAccountsCard({
               {accounts.some((a) => a.provider === "microsoft") ? "Weiteres Microsoft-Konto" : "Microsoft 365 verbinden"}
             </a>
           </Button>
+          <Button variant="ghost" onClick={runDiagnose} disabled={checking}>
+            {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Stethoscope className="h-4 w-4" />}
+            Einrichtung prüfen
+          </Button>
         </div>
+
+        {diagnose && (
+          <div className="space-y-3 rounded-xl border border-[var(--app-line)] p-4">
+            <p className="text-sm font-medium text-foreground">{diagnose.zusammenfassung}</p>
+
+            <ul className="space-y-2">
+              {diagnose.pruefungen.map((check) => (
+                <li key={check.name} className="flex gap-2.5 text-sm">
+                  {check.ok ? (
+                    <Check className="mt-0.5 h-4 w-4 flex-none text-[var(--rv-green-deep)]" strokeWidth={2.5} />
+                  ) : (
+                    <X className="mt-0.5 h-4 w-4 flex-none text-red-600" strokeWidth={2.5} />
+                  )}
+                  <div>
+                    <span className="font-medium text-foreground">{check.name}</span>
+                    {check.ok && check.verifiziert === false && (
+                      <Badge variant="outline" className="ml-2 align-middle text-[0.65rem]">
+                        nur Format
+                      </Badge>
+                    )}
+                    <span className="text-muted-foreground"> — {check.detail}</span>
+                    {check.hint && (
+                      <p className="mt-0.5 text-xs text-muted-foreground">{check.hint}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <p className="text-xs text-muted-foreground">{diagnose.hinweisMicrosoft}</p>
+
+            <div className="border-t border-[var(--app-line)] pt-3">
+              <p className="text-xs text-muted-foreground">{diagnose.weiterleitungsUris.hinweis}</p>
+              <div className="mt-2 space-y-1">
+                {(["google", "microsoft"] as const).map((p) => (
+                  <code
+                    key={p}
+                    className="block overflow-x-auto rounded-lg bg-[var(--rv-mist)] px-3 py-1.5 text-xs text-foreground"
+                  >
+                    {diagnose.weiterleitungsUris[p]}
+                  </code>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {(!setup.google || !setup.microsoft) && setup.encryptionReady && (
           <p className="text-xs text-muted-foreground">
