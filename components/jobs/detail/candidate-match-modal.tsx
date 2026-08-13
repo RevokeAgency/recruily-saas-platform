@@ -66,6 +66,13 @@ export interface MatchDetail {
     verifier?: { urteil: string; begruendung: string }
     capped?: boolean
   }>
+  /** Gesetzt, wenn eine formale Zulassungsvoraussetzung fehlt (Migration nicht nötig). */
+  zulassungsSperre?: {
+    cap: number | null
+    gewichteterScore: number
+    fehlend: { anforderung: string; grund: string }[]
+    teilweise: { anforderung: string; grund: string }[]
+  } | null
   verifierNote?: string
   dossierSummary?: string
   modelUsed?: string
@@ -633,6 +640,39 @@ export function CandidateMatchModal({
 
               {showFull ? (
                 <>
+                  {/* Zulassungssperre: steht bewusst ganz oben. Ohne diese
+                      Voraussetzung ist alles darunter zweitrangig. */}
+                  {candidate.match_detail?.zulassungsSperre && (
+                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
+                      <div className="flex items-start gap-2.5">
+                        <ShieldAlert className="mt-0.5 h-4.5 w-4.5 flex-none text-red-600" strokeWidth={2.2} />
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-red-900">
+                            {candidate.match_detail.zulassungsSperre.fehlend.length > 0
+                              ? "Zulassungsvoraussetzung nicht erfüllt"
+                              : "Zulassungsvoraussetzung nur teilweise belegt"}
+                          </p>
+                          <ul className="mt-2 space-y-1.5">
+                            {[
+                              ...candidate.match_detail.zulassungsSperre.fehlend,
+                              ...candidate.match_detail.zulassungsSperre.teilweise,
+                            ].map((e) => (
+                              <li key={e.anforderung} className="text-xs leading-relaxed text-red-800">
+                                <span className="font-medium">{e.anforderung}</span>
+                                {e.grund ? <span className="text-red-700"> — {e.grund}</span> : null}
+                              </li>
+                            ))}
+                          </ul>
+                          <p className="mt-2.5 text-[11px] leading-relaxed text-red-700">
+                            Der Gesamtscore ist deshalb auf {candidate.match_detail.zulassungsSperre.cap} gedeckelt.
+                            Die gewichtete Rechnung allein hätte {candidate.match_detail.zulassungsSperre.gewichteterScore} ergeben,
+                            weil starke Nebenkategorien die fehlende Voraussetzung sonst ausgleichen.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Career Prognosis */}
                   {candidate.career_prognosis && (
                     <CareerPrognosisBadge prognosis={candidate.career_prognosis} />

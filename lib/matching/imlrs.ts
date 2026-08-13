@@ -2,7 +2,13 @@ import { z } from "zod"
 import { generateStructured } from "@/lib/ai/generate"
 import { describeChain } from "@/lib/ai/provider"
 import { generateDossier, renderDossier, type CareerDossier } from "./dossier"
-import { computeHardFacts, renderHardFacts, hardFactCaps, type HardFacts } from "./hard-facts"
+import {
+  computeHardFacts,
+  renderHardFacts,
+  hardFactCaps,
+  zulassungsSperre,
+  type HardFacts,
+} from "./hard-facts"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // IMLRS 2.0 — evidence-based matching pipeline.
@@ -161,10 +167,22 @@ export interface CategoryDetail {
   capped?: boolean
 }
 
+/** Was die Zulassungssperre bewirkt hat, für Anzeige und Nachvollziehbarkeit. */
+export interface ZulassungsSperreDetail {
+  /** Obergrenze, auf die gedeckelt wurde. */
+  cap: number | null
+  /** Was ohne die Sperre herausgekommen wäre. */
+  gewichteterScore: number
+  fehlend: { anforderung: string; grund: string }[]
+  teilweise: { anforderung: string; grund: string }[]
+}
+
 export interface IMLRSMatchDetail {
   engine: "imlrs-2"
   categories: Record<CategoryKey, CategoryDetail>
   hardFacts: HardFacts
+  /** Gesetzt, wenn eine formale Zulassungsvoraussetzung fehlt. */
+  zulassungsSperre?: ZulassungsSperreDetail | null
   verifierNote: string
   dossierSummary: string
   /** Which weight profile aggregated the overall score (audit trail). */
@@ -375,9 +393,17 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
     detailCategories[key] = detail
   }
 
-  const overallScore = Math.round(
+  const gewichtet = Math.round(
     CATEGORY_KEYS.reduce((sum, key) => sum + categories[key].score * weights[key], 0),
   )
+
+  // ── Nicht-kompensatorische Ebene: Zulassungssperre ────────────────────────
+  // Die gewichtete Summe allein lässt Nebenkategorien eine fehlende
+  // Berufszulassung ausgleichen. Wer den Beruf nicht ausüben darf, darf auch
+  // keinen Score bekommen, der Eignung nahelegt.
+  const sperre = zulassungsSperre(hardFacts)
+  const overallScore =
+    sperre.cap != null ? Math.min(gewichtet, sperre.cap) : gewichtet
 
   // KO: only criteria the job actually defined count (model can't invent KOs).
   const definedKo = job.ko_criteria || []
@@ -388,6 +414,14 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
           definedKo.some((k) => k.trim().toLowerCase() === r.criterion.trim().toLowerCase()),
         )
 
+  // Eine fehlende Berufszulassung ist ein Ausschluss, auch wenn der Kunde
+  // keine eigenen K.O.-Kriterien gepflegt hat. Die Herkunft steht im Text,
+  // damit unterscheidbar bleibt, was der Kunde definiert hat und was die
+  // Stellenanzeige selbst verlangt.
+  const sperrGruende = sperre.fehlend.map(
+    (m) => `Zulassungsvoraussetzung nicht erfüllt: ${m.required}`,
+  )
+
   return {
     overallScore,
     categories,
@@ -396,13 +430,24 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
     interviewFocus: judged.interviewFocus,
     careerPrognosis: judged.careerPrognosis,
     prognosisReason: judged.prognosisReason,
-    knockout: koResults.some((r) => r.failed),
-    knockoutReasons: koResults.filter((r) => r.failed).map((r) => `${r.criterion}: ${r.reason}`),
+    knockout: koResults.some((r) => r.failed) || sperre.fehlend.length > 0,
+    knockoutReasons: [
+      ...koResults.filter((r) => r.failed).map((r) => `${r.criterion}: ${r.reason}`),
+      ...sperrGruende,
+    ],
     knockoutResults: koResults,
     detail: {
       engine: "imlrs-2",
       categories: detailCategories,
       hardFacts,
+      zulassungsSperre: sperre.verletzt
+        ? {
+            cap: sperre.cap,
+            gewichteterScore: gewichtet,
+            fehlend: sperre.fehlend.map((m) => ({ anforderung: m.required, grund: m.reasoning })),
+            teilweise: sperre.teilweise.map((m) => ({ anforderung: m.required, grund: m.reasoning })),
+          }
+        : null,
       verifierNote,
       dossierSummary: dossier?.summary ?? "Kein Dossier — Bewertung auf Basis der Strukturdaten.",
       weightsSource: tenantWeights ? "kunden-kalibriert" : "standard",
