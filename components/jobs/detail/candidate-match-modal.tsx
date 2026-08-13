@@ -143,10 +143,27 @@ const categories = [
   { key: "culture_score", detailKey: "culture", label: "Kultur", weight: 10, icon: Heart },
 ]
 
-const konfidenzMeta: Record<string, { dot: string; label: string }> = {
-  hoch: { dot: "bg-[var(--rv-green)]", label: "Konfidenz hoch" },
-  mittel: { dot: "bg-amber-400", label: "Konfidenz mittel" },
-  niedrig: { dot: "bg-red-400", label: "Konfidenz niedrig — im Interview klären" },
+// Zwei verschiedene Aussagen, zwei getrennte Darstellungen.
+//
+// Vorher trugen beide dieselbe Ampel: Der Balken zeigte den Score, der Punkt
+// daneben die Konfidenz. Bei „Hard Skills 20, Konfidenz hoch" stand dann ein
+// grüner Punkt neben einem roten Balken, weil das Modell sich sehr sicher war,
+// dass der Kandidat hier nicht passt. Inhaltlich richtig, als Bild aber
+// gelesen als Widerspruch.
+//
+// Jetzt gilt: Farbe heißt immer Score. Die Konfidenz steht als Wort daneben,
+// bewusst ohne Ampelfarbe, damit sie sich nicht mehr dazwischenfunkt.
+const konfidenzLabel: Record<string, string> = {
+  hoch: "Konfidenz hoch",
+  mittel: "Konfidenz mittel",
+  niedrig: "Konfidenz niedrig, im Interview klären",
+}
+
+/** Kurzform für die enge Zeile in der Übersicht. */
+const konfidenzKurz: Record<string, string> = {
+  hoch: "sicher",
+  mittel: "eher sicher",
+  niedrig: "unsicher",
 }
 
 // Get score color based on value
@@ -267,12 +284,21 @@ function CategoryBar({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <span className="flex items-center gap-1.5 text-xs font-medium text-foreground/85">
+            {/* Punkt und Balken zeigen dasselbe: den Score. */}
+            <span
+              title={`${score} von 100`}
+              className={`inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full ${getScoreBgColor(score)}`}
+            />
             {label}
-            {konfidenz && (
+            {/* Nur die unsichere Bewertung wird markiert. Sie ist die einzige,
+                aus der etwas folgt, nämlich im Interview nachzufragen. */}
+            {konfidenz === "niedrig" && (
               <span
-                title={konfidenzMeta[konfidenz]?.label}
-                className={`inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full ${konfidenzMeta[konfidenz]?.dot}`}
-              />
+                title={konfidenzLabel[konfidenz]}
+                className="rounded bg-[var(--muted)] px-1.5 py-0.5 text-[10px] font-normal text-muted-foreground"
+              >
+                {konfidenzKurz[konfidenz]}
+              </span>
             )}
           </span>
           <span className="text-[10px] text-muted-foreground/70 bg-[var(--muted)] px-1.5 py-0.5 rounded">
@@ -662,11 +688,22 @@ export function CandidateMatchModal({
                               {categories.map((cat) => {
                                 const d = candidate.match_detail?.categories?.[cat.detailKey]
                                 if (!d) return null
+                                // Denselben Score wie in der Übersicht nehmen, nicht d.rohScore:
+                                // Der Rohwert liegt vor der Prüfinstanz und würde von der
+                                // Balkenfarbe eine Zeile weiter oben abweichen.
+                                const catScore = (candidate[cat.key as keyof Candidate] as number | null) ?? 0
                                 return (
                                   <div key={cat.key} className="rounded-xl border border-black/[0.05] p-3">
-                                    <div className="mb-1 flex items-center gap-1.5">
-                                      <span className={`inline-block h-1.5 w-1.5 rounded-full ${konfidenzMeta[d.konfidenz]?.dot}`} />
+                                    <div className="mb-1 flex flex-wrap items-center gap-1.5">
+                                      <span
+                                        title={`${catScore} von 100`}
+                                        className={`inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full ${getScoreBgColor(catScore)}`}
+                                      />
                                       <span className="text-xs font-semibold text-foreground">{cat.label}</span>
+                                      <span className={`text-xs font-bold ${getScoreColor(catScore)}`}>{catScore}</span>
+                                      <span className="rounded-full bg-[var(--muted)] px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                        {konfidenzLabel[d.konfidenz] ?? d.konfidenz}
+                                      </span>
                                       {d.verifier && (
                                         <span className="rounded-full bg-[var(--muted)] px-1.5 py-0.5 text-[10px] text-muted-foreground">
                                           Prüfung: {d.verifier.urteil === "zu_hoch" ? "korrigiert ↓" : d.verifier.urteil === "zu_niedrig" ? "korrigiert ↑" : "bestätigt"}
