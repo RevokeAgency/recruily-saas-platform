@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { CalendarConnectButtons } from "./calendar-connect"
 
 export interface CalendarAccount {
   id: string
@@ -100,8 +101,6 @@ export function CalendarAccountsCard({
       setBusyId(null)
     }
   }
-
-  const canConnect = setup.encryptionReady
 
   return (
     <Card className="reveal s1">
@@ -208,17 +207,14 @@ export function CalendarAccountsCard({
           </div>
         )}
 
-        <div className="flex flex-wrap gap-3">
-          <Button variant="outline" asChild disabled={!canConnect || !setup.google}>
-            <a href="/api/calendar/connect/google">
-              {accounts.some((a) => a.provider === "google") ? "Weiteres Google-Konto" : "Google Workspace verbinden"}
-            </a>
-          </Button>
-          <Button variant="outline" asChild disabled={!canConnect || !setup.microsoft}>
-            <a href="/api/calendar/connect/microsoft">
-              {accounts.some((a) => a.provider === "microsoft") ? "Weiteres Microsoft-Konto" : "Microsoft 365 verbinden"}
-            </a>
-          </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Dieselbe Popup-Mechanik wie im Einladungs-Dialog, damit sich das
+              Verbinden an beiden Stellen gleich anfühlt. */}
+          <CalendarConnectButtons
+            verfuegbar={setup}
+            vorhanden={accounts.map((a) => a.provider)}
+            onConnected={onChanged}
+          />
           <Button variant="ghost" onClick={runDiagnose} disabled={checking}>
             {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Stethoscope className="h-4 w-4" />}
             Einrichtung prüfen

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   Sheet,
   SheetContent,
@@ -26,6 +26,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useProfile } from "@/lib/hooks/useProfile"
 import { hasFullScore } from "@/lib/quota"
 import { RejectionModal } from "@/components/ui/rejection-modal"
+import { CalendarConnectButtons } from "@/components/scheduling/calendar-connect"
 import { InterviewGuidePanel } from "./interview-guide-panel"
 import {
   Mail,
@@ -320,6 +321,10 @@ export function CandidateMatchModal({
   // Warum die Selbstbuchung nicht bereitsteht. Wird im Dialog angezeigt, statt
   // die Umschaltung wortlos verschwinden zu lassen.
   const [schedulingReason, setSchedulingReason] = useState<string | null>(null)
+  // Kalender-Zustand für den Verbinden-Schritt direkt im Dialog.
+  const [calendarConnected, setCalendarConnected] = useState<boolean | null>(null)
+  const [calendarSetup, setCalendarSetup] = useState({ google: false, microsoft: false, encryptionReady: false })
+  const [connectDismissed, setConnectDismissed] = useState(false)
   const [invited, setInvited] = useState(false)
   const [hired, setHired] = useState(false)
   const [markingHired, setMarkingHired] = useState(false)
@@ -366,11 +371,26 @@ export function CandidateMatchModal({
     setHired(candidate?.status === "Eingestellt")
   }, [candidate])
 
+  /** Kalender-Zustand holen. Auch nach dem Verbinden im Popup aufgerufen. */
+  const loadCalendarState = useCallback(async () => {
+    try {
+      const res = await fetch("/api/calendar/accounts", { cache: "no-store" })
+      if (!res.ok) return
+      const data = await res.json()
+      setCalendarConnected((data.accounts ?? []).length > 0)
+      setCalendarSetup(data.setup ?? { google: false, microsoft: false, encryptionReady: false })
+    } catch {
+      // Ohne Antwort wird der Verbinden-Schritt einfach nicht gezeigt.
+      setCalendarConnected(null)
+    }
+  }, [])
+
   // Terminarten erst laden, wenn der Dialog aufgeht. Fehlt Migration 025,
   // bleibt nur der feste Termin übrig und der Dialog verhält sich wie bisher.
   useEffect(() => {
     if (!inviteOpen) return
     let cancelled = false
+    void loadCalendarState()
     ;(async () => {
       try {
         const res = await fetch("/api/scheduling/meeting-types", { cache: "no-store" })
@@ -392,7 +412,7 @@ export function CandidateMatchModal({
       }
     })()
     return () => { cancelled = true }
-  }, [inviteOpen])
+  }, [inviteOpen, loadCalendarState])
 
   /** Persönlichen Buchungslink erzeugen und per Mail schicken. */
   const handleSendBookingLink = async () => {
@@ -887,6 +907,48 @@ export function CandidateMatchModal({
             <Label htmlFor="invite-candidate">Kandidat</Label>
             <Input id="invite-candidate" value={candidate.full_name} readOnly className="bg-[var(--muted)]/60" />
           </div>
+
+          {/* Kalender noch nicht verbunden? Dann hier verbinden, nicht in einem
+              Untermenü. Das Popup lässt diesen Dialog offen, danach füllt sich
+              der Zustand von selbst auf. Bewusst kein Zwang: Ohne Kalender
+              funktioniert die Buchung weiterhin. */}
+          {inviteMode === "link" &&
+            calendarConnected === false &&
+            !connectDismissed &&
+            calendarSetup.encryptionReady &&
+            (calendarSetup.google || calendarSetup.microsoft) && (
+              <div className="rounded-xl border border-[rgba(22,199,124,.35)] bg-[var(--app-green-wash)] p-4">
+                <p className="text-sm font-medium text-foreground">
+                  Kalender verbinden, dann passt der Termin sicher
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  Revetly sieht dann, wann du schon belegt bist, und trägt den gebuchten Termin
+                  direkt bei dir ein, samt Videolink. Dauert einmalig zwei Klicks und öffnet sich
+                  in einem kleinen Fenster, dieser Dialog bleibt offen.
+                </p>
+                <div className="mt-3">
+                  <CalendarConnectButtons
+                    verfuegbar={calendarSetup}
+                    size="sm"
+                    onConnected={loadCalendarState}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setConnectDismissed(true)}
+                  className="mt-2.5 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                >
+                  Ohne Kalender fortfahren
+                </button>
+              </div>
+            )}
+
+          {inviteMode === "link" && calendarConnected === true && (
+            <p className="flex items-center gap-1.5 text-xs text-[var(--rv-green-deep)]">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Kalender verbunden, belegte Zeiten werden berücksichtigt
+            </p>
+          )}
 
           {/* Steht die Selbstbuchung nicht bereit, sagen warum. Vorher
               verschwand die Umschaltung wortlos und der Dialog sah aus wie

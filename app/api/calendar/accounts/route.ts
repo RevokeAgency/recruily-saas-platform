@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server"
 
 import { createClient as createServer } from "@/lib/supabase/server"
+import { encryptionAvailable } from "@/lib/scheduling/crypto"
+import { providerConfigured } from "@/lib/scheduling/providers"
 import { adminClient } from "@/lib/scheduling/store"
 
 export const dynamic = "force-dynamic"
@@ -16,9 +18,20 @@ async function requireUser() {
 const PUBLIC_COLUMNS =
   "id, provider, account_email, busy_enabled, write_enabled, last_error, last_error_at, created_at"
 
+/**
+ * Verbundene Konten plus die Frage, welche Anbieter überhaupt eingerichtet
+ * sind. Beides in einer Antwort, damit der Einladungs-Dialog mit einem einzigen
+ * Aufruf entscheiden kann, ob er den Verbinden-Schritt zeigt.
+ */
 export async function GET() {
   const user = await requireUser()
   if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+
+  const setup = {
+    encryptionReady: encryptionAvailable(),
+    google: providerConfigured("google"),
+    microsoft: providerConfigured("microsoft"),
+  }
 
   const { data, error } = await adminClient()
     .from("calendar_accounts")
@@ -26,8 +39,17 @@ export async function GET() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: true })
 
-  if (error) return Response.json({ accounts: [] })
-  return Response.json({ accounts: data ?? [] })
+  if (error) {
+    // Fehlt Migration 025, gibt es schlicht noch keine Konten.
+    return Response.json({ accounts: [], setup, verfuegbar: false })
+  }
+
+  return Response.json({
+    accounts: data ?? [],
+    setup,
+    // Kann überhaupt jemand verbinden? Steuert, ob der Dialog den Schritt zeigt.
+    verfuegbar: setup.encryptionReady && (setup.google || setup.microsoft),
+  })
 }
 
 /** Belegtzeiten-Abgleich oder Schreibzugriff pro Konto umschalten. */
