@@ -317,6 +317,9 @@ export function CandidateMatchModal({
   const [meetingTypes, setMeetingTypes] = useState<{ id: string; name: string; durationMinutes: number; isDefault: boolean; active: boolean }[]>([])
   const [meetingTypeId, setMeetingTypeId] = useState<string>("")
   const [schedulingReady, setSchedulingReady] = useState(true)
+  // Warum die Selbstbuchung nicht bereitsteht. Wird im Dialog angezeigt, statt
+  // die Umschaltung wortlos verschwinden zu lassen.
+  const [schedulingReason, setSchedulingReason] = useState<string | null>(null)
   const [invited, setInvited] = useState(false)
   const [hired, setHired] = useState(false)
   const [markingHired, setMarkingHired] = useState(false)
@@ -371,17 +374,19 @@ export function CandidateMatchModal({
     ;(async () => {
       try {
         const res = await fetch("/api/scheduling/meeting-types", { cache: "no-store" })
-        if (!res.ok) throw new Error()
+        if (!res.ok) throw new Error("nicht_erreichbar")
         const data = await res.json()
         if (cancelled) return
         const active = (data.meetingTypes ?? []).filter((t: { active: boolean }) => t.active)
         setMeetingTypes(active)
         setMeetingTypeId(active.find((t: { isDefault: boolean }) => t.isDefault)?.id ?? active[0]?.id ?? "")
-        setSchedulingReady(active.length > 0)
-        if (active.length === 0) setInviteMode("fixed")
+        setSchedulingReady(data.verfuegbar === true)
+        setSchedulingReason(data.grund ?? null)
+        if (data.verfuegbar !== true) setInviteMode("fixed")
       } catch {
         if (!cancelled) {
           setSchedulingReady(false)
+          setSchedulingReason("nicht_erreichbar")
           setInviteMode("fixed")
         }
       }
@@ -883,6 +888,26 @@ export function CandidateMatchModal({
             <Input id="invite-candidate" value={candidate.full_name} readOnly className="bg-[var(--muted)]/60" />
           </div>
 
+          {/* Steht die Selbstbuchung nicht bereit, sagen warum. Vorher
+              verschwand die Umschaltung wortlos und der Dialog sah aus wie
+              vorher, ohne Hinweis worauf das zurückgeht. */}
+          {!schedulingReady && schedulingReason && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
+              {schedulingReason === "migration_fehlt" ? (
+                <>
+                  Die Terminplanung ist in der Datenbank noch nicht angelegt. Führe
+                  <code className="mx-1 rounded bg-amber-100 px-1">scripts/025_scheduling.sql</code>
+                  in Supabase aus, dann kann der Bewerber seinen Termin selbst wählen.
+                </>
+              ) : (
+                <>
+                  Die Terminplanung ist gerade nicht erreichbar. Du kannst weiterhin einen festen
+                  Termin vorgeben.
+                </>
+              )}
+            </p>
+          )}
+
           {/* Zwei Wege zum selben Ziel: Der Bewerber sucht sich eine Zeit aus,
               oder der Termin steht bereits fest. */}
           {schedulingReady && (
@@ -932,13 +957,14 @@ export function CandidateMatchModal({
                   Ohne E-Mail-Adresse lässt sich kein Buchungslink verschicken.
                 </p>
               )}
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs leading-relaxed text-muted-foreground">
                 {candidate.full_name.split(" ")[0]} bekommt eine E-Mail mit einem persönlichen Link
-                und wählt daraus eine Zeit. Der Termin landet danach in deinem Kalender und unter{" "}
+                und wählt daraus eine Zeit. Der Termin landet danach unter{" "}
                 <Link href="/termine" className="text-[var(--rv-green-deep)] hover:underline">
                   Termine
                 </Link>
-                .
+                . Deinen Google- oder Microsoft-Kalender verbindest du einmalig ebenfalls dort,
+                nicht hier bei jeder Einladung. Ohne Verbindung funktioniert die Buchung trotzdem.
               </p>
             </>
           ) : (

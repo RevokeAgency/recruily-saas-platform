@@ -1,7 +1,12 @@
 import { NextRequest } from "next/server"
 
 import { createClient as createServer } from "@/lib/supabase/server"
-import { adminClient, loadMeetingTypes, mapMeetingType } from "@/lib/scheduling/store"
+import {
+  adminClient,
+  ensureDefaultMeetingType,
+  loadMeetingTypes,
+  mapMeetingType,
+} from "@/lib/scheduling/store"
 import type { LocationKind } from "@/lib/scheduling/types"
 
 export const dynamic = "force-dynamic"
@@ -58,10 +63,43 @@ async function clearOtherDefaults(userId: string, keepId: string) {
     .neq("id", keepId)
 }
 
+/**
+ * Terminarten des Kunden.
+ *
+ * Legt bei Bedarf die erste an. Ohne das hätte jeder, der noch nie auf der
+ * Termine-Seite war, eine leere Liste, und der Einladungs-Dialog im
+ * Job-Container wäre stillschweigend auf den festen Termin zurückgefallen.
+ *
+ * `verfuegbar` und `grund` sagen dem Aufrufer, woran es liegt, wenn nichts
+ * zurückkommt. Vorher war „Migration fehlt" von „noch keine Terminart"
+ * nicht unterscheidbar, weil beides eine leere Liste ergab.
+ */
 export async function GET() {
   const user = await requireUser()
   if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
-  return Response.json({ meetingTypes: await loadMeetingTypes(adminClient(), user.id) })
+
+  const db = adminClient()
+
+  // Direkt anfragen statt über loadMeetingTypes: Nur so ist der Fehler einer
+  // fehlenden Migration sichtbar, der Helfer verschluckt ihn.
+  const probe = await db.from("meeting_types").select("id").eq("user_id", user.id).limit(1)
+  if (probe.error) {
+    console.error("[scheduling] meeting_types nicht lesbar:", probe.error.message)
+    return Response.json({
+      meetingTypes: [],
+      verfuegbar: false,
+      grund: "migration_fehlt",
+    })
+  }
+
+  await ensureDefaultMeetingType(db, user.id)
+  const meetingTypes = await loadMeetingTypes(db, user.id)
+
+  return Response.json({
+    meetingTypes,
+    verfuegbar: meetingTypes.some((t) => t.active),
+    grund: meetingTypes.some((t) => t.active) ? null : "keine_terminart",
+  })
 }
 
 export async function POST(req: NextRequest) {
