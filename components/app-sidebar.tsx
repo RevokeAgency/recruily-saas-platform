@@ -37,7 +37,7 @@ const navigation = [
   { name: "Stellenangebote", href: "/jobs", icon: Briefcase },
   { name: "Kandidaten", href: "/candidates", icon: Users },
   { name: "Posteingang", href: "/inbox", icon: Inbox },
-  { name: "Termine", href: "/termine", icon: CalendarDays },
+  { name: "Kalender", href: "/termine", icon: CalendarDays },
   { name: "Abonnement", href: "/subscription", icon: CreditCard },
   { name: "Einstellungen", href: "/settings", icon: Settings },
 ]

@@ -6,7 +6,6 @@ import { AlertTriangle, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { PageHero } from "@/components/app/page-hero"
-import { RevealGroup } from "@/components/app/reveal-group"
 import { AvailabilityCard } from "@/components/scheduling/availability-card"
 import {
   CalendarAccountsCard,
@@ -98,7 +97,7 @@ export default function TerminePage() {
       <div className="relative min-h-full">
         <div className="flex flex-col gap-8 p-6 lg:p-8">
           <PageHero
-            eyebrow="Termine"
+            eyebrow="Kalender"
             title="Kalender & Buchungen"
             subtitle="Bewerber buchen selbst einen Termin aus deinen freien Zeiten."
           />
@@ -119,9 +118,12 @@ export default function TerminePage() {
 
   return (
     <div className="relative min-h-full overflow-hidden">
-      <RevealGroup className="relative z-[1] flex flex-col gap-8 p-6 lg:p-8">
+      {/* Bewusst ohne RevealGroup: Der Kalender ist eine Arbeitsfläche, die
+          man mehrmals am Tag öffnet. Karten, die beim Scrollen erst
+          eingeblendet werden, halten dabei nur auf. */}
+      <div className="relative z-[1] flex flex-col gap-8 p-6 lg:p-8">
         <PageHero
-          eyebrow="Termine"
+          eyebrow="Kalender"
           title="Kalender & Buchungen"
           subtitle="Lege fest, wann du Zeit hast. Bewerber wählen selbst einen Termin, du bekommst ihn in den Kalender."
         />
@@ -141,7 +143,7 @@ export default function TerminePage() {
           hasCalendar={accounts.some((a) => a.write_enabled)}
           onChanged={load}
         />
-      </RevealGroup>
+      </div>
     </div>
   )
 }

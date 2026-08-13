@@ -91,7 +91,7 @@ export function AvailabilityCard({
   }
 
   return (
-    <Card className="reveal s2">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Clock className="h-5 w-5" />

@@ -24,6 +24,7 @@ const navigation = [
   { name: "Stellenangebote", href: "/jobs" },
   { name: "Kandidaten", href: "/candidates" },
   { name: "Posteingang", href: "/inbox" },
+  { name: "Kalender", href: "/termine" },
   { name: "Abonnement", href: "/subscription" },
   { name: "Einstellungen", href: "/settings" },
 ]

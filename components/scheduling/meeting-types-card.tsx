@@ -134,7 +134,7 @@ export function MeetingTypesCard({
 
   return (
     <>
-      <Card className="reveal s3">
+      <Card>
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
