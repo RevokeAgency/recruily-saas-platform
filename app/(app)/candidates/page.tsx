@@ -25,9 +25,9 @@ export default function CandidatesPage() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
-        <div className="reveal">
-          <CandidatesList filter={filter} searchQuery={searchQuery} />
-        </div>
+        {/* Ohne reveal: Eine Arbeitsliste soll sofort da sein, nicht erst
+            eingeblendet werden. */}
+        <CandidatesList filter={filter} searchQuery={searchQuery} />
       </RevealGroup>
     </div>
   )

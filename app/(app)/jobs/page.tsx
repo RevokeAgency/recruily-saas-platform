@@ -20,9 +20,8 @@ function JobsPageContent() {
   return (
     <>
       <JobsHeader onRefresh={() => refresh()} />
-      <div className="reveal">
-        <JobsList />
-      </div>
+      {/* Ohne reveal: Eine Arbeitsliste soll sofort da sein. */}
+      <JobsList />
     </>
   )
 }
