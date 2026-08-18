@@ -1,5 +1,4 @@
-import { Resend } from "resend"
-
+import { escapeHtml, sendMail, shell, type MailAttachment } from "./client"
 import { buildIcs } from "@/lib/scheduling/ics"
 import { formatInZone, zoneAbbreviation } from "@/lib/scheduling/timezone"
 import { LOCATION_LABELS, type LocationKind } from "@/lib/scheduling/types"
@@ -9,33 +8,6 @@ import { LOCATION_LABELS, type LocationKind } from "@/lib/scheduling/types"
 // Alle Funktionen sind best-effort und geben false zurück statt zu werfen,
 // damit eine Buchung nie an einem Mailfehler scheitert.
 
-const FROM = "Revetly <karriere@revetly.ai>"
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-}
-
-function shell(companyName: string, bodyHtml: string): string {
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-      <div style="margin-bottom: 32px;">
-        <span style="background: #16C77C; color: #0C1A16; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;">
-          ${escapeHtml(companyName)}
-        </span>
-      </div>
-      <div style="color: #334155; line-height: 1.7; font-size: 15px;">
-        ${bodyHtml}
-      </div>
-      <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 11px;">
-        Powered by REVETLY — revetly.ai
-      </div>
-    </div>
-  `
-}
 
 function button(href: string, label: string): string {
   return `
@@ -45,11 +17,6 @@ function button(href: string, label: string): string {
       </a>
     </p>
   `
-}
-
-function resend(): Resend | null {
-  if (!process.env.RESEND_API_KEY) return null
-  return new Resend(process.env.RESEND_API_KEY)
 }
 
 /** Ort des Termins als lesbare Zeile, für Mail und Kalendereintrag. */
@@ -88,8 +55,7 @@ export async function sendBookingInvite(opts: {
   expiresAt: Date
   timezone: string
 }): Promise<boolean> {
-  const client = resend()
-  if (!client || !opts.to) return false
+  if (!opts.to) return false
 
   const company = (opts.companyName || "Revetly").trim()
   const greeting = opts.candidateName?.trim() ? `Hallo ${escapeHtml(opts.candidateName.trim())},` : "Hallo,"
@@ -117,18 +83,14 @@ export async function sendBookingInvite(opts: {
     <p style="margin: 24px 0 0;">Freundliche Grüße<br>${escapeHtml(company)}</p>
   `
 
-  try {
-    await client.emails.send({
-      from: FROM,
+  return sendMail(
+    {
       to: opts.to,
       subject: job ? `Terminvorschlag: Gespräch zur Stelle ${job}` : "Terminvorschlag für ein Gespräch",
       html: shell(company, body),
-    })
-    return true
-  } catch (err) {
-    console.error("[email] Buchungseinladung fehlgeschlagen:", err)
-    return false
-  }
+    },
+    "Buchungseinladung",
+  )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -178,13 +140,21 @@ function icsFor(ctx: BookingMailContext, method: "REQUEST" | "CANCEL"): string {
   })
 }
 
+/** ICS als Anhang, korrekt ausgezeichnet, damit Mailprogramme es als Termin erkennen. */
+function icsAnhang(ctx: BookingMailContext, method: "REQUEST" | "CANCEL"): MailAttachment {
+  return {
+    filename: method === "CANCEL" ? "absage.ics" : "termin.ics",
+    content: Buffer.from(icsFor(ctx, method)).toString("base64"),
+    contentType: `text/calendar; method=${method}; charset=utf-8`,
+  }
+}
+
 function whenLine(ctx: BookingMailContext): string {
   return `${formatInZone(ctx.start, ctx.timezone)} Uhr (${zoneAbbreviation(ctx.start, ctx.timezone)})`
 }
 
 export async function sendBookingConfirmation(ctx: BookingMailContext): Promise<boolean> {
-  const client = resend()
-  if (!client || !ctx.candidateEmail) return false
+  if (!ctx.candidateEmail) return false
 
   const company = (ctx.companyName || "Revetly").trim()
   const greeting = ctx.candidateName?.trim() ? `Hallo ${escapeHtml(ctx.candidateName.trim())},` : "Hallo,"
@@ -207,31 +177,20 @@ export async function sendBookingConfirmation(ctx: BookingMailContext): Promise<
     <p style="margin: 24px 0 0;">Freundliche Grüße<br>${escapeHtml(company)}</p>
   `
 
-  try {
-    await client.emails.send({
-      from: FROM,
+  return sendMail(
+    {
       to: ctx.candidateEmail,
       subject: `Termin bestätigt: ${formatInZone(ctx.start, ctx.timezone)} Uhr`,
       html: shell(company, body),
-      attachments: [
-        {
-          filename: "termin.ics",
-          content: Buffer.from(icsFor(ctx, "REQUEST")).toString("base64"),
-          contentType: "text/calendar; method=REQUEST; charset=utf-8",
-        },
-      ],
-    })
-    return true
-  } catch (err) {
-    console.error("[email] Terminbestätigung fehlgeschlagen:", err)
-    return false
-  }
+      attachments: [icsAnhang(ctx, "REQUEST")],
+    },
+    "Terminbestätigung",
+  )
 }
 
 /** Kurze Mitteilung an den Recruiter, wenn ein Bewerber gebucht hat. */
 export async function sendRecruiterBookingNotice(ctx: BookingMailContext): Promise<boolean> {
-  const client = resend()
-  if (!client || !ctx.recruiterEmail) return false
+  if (!ctx.recruiterEmail) return false
 
   const body = `
     <p style="margin: 0 0 16px;">
@@ -245,33 +204,22 @@ export async function sendRecruiterBookingNotice(ctx: BookingMailContext): Promi
     </table>
   `
 
-  try {
-    await client.emails.send({
-      from: FROM,
+  return sendMail(
+    {
       to: ctx.recruiterEmail,
       subject: `Neuer Termin: ${ctx.candidateName || "Bewerber"} am ${formatInZone(ctx.start, ctx.timezone)}`,
       html: shell("Revetly", body),
-      attachments: [
-        {
-          filename: "termin.ics",
-          content: Buffer.from(icsFor(ctx, "REQUEST")).toString("base64"),
-          contentType: "text/calendar; method=REQUEST; charset=utf-8",
-        },
-      ],
-    })
-    return true
-  } catch (err) {
-    console.error("[email] Recruiter-Benachrichtigung fehlgeschlagen:", err)
-    return false
-  }
+      attachments: [icsAnhang(ctx, "REQUEST")],
+    },
+    "Recruiter-Benachrichtigung",
+  )
 }
 
 export async function sendBookingCancellation(
   ctx: BookingMailContext,
   opts: { to: string; byRecruiter: boolean; reason?: string | null; rebookUrl?: string | null },
 ): Promise<boolean> {
-  const client = resend()
-  if (!client || !opts.to) return false
+  if (!opts.to) return false
 
   const company = (ctx.companyName || "Revetly").trim()
   const body = `
@@ -289,23 +237,13 @@ export async function sendBookingCancellation(
     <p style="margin: 24px 0 0;">Freundliche Grüße<br>${escapeHtml(company)}</p>
   `
 
-  try {
-    await client.emails.send({
-      from: FROM,
+  return sendMail(
+    {
       to: opts.to,
       subject: `Termin abgesagt: ${formatInZone(ctx.start, ctx.timezone)} Uhr`,
       html: shell(company, body),
-      attachments: [
-        {
-          filename: "absage.ics",
-          content: Buffer.from(icsFor({ ...ctx, sequence: (ctx.sequence ?? 0) + 1 }, "CANCEL")).toString("base64"),
-          contentType: "text/calendar; method=CANCEL; charset=utf-8",
-        },
-      ],
-    })
-    return true
-  } catch (err) {
-    console.error("[email] Absagemail fehlgeschlagen:", err)
-    return false
-  }
+      attachments: [icsAnhang({ ...ctx, sequence: (ctx.sequence ?? 0) + 1 }, "CANCEL")],
+    },
+    "Absagemail",
+  )
 }

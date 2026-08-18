@@ -100,6 +100,9 @@ export default function DatenschutzPage() {
               Zahlungsabwicklung. Mit diesen bestehen Verträge zur Auftragsverarbeitung.
             </p>
             <p className="mt-2">
+              Der <strong>E-Mail-Versand erfolgt über Lettermint (Europa)</strong>.
+            </p>
+            <p className="mt-2">
               Die <strong>KI-gestützte Auswertung erfolgt bei Mistral AI (Frankreich)</strong> und
               damit innerhalb der EU. Bewerbungsunterlagen werden ausschließlich zur Erstellung
               der Analyse verarbeitet und dort nicht zum Training fremder Modelle verwendet.

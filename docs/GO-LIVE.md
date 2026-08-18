@@ -22,8 +22,8 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
       `https://revetly.ai` (Confirm-/Reset-Mail-Links).
 - [ ] **Supabase Auth E-Mail-Templates**: absolute Links prüfen.
 - [ ] **EmailConnect / Inbound**: Inbound-Adressen/DNS auf die Live-Domain.
-- [ ] **Resend**: Absenderdomain `revetly.ai` verifizieren (SPF/DKIM), damit
-      Auto-Reply / Interview / Absage nicht im Spam landen.
+- [ ] **Lettermint**: Absenderdomain `revetly.ai` verifizieren (SPF/DKIM), damit
+      Auto-Reply / Interview / Absage / Terminmails nicht im Spam landen.
 - [ ] **`NEXT_PUBLIC_SITE_URL`** auf `https://revetly.ai` setzen. Daraus bauen
       sich `metadataBase`, die canonical-Links der Blog-Beiträge, `robots.txt`
       und `sitemap.xml`. Ohne die Variable greift der Default `revetly.ai`,
@@ -87,6 +87,11 @@ Reihenfolge egal, alle additiv:
       Kalenderkonten. Einrichtung der OAuth-Apps siehe
       `scripts/025_scheduling.md`. Ohne diese Migration zeigt `/termine` einen
       Hinweis, der Rest der Anwendung läuft unverändert.
+- [ ] `scripts/026_rate_limits.sql` — Missbrauchsschutz für die öffentlichen
+      Endpunkte: Tabelle `rate_limits` plus die Funktionen
+      `consume_rate_limit()` und `purge_rate_limits()`. Ohne diese Migration
+      zählt nichts und alle Zugriffe werden durchgelassen (bewusst
+      fail-open), die Datei- und Doppelbewerbungsprüfungen greifen trotzdem.
 - [ ] `scripts/024_product_feedback.sql` — Produktumfrage nach den ersten
       Matches: Lebenszeit-Zähler (`user_profiles.matches_lifetime`, wird von
       `consume_match()` mitgeführt), Zustand der Abfrage und die Tabelle
@@ -101,7 +106,17 @@ Reihenfolge egal, alle additiv:
 - [ ] `STRIPE_WEBHOOK_SECRET` = `whsec_…` (aus dem **Live**-Webhook)
 - [ ] `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
       `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- [ ] `RESEND_API_KEY`
+- [ ] `LETTERMINT_API_TOKEN` — **Mailversand.** Lettermint (Europa), löst Resend
+      (USA) ab. Solange der Token fehlt und `RESEND_API_KEY` noch gesetzt ist,
+      läuft der Versand weiter über Resend; das ist die Brücke für den Umstieg.
+      Nach dem Wechsel `RESEND_API_KEY` entfernen.
+- [ ] `MAIL_FROM` *(optional)* — Absender, Standard
+      `Revetly <karriere@revetly.ai>`. Die Domain muss bei Lettermint
+      verifiziert sein (SPF/DKIM), sonst wird abgelehnt.
+- [ ] `LETTERMINT_ROUTE` *(optional)* — Route/Projekt bei Lettermint.
+- [ ] `RATE_LIMIT_SALT` — Pfeffer für die Pseudonymisierung der IP-Adressen im
+      Missbrauchsschutz. Ohne ihn werden Adressen zwar gehasht, ließen sich aber
+      mit dem IPv4-Raum durchprobieren. `openssl rand -hex 16`.
 - [ ] `INBOUND_WEBHOOK_SECRET` (EmailConnect-Signatur)
 - [ ] `FEEDBACK_NOTIFY_EMAIL` *(optional)* — Adresse, an die eine Kopie jeder
       Produkt-Rückmeldung geht. Ohne die Variable landet das Feedback nur in
@@ -149,6 +164,8 @@ Reihenfolge egal, alle additiv:
       (Konstante `RETENTION_DAYS` in `app/api/cron/purge-candidates/route.ts`).
 - [ ] Self-Service-Löschung testen: `/datenschutz/loeschung` → Mail →
       Bestätigen → Datensatz + Storage weg.
+- [ ] **AVV mit Lettermint abschließen** und in die Auftragsverarbeiter-Liste
+      aufnehmen. Damit liegt auch der Mailkanal in der EU.
 - [ ] **AVV mit Mistral AI abschließen** (Data Processing Agreement) und in die
       Auftragsverarbeiter-Liste aufnehmen. Ebenso prüfen: eigener AVV mit den
       Kunden (Revetly ist bezüglich Bewerberdaten Auftragsverarbeiter).

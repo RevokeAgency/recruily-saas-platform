@@ -1,39 +1,7 @@
-import { Resend } from "resend"
+import { escapeHtml, sendMail, shell } from "./client"
 
-// Central outbound-email helper. Keeps the branded Revetly wrapper in one place
-// so every transactional mail (auto-reply, rejection, invite) looks identical.
-//
-// NOTE: currently backed by Resend (US). The EU-conform provider swap is a
-// separate roadmap item — only this file needs to change when we switch.
-
-const FROM = "Revetly <karriere@revetly.ai>"
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-}
-
-// Wraps a body (already-escaped HTML) in the shared Revetly shell.
-function shell(companyName: string, bodyHtml: string): string {
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-      <div style="margin-bottom: 32px;">
-        <span style="background: #16C77C; color: #0C1A16; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;">
-          ${escapeHtml(companyName)}
-        </span>
-      </div>
-      <div style="color: #334155; line-height: 1.7; font-size: 15px;">
-        ${bodyHtml}
-      </div>
-      <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 11px;">
-        Powered by REVETLY — revetly.ai
-      </div>
-    </div>
-  `
-}
+// Transaktionsmails rund um die Bewerbung. Der Versand selbst liegt in
+// ./client.ts (Lettermint, Europa) — hier stehen nur noch die Inhalte.
 
 /**
  * Application-received confirmation ("Eingangsbestätigung") sent to the
@@ -47,7 +15,7 @@ export async function sendApplicationReceived(opts: {
   companyName?: string | null
 }): Promise<boolean> {
   const to = opts.to?.trim()
-  if (!to || !process.env.RESEND_API_KEY) return false
+  if (!to) return false
 
   const company = (opts.companyName || "Revetly").trim()
   const job = (opts.jobTitle || "die ausgeschriebene Stelle").trim()
@@ -69,19 +37,10 @@ export async function sendApplicationReceived(opts: {
     <p style="margin: 24px 0 0;">Freundliche Grüße<br>${escapeHtml(company)}</p>
   `
 
-  try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    await resend.emails.send({
-      from: FROM,
-      to,
-      subject: `Eingangsbestätigung: Ihre Bewerbung als ${job}`,
-      html: shell(company, body),
-    })
-    return true
-  } catch (err) {
-    console.error("[email] application-received send failed:", err)
-    return false
-  }
+  return sendMail(
+    { to, subject: `Eingangsbestätigung: Ihre Bewerbung als ${job}`, html: shell(company, body) },
+    "Eingangsbestätigung",
+  )
 }
 
 /**
@@ -99,7 +58,7 @@ export async function sendProductFeedbackNotice(opts: {
   featureWish?: string | null
 }): Promise<boolean> {
   const to = process.env.FEEDBACK_NOTIFY_EMAIL?.trim()
-  if (!to || !process.env.RESEND_API_KEY) return false
+  if (!to) return false
 
   const row = (label: string, value?: string | null) =>
     value
@@ -119,19 +78,10 @@ export async function sendProductFeedbackNotice(opts: {
     ${row("Feature-Wunsch", opts.featureWish)}
   `
 
-  try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    await resend.emails.send({
-      from: FROM,
-      to,
-      subject: `Produkt-Feedback (${stars}) von ${opts.customer}`,
-      html: shell("Revetly", body),
-    })
-    return true
-  } catch (err) {
-    console.error("[email] product-feedback notice send failed:", err)
-    return false
-  }
+  return sendMail(
+    { to, subject: `Produkt-Feedback (${stars}) von ${opts.customer}`, html: shell("Revetly", body) },
+    "Produkt-Feedback",
+  )
 }
 
 /**
@@ -143,7 +93,7 @@ export async function sendDeletionConfirmation(opts: {
   to: string
   confirmUrl: string
 }): Promise<boolean> {
-  if (!opts.to || !process.env.RESEND_API_KEY) return false
+  if (!opts.to) return false
 
   const body = `
     <p style="margin: 0 0 16px;">Hallo,</p>
@@ -163,17 +113,8 @@ export async function sendDeletionConfirmation(opts: {
     <p style="margin: 24px 0 0;">Freundliche Grüße<br>Revetly</p>
   `
 
-  try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    await resend.emails.send({
-      from: FROM,
-      to: opts.to,
-      subject: "Löschung deiner Bewerberdaten bestätigen",
-      html: shell("Revetly", body),
-    })
-    return true
-  } catch (err) {
-    console.error("[email] deletion-confirmation send failed:", err)
-    return false
-  }
+  return sendMail(
+    { to: opts.to, subject: "Löschung deiner Bewerberdaten bestätigen", html: shell("Revetly", body) },
+    "Löschbestätigung",
+  )
 }

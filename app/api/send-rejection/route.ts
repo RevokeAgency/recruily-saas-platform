@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import { mailProvider, sendMail } from '@/lib/email/client'
 import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.RESEND_API_KEY) {
+    if (!mailProvider()) {
       return NextResponse.json(
         { error: 'Email service not configured' },
         { status: 503 }
       )
     }
-    const resend = new Resend(process.env.RESEND_API_KEY)
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -54,8 +53,7 @@ ${companyName}`
 
     const emailText = customText || defaultText
 
-    await resend.emails.send({
-      from: 'karriere@revetly.ai',
+    await sendMail({
       to: candidateEmail,
       subject: `Ihre Bewerbung als ${jobTitle} bei ${companyName}`,
       html: `
@@ -73,7 +71,7 @@ ${companyName}`
           </div>
         </div>
       `,
-    })
+    }, 'Absage')
 
     return NextResponse.json({ success: true })
   } catch (error) {

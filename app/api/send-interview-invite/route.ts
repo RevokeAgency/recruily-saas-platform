@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import { mailProvider, sendMail } from '@/lib/email/client'
 import { createClient } from '@/lib/supabase/server'
 
 function generateICS(
@@ -68,7 +68,7 @@ function googleCalendarUrl(
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.RESEND_API_KEY) {
+    if (!mailProvider()) {
       return NextResponse.json({ error: 'Email service not configured' }, { status: 503 })
     }
 
@@ -107,16 +107,14 @@ export async function POST(req: Request) {
     const [year, month, day] = date.split('-')
     const displayDate = `${day}.${month}.${year}`
 
-    const resend = new Resend(process.env.RESEND_API_KEY)
-
-    await resend.emails.send({
-      from: 'karriere@revetly.ai',
+    await sendMail({
       to: candidateEmail,
       subject: `Einladung zum Interview: ${jobTitle} bei ${companyName}`,
       attachments: [
         {
           filename: 'interview-einladung.ics',
           content: icsBase64,
+          contentType: 'text/calendar; method=REQUEST; charset=utf-8',
         },
       ],
       html: `
@@ -201,7 +199,7 @@ export async function POST(req: Request) {
           </div>
         </div>
       `,
-    })
+    }, 'Interview-Einladung')
 
     return NextResponse.json({ success: true })
   } catch (error) {
