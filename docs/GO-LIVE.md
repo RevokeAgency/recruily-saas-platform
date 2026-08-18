@@ -87,6 +87,11 @@ Reihenfolge egal, alle additiv:
       Kalenderkonten. Einrichtung der OAuth-Apps siehe
       `scripts/025_scheduling.md`. Ohne diese Migration zeigt `/termine` einen
       Hinweis, der Rest der Anwendung läuft unverändert.
+- [ ] `scripts/027_error_monitoring.sql` — Fehler-Monitoring: Tabellen
+      `error_events` und `error_groups` plus `record_error()`,
+      `mark_error_notified()` und `purge_error_events()`. Ohne diese Migration
+      bleibt es beim bisherigen Verhalten (nur console.error), die Anwendung
+      läuft unverändert.
 - [ ] `scripts/026_rate_limits.sql` — Missbrauchsschutz für die öffentlichen
       Endpunkte: Tabelle `rate_limits` plus die Funktionen
       `consume_rate_limit()` und `purge_rate_limits()`. Ohne diese Migration
@@ -114,6 +119,13 @@ Reihenfolge egal, alle additiv:
       `Revetly <karriere@revetly.ai>`. Die Domain muss bei Lettermint
       verifiziert sein (SPF/DKIM), sonst wird abgelehnt.
 - [ ] `LETTERMINT_ROUTE` *(optional)* — Route/Projekt bei Lettermint.
+- [ ] `ERROR_NOTIFY_EMAIL` — Adresse für Fehlermeldungen. Sofort bei einer
+      NEUEN Fehlerart, dazu ein Tagesbericht um 06:00 UTC. Ohne die Variable
+      werden Fehler zwar gesammelt, aber niemand erfährt davon.
+- [ ] `MONITORING_ADMIN_EMAIL` — kommagetrennte Liste der Konten, die
+      `/api/monitoring/errors` sehen dürfen. Ohne die Variable ist der
+      Endpunkt für alle gesperrt (fail-closed). Fehler sind Betriebsdaten und
+      gehören nicht in die Kundenansicht.
 - [ ] `RATE_LIMIT_SALT` — Pfeffer für die Pseudonymisierung der IP-Adressen im
       Missbrauchsschutz. Ohne ihn werden Adressen zwar gehasht, ließen sich aber
       mit dem IPv4-Raum durchprobieren. `openssl rand -hex 16`.
@@ -134,7 +146,8 @@ Reihenfolge egal, alle additiv:
 - [ ] `CRON_SECRET` — schützt die täglichen Cron-Jobs (`/api/cron/purge-candidates`
       um 03:00 und `/api/cron/calibrate-matching` um 04:00 UTC). Vercel sendet ihn
       als Bearer-Token an Cron-Aufrufe. In Vercel setzen; ohne ihn liefern die
-      Endpoints 401 (fail-closed).
+      Endpoints 401 (fail-closed). Seit dem Fehler-Monitoring kommt
+      `/api/cron/error-digest` um 06:00 UTC dazu.
 - [ ] `MISTRAL_API_KEY` — **Pflicht.** Standard-KI-Provider (Mistral AI,
       Frankreich). Ohne diesen Key läuft kein Matching.
 - [ ] `AI_MODEL_REASONING` / `AI_MODEL_EXTRACTION` / `AI_MODEL_UTILITY` /
@@ -176,6 +189,19 @@ Reihenfolge egal, alle additiv:
 - [ ] Vor dem ersten Fine-Tune: Export stichprobenartig auf Restdaten prüfen
       (`/api/training/export?task=judge&stats=1` und eine Zeile des JSONL
       manuell ansehen).
+
+---
+
+## Betrieb
+
+- [ ] Fehler-Monitoring einmal auslösen und prüfen, dass die Mail ankommt:
+      eine beliebige App-Seite mit fehlerhaftem Zustand aufrufen oder
+      `/api/telemetry/error` mit `{"message":"Testfehler"}` anstoßen. Danach
+      sollte die Gruppe unter `/api/monitoring/errors` stehen.
+- [ ] Fehlermeldungen werden vor dem Speichern pseudonymisiert
+      (`lib/training/anonymize.ts`). Vor dem Launch stichprobenartig eine
+      Zeile aus `error_events` ansehen und bestätigen, dass keine
+      Bewerberdaten darin stehen.
 
 ---
 

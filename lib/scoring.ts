@@ -3,6 +3,7 @@ import { createClient as createAdmin } from "@supabase/supabase-js"
 import { runIMLRSMatch } from "@/lib/matching/imlrs"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { extractDocumentText } from "@/lib/cv-parse"
+import { captureAndNotify } from "@/lib/monitoring/capture"
 
 const roundScore = (s: number | undefined | null): number | null =>
   s == null ? null : Math.round(s)
@@ -218,7 +219,9 @@ export async function scoreJobCandidateLink(
     // extraction was fixed). Best-effort; runs only when no photo is stored.
     await backfillCandidatePhoto(candidate)
   } catch (err) {
-    console.error("scoreJobCandidateLink failed:", err)
+    // Genau dieser Fall landet beim Kunden als Status "Fehler". Bisher stand
+    // er nur im Log, und niemand hat davon erfahren.
+    await captureAndNotify(err, { route: "scoreJobCandidateLink", extra: { linkId } })
     const reason = err instanceof Error ? err.message : String(err)
     await supabase.from("job_candidates").update({ status: "error" }).eq("id", linkId)
     // Persist WHY it failed so "Fehler" is diagnosable in the UI instead of

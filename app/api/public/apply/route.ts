@@ -5,6 +5,7 @@ import { scoreJobCandidateLink } from "@/lib/scoring"
 import { parseCvBuffer, isUsableCandidate, isPdfFile, extractDocumentText } from "@/lib/cv-parse"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { sendApplicationReceived } from "@/lib/email/send"
+import { captureAndNotify } from "@/lib/monitoring/capture"
 import {
   consumeRateLimit,
   emailKey,
@@ -253,7 +254,7 @@ export async function POST(req: NextRequest) {
 
     return Response.json({ success: true, candidateId: candidate.id, scored: quota.allowed })
   } catch (error) {
-    console.error("[apply] error:", error)
+    await captureAndNotify(error, { route: "/api/public/apply", method: "POST", status: 500 })
     return Response.json({ error: "Interner Serverfehler" }, { status: 500 })
   }
 }

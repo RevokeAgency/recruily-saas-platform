@@ -8,6 +8,7 @@ import { scoreJobCandidateLink } from "@/lib/scoring"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { loadInboundAttachment } from "@/lib/email/attachments"
 import { sendApplicationReceived } from "@/lib/email/send"
+import { captureAndNotify } from "@/lib/monitoring/capture"
 
 export const maxDuration = 300
 export const dynamic = "force-dynamic"
@@ -200,7 +201,7 @@ export async function POST(req: NextRequest) {
       const linkId = link.id
       after(async () => {
         try { await scoreJobCandidateLink(supabase, linkId) }
-        catch (err) { console.error("[inbound] scoring failed:", err) }
+        catch (err) { await captureAndNotify(err, { route: "/api/inbound/email", extra: { stufe: "scoring" } }) }
       })
     }
 

@@ -9,6 +9,7 @@ import {
   subCurrentPeriodEnd,
 } from "@/lib/stripe/server"
 import { syncSubscriptionToProfile, type SubscriptionState } from "@/lib/stripe/sync"
+import { captureAndNotify } from "@/lib/monitoring/capture"
 
 export const dynamic = "force-dynamic"
 
@@ -81,6 +82,7 @@ export async function POST(req: NextRequest) {
     event = stripe.webhooks.constructEvent(rawBody, signature ?? "", secret)
   } catch (err) {
     console.error("[stripe webhook] signature verification failed:", err)
+    void captureAndNotify(err, { route: "/api/stripe/webhook", method: "POST", status: 400 })
     return Response.json({ error: "invalid signature" }, { status: 400 })
   }
 
