@@ -40,8 +40,19 @@ export async function GET(req: NextRequest) {
       .lt("created_at", cutoff)
       .limit(BATCH)
 
+    // Abgelaufene Zähler des Missbrauchsschutzes mitnehmen (Migration 026).
+    // Steht bewusst VOR dem frühen Rücksprung: An den meisten Tagen gibt es
+    // keine zu löschenden Kandidaten, und dann würde sonst nie aufgeräumt.
+    // Best-effort: fehlt die Funktion noch, läuft der Purge trotzdem durch.
+    let rateLimitsPurged: number | null = null
+    const { data: rl, error: rlError } = await admin.rpc("purge_rate_limits")
+    if (rlError) console.error("[purge] rate_limits übersprungen:", rlError.message)
+    else rateLimitsPurged = Number(rl ?? 0)
+
     const candidates = oldRows ?? []
-    if (candidates.length === 0) return Response.json({ ok: true, scanned: 0, deleted: 0 })
+    if (candidates.length === 0) {
+      return Response.json({ ok: true, scanned: 0, deleted: 0, rateLimitsPurged })
+    }
 
     // Exclude anyone still in an active/successful process.
     const ids = candidates.map((c) => c.id)
@@ -72,7 +83,7 @@ export async function GET(req: NextRequest) {
     }
 
     console.log(`[purge] scanned ${candidates.length}, deleted ${deleted} (retention ${RETENTION_DAYS}d)`)
-    return Response.json({ ok: true, scanned: candidates.length, deleted })
+    return Response.json({ ok: true, scanned: candidates.length, deleted, rateLimitsPurged })
   } catch (error) {
     console.error("[purge] error:", error)
     return Response.json({ error: "purge failed" }, { status: 500 })

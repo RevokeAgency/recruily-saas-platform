@@ -5,6 +5,13 @@ import { scoreJobCandidateLink } from "@/lib/scoring"
 import { parseCvBuffer, isUsableCandidate, isPdfFile, extractDocumentText } from "@/lib/cv-parse"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { sendApplicationReceived } from "@/lib/email/send"
+import {
+  consumeRateLimit,
+  emailKey,
+  pruefeDatei,
+  requesterKey,
+  tooManyRequests,
+} from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
@@ -50,7 +57,44 @@ export async function POST(req: NextRequest) {
     const fullName = `${firstName} ${lastName}`.trim()
     if (!fullName) return Response.json({ error: "Name ist erforderlich" }, { status: 400 })
 
+    // Dateien prüfen, BEVOR irgendetwas gelesen oder gespeichert wird.
+    for (const [datei, feld] of [[cvFile, "Der Lebenslauf"], [coverFile, "Das Anschreiben"]] as const) {
+      if (!datei) continue
+      const pruefung = pruefeDatei(datei, feld)
+      if (!pruefung.ok) return Response.json({ error: pruefung.fehler }, { status: 400 })
+    }
+
     const supabase = createServiceClient()
+
+    // ── Missbrauchsschutz ─────────────────────────────────────────────────
+    // Jede Bewerbung verbraucht einen Match aus dem Kontingent des Kunden und
+    // startet einen Modelllauf. Zwei Grenzen: eine gegen den einzelnen
+    // Absender, eine gegen den Ansturm auf eine einzelne Stelle, falls jemand
+    // über wechselnde Adressen kommt.
+    const absender = requesterKey(req)
+    const proAbsender = await consumeRateLimit(supabase, "apply_ip", absender, 5, 3600)
+    if (!proAbsender.allowed) {
+      return tooManyRequests(
+        proAbsender,
+        "Es sind bereits mehrere Bewerbungen von diesem Anschluss eingegangen. Bitte versuche es später noch einmal.",
+      )
+    }
+    const proStelle = await consumeRateLimit(supabase, "apply_job", jobId, 40, 3600)
+    if (!proStelle.allowed) {
+      return tooManyRequests(
+        proStelle,
+        "Für diese Stelle gehen gerade sehr viele Bewerbungen ein. Bitte versuche es in einer Stunde noch einmal.",
+      )
+    }
+    if (email) {
+      const proAdresse = await consumeRateLimit(supabase, "apply_email", emailKey(email), 3, 86400)
+      if (!proAdresse.allowed) {
+        return tooManyRequests(
+          proAdresse,
+          "Von dieser E-Mail-Adresse sind heute bereits mehrere Bewerbungen eingegangen.",
+        )
+      }
+    }
 
     // Resolve the job -> owner (the applicant is always filed to the job owner).
     const { data: job, error: jobError } = await supabase
@@ -59,6 +103,38 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: "Job nicht gefunden oder inaktiv" }, { status: 404 })
     }
     const ownerId = job.user_id as string
+
+    // Doppelbewerbung: dieselbe Adresse, dieselbe Stelle. Ohne diese Prüfung
+    // erzeugt ein doppelter Klick auf "Absenden" zwei Kandidaten und
+    // verbraucht zwei Matches.
+    if (email) {
+      const { data: bekannt } = await supabase
+        .from("candidates")
+        .select("id")
+        .eq("user_id", ownerId)
+        .ilike("email", email)
+        .limit(20)
+
+      const ids = (bekannt ?? []).map((c) => c.id as string)
+      if (ids.length > 0) {
+        const { data: schonBeworben } = await supabase
+          .from("job_candidates")
+          .select("id")
+          .eq("job_id", jobId)
+          .in("candidate_id", ids)
+          .limit(1)
+
+        if (schonBeworben && schonBeworben.length > 0) {
+          // Bewusst als Erfolg gemeldet: Der Bewerber soll nicht erfahren, ob
+          // eine Adresse im System liegt, und für ihn ist der Fall erledigt.
+          return Response.json({
+            success: true,
+            duplicate: true,
+            message: "Deine Bewerbung für diese Stelle liegt uns bereits vor.",
+          })
+        }
+      }
+    }
 
     const cvBuf = Buffer.from(await cvFile.arrayBuffer())
     const coverBuf = coverFile ? Buffer.from(await coverFile.arrayBuffer()) : null

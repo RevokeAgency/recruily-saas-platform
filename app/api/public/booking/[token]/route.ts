@@ -10,6 +10,7 @@ import {
 } from "@/lib/email/scheduling"
 import { adminClient, collectBusy, loadMeetingTypes, loadProfile } from "@/lib/scheduling/store"
 import type { MeetingType } from "@/lib/scheduling/types"
+import { consumeRateLimit, requesterKey, tooManyRequests } from "@/lib/rate-limit"
 import { absoluteUrl } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
@@ -163,6 +164,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
 
   const { invite, meetingType } = resolved
   const db = adminClient()
+
+  // Der Token ist zwar nicht zu erraten, aber wer ihn hat, kann sonst beliebig
+  // oft buchen und absagen und damit Mail und Kalendereinträge auslösen.
+  const proToken = await consumeRateLimit(db, "booking_token", invite.id, 12, 3600)
+  if (!proToken.allowed) {
+    return tooManyRequests(proToken, "Zu viele Änderungen in kurzer Zeit. Bitte versuche es später noch einmal.")
+  }
+  const proAbsender = await consumeRateLimit(db, "booking_ip", requesterKey(req), 30, 3600)
+  if (!proAbsender.allowed) {
+    return tooManyRequests(proAbsender, "Zu viele Anfragen. Bitte versuche es später noch einmal.")
+  }
+
   const body = (await req.json().catch(() => ({}))) as PostBody
   const manageUrl = absoluteUrl(`/termin/${token}`)
 

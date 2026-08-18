@@ -2,6 +2,7 @@ import { NextRequest } from "next/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
 import { signDeletionToken } from "@/lib/dsgvo/token"
 import { sendDeletionConfirmation } from "@/lib/email/send"
+import { consumeRateLimit, emailKey, requesterKey, tooManyRequests } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
@@ -22,6 +23,22 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       { auth: { persistSession: false } },
     )
+
+    // Missbrauchsschutz: Dieser Endpunkt verschickt Mail an eine frei
+    // wählbare Adresse. Ohne Grenze ließe sich damit ein Postfach zumüllen.
+    // Die Antwort bleibt in beiden Fällen unauffällig, damit sich über das
+    // Verhalten nicht ablesen lässt, ob eine Adresse im System liegt.
+    const absender = requesterKey(req)
+    const proAbsender = await consumeRateLimit(admin, "deletion_ip", absender, 5, 3600)
+    if (!proAbsender.allowed) {
+      return tooManyRequests(proAbsender, "Zu viele Anfragen. Bitte versuche es später noch einmal.")
+    }
+    const proAdresse = await consumeRateLimit(admin, "deletion_email", emailKey(email), 3, 86400)
+    if (!proAdresse.allowed) {
+      // Kein 429: Das würde verraten, dass zu dieser Adresse schon Anfragen
+      // liefen. Stattdessen die normale Antwort, nur ohne weitere Mail.
+      return Response.json({ ok: true })
+    }
 
     const { count } = await admin
       .from("candidates")
