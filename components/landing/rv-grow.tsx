@@ -70,9 +70,8 @@ export function RvGrow() {
           <div className="reveal s1 grid grid-cols-1 gap-5 rounded-[var(--rv-radius-lg)] bg-[var(--rv-ink)] p-[34px_38px] sm:col-span-2 lg:col-span-3 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-12" data-dir="scale">
             <div className="flex flex-col gap-[18px]">
               <p className="text-[clamp(0.98rem,1.5vw,1.18rem)] leading-[1.68] font-medium tracking-[-0.01em] text-white/88">
-                Bewerbungsunterlagen sind besonders schutzwürdig. Deshalb verlassen sie bei
-                Revetly die EU nicht: Datenbank in Frankfurt, KI-Auswertung bei Mistral in
-                Frankreich, Mailversand über Lettermint in Europa.
+                Bewerbungsunterlagen sind besonders schutzwürdig. Bei Revetly verlassen sie
+                die EU nicht, weder bei der Speicherung noch bei der Auswertung.
               </p>
               <p className="text-[.88rem] leading-[1.6] text-white/56">
                 Auf Bewerberdaten wird nicht trainiert. Nach 180 Tagen löscht Revetly

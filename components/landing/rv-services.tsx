@@ -25,7 +25,7 @@ const SIDE_CARDS = [
     icon: ShieldCheck,
     num: "100%",
     title: "DSGVO-konform, immer",
-    text: "Datenbank in Frankfurt, KI-Auswertung in Frankreich, Mailversand in Europa. Kein Training auf Bewerberdaten.",
+    text: "Bewerberdaten werden ausschließlich in der EU verarbeitet und gespeichert. Kein Training auf Bewerberdaten, automatische Löschung nach 180 Tagen.",
   },
 ]
 

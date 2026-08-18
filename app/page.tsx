@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { RvNavbar } from "@/components/landing/rv-navbar"
 import { RvHero } from "@/components/landing/rv-hero"
-import { RvMarquee } from "@/components/landing/rv-marquee"
 import { RvFeatures } from "@/components/landing/rv-features"
 import { RvServices } from "@/components/landing/rv-services"
 import { RvHowItWorks } from "@/components/landing/rv-how-it-works"
@@ -24,7 +23,6 @@ export default function LandingPage() {
       <RvNavbar onLoginClick={() => setLoginOpen(true)} />
       <main id="top">
         <RvHero />
-        <RvMarquee />
         <RvFeatures />
         <RvServices />
         <RvHowItWorks />

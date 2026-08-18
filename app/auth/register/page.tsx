@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { RvBrandMark } from "@/components/landing/rv-brand-mark"
 import { AuthSplitLayout } from "@/components/auth/auth-split-layout"
 import { toast } from "sonner"
+import { PLANS } from "@/lib/plans"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -122,7 +123,7 @@ export default function RegisterPage() {
         Konto erstellen
       </h1>
       <p className="text-muted-foreground text-center text-sm mb-8">
-        Starte kostenlos mit 10 KI-Matches pro Monat
+        Starte kostenlos mit {PLANS.free.matches} Bewertungen pro Monat
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">

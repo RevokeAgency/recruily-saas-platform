@@ -3,6 +3,7 @@ import { ArrowUpRight, Play } from "lucide-react"
 
 import { useReveal } from "@/lib/hooks/useReveal"
 import { RvButton } from "./rv-button"
+import { PLANS } from "@/lib/plans"
 
 export function RvCta() {
   const ref = useReveal()
@@ -24,7 +25,7 @@ export function RvCta() {
               <ArrowUpRight className="h-[18px] w-[18px]" strokeWidth={2.4} />
             </div>
             <h2 className="mb-3.5 text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-              Zehn Bewertungen,
+              {`${PLANS.free.matches} Bewertungen,`}
               <br />
               bevor du zahlst.
             </h2>

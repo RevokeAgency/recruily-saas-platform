@@ -2,6 +2,7 @@ import Link from "next/link"
 
 import { useReveal } from "@/lib/hooks/useReveal"
 import { RvButton } from "./rv-button"
+import { PLANS } from "@/lib/plans"
 
 const STEPS = [
   {
@@ -66,7 +67,7 @@ export function RvHowItWorks() {
             <Link href="/auth/register">Jetzt kostenlos ausprobieren</Link>
           </RvButton>
           <p className="mt-3.5 text-[.84rem] text-[rgba(12,26,22,.65)]">
-            10 Matches gratis &middot; kein Account &middot; keine Kreditkarte
+            {`${PLANS.free.matches} Bewertungen gratis \u00b7 keine Kreditkarte`}
           </p>
         </div>
       </div>

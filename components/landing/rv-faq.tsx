@@ -3,11 +3,12 @@
 import { useId, useState } from "react"
 
 import { useReveal } from "@/lib/hooks/useReveal"
+import { PLANS } from "@/lib/plans"
 
 const FAQS = [
   {
     q: "Was ist ein Match?",
-    a: "Ein Match ist die Bewertung genau einer Bewerbung gegen genau eine Stelle. Zwanzig Bewerbungen auf einen Job sind zwanzig Matches. Im kostenlosen Plan sind zehn enthalten, danach wechselst du auf einen bezahlten Plan.",
+    a: `Ein Match ist die Bewertung genau einer Bewerbung gegen genau eine Stelle. Zwanzig Bewerbungen auf einen Job sind zwanzig Matches. Im kostenlosen Plan sind ${PLANS.free.matches} enthalten, danach wechselst du auf einen bezahlten Plan.`,
   },
   {
     q: "Wie kommt die Match Analyse zustande?",
@@ -23,7 +24,7 @@ const FAQS = [
   },
   {
     q: "Wo werden die Bewerberdaten verarbeitet?",
-    a: "Datenbank und Dateien liegen in Frankfurt, die KI-Auswertung läuft bei Mistral AI in Frankreich, der Mailversand über Lettermint in Europa. Auf Bewerberdaten wird nicht trainiert. Nach 180 Tagen löscht Revetly automatisch, und Bewerber können ihre Löschung selbst anstoßen.",
+    a: "Ausschließlich in der EU. Das gilt für die Speicherung, die KI-Auswertung und den Mailversand gleichermaßen. Auf Bewerberdaten wird nicht trainiert. Nach 180 Tagen löscht Revetly automatisch, und Bewerber können ihre Löschung jederzeit selbst anstoßen. Welche Auftragsverarbeiter im Einzelnen beteiligt sind, steht in der Datenschutzerklärung.",
   },
   {
     q: "Wie viel Einrichtung braucht das?",

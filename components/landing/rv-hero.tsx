@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Check, Play } from "lucide-react"
 
 import { RvArrowIcon, RvButton } from "./rv-button"
+import { PLANS } from "@/lib/plans"
 
 const HEADLINE: Array<{ text: string; gradient?: boolean }> = [
   { text: "Die" },
@@ -87,7 +88,7 @@ export function RvHero() {
         <div className="max-w-[560px]">
           <span className="mb-[30px] inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-[15px] py-[7px] text-[.78rem] font-semibold text-white/92 backdrop-blur-[10px]">
             <span className="h-[7px] w-[7px] animate-pulse rounded-full bg-[var(--rv-green)]" />
-            10 Bewertungen gratis &middot; ohne Kreditkarte
+            {`${PLANS.free.matches} Bewertungen gratis \u00b7 ohne Kreditkarte`}
           </span>
           <h1 className="mb-[22px] text-[clamp(2.5rem,5.4vw,4rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-white [text-shadow:0_2px_30px_rgba(8,22,20,.35)]">
             {HEADLINE.map((w, i) => (
