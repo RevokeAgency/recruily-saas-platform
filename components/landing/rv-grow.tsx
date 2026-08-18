@@ -6,13 +6,16 @@ import { Check } from "lucide-react"
 import { useReveal } from "@/lib/hooks/useReveal"
 import { useCountUp } from "@/lib/hooks/useCountUp"
 
+// Bewusst Produkteigenschaften statt Leistungsversprechen: Zahlen wie
+// "70 % weniger Screening-Zeit" hätten wir nicht gemessen und dürften sie
+// deshalb auch nicht behaupten.
 const STATS = [
-  { target: 70, unit: "%", title: "Weniger Screening-Zeit", text: "Kein manuelles Durchlesen mehr – Revetly priorisiert automatisch nach Score." },
-  { target: 3, unit: "×", title: "Mehr qualifizierte Gespräche", text: "Weil der Score auf 6 Ebenen analysiert – nicht nur Schlagwörter abgleicht." },
-  { target: 48, unit: "h", title: "Shortlist statt Wochenwarten", text: "Durchschnittliche Zeit bis zur qualifizierten Kandidatenliste – statt Wochen." },
+  { target: 9, unit: "", title: "Ebenen pro Bewertung", text: "Von Hard Skills und Berufserfahrung bis Gehaltsvorstellung und Kultur-Fit. Jede Ebene einzeln begründet." },
+  { target: 2, unit: "×", title: "Geprüft, bevor du es siehst", text: "Ein zweites Modell kontrolliert jede Kategorie gegen Rubrik und Belege und korrigiert, wo nötig." },
+  { target: 180, unit: "", title: "Tage bis zur Löschung", text: "Bewerberdaten verschwinden automatisch. Bewerber können ihre Löschung auch selbst anstoßen." },
 ]
 
-const CHIPS = ["DSGVO-konform", "EU AI Act compliant", "Erklärbarer Score", "Human-in-the-loop"]
+const CHIPS = ["DSGVO-konform", "EU AI Act berücksichtigt", "Verarbeitung in der EU", "Kein Training auf Bewerberdaten"]
 
 function Stat({ target, unit, title, text, delay, inView }: { target: number; unit: string; title: string; text: string; delay: string; inView: boolean }) {
   const value = useCountUp(target, inView, 1400)
@@ -66,18 +69,15 @@ export function RvGrow() {
 
           <div className="reveal s1 grid grid-cols-1 gap-5 rounded-[var(--rv-radius-lg)] bg-[var(--rv-ink)] p-[34px_38px] sm:col-span-2 lg:col-span-3 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-12" data-dir="scale">
             <div className="flex flex-col gap-[18px]">
-              <p className="text-[clamp(0.98rem,1.5vw,1.18rem)] leading-[1.68] font-medium tracking-[-0.01em] text-white/88 italic">
-                &ldquo;Wir lesen keine Lebensläufe mehr quer. Revetly priorisiert nach Score, begründet jede Bewertung – und unser Team steckt die gewonnene Zeit in echte Gespräche statt in die Vorauswahl.&rdquo;
+              <p className="text-[clamp(0.98rem,1.5vw,1.18rem)] leading-[1.68] font-medium tracking-[-0.01em] text-white/88">
+                Bewerbungsunterlagen sind besonders schutzwürdig. Deshalb verlassen sie bei
+                Revetly die EU nicht: Datenbank in Frankfurt, KI-Auswertung bei Mistral in
+                Frankreich, Mailversand über Lettermint in Europa.
               </p>
-              <div className="flex items-center gap-3">
-                <div className="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-full text-[.95rem] font-bold text-[var(--rv-ink)]" style={{ backgroundImage: "var(--rv-gradient)" }}>
-                  C
-                </div>
-                <div>
-                  <b className="block text-[.88rem] font-bold text-white">Carolin V.</b>
-                  <span className="text-[.74rem] text-white/52">HR-Leitung &middot; Bregenz Industrietechnik</span>
-                </div>
-              </div>
+              <p className="text-[.88rem] leading-[1.6] text-white/56">
+                Auf Bewerberdaten wird nicht trainiert. Nach 180 Tagen löscht Revetly
+                automatisch, und Bewerber können ihre Löschung selbst anstoßen.
+              </p>
             </div>
             <div className="flex flex-col gap-2.5">
               {CHIPS.map((chip) => (

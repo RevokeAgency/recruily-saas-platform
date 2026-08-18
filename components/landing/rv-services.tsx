@@ -19,13 +19,13 @@ const SIDE_CARDS = [
     icon: Clock3,
     num: "3 min",
     title: "Vom Job zum Apply-Link",
-    text: "URL einfügen, KI befüllt das Formular automatisch. Stelle aktivieren und Apply-Link sofort teilen.",
+    text: "Link der Stellenanzeige einfügen, Revetly liest sie aus und füllt die Felder. Danach Apply-Link teilen.",
   },
   {
     icon: ShieldCheck,
     num: "100%",
     title: "DSGVO-konform, immer",
-    text: "Alle Daten bleiben auf EU-Servern in Frankfurt. Kein Training auf Bewerberdaten. AI Act konform.",
+    text: "Datenbank in Frankfurt, KI-Auswertung in Frankreich, Mailversand in Europa. Kein Training auf Bewerberdaten.",
   },
 ]
 
@@ -55,12 +55,12 @@ export function RvServices() {
             Wie wir dir helfen
           </span>
           <h2 className="mt-[22px] text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-            Kein Keyword-Matching.
+            Nicht raten,
             <br />
-            <span className="rv-gradient-text">Echter KI-Recruiter.</span>
+            <span className="rv-gradient-text">sondern nachweisen.</span>
           </h2>
           <p className="mt-[18px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Revetly analysiert CV und Anschreiben gemeinsam – und erklärt jede Entscheidung mit konkreten Belegen.
+            Revetly liest Lebenslauf und Anschreiben gemeinsam und erklärt jede Bewertung mit konkreten Belegen aus den Unterlagen.
           </p>
         </div>
 
@@ -103,17 +103,16 @@ export function RvServices() {
             </div>
             <div className="flex flex-col justify-center gap-4 p-[26px]">
               <div className="w-fit rounded-full bg-[rgba(22,199,124,.12)] px-3 py-[5px] text-[.71rem] font-bold tracking-[.08em] text-[var(--rv-green-deep)] uppercase">
-                6 Analyse-Ebenen
+                9 Analyse-Ebenen
               </div>
               <h3 className="text-[clamp(1.05rem,1.5vw,1.28rem)] leading-[1.35] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-                Mehr als Schlagwort-Suche
+                Mehr als eine Schlagwortsuche
               </h3>
               <p className="text-[.9rem] leading-[1.64] text-[var(--rv-muted)]">
-                Revetly bewertet Hard Skills, Soft Skills, Kultur-Fit und Motivation – direkt aus CV und Anschreiben.
-                Jeder Score ist erklärbar, jede Entscheidung nachvollziehbar.
+                Revetly bewertet Hard Skills, Berufserfahrung, Ausbildung, Soft Skills, Sprachen, Standort, Branche, Gehaltsvorstellung und Kultur-Fit. Zu jeder Ebene steht die Begründung und der Beleg aus den Unterlagen.
               </p>
               <ul className="flex flex-col gap-2">
-                {["Erklärbarer Score mit Stärken und Risiken", "K.O.-Kriterien konfigurierbar pro Stelle", "Anschreiben als Qualitätssignal genutzt"].map(
+                {["Jede Ebene begründet und belegt", "Zweite Prüfung korrigiert Ausreißer", "Fehlende Berufszulassung ist nicht ausgleichbar", "K.O.-Kriterien pro Stelle konfigurierbar"].map(
                   (item) => (
                     <li key={item} className="flex items-center gap-2.5 text-[.85rem] text-[var(--rv-ink-soft)]">
                       <span className="h-1.5 w-1.5 flex-none rounded-full bg-[image:var(--rv-gradient)]" />

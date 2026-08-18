@@ -1,37 +1,42 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { ArrowUpRight, FileText, Search, ShieldCheck, ListChecks } from "lucide-react"
+import { ArrowUpRight, FileText, Quote, ShieldAlert, UserCheck } from "lucide-react"
 
 import { useReveal } from "@/lib/hooks/useReveal"
 import { RvCard } from "./rv-card"
 
-const STEPS = ["CV + Anschreiben kombiniert", "Keine Black Box", "DSGVO & EU AI Act konform", "K.O.-Kriterien pro Stelle"]
+const STEPS = [
+  "Neun Ebenen statt Schlagwortsuche",
+  "Jeder Punkt mit Beleg",
+  "Zwei Urteile, nicht eines",
+  "Fehlende Berufszulassung wiegt schwer",
+]
 
 const CARDS = [
   {
     icon: FileText,
-    badge: "Einzigartig",
-    title: "CV + Anschreiben kombiniert",
-    text: "Kein anderes Tool am Markt analysiert CV und Anschreiben gemeinsam. Revetly liest beides – und findet Kandidaten, die Keyword-Matcher übersehen hätten.",
+    badge: "Tiefe",
+    title: "Neun Ebenen statt Schlagwortsuche",
+    text: "Revetly bewertet Hard Skills, Berufserfahrung, Ausbildung, Soft Skills, Sprachen, Standort, Branche, Gehaltsvorstellung und Kultur-Fit. Lebenslauf und Anschreiben werden gemeinsam gelesen, weil die Motivation selten im Lebenslauf steht.",
   },
   {
-    icon: Search,
-    badge: "Transparent",
-    title: "Keine Black Box",
-    text: "Jeder Score wird mit konkreten Stärken, Risiken und Belegen aus dem CV begründet. Du triffst die Entscheidung – mit vollem Überblick, nicht auf Verdacht.",
+    icon: Quote,
+    badge: "Nachvollziehbar",
+    title: "Jeder Punkt mit Beleg",
+    text: "Zu jeder Ebene steht die Begründung und die Stelle aus den Unterlagen, auf die sie sich stützt. Wo die Bewertung dünn belegt ist, sagt Revetly das und schlägt die Frage fürs Interview vor.",
   },
   {
-    icon: ShieldCheck,
-    badge: "Rechtssicher",
-    title: "DSGVO & EU AI Act konform",
-    text: "Alle Daten auf EU-Servern in Frankfurt. Kein Training auf Bewerberdaten. Erklärbarer Score und Human Oversight erfüllen die Anforderungen des EU AI Act.",
+    icon: UserCheck,
+    badge: "Vier Augen",
+    title: "Zwei Urteile, nicht eines",
+    text: "Ein zweites Modell prüft jede Kategorie unabhängig gegen Rubrik und Belege und korrigiert, wo die erste Bewertung zu hoch oder zu niedrig lag. Beide Urteile stehen im Protokoll.",
   },
   {
-    icon: ListChecks,
-    badge: "Konfigurierbar",
-    title: "K.O.-Kriterien pro Stelle",
-    text: "Definiere Pflichtsprachen, Mindesterfahrung oder Zertifikate – Kandidaten, die sie nicht erfüllen, fallen automatisch raus. Keine Handarbeit beim Aussieben.",
+    icon: ShieldAlert,
+    badge: "Nicht ausgleichbar",
+    title: "Fehlende Berufszulassung wiegt schwer",
+    text: "Wer ein Pflegediplom oder eine Nostrifikation braucht und sie nicht hat, bekommt keinen guten Score, nur weil Sprache und Gehaltsvorstellung passen. Dazu eigene K.O.-Kriterien pro Stelle.",
   },
 ]
 
@@ -65,12 +70,12 @@ export function RvFeatures() {
             <ArrowUpRight className="h-[18px] w-[18px]" strokeWidth={2.4} />
           </div>
           <h2 className="text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-            Warum Revetly anders ist
+            Ein Score, den du
             <br />
-            als alles, was du kennst.
+            <span className="rv-gradient-text">nachrechnen kannst.</span>
           </h2>
           <p className="mt-4 text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Kein Keyword-Matching. Keine Black Box. Kein Kompromiss beim Datenschutz.
+            Bei jedem Kandidaten steht, wie die Zahl zustande kommt und worauf sie sich stützt. Damit du widersprechen kannst, wenn sie nicht stimmt.
           </p>
           <nav className="mt-9 hidden lg:block" aria-label="Features">
             {STEPS.map((label, i) => (

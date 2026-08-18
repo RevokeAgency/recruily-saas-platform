@@ -17,9 +17,11 @@ const plusJakartaSans = localFont({
   display: 'swap',
 })
 
-const title = 'Revetly — Die besten Kandidaten, sofort sichtbar'
+// Titel bewusst mit dem Suchbegriff vorn und der Marke hinten: Danach sucht
+// jemand, der das Produkt noch nicht kennt.
+const title = 'KI-Recruiting-Software für den DACH-Raum | Revetly'
 const description =
-  'Revetly ist KI-gestütztes Recruiting für den DACH-Markt. Matching, Absagen-Mails und Bewerberverwaltung – automatisiert, erklärbar, DSGVO-konform.'
+  'Revetly bewertet Bewerbungen auf neun Ebenen, belegt jeden Punkt mit einer Stelle aus den Unterlagen und lässt Bewerber ihren Termin selbst buchen. Verarbeitung in der EU.'
 
 export const metadata: Metadata = {
   // Basis für relative canonical-/OG-URLs (z. B. der Blog-Beiträge).
@@ -40,14 +42,14 @@ export const metadata: Metadata = {
     siteName: 'Revetly',
     title,
     description:
-      'KI-gestütztes Recruiting für den DACH-Markt. CV und Anschreiben gemeinsam analysiert, erklärbarer Score, DSGVO-konform auf EU-Servern.',
+      'Bewerbungen bewerten, ohne alle zu lesen: neun Analyse-Ebenen, jeder Punkt belegt, zwei unabhängige Prüfungen je Kandidat. DSGVO-konform, Verarbeitung in der EU.',
     images: [{ url: '/revetly/og-image.jpg', width: 1200, height: 630 }],
     locale: 'de_DE',
   },
   twitter: {
     card: 'summary_large_image',
     title,
-    description: 'KI-gestütztes Recruiting für den DACH-Markt. Erklärbarer Score, DSGVO-konform auf EU-Servern.',
+    description: 'Bewerbungen bewerten, ohne alle zu lesen. Jeder Punkt belegt, Verarbeitung in der EU.',
     images: ['/revetly/og-image.jpg'],
   },
 }

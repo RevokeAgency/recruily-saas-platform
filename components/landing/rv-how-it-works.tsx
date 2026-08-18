@@ -5,20 +5,20 @@ import { RvButton } from "./rv-button"
 
 const STEPS = [
   {
-    title: "Job anlegen",
-    text: "URL einfügen – Revetly liest die Stellenanzeige und befüllt alle Felder automatisch. In unter 3 Minuten online.",
+    title: "Stelle anlegen",
+    text: "Link zur Stellenanzeige einfügen, Revetly liest sie aus und füllt die Felder. K.O.-Kriterien wie Pflichtsprache oder Zulassung legst du direkt dazu.",
   },
   {
-    title: "CVs hochladen",
-    text: "PDF oder DOCX hochladen. Die KI parst CV und Anschreiben und bewertet auf 6 Ebenen – ohne manuelle Eingabe.",
+    title: "Bewerbungen sammeln",
+    text: "Über deinen Apply-Link, per E-Mail an die Stellenadresse oder als Upload. Lebenslauf und Anschreiben werden gelesen, auch aus gescannten PDFs.",
   },
   {
-    title: "Shortlist sehen",
-    text: "Kandidaten nach Score sortiert, mit Stärken, Risiken und K.O.-Kriterien. Du weißt sofort, wen du anrufen sollst.",
+    title: "Shortlist lesen",
+    text: "Kandidaten nach Score sortiert, jede Ebene begründet und belegt. Wer die Berufszulassung nicht hat, steht unten, egal wie gut der Rest aussieht.",
   },
   {
-    title: "Einladen oder absagen",
-    text: "Mit einem Klick geht eine personalisierte Einladung oder Absage raus – automatisch, professionell, DSGVO-konform.",
+    title: "Termin buchen lassen",
+    text: "Der Bewerber wählt selbst aus deinen freien Zeiten. Der Termin landet in deinem Google- oder Microsoft-Kalender, samt Videolink.",
   },
 ]
 
@@ -40,12 +40,12 @@ export function RvHowItWorks() {
             So funktioniert&apos;s
           </span>
           <h2 className="mt-[22px] text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-            Von der Stelle zur
+            Von der Anzeige zum
             <br />
-            Shortlist – in Minuten.
+            vereinbarten Gespräch.
           </h2>
           <p className="mt-[18px] max-w-[560px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[rgba(12,26,22,.78)]">
-            Vier Schritte, die dein Recruiting komplett verändern. Kein Setup, keine Schulung.
+            Vier Schritte. Keine Einrichtung, keine Schulung, keine IT-Abteilung.
           </p>
         </div>
 

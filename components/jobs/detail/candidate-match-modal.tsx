@@ -227,7 +227,7 @@ function CircularProgress({ value, size = 160 }: { value: number; size?: number 
         <span className={`text-4xl font-bold ${getScoreColor(value)}`}>
           {value}%
         </span>
-        <span className="text-sm text-muted-foreground">IMLRS Score</span>
+        <span className="text-sm text-muted-foreground">Revetly Match Analyse</span>
       </div>
     </div>
   )
@@ -562,7 +562,7 @@ export function CandidateMatchModal({
         <SheetHeader className="pb-4 border-b">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-teal-600" />
-            <SheetTitle className="text-xl">IMLRS Match-Analyse</SheetTitle>
+            <SheetTitle className="text-xl">Revetly Match Analyse</SheetTitle>
           </div>
           <p className="text-xs text-muted-foreground">Intelligent Multi-Layer Ranking System</p>
         </SheetHeader>
@@ -683,7 +683,7 @@ export function CandidateMatchModal({
                     <CardContent className="p-4">
                       <h4 className="font-semibold text-sm text-foreground mb-4 flex items-center gap-2">
                         <Target className="h-4 w-4 text-teal-600" />
-                        IMLRS 9-Kategorien Breakdown
+                        Die neun Bewertungsebenen
                       </h4>
                       <div className="space-y-3">
                         {categories.map((cat) => {
@@ -801,7 +801,7 @@ export function CandidateMatchModal({
                 <Card className="border-dashed border-border">
                   <CardContent className="p-5 text-center space-y-2">
                     <Sparkles className="h-6 w-6 text-[var(--rv-green)] mx-auto" />
-                    <h4 className="font-semibold text-sm text-foreground">Voller IMLRS-Score</h4>
+                    <h4 className="font-semibold text-sm text-foreground">Vollständige Match Analyse</h4>
                     <p className="text-sm text-muted-foreground">
                       Der detaillierte 9-Kategorien-Breakdown, die Karriere-Prognose und der
                       Contextual Pitch sind ab dem Starter-Plan verfügbar.
@@ -961,7 +961,7 @@ export function CandidateMatchModal({
           {candidate.match_score === null && (
             <div className="flex flex-col items-center justify-center py-12">
               <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
-              <p className="text-foreground/85 font-medium">Keine IMLRS-Daten verfügbar</p>
+              <p className="text-foreground/85 font-medium">Noch keine Match Analyse vorhanden</p>
               <p className="text-sm text-muted-foreground">Die Analyse wurde nicht abgeschlossen</p>
             </div>
           )}

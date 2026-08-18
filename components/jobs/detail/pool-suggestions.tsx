@@ -111,7 +111,7 @@ export function PoolSuggestions({
   const addTopMatches = async () => {
     if (strongOnes.length === 0 || bulkAdding) return
     const ok = window.confirm(
-      `${strongOnes.length} Top-Kandidaten hinzufügen und per IMLRS bewerten?\n\n` +
+      `${strongOnes.length} Top-Kandidaten hinzufügen und bewerten lassen?\n\n` +
         `Das verbraucht bis zu ${strongOnes.length} Matches ` +
         `(aktuell ${remaining} verfügbar).`,
     )
@@ -157,7 +157,7 @@ export function PoolSuggestions({
             </h3>
             <p className="text-sm text-muted-foreground">
               Kandidaten aus deiner Datenbank, die zu dieser Stelle passen könnten — ohne neue
-              Akquise. Beim Hinzufügen wird die volle IMLRS-Analyse berechnet.
+              Akquise. Beim Hinzufügen wird die vollständige Match Analyse berechnet.
             </p>
           </div>
         </div>

@@ -22,8 +22,8 @@ export function RvFooter() {
               <Image src="/revetly/LogoEntwurf.png" alt="Revetly" width={170} height={120} className="h-[120px] w-auto" />
             </Link>
             <p className="mt-3.5 max-w-[260px] text-[.92rem] leading-[1.6] text-[var(--rv-muted)]">
-              KI-gestütztes Recruiting für den DACH-Markt. Erklärbar, DSGVO-konform &amp; EU
-              AI Act ready.
+              Bewerbungen bewerten, ohne sie alle zu lesen. Jeder Punkt belegt,
+              Verarbeitung in der EU.
             </p>
           </div>
           <div>
@@ -44,8 +44,9 @@ export function RvFooter() {
           </div>
           <div>
             <h4 className="mb-[18px] text-[.78rem] font-bold tracking-[.1em] text-[var(--rv-ink)] uppercase">Kontakt</h4>
-            <div className="mb-3 text-[.92rem] leading-[1.5] text-[var(--rv-muted)]">+43 (0) 1 234 567</div>
-            <div className="mb-3 text-[.92rem] leading-[1.5] text-[var(--rv-muted)]">hallo@revetly.com</div>
+            <a href="mailto:hallo@revetly.ai" className="mb-3 block text-[.92rem] leading-[1.5] text-[var(--rv-muted)] transition-colors hover:text-[var(--rv-green-deep)]">
+              hallo@revetly.ai
+            </a>
           </div>
           <div>
             <h4 className="mb-[18px] text-[.78rem] font-bold tracking-[.1em] text-[var(--rv-ink)] uppercase">Standort</h4>

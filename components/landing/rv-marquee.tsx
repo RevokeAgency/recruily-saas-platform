@@ -2,16 +2,16 @@
 
 import { useEffect, useRef } from "react"
 
-const LOGOS = [
-  "Kiefer & Partner",
-  "Metall Union",
-  "Albrecht GmbH",
-  "Nordlogistik AG",
-  "Baugruppe Süd",
-  "Häusler & Söhne",
-  "Weidmann Technik",
-  "Fendt Consult",
-  "Ritter Medizin",
+const CLAIMS = [
+  "Datenbank in Frankfurt",
+  "KI-Auswertung bei Mistral, Frankreich",
+  "Mailversand über Lettermint, EU",
+  "Kein Training auf Bewerberdaten",
+  "Automatische Löschung nach 180 Tagen",
+  "Jeder Score mit Beleg",
+  "Zweite Prüfung vor jedem Ergebnis",
+  "EU AI Act berücksichtigt",
+  "Made in Austria",
 ]
 
 /**
@@ -52,23 +52,24 @@ export function RvMarquee() {
     }
   }, [])
 
-  const items = [...LOGOS, ...LOGOS]
+  const items = [...CLAIMS, ...CLAIMS]
 
   return (
     <section className="border-y border-[rgba(12,26,22,.10)] py-[46px]">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <p className="mb-7 text-center text-[.74rem] font-semibold tracking-[.14em] text-[var(--rv-muted)] uppercase">
-          Vertraut von HR-Teams in der DACH-Region
+          Bewerberdaten, die Europa nicht verlassen
         </p>
       </div>
       <div className="rv-marquee">
         <div ref={trackRef} className="rv-marquee-track">
-          {items.map((logo, i) => (
+          {items.map((claim, i) => (
             <span
               key={i}
-              className="text-[1.26rem] font-extrabold tracking-[-0.03em] whitespace-nowrap text-[var(--rv-ink)] opacity-[.34] transition-opacity hover:opacity-80"
+              className="flex items-center gap-3 text-[1rem] font-semibold tracking-[-0.015em] whitespace-nowrap text-[var(--rv-ink)] opacity-[.55]"
             >
-              {logo}
+              <span className="h-1.5 w-1.5 flex-none rounded-full bg-[image:var(--rv-gradient)]" />
+              {claim}
             </span>
           ))}
         </div>

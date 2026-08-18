@@ -166,7 +166,7 @@ export function JobMatchModal({
             </div>
             <p className="text-lg font-semibold text-foreground">Matching gestartet!</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Der IMLRS-Score wird berechnet...
+              Die Revetly Match Analyse läuft...
             </p>
           </div>
         ) : (

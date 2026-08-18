@@ -743,7 +743,7 @@ function SuccessSection({
               <Sparkles className="h-4 w-4 text-teal-600" />
             </div>
             <p className="text-sm text-teal-700">
-              <span className="font-medium">IMLRS-Analyse läuft automatisch</span> — Der Match-Score wird im Hintergrund berechnet.
+              <span className="font-medium">Revetly Match Analyse läuft automatisch</span> — Der Match-Score wird im Hintergrund berechnet.
             </p>
           </div>
         )}

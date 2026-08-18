@@ -7,19 +7,17 @@ import { Check, Play } from "lucide-react"
 import { RvArrowIcon, RvButton } from "./rv-button"
 
 const HEADLINE: Array<{ text: string; gradient?: boolean }> = [
-  { text: "Lade" },
-  { text: "Job" },
-  { text: "&" },
-  { text: "CVs" },
-  { text: "hoch –" },
-  { text: "finde" },
-  { text: "in" },
-  { text: "Minuten" },
-  { text: "die" },
-  { text: "Top-Kandidaten.", gradient: true },
+  { text: "Die" },
+  { text: "passenden" },
+  { text: "Bewerber" },
+  { text: "finden," },
+  { text: "ohne", gradient: true },
+  { text: "alle", gradient: true },
+  { text: "zu", gradient: true },
+  { text: "lesen.", gradient: true },
 ]
 
-const TRUST_ITEMS = ["DSGVO-konform", "EU AI Act", "Server in Deutschland"]
+const TRUST_ITEMS = ["DSGVO-konform", "EU AI Act", "Verarbeitung in der EU"]
 
 /**
  * Full-bleed Ken-Burns hero (index.html .hero): background photo drift,
@@ -89,7 +87,7 @@ export function RvHero() {
         <div className="max-w-[560px]">
           <span className="mb-[30px] inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-[15px] py-[7px] text-[.78rem] font-semibold text-white/92 backdrop-blur-[10px]">
             <span className="h-[7px] w-[7px] animate-pulse rounded-full bg-[var(--rv-green)]" />
-            10 Matches gratis &middot; kein Account n&ouml;tig
+            10 Bewertungen gratis &middot; ohne Kreditkarte
           </span>
           <h1 className="mb-[22px] text-[clamp(2.5rem,5.4vw,4rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-white [text-shadow:0_2px_30px_rgba(8,22,20,.35)]">
             {HEADLINE.map((w, i) => (
@@ -104,9 +102,9 @@ export function RvHero() {
             ))}
           </h1>
           <p className="mb-[34px] max-w-[496px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-white/74">
-            Revetly matcht CV und Anschreiben gemeinsam und zeigt dir mit einem
-            erkl&auml;rbaren Score, wer wirklich zu deiner Stelle passt – ohne Black Box,
-            ohne Handarbeit.
+            Revetly liest Lebenslauf und Anschreiben, bewertet auf neun Ebenen und belegt
+            jeden Punkt mit einer Stelle aus den Unterlagen. Ein zweites Modell pr&uuml;ft
+            das Ergebnis gegen, bevor du es siehst.
           </p>
           <div className="flex flex-wrap gap-3">
             <RvButton variant="grad" size="lg" asChild>

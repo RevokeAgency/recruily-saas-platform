@@ -7,31 +7,31 @@ import { useReveal } from "@/lib/hooks/useReveal"
 const FAQS = [
   {
     q: "Was ist ein Match?",
-    a: "Ein Match ist eine Analyse von genau einem CV gegen genau eine Stelle. Du lädst z. B. 20 Bewerbungen für einen Job hoch – das sind 20 Matches. Der Free-Plan enthält 10 Matches, danach wechselst du auf einen bezahlten Plan.",
+    a: "Ein Match ist die Bewertung genau einer Bewerbung gegen genau eine Stelle. Zwanzig Bewerbungen auf einen Job sind zwanzig Matches. Im kostenlosen Plan sind zehn enthalten, danach wechselst du auf einen bezahlten Plan.",
   },
   {
-    q: "Wie funktioniert der Matching Score?",
-    a: "Revetly analysiert CV und Anschreiben gemeinsam und bewertet jeden Kandidaten auf 6 Ebenen – von Hard Skills und Berufserfahrung bis Kultur-Fit und Motivation. Jeder Score wird mit konkreten Belegen begründet, damit du die Entscheidung triffst, nicht die Black Box.",
+    q: "Wie kommt die Match Analyse zustande?",
+    a: "Zuerst entsteht aus dem vollständigen Lebenslauf ein Kurzdossier. Dann prüft Revetly deterministisch, welche geforderten Fähigkeiten wirklich gedeckt sind. Erst danach bewertet ein Modell die neun Ebenen, muss vor jeder Zahl begründen und Belege nennen. Zum Schluss kontrolliert ein zweites Modell jede Kategorie gegen und korrigiert, wo nötig. Du siehst am Ende beide Urteile.",
   },
   {
-    q: "Kann ich mehrere Stellen gleichzeitig nutzen?",
-    a: "Ja. Du kannst beliebig viele Stellen anlegen und parallel befüllen. Dein Kontingent gilt stellenübergreifend – du entscheidest selbst, wie du deine Matches aufteilst.",
+    q: "Kann ich mehrere Stellen parallel betreiben?",
+    a: "Ja. Die Zahl der Stellen ist nicht begrenzt, dein Kontingent gilt stellenübergreifend. Neue Stellen gleicht Revetly automatisch gegen deinen bestehenden Kandidatenpool ab.",
   },
   {
     q: "Was passiert, wenn mein Kontingent aufgebraucht ist?",
-    a: "Du bekommst rechtzeitig eine Benachrichtigung. Beim Free-Plan wirst du nach 10 Matches zur Stripe-Checkout-Seite weitergeleitet. Bestehende Matches und Daten bleiben erhalten – nichts geht verloren.",
+    a: "Du wirst rechtzeitig benachrichtigt. Weitere Bewerbungen kommen weiterhin an und warten auf die Bewertung, sobald du aufstockst. Bereits bewertete Kandidaten und alle Daten bleiben unverändert.",
   },
   {
-    q: "Sind meine Daten DSGVO-konform gespeichert?",
-    a: "Ja. Alle Daten liegen auf EU-Servern in Frankfurt. Die KI trainiert nicht auf deinen Bewerberdaten, und Revetly ist auf den EU AI Act ausgelegt – mit erklärbaren Entscheidungen und Human Oversight.",
+    q: "Wo werden die Bewerberdaten verarbeitet?",
+    a: "Datenbank und Dateien liegen in Frankfurt, die KI-Auswertung läuft bei Mistral AI in Frankreich, der Mailversand über Lettermint in Europa. Auf Bewerberdaten wird nicht trainiert. Nach 180 Tagen löscht Revetly automatisch, und Bewerber können ihre Löschung selbst anstoßen.",
   },
   {
-    q: "Wie schnell bin ich startklar?",
-    a: "In Minuten. Du legst eine Stelle an (URL reinkopieren genügt), lädst Bewerbungen hoch und siehst sofort die Shortlist. Kein Setup, keine Schulung, keine IT-Abteilung nötig.",
+    q: "Wie viel Einrichtung braucht das?",
+    a: "Wenig. Du fügst den Link deiner Stellenanzeige ein, Revetly liest sie aus. Danach kannst du Bewerbungen hochladen oder den Apply-Link teilen. Wer Termine automatisch buchen lassen will, verbindet einmalig seinen Google- oder Microsoft-Kalender.",
   },
   {
     q: "Kann ich monatlich kündigen?",
-    a: "Ja, alle Pläne sind monatlich kündbar. Der Free-Plan bleibt dauerhaft kostenlos – ganz ohne Kreditkarte.",
+    a: "Ja, alle Pläne sind monatlich kündbar, direkt im Kundenkonto über das Stripe-Portal. Der kostenlose Plan bleibt dauerhaft kostenlos und verlangt keine Kreditkarte.",
   },
 ]
 

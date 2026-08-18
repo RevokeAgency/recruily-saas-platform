@@ -24,13 +24,14 @@ export function RvCta() {
               <ArrowUpRight className="h-[18px] w-[18px]" strokeWidth={2.4} />
             </div>
             <h2 className="mb-3.5 text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-              10 Matches.
+              Zehn Bewertungen,
               <br />
-              Gratis. Kein Risiko.
+              bevor du zahlst.
             </h2>
             <p className="mb-7 max-w-[420px] text-[rgba(12,26,22,.78)]">
-              Leg jetzt los – kein Account, keine Kreditkarte. In drei Minuten siehst du,
-              wer wirklich zu deiner Stelle passt. Und warum.
+              Konto anlegen, eine echte Stelle einstellen, eigene Bewerbungen hochladen.
+              Ohne Kreditkarte. Du siehst am Ergebnis, ob die Bewertung deiner eigenen
+              Einschätzung standhält.
             </p>
             <div className="flex flex-wrap gap-3">
               <RvButton variant="light" size="lg" asChild>
@@ -42,7 +43,7 @@ export function RvCta() {
                 onClick={() => document.querySelector("#services")?.scrollIntoView({ behavior: "smooth" })}
               >
                 <Play className="h-4 w-4" fill="currentColor" />
-                Demo ansehen
+                Beispiel ansehen
               </RvButton>
             </div>
           </div>
