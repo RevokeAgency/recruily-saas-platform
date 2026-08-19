@@ -42,7 +42,7 @@ const TIERS: Tier[] = [
       "Match Analyse mit Gesamtscore",
       "Absagen per Mail",
     ],
-    cta: "Loslegen",
+    cta: "Gratis starten",
   },
   {
     name: "Starter",

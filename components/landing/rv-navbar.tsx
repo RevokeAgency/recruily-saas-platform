@@ -76,7 +76,7 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
           </RvButton>
           <RvButton variant="primary" size="sm" asChild>
             <Link href="/auth/register">
-              Kostenlos starten
+              Gratis testen
               <RvArrowIcon />
             </Link>
           </RvButton>
@@ -115,7 +115,7 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
               </RvButton>
               <RvButton variant="primary" asChild>
                 <Link href="/auth/register">
-                  Kostenlos starten
+                  Gratis testen
                   <RvArrowIcon />
                 </Link>
               </RvButton>

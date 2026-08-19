@@ -36,7 +36,7 @@ export function RvCta() {
             </p>
             <div className="flex flex-wrap gap-3">
               <RvButton variant="light" size="lg" asChild>
-                <Link href="/auth/register">Kostenlos starten</Link>
+                <Link href="/auth/register">Erste Stelle kostenlos testen</Link>
               </RvButton>
               <RvButton
                 variant="ghost"
@@ -47,6 +47,9 @@ export function RvCta() {
                 Beispiel ansehen
               </RvButton>
             </div>
+            <p className="mt-3.5 text-[.84rem] text-[rgba(12,26,22,.65)]">
+              Kein Abo, keine Kreditkarte. Der kostenlose Plan bleibt kostenlos.
+            </p>
           </div>
           {/* CTA photo intentionally omitted: index.html hotlinks an Unsplash stock
               photo which we won't hotlink or fabricate a replacement for. Falls back

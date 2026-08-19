@@ -65,7 +65,7 @@ export function RvHowItWorks() {
 
         <div className="reveal s5 mt-12 text-center">
           <RvButton variant="light" size="lg" asChild>
-            <Link href="/auth/register">Jetzt kostenlos ausprobieren</Link>
+            <Link href="/auth/register">Erste Stelle kostenlos testen</Link>
           </RvButton>
           <p className="mt-3.5 text-[.84rem] text-[rgba(12,26,22,.65)]">
             {`${PLANS.free.matches} Bewertungen gratis \u00b7 keine Kreditkarte`}
