@@ -22,8 +22,8 @@ export function RvFooter() {
               <Image src="/revetly/LogoEntwurf.png" alt="Revetly" width={170} height={120} className="h-[120px] w-auto" />
             </Link>
             <p className="mt-3.5 max-w-[260px] text-[.92rem] leading-[1.6] text-[var(--rv-muted)]">
-              Bewerbungen bewerten, ohne sie alle zu lesen. Jeder Punkt belegt,
-              Verarbeitung in der EU.
+              Die passenden Bewerber finden, ohne alle zu lesen. Jeder Punkt belegt,
+              Verarbeitung ausschließlich in der EU.
             </p>
           </div>
           <div>

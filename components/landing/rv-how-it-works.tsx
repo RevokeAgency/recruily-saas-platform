@@ -7,19 +7,19 @@ import { PLANS } from "@/lib/plans"
 const STEPS = [
   {
     title: "Stelle anlegen",
-    text: "Link zur Stellenanzeige einfügen, Revetly liest sie aus und füllt die Felder. K.O.-Kriterien wie Pflichtsprache oder Zulassung legst du direkt dazu.",
+    text: "Du fügst den Link deiner Stellenanzeige ein, und Revetly liest Aufgaben und Anforderungen selbst heraus. Was zwingend erfüllt sein muss, etwa eine Pflichtsprache oder eine Berufszulassung, legst du als K.O.-Kriterium dazu.",
   },
   {
     title: "Bewerbungen sammeln",
-    text: "Über deinen Apply-Link, per E-Mail an die Stellenadresse oder als Upload. Lebenslauf und Anschreiben werden gelesen, auch aus gescannten PDFs.",
+    text: "Bewerbungen erreichen dich über deinen Apply-Link, per E-Mail an die Stellenadresse oder als Upload aus deinem Postfach. Lebenslauf und Anschreiben werden zusammen gelesen, auch wenn das PDF nur ein Scan ist.",
   },
   {
     title: "Shortlist lesen",
-    text: "Kandidaten nach Score sortiert, jede Ebene begründet und belegt. Wer die Berufszulassung nicht hat, steht unten, egal wie gut der Rest aussieht.",
+    text: "Statt eines Stapels bekommst du eine Rangfolge, in der jede Ebene begründet und mit einer Stelle aus den Unterlagen belegt ist. Wem die geforderte Zulassung fehlt, der steht unten, so gut der Rest auch aussieht.",
   },
   {
     title: "Termin buchen lassen",
-    text: "Der Bewerber wählt selbst aus deinen freien Zeiten. Der Termin landet in deinem Google- oder Microsoft-Kalender, samt Videolink.",
+    text: "Der Bewerber sucht sich eine deiner freien Zeiten selbst aus, und der Termin landet mit Videolink direkt in deinem Google- oder Microsoft-Kalender. Das Hin und Her per Mail entfällt.",
   },
 ]
 
@@ -46,7 +46,8 @@ export function RvHowItWorks() {
             vereinbarten Gespräch.
           </h2>
           <p className="mt-[18px] max-w-[560px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[rgba(12,26,22,.78)]">
-            Vier Schritte. Keine Einrichtung, keine Schulung, keine IT-Abteilung.
+            Vier Schritte vom Inserat bis zum Kalendereintrag, eingerichtet in wenigen
+            Minuten. Es braucht dafür weder ein Einführungsprojekt noch deine IT.
           </p>
         </div>
 

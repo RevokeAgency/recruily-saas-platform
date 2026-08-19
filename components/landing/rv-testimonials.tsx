@@ -21,19 +21,19 @@ const SEGMENTE = [
     icon: Briefcase,
     label: "Personalberatung & Zeitarbeit",
     title: "Viele Stellen, wenig Zeit pro Bewerbung",
-    text: "Revetly matcht jede neue Stelle automatisch gegen deinen bestehenden Kandidatenpool. Wer sich vor sechs Monaten knapp nicht qualifiziert hat, taucht wieder auf, ohne dass du neu akquirieren musst.",
+    text: "Jede neue Stelle gleicht Revetly automatisch gegen deinen bestehenden Kandidatenpool ab. Wer sich vor sechs Monaten knapp nicht qualifiziert hat, liegt beim nächsten Mandat wieder oben auf, ohne dass du neu akquirieren musst.",
   },
   {
     icon: Store,
     label: "KMU ohne eigene HR-Abteilung",
     title: "Die Geschäftsführung sortiert nebenbei mit",
-    text: "Anzeige einstellen, Apply-Link teilen, Shortlist lesen. Absagen und Terminvereinbarung laufen automatisch, damit niemand abends noch Lebensläufe durchblättert.",
+    text: "Du stellst die Anzeige ein und teilst den Apply-Link, den Rest übernimmt Revetly bis zur fertigen Shortlist. Absagen und Terminvereinbarung laufen automatisch mit, damit abends niemand mehr Lebensläufe durchblättern muss.",
   },
   {
     icon: HeartPulse,
     label: "Reglementierte Berufe",
     title: "Ohne Zulassung hilft der beste Lebenslauf nichts",
-    text: "Pflege, Technik, Handwerk: Wo Diplom, Nostrifikation oder Zertifikat Voraussetzung sind, deckelt Revetly den Score, statt sie mit Sprachkenntnissen und Kultur-Fit wegzurechnen.",
+    text: "In Pflege, Technik und Handwerk entscheidet oft ein Diplom, eine Nostrifikation oder ein Zertifikat. Fehlt die Zulassung, deckelt Revetly den Score, statt sie mit guten Sprachkenntnissen und Kultur-Fit wegzurechnen.",
   },
 ]
 
@@ -58,8 +58,8 @@ export function RvTestimonials() {
             <span className="rv-gradient-text">selbst besetzen.</span>
           </h2>
           <p className="mx-auto mt-[18px] max-w-[540px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Revetly ersetzt keine Personalabteilung. Es nimmt die Arbeit ab, die vor dem
-            ersten Gespräch liegt.
+            Revetly ersetzt keine Personalabteilung, sondern übernimmt die Arbeit, die vor
+            dem ersten Gespräch liegt: lesen, sortieren, begründen.
           </p>
         </div>
 

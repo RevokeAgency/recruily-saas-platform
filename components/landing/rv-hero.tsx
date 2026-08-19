@@ -103,9 +103,10 @@ export function RvHero() {
             ))}
           </h1>
           <p className="mb-[34px] max-w-[496px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-white/74">
-            Revetly liest Lebenslauf und Anschreiben, bewertet auf neun Ebenen und belegt
-            jeden Punkt mit einer Stelle aus den Unterlagen. Ein zweites Modell pr&uuml;ft
-            das Ergebnis gegen, bevor du es siehst.
+            Revetly &uuml;bernimmt die Vorauswahl und liefert dir eine Rangfolge, der du
+            ansiehst, wie sie zustande kam: neun Bewertungsebenen, jeder Punkt mit einer
+            Stelle aus den Unterlagen belegt. Am Ende entscheidest du &uuml;ber eine
+            Handvoll Profile statt &uuml;ber einen Stapel.
           </p>
           <div className="flex flex-wrap gap-3">
             <RvButton variant="grad" size="lg" asChild>

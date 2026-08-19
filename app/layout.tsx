@@ -21,7 +21,7 @@ const plusJakartaSans = localFont({
 // jemand, der das Produkt noch nicht kennt.
 const title = 'KI-Recruiting-Software für den DACH-Raum | Revetly'
 const description =
-  'Revetly bewertet Bewerbungen auf neun Ebenen, belegt jeden Punkt mit einer Stelle aus den Unterlagen und lässt Bewerber ihren Termin selbst buchen. Verarbeitung in der EU.'
+  'Finde die passenden Bewerber, ohne alle zu lesen: Revetly bewertet jede Bewerbung auf neun Ebenen, belegt jeden Punkt und lässt Kandidaten selbst Termine buchen. DSGVO-konform.'
 
 export const metadata: Metadata = {
   // Basis für relative canonical-/OG-URLs (z. B. der Blog-Beiträge).

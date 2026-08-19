@@ -19,13 +19,13 @@ const SIDE_CARDS = [
     icon: Clock3,
     num: "3 min",
     title: "Vom Job zum Apply-Link",
-    text: "Link der Stellenanzeige einfügen, Revetly liest sie aus und füllt die Felder. Danach Apply-Link teilen.",
+    text: "Du fügst den Link deiner Stellenanzeige ein, Revetly liest sie aus und füllt die Felder. Danach teilst du deinen Apply-Link, und Bewerbungen laufen fertig bewertet bei dir ein.",
   },
   {
     icon: ShieldCheck,
     num: "100%",
-    title: "DSGVO-konform, immer",
-    text: "Bewerberdaten werden ausschließlich in der EU verarbeitet und gespeichert. Kein Training auf Bewerberdaten, automatische Löschung nach 180 Tagen.",
+    title: "Bewerberdaten bleiben in der EU",
+    text: "Speicherung und Auswertung finden ausschließlich in der EU statt. Trainiert wird auf diesen Daten nicht, und nach 180 Tagen löscht Revetly sie automatisch.",
   },
 ]
 
@@ -60,7 +60,9 @@ export function RvServices() {
             <span className="rv-gradient-text">sondern nachweisen.</span>
           </h2>
           <p className="mt-[18px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Revetly liest Lebenslauf und Anschreiben gemeinsam und erklärt jede Bewertung mit konkreten Belegen aus den Unterlagen.
+            Die Revetly Match Analyse liest Lebenslauf und Anschreiben gemeinsam, bewertet
+            neun Ebenen einzeln und legt zu jeder Zahl den Beleg aus den Unterlagen daneben.
+            Du siehst also nicht nur, wer vorne liegt, sondern warum.
           </p>
         </div>
 
@@ -106,10 +108,10 @@ export function RvServices() {
                 9 Analyse-Ebenen
               </div>
               <h3 className="text-[clamp(1.05rem,1.5vw,1.28rem)] leading-[1.35] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-                Mehr als eine Schlagwortsuche
+                Neun Ebenen statt einer Schlagwortsuche
               </h3>
               <p className="text-[.9rem] leading-[1.64] text-[var(--rv-muted)]">
-                Revetly bewertet Hard Skills, Berufserfahrung, Ausbildung, Soft Skills, Sprachen, Standort, Branche, Gehaltsvorstellung und Kultur-Fit. Zu jeder Ebene steht die Begründung und der Beleg aus den Unterlagen.
+                Hard Skills, Berufserfahrung, Ausbildung, Soft Skills, Sprachen, Standort, Branche, Gehaltsvorstellung und Kultur-Fit werden einzeln bewertet. Zu jeder Ebene steht die Begründung und die Stelle aus den Unterlagen, auf die sie sich stützt.
               </p>
               <ul className="flex flex-col gap-2">
                 {["Jede Ebene begründet und belegt", "Zweite Prüfung korrigiert Ausreißer", "Fehlende Berufszulassung ist nicht ausgleichbar", "K.O.-Kriterien pro Stelle konfigurierbar"].map(

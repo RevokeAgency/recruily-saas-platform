@@ -10,9 +10,9 @@ import { useCountUp } from "@/lib/hooks/useCountUp"
 // "70 % weniger Screening-Zeit" hätten wir nicht gemessen und dürften sie
 // deshalb auch nicht behaupten.
 const STATS = [
-  { target: 9, unit: "", title: "Ebenen pro Bewertung", text: "Von Hard Skills und Berufserfahrung bis Gehaltsvorstellung und Kultur-Fit. Jede Ebene einzeln begründet." },
-  { target: 2, unit: "×", title: "Geprüft, bevor du es siehst", text: "Ein zweites Modell kontrolliert jede Kategorie gegen Rubrik und Belege und korrigiert, wo nötig." },
-  { target: 180, unit: "", title: "Tage bis zur Löschung", text: "Bewerberdaten verschwinden automatisch. Bewerber können ihre Löschung auch selbst anstoßen." },
+  { target: 9, unit: "", title: "Ebenen pro Bewertung", text: "Von Hard Skills und Berufserfahrung bis Gehaltsvorstellung und Kultur-Fit wird jede Ebene einzeln bewertet und einzeln begründet." },
+  { target: 2, unit: "×", title: "Geprüft, bevor du es siehst", text: "Ein zweites Modell nimmt sich jede Kategorie noch einmal vor, gleicht sie gegen Rubrik und Belege ab und korrigiert, wo die erste Einschätzung danebenlag." },
+  { target: 180, unit: "", title: "Tage bis zur Löschung", text: "Bewerberdaten verschwinden automatisch, ohne dass jemand daran denken muss. Ihre Löschung können Bewerber jederzeit auch selbst anstoßen." },
 ]
 
 const CHIPS = ["DSGVO-konform", "EU AI Act berücksichtigt", "Verarbeitung in der EU", "Kein Training auf Bewerberdaten"]
@@ -50,7 +50,7 @@ export function RvGrow() {
       <div className="relative z-[1] mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="reveal mb-14 max-w-[660px]" data-dir="left">
           <span className="rv-eyebrow inline-flex items-center gap-2 rounded-full border border-[rgba(12,26,22,.10)] bg-white px-3.5 py-[7px] text-[var(--rv-ink-soft)] shadow-[var(--rv-shadow-sm)] before:h-[7px] before:w-[7px] before:rounded-full before:bg-[image:var(--rv-gradient)]">
-            Messbare Ergebnisse
+            Was drinsteckt
           </span>
           <h2 className="mt-[22px] text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
             Die Zeit, die du sparst,
@@ -58,7 +58,8 @@ export function RvGrow() {
             steckst du ins Interview.
           </h2>
           <p className="mt-[18px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Was HR-Teams im DACH-Raum nach 30 Tagen Revetly berichten:
+            Revetly nimmt dir die Vorauswahl ab, damit deine Stunden dort landen, wo
+            über eine Einstellung wirklich entschieden wird: im Gespräch.
           </p>
         </div>
 
@@ -70,12 +71,13 @@ export function RvGrow() {
           <div className="reveal s1 grid grid-cols-1 gap-5 rounded-[var(--rv-radius-lg)] bg-[var(--rv-ink)] p-[34px_38px] sm:col-span-2 lg:col-span-3 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-12" data-dir="scale">
             <div className="flex flex-col gap-[18px]">
               <p className="text-[clamp(0.98rem,1.5vw,1.18rem)] leading-[1.68] font-medium tracking-[-0.01em] text-white/88">
-                Bewerbungsunterlagen sind besonders schutzwürdig. Bei Revetly verlassen sie
-                die EU nicht, weder bei der Speicherung noch bei der Auswertung.
+                Bewerbungsunterlagen gehören zu den sensibelsten Daten, die durch dein
+                Unternehmen laufen. Bei Revetly verlassen sie die EU zu keinem Zeitpunkt,
+                weder bei der Speicherung noch bei der Auswertung.
               </p>
               <p className="text-[.88rem] leading-[1.6] text-white/56">
-                Auf Bewerberdaten wird nicht trainiert. Nach 180 Tagen löscht Revetly
-                automatisch, und Bewerber können ihre Löschung selbst anstoßen.
+                Trainiert wird auf diesen Daten nicht. Nach 180 Tagen löscht Revetly sie
+                automatisch, und Bewerber können ihre Löschung jederzeit selbst anstoßen.
               </p>
             </div>
             <div className="flex flex-col gap-2.5">

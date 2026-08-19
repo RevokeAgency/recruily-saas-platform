@@ -12,7 +12,7 @@ const FAQS = [
   },
   {
     q: "Wie kommt die Match Analyse zustande?",
-    a: "Zuerst entsteht aus dem vollständigen Lebenslauf ein Kurzdossier. Dann prüft Revetly deterministisch, welche geforderten Fähigkeiten wirklich gedeckt sind. Erst danach bewertet ein Modell die neun Ebenen, muss vor jeder Zahl begründen und Belege nennen. Zum Schluss kontrolliert ein zweites Modell jede Kategorie gegen und korrigiert, wo nötig. Du siehst am Ende beide Urteile.",
+    a: "Aus dem vollständigen Lebenslauf entsteht zuerst ein Kurzdossier, danach prüft Revetly nach festen Regeln, welche geforderten Fähigkeiten wirklich gedeckt sind. Erst dann bewertet ein Modell die neun Ebenen und muss vor jeder Zahl Begründung und Beleg liefern. Ein zweites Modell kontrolliert das Ergebnis gegen und korrigiert, wo nötig, und du siehst am Ende beide Urteile.",
   },
   {
     q: "Kann ich mehrere Stellen parallel betreiben?",
@@ -20,7 +20,7 @@ const FAQS = [
   },
   {
     q: "Was passiert, wenn mein Kontingent aufgebraucht ist?",
-    a: "Du wirst rechtzeitig benachrichtigt. Weitere Bewerbungen kommen weiterhin an und warten auf die Bewertung, sobald du aufstockst. Bereits bewertete Kandidaten und alle Daten bleiben unverändert.",
+    a: "Du wirst rechtzeitig benachrichtigt, bevor es so weit ist. Weitere Bewerbungen kommen trotzdem an und warten auf ihre Bewertung, sobald du aufstockst. Bereits bewertete Kandidaten und alle Daten bleiben dabei unverändert erhalten.",
   },
   {
     q: "Wo werden die Bewerberdaten verarbeitet?",
@@ -28,7 +28,7 @@ const FAQS = [
   },
   {
     q: "Wie viel Einrichtung braucht das?",
-    a: "Wenig. Du fügst den Link deiner Stellenanzeige ein, Revetly liest sie aus. Danach kannst du Bewerbungen hochladen oder den Apply-Link teilen. Wer Termine automatisch buchen lassen will, verbindet einmalig seinen Google- oder Microsoft-Kalender.",
+    a: "Sehr wenig. Du fügst den Link deiner Stellenanzeige ein, Revetly liest sie aus, und danach kannst du sofort Bewerbungen hochladen oder deinen Apply-Link teilen. Wer Termine automatisch buchen lassen will, verbindet einmalig seinen Google- oder Microsoft-Kalender.",
   },
   {
     q: "Kann ich monatlich kündigen?",

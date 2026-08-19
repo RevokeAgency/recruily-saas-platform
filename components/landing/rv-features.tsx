@@ -7,36 +7,36 @@ import { useReveal } from "@/lib/hooks/useReveal"
 import { RvCard } from "./rv-card"
 
 const STEPS = [
-  "Neun Ebenen statt Schlagwortsuche",
-  "Jeder Punkt mit Beleg",
-  "Zwei Urteile, nicht eines",
-  "Fehlende Berufszulassung wiegt schwer",
+  "Neun Bewertungsebenen",
+  "Belege statt Behauptungen",
+  "Vier Augen auf jeden Score",
+  "Qualifikation als harte Grenze",
 ]
 
 const CARDS = [
   {
     icon: FileText,
     badge: "Tiefe",
-    title: "Neun Ebenen statt Schlagwortsuche",
-    text: "Revetly bewertet Hard Skills, Berufserfahrung, Ausbildung, Soft Skills, Sprachen, Standort, Branche, Gehaltsvorstellung und Kultur-Fit. Lebenslauf und Anschreiben werden gemeinsam gelesen, weil die Motivation selten im Lebenslauf steht.",
+    title: "Tiefer als jede Schlagwortsuche",
+    text: "Hard Skills, Berufserfahrung, Ausbildung, Soft Skills, Sprachen, Standort, Branche, Gehaltsvorstellung und Kultur-Fit fließen in jede Bewertung ein. Lebenslauf und Anschreiben werden gemeinsam gelesen, denn Motivation steht selten im Lebenslauf.",
   },
   {
     icon: Quote,
     badge: "Nachvollziehbar",
-    title: "Jeder Punkt mit Beleg",
-    text: "Zu jeder Ebene steht die Begründung und die Stelle aus den Unterlagen, auf die sie sich stützt. Wo die Bewertung dünn belegt ist, sagt Revetly das und schlägt die Frage fürs Interview vor.",
+    title: "Nachvollziehbar bis zur Quelle",
+    text: "Jede Ebene kommt mit Begründung und der Textstelle, auf die sie sich stützt. Ist die Grundlage dünn, sagt Revetly das offen und liefert gleich die passende Frage für das Interview mit.",
   },
   {
     icon: UserCheck,
     badge: "Vier Augen",
-    title: "Zwei Urteile, nicht eines",
-    text: "Ein zweites Modell prüft jede Kategorie unabhängig gegen Rubrik und Belege und korrigiert, wo die erste Bewertung zu hoch oder zu niedrig lag. Beide Urteile stehen im Protokoll.",
+    title: "Vier Augen auf jede Bewertung",
+    text: "Eine zweite, unabhängige Instanz prüft jede Kategorie gegen Rubrik und Belege und korrigiert, wo die erste Einschätzung zu wohlwollend oder zu streng ausfiel. Beide Urteile bleiben im Protokoll einsehbar.",
   },
   {
     icon: ShieldAlert,
     badge: "Nicht ausgleichbar",
-    title: "Fehlende Berufszulassung wiegt schwer",
-    text: "Wer ein Pflegediplom oder eine Nostrifikation braucht und sie nicht hat, bekommt keinen guten Score, nur weil Sprache und Gehaltsvorstellung passen. Dazu eigene K.O.-Kriterien pro Stelle.",
+    title: "Wo Qualifikation Pflicht ist, gilt sie auch",
+    text: "Fehlt das geforderte Diplom oder die Nostrifikation, rettet auch die beste Sprachkenntnis den Score nicht mehr. Zusätzlich definierst du eigene K.O.-Kriterien pro Stelle und siebst damit aus, was ohnehin nicht infrage kommt.",
   },
 ]
 
@@ -75,7 +75,7 @@ export function RvFeatures() {
             <span className="rv-gradient-text">nachrechnen kannst.</span>
           </h2>
           <p className="mt-4 text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Bei jedem Kandidaten steht, wie die Zahl zustande kommt und worauf sie sich stützt. Damit du widersprechen kannst, wenn sie nicht stimmt.
+            Bei jedem Kandidaten siehst du, wie die Zahl zustande kam und worauf sie sich stützt. Genau deshalb kannst du ihr widersprechen, wenn deine Erfahrung etwas anderes sagt.
           </p>
           <nav className="mt-9 hidden lg:block" aria-label="Features">
             {STEPS.map((label, i) => (

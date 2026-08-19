@@ -30,7 +30,7 @@ type Tier = {
 const TIERS: Tier[] = [
   {
     name: "Free",
-    desc: "Zum Reinschnuppern",
+    desc: "Zum Testen mit echten Bewerbungen",
     monthly: "€0",
     yearly: "€0",
     per: { m: "/Monat", y: "/Jahr" },
@@ -100,7 +100,7 @@ const TIERS: Tier[] = [
   },
   {
     name: "Enterprise",
-    desc: "Für Konzerne & Volumen",
+    desc: "Für Konzerne und hohes Volumen",
     monthly: "Custom",
     yearly: "Custom",
     per: null,
@@ -164,10 +164,11 @@ export function RvPricing() {
             Preise
           </span>
           <h2 className="mt-[22px] text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-            Transparent. Fair. Skalierbar.
+            Preise, die mit dir wachsen.
           </h2>
           <p className="mt-[18px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Starte gratis. Wachse, wenn dein Recruiting wächst. Jederzeit kündbar.
+            Du startest gratis und wechselst erst, wenn dein Recruiting mehr braucht.
+            Monatlich kündbar, ohne Mindestlaufzeit und ohne Einrichtungsgebühr.
           </p>
         </div>
 

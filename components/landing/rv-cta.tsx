@@ -30,9 +30,9 @@ export function RvCta() {
               bevor du zahlst.
             </h2>
             <p className="mb-7 max-w-[420px] text-[rgba(12,26,22,.78)]">
-              Konto anlegen, eine echte Stelle einstellen, eigene Bewerbungen hochladen.
-              Ohne Kreditkarte. Du siehst am Ergebnis, ob die Bewertung deiner eigenen
-              Einschätzung standhält.
+              Leg ein Konto an, stell eine echte Stelle ein und lad deine eigenen
+              Bewerbungen hoch, ganz ohne Kreditkarte. Am Ergebnis siehst du selbst, ob
+              die Bewertung deiner Einschätzung standhält.
             </p>
             <div className="flex flex-wrap gap-3">
               <RvButton variant="light" size="lg" asChild>
