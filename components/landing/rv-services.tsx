@@ -52,7 +52,7 @@ export function RvServices() {
       <div className="relative z-[1] mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="reveal mb-14 max-w-[660px]" data-dir="left">
           <span className="rv-eyebrow inline-flex items-center gap-2 rounded-full border border-[rgba(12,26,22,.10)] bg-white px-3.5 py-[7px] text-[var(--rv-ink-soft)] shadow-[var(--rv-shadow-sm)] before:h-[7px] before:w-[7px] before:rounded-full before:bg-[image:var(--rv-gradient)]">
-            Wie wir dir helfen
+            Revetly Match Analyse
           </span>
           <h2 className="mt-[22px] text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
             Nicht raten,
@@ -84,8 +84,13 @@ export function RvServices() {
                       <b className="text-[.73rem] font-bold text-[var(--rv-green-deep)]">{layer.value}</b>
                     </div>
                     <div className="h-1 overflow-hidden rounded-full bg-[rgba(12,26,22,.10)]">
+                      {/* Kein `reveal` auf dem Balken selbst: die Breite steuert der
+                          Vorfahre per `.reveal.in .rv-sb-bar`. Traegt der Balken die
+                          Klasse zusaetzlich, setzt ihn `.reveal` auf opacity 0, und
+                          er kommt da nie wieder raus, weil er mit Breite 0 keine
+                          Flaeche hat, die der IntersectionObserver sehen koennte. */}
                       <div
-                        className="reveal rv-sb-bar h-full rounded-full bg-[image:var(--rv-gradient)]"
+                        className="rv-sb-bar h-full rounded-full bg-[image:var(--rv-gradient)]"
                         style={{ "--w": `${layer.value}%` } as React.CSSProperties}
                       />
                     </div>
