@@ -39,8 +39,8 @@ const TIERS: Tier[] = [
       "5 Bewertungen pro Monat",
       "Lebenslauf-Upload, auch gescannte PDFs",
       "Öffentliche Bewerbungsseite",
-      "Match Analyse mit Gesamtscore",
-      "Absagen per Mail",
+      "Revetly Match Analyse mit Gesamtscore",
+      "Absagen per E-Mail",
     ],
     cta: "Gratis starten",
   },
@@ -117,23 +117,23 @@ const TIERS: Tier[] = [
 
 const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values: (string | boolean)[] }> }> = [
   {
-    group: "Jobs & Matches",
+    group: "Stellen & Bewertungen",
     rows: [
-      { label: "Aktive Jobs", values: ["1", "3", "10", "Unlimited", "Custom"] },
-      { label: "AI Matches / Monat", values: ["5", "50", "300", "1.000", "Custom SLA"] },
+      { label: "Aktive Stellen", values: ["1", "3", "10", "Unbegrenzt", "Individuell"] },
+      { label: "Bewertungen / Monat", values: ["5", "50", "300", "1.000", "Nach SLA"] },
       { label: "Preis über dem Kontingent", values: ["—", "—", "€0,49", "€0,29", "nach Absprache"] },
     ],
   },
   {
-    group: "Core Features",
+    group: "Kernfunktionen",
     rows: [
-      { label: "CV Upload & Parsing", values: [true, true, true, true, true] },
-      { label: "Public Apply Page", values: [true, true, true, true, true] },
-      { label: "AI Matching Score", values: ["Basic", true, true, true, true] },
-      { label: "Rejection Emails", values: [true, true, true, true, true] },
+      { label: "Lebenslauf-Upload & Auslesen", values: [true, true, true, true, true] },
+      { label: "Öffentliche Bewerbungsseite", values: [true, true, true, true, true] },
+      { label: "Revetly Match Analyse", values: ["Gesamtscore", true, true, true, true] },
+      { label: "Absagen per E-Mail", values: [true, true, true, true, true] },
       { label: "Terminbuchung durch den Bewerber", values: ["—", true, true, true, true] },
       { label: "Bewerbung per E-Mail", values: ["—", true, true, true, true] },
-      { label: "Talent-Pool gegenmatchen", values: ["—", "—", true, true, true] },
+      { label: "Talent-Pool abgleichen", values: ["—", "—", true, true, true] },
       { label: "Strukturierte Interviews", values: ["—", "—", true, true, true] },
       { label: "Auswertungen", values: ["—", "einfach", true, true, true] },
       { label: "Gewichtung lernt mit", values: ["—", "—", "—", true, true] },
@@ -144,9 +144,9 @@ const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values:
   {
     group: "Team & Support",
     rows: [
-      { label: "Team Members", values: ["1", "2", "5", "Unlimited", "Unlimited"] },
+      { label: "Teammitglieder", values: ["1", "2", "5", "Unbegrenzt", "Unbegrenzt"] },
       { label: "DSGVO-Export", values: ["—", true, true, true, true] },
-      { label: "Support", values: ["Community", "Email", "Priority", "Dedicated", "SLA"] },
+      { label: "Support", values: ["Community", "E-Mail", "Priorität", "Fest zugeordnet", "SLA"] },
     ],
   },
 ]

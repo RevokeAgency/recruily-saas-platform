@@ -11,7 +11,7 @@ const STEPS = [
   },
   {
     title: "Bewerbungen sammeln",
-    text: "Bewerbungen erreichen dich über deinen Apply-Link, per E-Mail an die Stellenadresse oder als Upload aus deinem Postfach. Lebenslauf und Anschreiben werden zusammen gelesen, auch wenn das PDF nur ein Scan ist.",
+    text: "Bewerbungen erreichen dich über deinen Apply-Link, per E-Mail an die Stellenadresse oder als manueller Upload. Lebenslauf und Anschreiben werden zusammen gelesen, auch wenn das PDF nur ein Scan ist.",
   },
   {
     title: "Shortlist lesen",
@@ -46,8 +46,8 @@ export function RvHowItWorks() {
             vereinbarten Gespräch.
           </h2>
           <p className="mt-[18px] max-w-[560px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[rgba(12,26,22,.78)]">
-            Vier Schritte vom Inserat bis zum Kalendereintrag, eingerichtet in wenigen
-            Minuten. Es braucht dafür weder ein Einführungsprojekt noch deine IT.
+            Vier Schritte führen vom Inserat bis zum gebuchten Gespräch, eingerichtet in
+            Minuten statt Tagen. Ein Einführungsprojekt oder deine IT brauchst du dafür nicht.
           </p>
         </div>
 

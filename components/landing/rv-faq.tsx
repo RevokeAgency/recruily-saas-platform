@@ -7,11 +7,11 @@ import { PLANS } from "@/lib/plans"
 
 const FAQS = [
   {
-    q: "Was ist ein Match?",
-    a: `Ein Match ist die Bewertung genau einer Bewerbung gegen genau eine Stelle. Zwanzig Bewerbungen auf einen Job sind zwanzig Matches. Im kostenlosen Plan sind ${PLANS.free.matches} enthalten, danach wechselst du auf einen bezahlten Plan.`,
+    q: "Was zählt als Bewertung?",
+    a: `Eine Bewertung ist die Analyse genau einer Bewerbung für genau eine Stelle. Zwanzig Bewerbungen auf eine Stelle ergeben zwanzig Bewertungen. Im kostenlosen Plan sind ${PLANS.free.matches} pro Monat enthalten, danach wechselst du auf einen bezahlten Plan.`,
   },
   {
-    q: "Wie kommt die Match Analyse zustande?",
+    q: "Wie kommt die Revetly Match Analyse zustande?",
     a: "Aus dem vollständigen Lebenslauf entsteht zuerst ein Kurzdossier, danach prüft Revetly nach festen Regeln, welche geforderten Fähigkeiten wirklich gedeckt sind. Erst dann bewertet ein Modell die neun Ebenen und muss vor jeder Zahl Begründung und Beleg liefern. Ein zweites Modell kontrolliert das Ergebnis gegen und korrigiert, wo nötig, und du siehst am Ende beide Urteile.",
   },
   {
