@@ -8,14 +8,13 @@ import { RvArrowIcon, RvButton } from "./rv-button"
 import { PLANS } from "@/lib/plans"
 
 const HEADLINE: Array<{ text: string; gradient?: boolean }> = [
-  { text: "Die" },
-  { text: "passenden" },
-  { text: "Bewerber" },
-  { text: "finden," },
-  { text: "ohne", gradient: true },
-  { text: "alle", gradient: true },
-  { text: "zu", gradient: true },
-  { text: "lesen.", gradient: true },
+  { text: "Alle" },
+  { text: "Bewerbungen" },
+  { text: "gelesen," },
+  { text: "sortiert" },
+  { text: "und" },
+  { text: "nachvollziehbar", gradient: true },
+  { text: "bewertet.", gradient: true },
 ]
 
 const TRUST_ITEMS = ["DSGVO-konform", "EU AI Act", "Verarbeitung in der EU"]
@@ -103,10 +102,10 @@ export function RvHero() {
             ))}
           </h1>
           <p className="mb-[34px] max-w-[496px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-white/74">
-            Revetly &uuml;bernimmt die Vorauswahl und liefert dir eine Rangfolge, der du
-            ansiehst, wie sie zustande kam: neun Bewertungsebenen, jeder Punkt mit einer
-            Stelle aus den Unterlagen belegt. Am Ende entscheidest du &uuml;ber eine
-            Handvoll Profile statt &uuml;ber einen Stapel.
+            Du lädst die Bewerbungen hoch, Revetly bewertet jede einzelne und sortiert sie
+            nach Passung. Zu jedem Kandidaten siehst du, warum er auf diesem Platz steht,
+            belegt mit der Stelle im Lebenslauf. Am Ende entscheidest du über eine Handvoll
+            Profile statt über einen Stapel.
           </p>
           <div className="flex flex-wrap gap-3">
             <RvButton variant="grad" size="lg" asChild>
@@ -121,7 +120,7 @@ export function RvHero() {
               onClick={() => document.querySelector("#how")?.scrollIntoView({ behavior: "smooth" })}
             >
               <Play className="h-4 w-4" fill="currentColor" />
-              So funktioniert&apos;s
+              In 90 Sekunden ansehen
             </RvButton>
           </div>
           <div className="mt-[30px] flex flex-wrap items-center gap-[22px]">
