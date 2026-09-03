@@ -1,11 +1,22 @@
 import { createClient } from "@/lib/supabase/server"
 import { generateText } from "ai"
+import { z } from "zod"
 import { modelChain, nonEuFallbackAllowed, mistralApiKey, type AiTask } from "@/lib/ai/provider"
+import { generateStructured } from "@/lib/ai/generate"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
 const TASKS: AiTask[] = ["reasoning", "extraction", "utility", "vision"]
+
+// Der eigentliche Matching-Fehler steckt fast immer im STRUKTURIERTEN Pfad
+// (Urteil ins feste Schema), nicht in der reinen Erreichbarkeit. Der Klartext-
+// Test oben kann deshalb "OK" melden, während das Scoring trotzdem scheitert.
+// Diese Probe geht denselben Weg wie der Richter — inklusive EU-Modellfallback.
+const probeSchema = z.object({
+  ok: z.boolean().describe("immer true"),
+  wert: z.number().describe("gib die Zahl 42 zurück"),
+})
 
 /**
  * KI-Selbsttest für den eingeloggten Inhaber: Welcher Provider/welches Modell
@@ -57,6 +68,42 @@ export async function GET() {
       }
     }
 
+    // Strukturierter End-to-End-Test des Urteilspfads (das, was beim Scoring
+    // wirklich läuft). Nutzt die volle Kette, meldet das antwortende Modell.
+    let structured: {
+      ok: boolean
+      provider?: string
+      model?: string
+      euResident?: boolean
+      ms: number
+      error?: string
+    }
+    {
+      const started = Date.now()
+      try {
+        const { run } = await generateStructured({
+          task: "reasoning",
+          schema: probeSchema,
+          system: "Du gibst ausschließlich das geforderte JSON zurück.",
+          prompt: "Gib ok=true und wert=42 zurück.",
+          label: "Diagnose-Strukturtest",
+        })
+        structured = {
+          ok: true,
+          provider: run.provider,
+          model: run.modelId,
+          euResident: run.euResident,
+          ms: Date.now() - started,
+        }
+      } catch (err) {
+        structured = {
+          ok: false,
+          ms: Date.now() - started,
+          error: (err instanceof Error ? err.message : String(err)).slice(0, 400),
+        }
+      }
+    }
+
     // Welcher Env-Name den Key tatsächlich liefert (häufigste Fehlerquelle).
     const keyVar = process.env.MISTRAL_API_KEY
       ? "MISTRAL_API_KEY"
@@ -68,8 +115,11 @@ export async function GET() {
 
     const failing = results.filter((r) => !r.ok)
     return Response.json({
-      ok: failing.length === 0,
+      ok: failing.length === 0 && structured.ok,
       euOnly: !nonEuFallbackAllowed(),
+      // Das ist der aussagekräftigste Wert bei Status "Fehler": Läuft der
+      // strukturierte Urteilspfad? Wenn nein, steht hier der genaue Grund.
+      urteilStrukturiert: structured,
       apiKey: {
         gefunden: !!mistralApiKey(),
         variable: keyVar,
@@ -81,9 +131,11 @@ export async function GET() {
       hint:
         failing.length === results.length
           ? "Kein Modell erreichbar — Mistral-Key prüfen (gesetzt? gültig? Abrechnung aktiv?)."
-          : failing.length > 0
-            ? `Nicht erreichbar: ${failing.map((f) => f.task).join(", ")}.`
-            : "Alle Aufgaben laufen über EU-Modelle.",
+          : !structured.ok
+            ? "Erreichbarkeit ok, aber der strukturierte Urteilspfad scheitert — genau das führt zu Status \"Fehler\". Grund siehe urteilStrukturiert.error."
+            : failing.length > 0
+              ? `Nicht erreichbar: ${failing.map((f) => f.task).join(", ")}.`
+              : "Alle Aufgaben laufen über EU-Modelle.",
     })
   } catch (error) {
     console.error("[matching diagnose] error:", error)

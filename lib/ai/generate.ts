@@ -50,7 +50,8 @@ export async function generateStructured<T>(args: {
   }
 
   let lastError: unknown = null
-  for (const entry of chain) {
+  for (let i = 0; i < chain.length; i++) {
+    const entry = chain[i]
     try {
       const { output } = await generateText({
         model: entry.model,
@@ -61,7 +62,7 @@ export async function generateStructured<T>(args: {
       })
       if (!output) throw new Error("Leere Modellantwort")
 
-      if (entry !== chain[0]) {
+      if (i !== 0) {
         console.warn(`[ai] ${args.label}: Fallback auf ${entry.provider}:${entry.modelId}`)
       }
       if (!entry.euResident) {
@@ -75,7 +76,13 @@ export async function generateStructured<T>(args: {
       lastError = err
       const msg = err instanceof Error ? err.message : String(err)
       console.error(`[ai] ${args.label} mit ${entry.provider}:${entry.modelId} fehlgeschlagen: ${msg}`)
-      if (isTerminal(msg)) break
+      // Schema-/JSON-Fehler lösen andere Anbieter meist nicht anders — der
+      // Wechsel dorthin lohnt dann nicht. Ein anderes Modell DESSELBEN Anbieters
+      // kann dieselbe Ausgabe aber sehr wohl sauber liefern (small parst
+      // täglich zuverlässig ins Schema). Deshalb nur abbrechen, wenn als
+      // Nächstes ein fremder Anbieter käme.
+      const next = chain[i + 1]
+      if (isTerminal(msg) && (!next || next.provider !== entry.provider)) break
     }
   }
 

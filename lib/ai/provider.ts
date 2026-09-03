@@ -50,6 +50,16 @@ const MISTRAL_MODELS: Record<AiTask, string> = {
   vision: process.env.AI_MODEL_VISION || "pixtral-12b-2409",
 }
 
+// In-EU-Modellfallback: Wenn das große Urteilsmodell ausfällt (kein Zugriff auf
+// mistral-large im Account, Kapazitätsgrenze, Rate-Limit), soll die Bewertung
+// nicht komplett scheitern, solange das kleinere Mistral-Modell antwortet. Beide
+// bleiben in der EU. Betrifft nur die Aufgaben mit großem Standardmodell; für
+// extraction/utility ist small ohnehin schon primär.
+const MISTRAL_FALLBACK: Partial<Record<AiTask, string>> = {
+  reasoning: process.env.AI_MODEL_REASONING_FALLBACK || "mistral-small-latest",
+  verification: process.env.AI_MODEL_VERIFICATION_FALLBACK || "mistral-small-latest",
+}
+
 // Notfall-Pfad. Nur aktiv, wenn AI_ALLOW_NON_EU_FALLBACK === "true".
 const GOOGLE_MODELS: Record<AiTask, string> = {
   reasoning: "gemini-2.5-pro",
@@ -115,6 +125,12 @@ export function modelChain(task: AiTask): ResolvedModel[] {
   if (mistral) {
     const id = MISTRAL_MODELS[task]
     chain.push({ model: mistral(id), provider: "mistral", modelId: id, euResident: true })
+    // Kleineres EU-Modell als Zwischenstufe, bevor auf einen anderen Provider
+    // (oder gar nicht) ausgewichen wird.
+    const fb = MISTRAL_FALLBACK[task]
+    if (fb && fb !== id) {
+      chain.push({ model: mistral(fb), provider: "mistral", modelId: fb, euResident: true })
+    }
   }
 
   if (nonEuFallbackAllowed()) {

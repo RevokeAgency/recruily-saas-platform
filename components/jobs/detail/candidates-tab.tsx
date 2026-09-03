@@ -720,6 +720,20 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
                     </div>
                   )}
 
+                  {/* Scoring fehlgeschlagen — Grund zeigen statt Sackgasse. Der
+                      Text stammt aus scoreJobCandidateLink (match_detail.error). */}
+                  {candidate.status === "error" && candidate.match_detail?.error && (
+                    <div className="mb-4 rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
+                      <div className="mb-1.5 flex items-center gap-2">
+                        <ShieldAlert className="h-4 w-4 text-destructive" />
+                        <span className="text-sm font-semibold text-destructive">Bewertung fehlgeschlagen</span>
+                      </div>
+                      <p className="text-sm leading-relaxed break-words text-muted-foreground">
+                        {candidate.match_detail.error}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Bestenvergleich — comparative reasoning */}
                   {candidate.pool_rank != null && candidate.pool_rank_reason && (
                     <div className="mb-4 rounded-2xl border border-[rgba(34,193,238,.25)] bg-[rgba(34,193,238,.05)] p-4">
