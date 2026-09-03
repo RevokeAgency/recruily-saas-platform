@@ -13,12 +13,11 @@ import { PLANS } from "@/lib/plans"
 // fliessen natuerlich, wodurch sich "und" an die Zeile darueber haengt statt
 // allein zu stehen. Der Verlauf beginnt bei "nachvollziehbar".
 const HEADLINE: Array<{ text: string; gradient?: boolean; break?: boolean }> = [
-  { text: "Alle" },
-  { text: "Bewerbungen", break: true },
-  { text: "gelesen," },
-  { text: "sortiert", break: true },
-  { text: "und" },
-  { text: "nachvollziehbar", gradient: true, break: true },
+  { text: "Jede" },
+  { text: "Bewerbung" },
+  { text: "gelesen.", break: true },
+  { text: "Sortiert.", break: true },
+  { text: "Nachvollziehbar", gradient: true },
   { text: "bewertet.", gradient: true },
 ]
 
@@ -89,12 +88,12 @@ export function RvHero() {
       </div>
 
       <div className="relative z-[3] mx-auto flex min-h-[clamp(620px,100dvh,960px)] max-w-[1200px] items-center px-4 pt-[clamp(120px,14dvh,168px)] pb-[clamp(64px,8dvh,104px)] sm:px-6 lg:px-8">
-        <div className="max-w-[660px]">
+        <div className="max-w-[740px]">
           <span className="mb-[30px] inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-[15px] py-[7px] text-[.78rem] font-semibold text-white/92 backdrop-blur-[10px]">
             <span className="h-[7px] w-[7px] animate-pulse rounded-full bg-[var(--rv-green)]" />
             {`${PLANS.free.matches} Bewertungen gratis \u00b7 ohne Kreditkarte`}
           </span>
-          <h1 className="mb-[22px] flex flex-wrap items-baseline gap-x-[0.26em] text-[clamp(2.1rem,5.4vw,4rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-white [text-shadow:0_2px_30px_rgba(8,22,20,.35)]">
+          <h1 className="mb-[22px] flex flex-wrap items-baseline gap-x-[0.26em] text-[clamp(1.6rem,5.4vw,3.6rem)] leading-[1.06] font-extrabold tracking-[-0.03em] text-white [text-shadow:0_2px_30px_rgba(8,22,20,.35)]">
             {HEADLINE.map((w, i) => (
               <Fragment key={i}>
                 <span
@@ -110,8 +109,8 @@ export function RvHero() {
           <p className="mb-[34px] max-w-[496px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-white/74">
             Du lädst die Bewerbungen hoch, Revetly bewertet jede einzelne und sortiert sie
             nach Passung. Zu jedem Kandidaten siehst du, warum er auf diesem Platz steht,
-            belegt mit der Stelle im Lebenslauf. Am Ende entscheidest du über eine Handvoll
-            Profile statt über einen Stapel.
+            belegt mit der Stelle in den Unterlagen. Am Ende entscheidest du über eine
+            Handvoll Profile statt über einen Stapel.
           </p>
           <div className="flex flex-wrap gap-3">
             <RvButton variant="grad" size="lg" asChild>
