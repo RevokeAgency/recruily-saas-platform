@@ -1,19 +1,24 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { Fragment, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Check, Play } from "lucide-react"
 
 import { RvArrowIcon, RvButton } from "./rv-button"
 import { PLANS } from "@/lib/plans"
 
-const HEADLINE: Array<{ text: string; gradient?: boolean }> = [
+// `break` erzwingt am Zeilenende einen Umbruch, aber nur ab lg. So steht auf
+// dem Desktop "und nachvollziehbar" zusammen und "bewertet." darunter, wie
+// gewuenscht. Auf schmalen Screens sind die Umbrueche aus und die Woerter
+// fliessen natuerlich, wodurch sich "und" an die Zeile darueber haengt statt
+// allein zu stehen. Der Verlauf beginnt bei "nachvollziehbar".
+const HEADLINE: Array<{ text: string; gradient?: boolean; break?: boolean }> = [
   { text: "Alle" },
-  { text: "Bewerbungen" },
+  { text: "Bewerbungen", break: true },
   { text: "gelesen," },
-  { text: "sortiert" },
+  { text: "sortiert", break: true },
   { text: "und" },
-  { text: "nachvollziehbar", gradient: true },
+  { text: "nachvollziehbar", gradient: true, break: true },
   { text: "bewertet.", gradient: true },
 ]
 
@@ -84,21 +89,22 @@ export function RvHero() {
       </div>
 
       <div className="relative z-[3] mx-auto flex min-h-[clamp(620px,100dvh,960px)] max-w-[1200px] items-center px-4 pt-[clamp(120px,14dvh,168px)] pb-[clamp(64px,8dvh,104px)] sm:px-6 lg:px-8">
-        <div className="max-w-[560px]">
+        <div className="max-w-[660px]">
           <span className="mb-[30px] inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-[15px] py-[7px] text-[.78rem] font-semibold text-white/92 backdrop-blur-[10px]">
             <span className="h-[7px] w-[7px] animate-pulse rounded-full bg-[var(--rv-green)]" />
             {`${PLANS.free.matches} Bewertungen gratis \u00b7 ohne Kreditkarte`}
           </span>
-          <h1 className="mb-[22px] text-[clamp(2.5rem,5.4vw,4rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-white [text-shadow:0_2px_30px_rgba(8,22,20,.35)]">
+          <h1 className="mb-[22px] flex flex-wrap items-baseline gap-x-[0.26em] text-[clamp(2.1rem,5.4vw,4rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-white [text-shadow:0_2px_30px_rgba(8,22,20,.35)]">
             {HEADLINE.map((w, i) => (
-              <span key={i}>
+              <Fragment key={i}>
                 <span
                   className={`rv-hw ${w.gradient ? "rv-gradient-text" : ""}`}
                   style={{ animationDelay: `${0.05 + i * 0.07}s` }}
                 >
                   {w.text}
-                </span>{" "}
-              </span>
+                </span>
+                {w.break && <span aria-hidden className="h-0 basis-full" />}
+              </Fragment>
             ))}
           </h1>
           <p className="mb-[34px] max-w-[496px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-white/74">
