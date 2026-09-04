@@ -7,8 +7,8 @@ import { PLANS } from "@/lib/plans"
 
 const FAQS = [
   {
-    q: "Was zählt als Bewertung?",
-    a: `Eine Bewertung ist die Analyse genau einer Bewerbung für genau eine Stelle. Zwanzig Bewerbungen auf eine Stelle ergeben zwanzig Bewertungen. Im kostenlosen Plan sind ${PLANS.free.matches} pro Monat enthalten, danach wechselst du auf einen bezahlten Plan.`,
+    q: "Was zählt als Match?",
+    a: `Ein Match ist die Analyse genau einer Bewerbung für genau eine Stelle. Zwanzig Bewerbungen auf eine Stelle ergeben zwanzig Matches. Im kostenlosen Plan sind ${PLANS.free.matches} pro Monat enthalten, danach wechselst du auf einen bezahlten Plan.`,
   },
   {
     q: "Wie kommt die Revetly Match Analyse zustande?",
@@ -20,7 +20,7 @@ const FAQS = [
   },
   {
     q: "Was passiert, wenn mein Kontingent aufgebraucht ist?",
-    a: "Du wirst rechtzeitig benachrichtigt, bevor es so weit ist. Weitere Bewerbungen kommen trotzdem an und warten auf ihre Bewertung, sobald du aufstockst. Bereits bewertete Kandidaten und alle Daten bleiben dabei unverändert erhalten.",
+    a: "Du wirst rechtzeitig benachrichtigt, bevor es so weit ist. Weitere Bewerbungen kommen trotzdem an und warten auf ihren Match, sobald du aufstockst. Bereits gematchte Kandidaten und alle Daten bleiben dabei unverändert erhalten.",
   },
   {
     q: "Wo werden die Bewerberdaten verarbeitet?",

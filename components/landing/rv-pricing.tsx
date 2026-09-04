@@ -36,7 +36,7 @@ const TIERS: Tier[] = [
     per: { m: "/Monat", y: "/Jahr" },
     features: [
       "1 aktive Stelle",
-      "5 Bewertungen pro Monat",
+      "5 Matches pro Monat",
       "Lebenslauf-Upload, auch gescannte PDFs",
       "Öffentliche Bewerbungsseite",
       "Revetly Match Analyse mit Gesamtscore",
@@ -54,7 +54,7 @@ const TIERS: Tier[] = [
     lead: "Alles aus Free, plus:",
     features: [
       "3 aktive Stellen",
-      "50 Bewertungen pro Monat",
+      "50 Matches pro Monat",
       "Alle neun Ebenen mit Begründung und Belegen",
       "K.O.-Kriterien pro Stelle",
       "Bewerbungen per E-Mail an die Stellenadresse",
@@ -73,7 +73,7 @@ const TIERS: Tier[] = [
     lead: "Alles aus Starter, plus:",
     features: [
       "10 aktive Stellen",
-      "300 Bewertungen pro Monat",
+      "300 Matches pro Monat",
       "Talent-Pool: neue Stellen gegen alte Bewerber",
       "Strukturierte Interviewleitfäden",
       "Bestenvergleich innerhalb einer Stelle",
@@ -92,7 +92,7 @@ const TIERS: Tier[] = [
     lead: "Alles aus Growth, plus:",
     features: [
       "Unbegrenzt viele Stellen",
-      "1.000 Bewertungen pro Monat",
+      "1.000 Matches pro Monat",
       "Gewichtung lernt aus deinen Einstellungen",
       "Vorrangiger Support",
     ],
@@ -117,10 +117,10 @@ const TIERS: Tier[] = [
 
 const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values: (string | boolean)[] }> }> = [
   {
-    group: "Stellen & Bewertungen",
+    group: "Stellen & Matches",
     rows: [
       { label: "Aktive Stellen", values: ["1", "3", "10", "Unbegrenzt", "Individuell"] },
-      { label: "Bewertungen / Monat", values: ["5", "50", "300", "1.000", "Nach SLA"] },
+      { label: "Matches / Monat", values: ["5", "50", "300", "1.000", "Nach SLA"] },
       { label: "Preis über dem Kontingent", values: ["—", "—", "€0,49", "€0,29", "nach Absprache"] },
     ],
   },

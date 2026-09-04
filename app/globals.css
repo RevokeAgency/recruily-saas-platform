@@ -602,67 +602,28 @@ html { scroll-behavior: smooth; }
 .rv-sb-bar { width: 0; transition: width 1.1s cubic-bezier(0.16,1,0.3,1); }
 .reveal.in .rv-sb-bar, .reveal.visible .rv-sb-bar { width: var(--w); }
 
-/* Problem-Sektion: Bewerbungsstapel, der sich beim Scrollen auffaechert.
-   Drei Ebenen mit je einer Aufgabe, damit sich nichts gegenseitig ueberschreibt:
-   .rv-sheet traegt die Endrotation, .rv-sheet-fan die scrollgesteuerte
-   Bewegung, .rv-sheet-card den Hover. Laege Fan und Hover auf demselben
-   Element, wuerde die Animation (mit fill: both haelt sie ihren Endwert) die
-   Hover-Transition dauerhaft ueberstimmen. */
-.rv-sheet { --rot: 0deg; --dx: 0px; }
-.rv-sheet-card {
-  transition: transform .32s cubic-bezier(0.23,1,0.32,1), box-shadow .32s cubic-bezier(0.23,1,0.32,1);
+/* Problem-Sektion: Vorher/Nachher-Regler.
+   Bedient wird ueber ein unsichtbares range-Input, das die ganze Flaeche
+   abdeckt. Damit uebernimmt der Browser Maus, Touch, Tastatur und
+   Screenreader, ohne eigene Zeigerlogik. Sichtbar ist nur der eigene Griff,
+   also werden Track und Thumb ausgeblendet. Der Thumb bleibt breit, damit er
+   sich mit dem Finger noch greifen laesst. */
+.rv-compare-range::-webkit-slider-runnable-track { background: transparent; border: 0; }
+.rv-compare-range::-moz-range-track { background: transparent; border: 0; }
+.rv-compare-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 44px;
+  height: 44px;
+  opacity: 0;
+  cursor: ew-resize;
 }
-@media (hover: hover) and (pointer: fine) {
-  .rv-sheet-card:hover { transform: translateY(-8px); box-shadow: var(--rv-shadow); }
-}
-.rv-sheet-card:focus-within { transform: translateY(-8px); box-shadow: var(--rv-shadow); }
-
-/* Papierstruktur der leeren Blaetter im Hintergrund: dieselben angedeuteten
-   Textzeilen wie bei den schwebenden Blaettern im Hero. */
-.rv-sheet-ghost {
-  background: linear-gradient(150deg, #ffffff 0%, #f2f5f4 100%);
-  border: 1px solid rgba(12,26,22,.08);
-}
-.rv-sheet-ghost::before {
-  content: "";
-  position: absolute;
-  inset: 13% 15%;
-  background: repeating-linear-gradient(180deg, rgba(12,26,22,.10) 0 1px, transparent 1px 9px);
-}
-
-/* Erst ab lg: bei 768px waeren drei Spalten so schmal, dass die Titel
-   unguenstig umbrechen und die Blaetter die Karten bedraengen. Darunter
-   stehen die Karten untereinander, ohne Neigung und ohne Stapel. */
-@media (min-width: 1024px) {
-  /* `--ty` versetzt die Blaetter im Ruhezustand leicht gegeneinander, damit die
-     Reihe nach abgelegten Blaettern aussieht und nicht nach einem Raster. */
-  .rv-sheet-fan { transform: translate3d(0, var(--ty, 0px), 0) rotate(var(--rot)); }
-
-  /* Fortschrittsverknuepfte Variante, wo der Browser sie kann: der Stapel
-     faechert waehrend des Scrollens auf und faltet sich beim Zurueckscrollen
-     wieder zusammen. Laeuft ausserhalb des Main-Threads.
-     Ohne Unterstuetzung steht der Stapel einfach fertig da. */
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-      /* Bewusst Langschreibweise: die Kurzform `animation: rv-fan linear both`
-         setzt animation-duration auf 0s, womit die Animation sofort am Ende
-         steht und der Scroll sie nie bewegt. Fortschrittsbasierte Timelines
-         brauchen `auto`, damit die Dauer dem Scrollbereich entspricht. */
-      .rv-sheet-fan {
-        animation-name: rv-fan;
-        animation-duration: auto;
-        animation-timing-function: linear;
-        animation-fill-mode: both;
-        animation-timeline: view();
-        animation-range: entry var(--fan-from, 8%) cover var(--fan-to, 34%);
-      }
-    }
-  }
-}
-
-@keyframes rv-fan {
-  from { transform: translate3d(var(--dx), 26px, 0) rotate(0deg) scale(.965); opacity: 0; }
-  to { transform: translate3d(0, var(--ty, 0px), 0) rotate(var(--rot)) scale(1); opacity: 1; }
+.rv-compare-range::-moz-range-thumb {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  opacity: 0;
+  cursor: ew-resize;
 }
 
 /* How-it-works: numbered step connector */

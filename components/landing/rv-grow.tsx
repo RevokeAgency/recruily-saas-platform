@@ -10,7 +10,7 @@ import { useCountUp } from "@/lib/hooks/useCountUp"
 // "70 % weniger Screening-Zeit" hätten wir nicht gemessen und dürften sie
 // deshalb auch nicht behaupten.
 const STATS = [
-  { target: 9, unit: "", title: "Ebenen pro Bewertung", text: "Von Hard Skills und Berufserfahrung bis Gehaltsvorstellung und Kultur-Fit wird jede Ebene einzeln bewertet und einzeln begründet." },
+  { target: 9, unit: "", title: "Ebenen pro Match", text: "Von Hard Skills und Berufserfahrung bis Gehaltsvorstellung und Kultur-Fit wird jede Ebene einzeln geprüft und einzeln begründet." },
   { target: 2, unit: "×", title: "Geprüft, bevor du es siehst", text: "Ein zweites Modell nimmt sich jede Kategorie noch einmal vor, gleicht sie gegen Rubrik und Belege ab und korrigiert, wo die erste Einschätzung danebenlag." },
   { target: 180, unit: "", title: "Tage bis zur Löschung", text: "Bewerberdaten verschwinden automatisch, ohne dass jemand daran denken muss. Ihre Löschung können Bewerber jederzeit auch selbst anstoßen." },
 ]

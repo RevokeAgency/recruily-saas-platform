@@ -123,7 +123,7 @@ export default function RegisterPage() {
         Konto erstellen
       </h1>
       <p className="text-muted-foreground text-center text-sm mb-8">
-        Starte kostenlos mit {PLANS.free.matches} Bewertungen pro Monat
+        Starte kostenlos mit {PLANS.free.matches} Matches pro Monat
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">

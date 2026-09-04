@@ -25,14 +25,12 @@ export function RvCta() {
               <ArrowUpRight className="h-[18px] w-[18px]" strokeWidth={2.4} />
             </div>
             <h2 className="mb-3.5 text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-              {`${PLANS.free.matches} Bewertungen,`}
+              Teste Revetly mit
               <br />
-              bevor du zahlst.
+              deinen echten Unterlagen.
             </h2>
-            <p className="mb-7 max-w-[420px] text-[rgba(12,26,22,.78)]">
-              Leg ein Konto an, stell eine echte Stelle ein und lad deine eigenen
-              Bewerbungen hoch, ganz ohne Kreditkarte. Am Ergebnis siehst du selbst, ob
-              die Bewertung deiner Einschätzung standhält.
+            <p className="mb-7 max-w-[440px] text-[rgba(12,26,22,.78)]">
+              {`Lade ${PLANS.free.matches} Bewerbungen kostenlos aus deiner Bewerber-Pipeline hoch und vergleiche Revetlys KI-Matching mit deiner eigenen Einschätzung. Du brauchst weder Kreditkarte noch Sales-Call. Erstelle einfach ein Konto und sieh selbst, wie viel Zeit du sparst.`}
             </p>
             <div className="flex flex-wrap gap-3">
               <RvButton variant="light" size="lg" asChild>

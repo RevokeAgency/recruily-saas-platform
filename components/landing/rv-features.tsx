@@ -1,42 +1,42 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { ArrowUpRight, FileText, Quote, ShieldAlert, UserCheck } from "lucide-react"
+import { ArrowUpRight, ClipboardList, ListOrdered, MailCheck, Users } from "lucide-react"
 
 import { useReveal } from "@/lib/hooks/useReveal"
 import { RvCard } from "./rv-card"
 
 const STEPS = [
-  "Neun Bewertungsebenen",
-  "Belege statt Behauptungen",
-  "Vier Augen auf jeden Score",
-  "Qualifikation als harte Grenze",
+  "Vorsortiert im Posteingang",
+  "Interviewleitfaden inklusive",
+  "Absagen und Termine automatisch",
+  "Talent-Pool arbeitet weiter",
 ]
 
 const CARDS = [
   {
-    icon: FileText,
-    badge: "Tiefe",
-    title: "Tiefer als jede Schlagwortsuche",
-    text: "Hard Skills, Berufserfahrung, Ausbildung, Soft Skills, Sprachen, Standort, Branche, Gehaltsvorstellung und Kultur-Fit fließen in jede Bewertung ein. Lebenslauf und Anschreiben werden gemeinsam gelesen, denn Motivation steht selten im Lebenslauf.",
+    icon: ListOrdered,
+    badge: "Tempo",
+    title: "Vorsortiert, bevor du reinschaust",
+    text: "Jede eingehende Bewerbung wird automatisch gematcht und einsortiert. Du öffnest ein Ranking mit den stärksten Profilen oben, keinen Stapel, den erst jemand durchsehen muss.",
   },
   {
-    icon: Quote,
-    badge: "Nachvollziehbar",
-    title: "Nachvollziehbar bis zur Quelle",
-    text: "Jede Ebene kommt mit Begründung und der Textstelle, auf die sie sich stützt. Ist die Grundlage dünn, sagt Revetly das offen und liefert gleich die passende Frage für das Interview mit.",
+    icon: ClipboardList,
+    badge: "Interview",
+    title: "Maßgeschneiderter Interviewleitfaden",
+    text: "Revetly analysiert Stärken und Lebenslauflücken des Bewerbers und generiert dir sofort passende, gezielte Fragen für das Bewerbergespräch.",
   },
   {
-    icon: UserCheck,
-    badge: "Vier Augen",
-    title: "Vier Augen auf jede Bewertung",
-    text: "Eine zweite, unabhängige Instanz prüft jede Kategorie gegen Rubrik und Belege und korrigiert, wo die erste Einschätzung zu wohlwollend oder zu streng ausfiel. Beide Urteile bleiben im Protokoll einsehbar.",
+    icon: MailCheck,
+    badge: "Automatisch",
+    title: "Der Rest läuft nebenher",
+    text: "Personalisierte Absagen gehen automatisch raus, Termine buchen Bewerber selbst in deinem Kalender. Kein Nachfassen, kein Hin und Her per Mail.",
   },
   {
-    icon: ShieldAlert,
-    badge: "Nicht ausgleichbar",
-    title: "Wo Qualifikation Pflicht ist, gilt sie auch",
-    text: "Fehlt das geforderte Diplom oder die Nostrifikation, rettet auch die beste Sprachkenntnis den Score nicht mehr. Zusätzlich definierst du eigene K.O.-Kriterien pro Stelle und siebst damit aus, was ohnehin nicht infrage kommt.",
+    icon: Users,
+    badge: "Talent-Pool",
+    title: "Kein Kandidat versandet",
+    text: "Neue Stellen gleicht Revetly automatisch gegen deinen bestehenden Pool ab. Wer beim letzten Mal knapp nicht gepasst hat, taucht von selbst wieder auf.",
   },
 ]
 
@@ -70,12 +70,15 @@ export function RvFeatures() {
             <ArrowUpRight className="h-[18px] w-[18px]" strokeWidth={2.4} />
           </div>
           <h2 className="text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-            Ein Score, den du
+            Weniger Zeit im Posteingang,
             <br />
-            <span className="rv-gradient-text">nachrechnen kannst.</span>
+            <span className="rv-gradient-text">mehr im Gespräch.</span>
           </h2>
           <p className="mt-4 text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Bei jedem Kandidaten siehst du, wie die Zahl zustande kam und worauf sie sich stützt. Genau deshalb kannst du ihr widersprechen, wenn deine Erfahrung etwas anderes sagt.
+            Revetly nimmt dir die Vorauswahl und den Papierkram ab. Übrig bleibt die Arbeit, für die es dich wirklich braucht: das Gespräch.
+          </p>
+          <p className="mt-4 rounded-2xl border border-[rgba(12,26,22,.10)] bg-[var(--rv-mist)] p-[14px_16px] text-[.88rem] leading-[1.6] text-[var(--rv-muted)]">
+            Und trotzdem nachvollziehbar: Jeder Match-Score ist mit der Stelle aus den Unterlagen belegt, eine zweite Instanz prüft gegen, und eine fehlende Qualifikation deckelt den Score. Schnell heißt hier nicht oberflächlich.
           </p>
           <nav className="mt-9 hidden lg:block" aria-label="Features">
             {STEPS.map((label, i) => (
