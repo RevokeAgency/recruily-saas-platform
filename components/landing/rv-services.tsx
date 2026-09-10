@@ -98,7 +98,23 @@ export function RvServices() {
                 ))}
               </div>
               <div className="flex items-center gap-2.5 rounded-xl border border-[rgba(12,26,22,.10)] bg-white p-[11px_13px]">
-                <div className="h-[34px] w-[34px] flex-none rounded-full" style={{ backgroundImage: "var(--rv-gradient)" }} />
+                {/* Verlauf bleibt als Untergrund: Laedt das Foto nicht, steht dort
+                    weiter der Markenkreis statt eines kaputten Bildsymbols.
+                    alt ist leer, weil der Name direkt daneben steht. */}
+                <div
+                  className="h-[34px] w-[34px] flex-none overflow-hidden rounded-full"
+                  style={{ backgroundImage: "var(--rv-gradient)" }}
+                >
+                  <img
+                    src="https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/candidate-photos/Bild1.png"
+                    alt=""
+                    width={34}
+                    height={34}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
                 <div>
                   <b className="block text-[.82rem] font-bold text-[var(--rv-ink)]">Lena Maier</b>
                   <span className="text-[.7rem] text-[var(--rv-muted)]">Frontend Dev · Wien</span>
