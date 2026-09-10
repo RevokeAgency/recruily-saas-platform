@@ -49,12 +49,19 @@ export function RvCta() {
               Kein Abo, keine Kreditkarte. Der kostenlose Plan bleibt kostenlos.
             </p>
           </div>
-          {/* CTA photo intentionally omitted: index.html hotlinks an Unsplash stock
-              photo which we won't hotlink or fabricate a replacement for. Falls back
-              to the gradient background, matching the reference's own .failed state
-              for broken images. Drop a licensed photo into public/revetly/ and an
-              <img> here when one is available. */}
-          <div className="relative hidden min-h-[340px] bg-[var(--rv-ink)] md:block" />
+          {/* Foto fuellt die rechte Haelfte vollflaechig. Der dunkle Grund bleibt
+              darunter liegen: Laedt das Bild nicht, steht dort die ruhige Flaeche
+              statt eines kaputten Bildsymbols. alt ist leer, das Bild ist reine
+              Dekoration und traegt keine Information, die der Text nicht schon gibt. */}
+          <div className="relative hidden min-h-[340px] bg-[var(--rv-ink)] md:block">
+            <img
+              src="https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/Revetly/magnific_generate-a-version-of-thi_ovqMfkn829.png"
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          </div>
         </div>
       </div>
     </section>
