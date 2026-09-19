@@ -53,7 +53,7 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
             alt="Revetly"
             width={129}
             height={32}
-            className="h-8 w-auto"
+            className="h-7 w-auto"
             priority
           />
         </Link>
