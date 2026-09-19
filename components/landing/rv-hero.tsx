@@ -64,8 +64,12 @@ export function RvHero() {
             Das Bild ist das LCP-Element der Seite, der preconnect im Layout
             spart den Verbindungsaufbau zur fremden Domain.
             objectPosition haelt das Motiv rechts, damit die linke Haelfte fuer
-            Ueberschrift und Text frei bleibt. Sitzt der Ausschnitt nicht, ist
-            das der Wert zum Drehen. */}
+            Ueberschrift und Text frei bleibt. Achtung, der Wert wirkt
+            umgekehrt zur Intuition: Er bestimmt, welcher Punkt des Bildes auf
+            den gleichen Punkt der Flaeche faellt. Kleinerer Wert heisst, dass
+            mehr vom linken Bildrand zu sehen ist, das Motiv also nach rechts
+            rueckt. Ein eigenes transform waere hier wirkungslos, die
+            Ken-Burns-Animation in globals.css belegt die Eigenschaft bereits. */}
         <img
           src="https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/Revetly/magnific_bewerbungen-sollen-herumf_jU6Imq8LD0.png"
           alt=""
@@ -74,7 +78,7 @@ export function RvHero() {
           fetchPriority="high"
           decoding="async"
           className="h-full w-full object-cover"
-          style={{ objectPosition: "70% center", transformOrigin: "70% 40%" }}
+          style={{ objectPosition: "45% center", transformOrigin: "70% 40%" }}
         />
       </div>
       <div
