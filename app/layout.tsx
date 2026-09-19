@@ -21,7 +21,7 @@ const plusJakartaSans = localFont({
 // jemand, der das Produkt noch nicht kennt.
 const title = 'KI-Recruiting-Software für den DACH-Raum | Revetly'
 const description =
-  'Finde die passenden Bewerber, ohne alle zu lesen: Revetly bewertet jede Bewerbung auf neun Ebenen, belegt jeden Punkt und lässt Kandidaten selbst Termine buchen. DSGVO-konform.'
+  'Revetly bündelt alle Bewerbungen, analysiert sie auf neun Ebenen und rankt die stärksten Profile nach oben. Lies die Shortlist statt den Stapel. DSGVO-konform.'
 
 export const metadata: Metadata = {
   // Basis für relative canonical-/OG-URLs (z. B. der Blog-Beiträge).
@@ -42,14 +42,14 @@ export const metadata: Metadata = {
     siteName: 'Revetly',
     title,
     description:
-      'Bewerbungen bewerten, ohne alle zu lesen: neun Analyse-Ebenen, jeder Punkt belegt, zwei unabhängige Prüfungen je Kandidat. DSGVO-konform, Verarbeitung in der EU.',
+      'Alle Bewerbungen an einem Ort, auf neun Ebenen analysiert und nach Passung gerankt. Jeder Punkt mit der Stelle aus den Unterlagen belegt, zwei unabhängige Prüfungen je Kandidat. Verarbeitung in der EU.',
     images: [{ url: '/revetly/og-image.jpg', width: 1200, height: 630 }],
     locale: 'de_DE',
   },
   twitter: {
     card: 'summary_large_image',
     title,
-    description: 'Bewerbungen bewerten, ohne alle zu lesen. Jeder Punkt belegt, Verarbeitung in der EU.',
+    description: 'Lies die Shortlist, nicht den Stapel. Neun Analyse-Ebenen, jeder Punkt belegt, Verarbeitung in der EU.',
     images: ['/revetly/og-image.jpg'],
   },
 }

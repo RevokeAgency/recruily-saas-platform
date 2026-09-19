@@ -6,7 +6,51 @@ Punkt durchgehen.
 
 ---
 
+## 🚩 Blocker — ohne diese Punkte geht nichts live
+
+Stand der Durchsicht: 19.09.2026.
+
+- [ ] **Das Matching läuft in Produktion nicht.** `lib/ai/provider.ts:43` und
+      `:49` setzen `reasoning` und `verification` per Default auf
+      `mistral-large-latest`. Der aktuelle Mistral-Tarif antwortet darauf mit
+      „This model is not available in your subscription tier", deshalb bleibt
+      der Score leer und der Kandidat zeigt „Fehler". Zwei Wege: entweder
+      `AI_MODEL_REASONING=mistral-small-latest` und
+      `AI_MODEL_VERIFICATION=mistral-small-latest` in Vercel setzen, oder den
+      Mistral-Tarif hochstufen. Danach `node scripts/eval/run-eval.mjs` gegen
+      den Golden Set laufen lassen und prüfen, ob die erwarteten Score-Bänder
+      mit dem kleineren Modell halten.
+- [ ] **Zwei Git-Historien ohne gemeinsamen Vorfahren.**
+      `git merge-base origin/main origin/claude/design-handoff-audit-j3761y`
+      liefert nichts zurück. Auf `main` liegt die Landing-Arbeit, auf
+      `claude/design-handoff-audit-j3761y` ein eigener Dashboard- und
+      Auth-Umbau. Vor dem Launch muss entschieden sein, welcher Stand deployt
+      wird und was aus der anderen Linie übernommen werden soll. Ein
+      gewöhnlicher Merge geht hier nicht ohne `--allow-unrelated-histories`
+      und Konfliktarbeit.
+- [ ] **Rechtstexte enthalten Platzhalter** (siehe Abschnitt DSGVO weiter
+      unten). Beim Impressum sind das Pflichtangaben nach ECG und UGB, das ist
+      in AT und DE unmittelbar abmahnfähig.
+- [ ] **Datenbank-Migrationen `015` bis `027`.** Welche davon in der
+      Supabase-Instanz schon gelaufen sind, lässt sich nur dort nachsehen.
+      `015_rls_hardening.sql` ist der wichtigste Einzelpunkt: ohne sie sind die
+      Daten nicht owner-scoped abgesichert.
+
+---
+
 ## ⚠️ Domain-Wechsel Vercel → revetly.ai
+
+**Zuerst registrieren.** Am 19.09.2026 hatte weder `revetly.ai` noch
+`.com`, `.at` oder `.de` Nameserver hinterlegt, was auf frei hindeutet, beim
+Registrar aber gegenzuprüfen ist. Die Registrierung früh zu erledigen lohnt
+sich aus einem Grund, der nichts mit der Website zu tun hat: Der Mailversand
+hängt daran. SPF- und DKIM-Einträge müssen propagieren, und eine frische
+Absenderdomain braucht Zustellreputation, bevor Auto-Reply, Absagen und
+Terminmails zuverlässig im Posteingang statt im Spam landen. Das ist der
+Punkt mit der längsten Vorlaufzeit im ganzen Launch.
+
+Neben `.ai` auch die Abwehr-Registrierungen mitdenken (mindestens `.at`, da
+Revetly e.U. ein österreichisches Unternehmen ist).
 
 Aktuell läuft alles unter der **Vercel-URL**. Wenn die Produktivdomain
 `revetly.ai` scharf geschaltet wird, müssen folgende Stellen von der
@@ -49,9 +93,11 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
       `customer.subscription.deleted` → Live-`STRIPE_WEBHOOK_SECRET` in Vercel.
 - [ ] Der **Produktkatalog legt sich beim ersten Live-Checkout selbst an**
       (idempotent via lookup_keys) — kein manuelles Anlegen nötig.
-- [ ] **Stripe Tax** aktivieren (AT/EU-USt). Danach im Code
-      `automatic_tax: { enabled: true }` in der Checkout-Session freischalten
-      (`app/api/stripe/checkout/route.ts`) — bewusst noch aus, bis Tax steht.
+- [ ] **Stripe Tax** aktivieren (AT/EU-USt). Danach `automatic_tax: { enabled:
+      true }` in der Checkout-Session ergänzen
+      (`app/api/stripe/checkout/route.ts`). Achtung: Die Zeile steht dort
+      aktuell **gar nicht**, auch nicht auskommentiert, sie muss also erst
+      geschrieben werden. Ohne sie weist Stripe keine Umsatzsteuer aus.
 - [ ] Stripe-Account: Firmendaten + Auszahlungskonto vollständig (Live-Pflicht).
 
 ---
@@ -202,6 +248,44 @@ Reihenfolge egal, alle additiv:
       (`lib/training/anonymize.ts`). Vor dem Launch stichprobenartig eine
       Zeile aus `error_events` ansehen und bestätigen, dass keine
       Bewerberdaten darin stehen.
+
+---
+
+## Code und Qualität
+
+Nichts davon hält den Launch auf, alles davon ist vorher billig zu erledigen.
+
+- [ ] **`typescript: { ignoreBuildErrors: true }` in `next.config.mjs`
+      abschalten.** `npx tsc --noEmit` läuft aktuell fehlerfrei durch, das Flag
+      kostet also nichts und verhindert danach, dass ein Deploy mit kaputten
+      Typen still durchgeht.
+- [ ] **`pnpm lint` ist kaputt.** Es gibt keine `eslint.config.js`, und
+      ESLint 10 liest die alte `.eslintrc`-Form nicht mehr. Aktuell prüft also
+      nichts den Stil. Entweder eine Flat-Config anlegen oder das Skript aus
+      `package.json` nehmen, damit es keine Sicherheit vortäuscht.
+- [ ] **Verirrtes Verzeichnis `undefined/` im Repo-Root** entfernen.
+- [ ] **Die vier Social-Links im Footer zeigen auf `href="#"`**
+      (`components/landing/rv-footer.tsx:40`). Entweder echte Profile
+      hinterlegen oder die Spalte bis dahin ausblenden. Tote Links im Footer
+      sind das erste, was in einem SEO-Audit auffällt.
+- [ ] **Toter TODO in `components/jobs/detail/candidates-tab.tsx:943`.** Der
+      Status wird im Modal selbst bereits gespeichert, der Callback ruft aber
+      kein `mutate()` auf. Folge: Nach einer Interview-Einladung zeigt die
+      Kandidatenliste bis zum Reload den alten Stand.
+- [ ] **Hero-Bild ist das LCP-Element** und liegt als einzelnes PNG auf der
+      Supabase-Domain (`components/landing/rv-hero.tsx`). Sobald die Datei in
+      `public/revetly/` liegt, lassen sich responsive Größen per `srcSet`
+      nachrüsten. Der `preconnect` in `app/layout.tsx` ist gesetzt.
+
+## Inhalt und SEO
+
+- [x] **Metadaten und Footer auf die Tempo-Aussage nachgezogen**
+      (`app/layout.tsx`, `components/landing/rv-footer.tsx`). Beide trugen noch
+      die alte Formulierung „ohne alle zu lesen" und das Wort „bewerten", das
+      laut Wording-System durch Match, Passung und Ranking ersetzt ist.
+- [ ] **Blogbeiträge gegenlesen**, ob sie dieselbe Sprachregelung einhalten.
+- [ ] Nach dem Domain-Wechsel: **Sitemap in der Google Search Console
+      einreichen** und die Indexierung der Vercel-Vorschau-URL ausschließen.
 
 ---
 
