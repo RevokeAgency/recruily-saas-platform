@@ -58,19 +58,23 @@ export function RvHero() {
   return (
     <section className="relative isolate overflow-hidden bg-[#295f5a]">
       <div ref={bgRef} className="rv-hero-bg absolute inset-0 z-0 overflow-hidden">
+        {/* Liegt im Supabase-Bucket statt lokal, deshalb kein srcSet: Es gibt nur
+            diese eine Groesse. Ein srcSet mit den alten Dateien wuerde das neue
+            Bild ueberstimmen, w-Deskriptoren gewinnen gegen src.
+            Das Bild ist das LCP-Element der Seite, der preconnect im Layout
+            spart den Verbindungsaufbau zur fremden Domain.
+            objectPosition haelt das Motiv rechts, damit die linke Haelfte fuer
+            Ueberschrift und Text frei bleibt. Sitzt der Ausschnitt nicht, ist
+            das der Wert zum Drehen. */}
         <img
-          src="/revetly/hero-1800.jpg"
-          srcSet="/revetly/hero-1100.jpg 1100w, /revetly/hero-1800.jpg 1800w"
-          sizes="100vw"
-          width={1800}
-          height={746}
+          src="https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/Revetly/magnific_generate-a-version-of-thi_ovqMfkn829.png"
           alt=""
           role="presentation"
           loading="eager"
           fetchPriority="high"
           decoding="async"
           className="h-full w-full object-cover"
-          style={{ objectPosition: "74% center", transformOrigin: "70% 40%" }}
+          style={{ objectPosition: "70% center", transformOrigin: "70% 40%" }}
         />
       </div>
       <div

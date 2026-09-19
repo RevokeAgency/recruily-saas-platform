@@ -72,6 +72,12 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} bg-background`}
     >
       <body className="font-sans antialiased">
+        {/* Das Hero-Bild liegt im Supabase-Bucket und ist das LCP-Element der
+            Startseite. Der vorgezogene Verbindungsaufbau spart DNS und TLS,
+            bevor der Download ueberhaupt beginnen kann. React hebt den Link
+            selbsttaetig in den head. */}
+        <link rel="preconnect" href="https://wciddwedyrgwjsppzlfr.supabase.co" />
+        <link rel="dns-prefetch" href="https://wciddwedyrgwjsppzlfr.supabase.co" />
         {children}
         <Toaster position="bottom-right" />
         {process.env.NODE_ENV === 'production' && <Analytics />}
