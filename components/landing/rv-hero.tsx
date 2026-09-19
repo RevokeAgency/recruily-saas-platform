@@ -67,7 +67,7 @@ export function RvHero() {
             Ueberschrift und Text frei bleibt. Sitzt der Ausschnitt nicht, ist
             das der Wert zum Drehen. */}
         <img
-          src="https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/Revetly/magnific_generate-a-version-of-thi_ovqMfkn829.png"
+          src="https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/Revetly/magnific_bewerbungen-sollen-herumf_jU6Imq8LD0.png"
           alt=""
           role="presentation"
           loading="eager"
