@@ -20,14 +20,28 @@ Stand der Durchsicht: 19.09.2026.
       Mistral-Tarif hochstufen. Danach `node scripts/eval/run-eval.mjs` gegen
       den Golden Set laufen lassen und prüfen, ob die erwarteten Score-Bänder
       mit dem kleineren Modell halten.
-- [ ] **Zwei Git-Historien ohne gemeinsamen Vorfahren.**
-      `git merge-base origin/main origin/claude/design-handoff-audit-j3761y`
-      liefert nichts zurück. Auf `main` liegt die Landing-Arbeit, auf
-      `claude/design-handoff-audit-j3761y` ein eigener Dashboard- und
-      Auth-Umbau. Vor dem Launch muss entschieden sein, welcher Stand deployt
-      wird und was aus der anderen Linie übernommen werden soll. Ein
-      gewöhnlicher Merge geht hier nicht ohne `--allow-unrelated-histories`
-      und Konfliktarbeit.
+- [x] **Branch-Frage geklärt: `main` ist die Produktionslinie.** Vercel baut
+      `main`, alles andere ist Nebengleis.
+
+      `claude/design-handoff-audit-j3761y` ist **nicht** zu mergen. Der Branch
+      ist ein alter Abzug des Projekts vom **3. Juli 2026** mit einem
+      aufgesetzten Dashboard- und Auth-Redesign, ohne gemeinsamen Vorfahren
+      mit `main`. Ein Merge würde **168 Dateien löschen**, darunter die
+      komplette Stripe-Abrechnung, die Terminplanung samt Kalenderanbindung,
+      den Mail-Eingang, die DSGVO-Selbstlöschung, den Blog, sämtliche
+      Rechtstexte, das Fehler-Monitoring, die Matching-v2-Endpunkte und alle
+      drei Cron-Jobs. Das wäre der Rückbau des halben Produkts.
+
+      Eigenständig ist auf dem Branch fast nichts: zwei Dateien. Davon ist
+      `app/api/public/upload-resume/route.ts` ein schwächerer Vorläufer der
+      heutigen `app/api/public/apply/route.ts` (ohne Missbrauchsschutz und
+      ohne Doppelbewerbungsprüfung), also eher Risiko als Gewinn.
+
+      Sein Wert liegt rein im Optischen, einem Redesign über 72 Dateien. Auch
+      das ist überholt: `main` hat dieselben Flächen seither selbst
+      weiterentwickelt (Termine 07.08., Interview-Score 03.08.,
+      Feedback-Loop 03.08.). Wenn die Optik gewünscht ist, gehört sie auf dem
+      heutigen `main` neu gebaut, nicht zurückgemerged.
 - [ ] **Rechtstexte enthalten Platzhalter** (siehe Abschnitt DSGVO weiter
       unten). Beim Impressum sind das Pflichtangaben nach ECG und UGB, das ist
       in AT und DE unmittelbar abmahnfähig.
