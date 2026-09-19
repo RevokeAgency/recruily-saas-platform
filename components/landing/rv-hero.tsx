@@ -25,12 +25,11 @@ const TRUST_ITEMS = ["DSGVO-konform", "EU AI Act", "Verarbeitung in der EU"]
 
 /**
  * Full-bleed Ken-Burns hero (index.html .hero): background photo drift,
- * teal scrim, floating paper shards, word-by-word blur-reveal headline,
- * lerped scroll parallax on the background/paper layers.
+ * teal scrim, word-by-word blur-reveal headline, lerped scroll parallax
+ * auf der Bildebene.
  */
 export function RvHero() {
   const bgRef = useRef<HTMLDivElement>(null)
-  const papersRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
@@ -41,7 +40,6 @@ export function RvHero() {
     const step = () => {
       cur += (target - cur) * 0.09
       if (bgRef.current) bgRef.current.style.transform = `translateY(${(cur * 0.1).toFixed(2)}px)`
-      if (papersRef.current) papersRef.current.style.transform = `translateY(${(-cur * 0.16).toFixed(2)}px)`
       raf = Math.abs(target - cur) > 0.1 ? requestAnimationFrame(step) : null
     }
     const onScroll = () => {
@@ -88,20 +86,20 @@ export function RvHero() {
             "linear-gradient(90deg, rgba(16,44,41,.94) 0%, rgba(18,48,45,.82) 24%, rgba(22,56,52,.42) 46%, rgba(22,56,52,.06) 64%, transparent 78%), linear-gradient(180deg, rgba(16,44,41,.30) 0%, transparent 22%, transparent 72%, rgba(12,30,28,.46) 100%)",
         }}
       />
-      <div ref={papersRef} className="pointer-events-none absolute inset-0 z-[2] overflow-hidden" aria-hidden="true">
-        <div className="rv-paper p1" />
-        <div className="rv-paper p2" />
-        <div className="rv-paper p3" />
-        <div className="rv-paper p4" />
-      </div>
-
       <div className="relative z-[3] mx-auto flex min-h-[clamp(620px,100dvh,960px)] max-w-[1200px] items-center px-4 pt-[clamp(120px,14dvh,168px)] pb-[clamp(64px,8dvh,104px)] sm:px-6 lg:px-8">
         <div className="max-w-[620px]">
           <span className="mb-[30px] inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-[15px] py-[7px] text-[.78rem] font-semibold text-white/92 backdrop-blur-[10px]">
             <span className="h-[7px] w-[7px] animate-pulse rounded-full bg-[var(--rv-green)]" />
             {`${PLANS.free.matches} Matches gratis \u00b7 ohne Kreditkarte`}
           </span>
-          <h1 className="mb-[22px] flex flex-wrap items-baseline gap-x-[0.26em] text-[clamp(2.4rem,5.4vw,4rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-white [text-shadow:0_2px_30px_rgba(8,22,20,.35)]">
+          {/* Schatten als filter auf der h1, nicht als text-shadow am Wort:
+              Die Verlaufswoerter fuellen ihre Glyphen per background-clip, ein
+              text-shadow bliebe dort wirkungslos. Und .rv-hw animiert selbst
+              schon filter, ein zweiter Wert am selben Element wuerde von der
+              Einblendung ueberschrieben. Der enge Schatten gibt der Schrift
+              Kante auf hellen Bildstellen, der weite ersetzt den frueheren
+              Schein. */}
+          <h1 className="mb-[22px] flex flex-wrap items-baseline gap-x-[0.26em] text-[clamp(2.4rem,5.4vw,4rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-white [filter:drop-shadow(0_1px_2px_rgba(8,22,20,.5))_drop-shadow(0_6px_24px_rgba(8,22,20,.4))]">
             {HEADLINE.map((w, i) => (
               <Fragment key={i}>
                 <span
@@ -117,9 +115,7 @@ export function RvHero() {
           <p className="mb-[34px] max-w-[496px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-white/74">
             Revetly bündelt alle Bewerbungen aus dem Custom Apply-Link und dem
             E-Mail-Posteingang, bewertet sie automatisch und rankt die stärksten Profile
-            ganz oben. Du fokussierst dich sofort auf die Top-Kandidaten. Automatische
-            Interview-Leitfäden, intelligente Terminfindung und personalisierte Absagen
-            laufen im Hintergrund.
+            ganz oben. Du fokussierst dich sofort auf die Top-Kandidaten.
           </p>
           <div className="flex flex-wrap gap-3">
             <RvButton variant="grad" size="lg" asChild>
