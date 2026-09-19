@@ -55,7 +55,14 @@ export function RvHero() {
 
   return (
     <section className="relative isolate overflow-hidden bg-[#295f5a]">
-      <div ref={bgRef} className="rv-hero-bg absolute inset-0 z-0 overflow-hidden">
+      {/* Ab lg beginnt die Foto-Flaeche erst bei 14 Prozent statt am linken Rand.
+          Das loest beide Wuensche auf einmal: Das Bild wird kleiner, und weil das
+          Motiv mittig im Foto sitzt, rueckt es dadurch nach rechts. Ueber
+          objectPosition allein ginge das nicht, das Foto ist kaum breiter als die
+          Flaeche und hat deshalb fast keinen Verschiebespielraum.
+          Die linke Kante wird in globals.css weich ausgeblendet, sonst entstuende
+          dort eine sichtbare Naht zum Hintergrund. */}
+      <div ref={bgRef} className="rv-hero-bg absolute inset-0 z-0 overflow-hidden lg:left-[14%]">
         {/* Liegt im Supabase-Bucket statt lokal, deshalb kein srcSet: Es gibt nur
             diese eine Groesse. Ein srcSet mit den alten Dateien wuerde das neue
             Bild ueberstimmen, w-Deskriptoren gewinnen gegen src.
@@ -76,7 +83,7 @@ export function RvHero() {
           fetchPriority="high"
           decoding="async"
           className="h-full w-full object-cover"
-          style={{ objectPosition: "45% center", transformOrigin: "70% 40%" }}
+          style={{ objectPosition: "40% center", transformOrigin: "70% 40%" }}
         />
       </div>
       <div

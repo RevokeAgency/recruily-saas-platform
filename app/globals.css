@@ -569,7 +569,20 @@ html { scroll-behavior: smooth; }
 
 /* Hero: Ken-Burns photo + scrim + floating paper shards */
 .rv-hero-bg img { animation: rv-kenburns 26s cubic-bezier(0.16,1,0.3,1) infinite alternate; }
-@keyframes rv-kenburns { from { transform: scale(1.04) translate(0,0); } to { transform: scale(1.13) translate(-1.5%,-1.2%); } }
+/* Zoom bewusst flach gehalten: Der Hub bestimmt, wie gross das Motiv wirkt.
+   Unter 1.0 darf er nicht gehen, sonst deckt das Bild die Flaeche nicht mehr
+   ab. Der Versatz im Endbild bleibt innerhalb des Spielraums, den der Zoom
+   erzeugt (bei 1.08 sind das 4 Prozent je Seite). */
+@keyframes rv-kenburns { from { transform: scale(1.02) translate(0,0); } to { transform: scale(1.08) translate(-1%,-1%); } }
+
+/* Ab lg sitzt die Foto-Flaeche eingerueckt (siehe rv-hero.tsx). Ohne weiche
+   Kante gaebe es dort eine harte Naht zum dunklen Hintergrund. */
+@media (min-width: 1024px) {
+  .rv-hero-bg {
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 15%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 15%);
+  }
+}
 .rv-hw { display: inline-block; opacity: 0; transform: translateY(0.4em); filter: blur(8px); animation: rv-wordIn .85s cubic-bezier(0.16,1,0.3,1) forwards; }
 @keyframes rv-wordIn { to { opacity: 1; transform: none; filter: none; } }
 .rv-hero-cue .rv-mouse { width: 22px; height: 34px; border: 1.5px solid rgba(255,255,255,.45); border-radius: 12px; position: relative; }
