@@ -23,7 +23,7 @@ const CARDS = [
   {
     icon: ClipboardList,
     badge: "Interview",
-    title: "Maßgeschneiderter Interviewleitfaden",
+    title: "Fragen, die zum Kandidaten passen",
     text: "Revetly analysiert Stärken und Lebenslauflücken des Bewerbers und generiert dir sofort passende, gezielte Fragen für das Bewerbergespräch.",
   },
   {
@@ -75,7 +75,7 @@ export function RvFeatures() {
             <span className="rv-gradient-text">mehr im Gespräch.</span>
           </h2>
           <p className="mt-4 text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Revetly nimmt dir die Vorauswahl und den Papierkram ab. Übrig bleibt die Arbeit, für die es dich wirklich braucht: das Gespräch.
+            Revetly nimmt dir die Vorauswahl und den Papierkram ab. Übrig bleibt das Gespräch.
           </p>
           <p className="mt-4 rounded-2xl border border-[rgba(12,26,22,.10)] bg-[var(--rv-mist)] p-[14px_16px] text-[.88rem] leading-[1.6] text-[var(--rv-muted)]">
             Und trotzdem nachvollziehbar: Jeder Match-Score ist mit der Stelle aus den Unterlagen belegt, eine zweite Instanz prüft gegen, und eine fehlende Qualifikation deckelt den Score. Schnell heißt hier nicht oberflächlich.

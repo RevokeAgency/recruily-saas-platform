@@ -164,7 +164,7 @@ export function RvPricing() {
             Preise
           </span>
           <h2 className="mt-[22px] text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-            Preise, die mit dir wachsen.
+            Erst testen, dann zahlen.
           </h2>
           <p className="mt-[18px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
             Du startest gratis und wechselst erst, wenn dein Recruiting mehr braucht.

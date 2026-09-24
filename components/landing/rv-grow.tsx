@@ -58,8 +58,8 @@ export function RvGrow() {
             steckst du ins Interview.
           </h2>
           <p className="mt-[18px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Revetly nimmt dir die Vorauswahl ab, damit deine Stunden dort landen, wo
-            über eine Einstellung wirklich entschieden wird: im Gespräch.
+            Gründlich wird es trotzdem. Neun Ebenen pro Kandidat, ein zweites Modell
+            prüft gegen, und nach 180 Tagen sind die Daten von selbst wieder weg.
           </p>
         </div>
 

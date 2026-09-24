@@ -44,12 +44,12 @@ const CHAOS: Item[] = [
 
 const REVETLY: Item[] = [
   {
-    t: "Glasklares Ranking ab Sekunde 1:",
-    d: "Eingehende Profile werden sofort analysiert und nach Passung geordnet.",
+    t: "Ranking statt Posteingang:",
+    d: "Jedes eingehende Profil wird automatisch analysiert und nach Passung einsortiert.",
   },
   {
-    t: "Wertschätzend auf Autopilot:",
-    d: "Personalisierte Absagen versenden sich auf Knopfdruck, ohne Mehraufwand.",
+    t: "Absagen gehen raus, nicht unter:",
+    d: "Personalisierte Rückmeldungen versendest du auf Knopfdruck.",
   },
   {
     t: "Ein Klick zum Interview:",

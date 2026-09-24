@@ -62,7 +62,7 @@ export function RvServices() {
           <p className="mt-[18px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
             Die Revetly Match Analyse liest Lebenslauf und Anschreiben gemeinsam, bewertet
             neun Ebenen einzeln und legt zu jeder Zahl den Beleg aus den Unterlagen daneben.
-            Du siehst also nicht nur, wer vorne liegt, sondern warum.
+            Warum jemand vorne liegt, steht direkt daneben.
           </p>
         </div>
 
