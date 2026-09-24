@@ -157,6 +157,14 @@ Reihenfolge egal, alle additiv:
       `consume_rate_limit()` und `purge_rate_limits()`. Ohne diese Migration
       zählt nichts und alle Zugriffe werden durchgelassen (bewusst
       fail-open), die Datei- und Doppelbewerbungsprüfungen greifen trotzdem.
+- [ ] `scripts/028_free_trial_lifetime.sql`: **Probestelle statt Gratistarif
+      und Spaltenschutz auf `user_profiles`.** Free wird zu einer einmaligen
+      Probestelle (1 Stelle, 25 Matches, eine pro Firmendomain, Freemail
+      ausgeschlossen). Schließt außerdem ein bestehendes Loch: Bis dahin kann
+      sich jeder angemeldete Nutzer per `update({ plan: 'pro' })` aus dem
+      Browser selbst auf Pro setzen. Gegen eine lokale Postgres-Instanz mit
+      40 Prüfungen getestet, Details und Prüfliste in
+      `scripts/028_free_trial_lifetime.md`.
 - [ ] `scripts/024_product_feedback.sql` — Produktumfrage nach den ersten
       Matches: Lebenszeit-Zähler (`user_profiles.matches_lifetime`, wird von
       `consume_match()` mitgeführt), Zustand der Abfrage und die Tabelle

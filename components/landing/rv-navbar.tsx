@@ -8,9 +8,9 @@ import { Menu, X } from "lucide-react"
 import { RvArrowIcon, RvButton } from "./rv-button"
 
 const navLinks = [
-  { label: "Features", href: "#features" },
-  { label: "Produkt", href: "#services" },
-  { label: "Preise", href: "#pricing" },
+  { label: "Ablauf", href: "#ablauf" },
+  { label: "Match Analyse", href: "#match-analyse" },
+  { label: "Preise", href: "#preise" },
   { label: "FAQ", href: "#faq" },
   { label: "Blog", href: "#blog" },
 ]

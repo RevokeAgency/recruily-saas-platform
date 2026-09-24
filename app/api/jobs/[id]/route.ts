@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest } from "next/server"
+import { checkJobQuota } from "@/lib/quota"
 
 // Close / reopen a job. Closing frees the active-job slot; reopening re-checks
 // the plan's active-job limit. Existing candidates are always preserved.
@@ -22,16 +23,26 @@ export async function PATCH(
       .from("jobs").select("id, is_active").eq("id", id).eq("user_id", user.id).single()
     if (!job) return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
 
-    // Reopening consumes a slot → enforce the active-job limit.
+    // Reopening consumes a slot → enforce the active-job limit. Die Regel
+    // steht in job_quota (028); Reaktivieren legt nichts Neues an, deshalb
+    // zählen hier für alle Pläne die aktiven Stellen.
     if (isActive && !job.is_active) {
-      const { data: profile } = await supabase
-        .from("user_profiles").select("active_jobs_limit").eq("id", user.id).single()
-      const limit = profile?.active_jobs_limit ?? 1
-      const { count } = await supabase
-        .from("jobs").select("id", { count: "exact", head: true })
-        .eq("is_active", true).eq("user_id", user.id)
-      if ((count ?? 0) >= limit) {
-        return Response.json({ error: "job_limit_reached", limit }, { status: 403 })
+      const quota = await checkJobQuota(supabase, user.id, false)
+      if (quota) {
+        if (!quota.allowed) {
+          return Response.json({ error: "job_limit_reached", limit: quota.limit }, { status: 403 })
+        }
+      } else {
+        // Rückfall, solange 028 nicht eingespielt ist.
+        const { data: profile } = await supabase
+          .from("user_profiles").select("active_jobs_limit").eq("id", user.id).single()
+        const limit = profile?.active_jobs_limit ?? 1
+        const { count } = await supabase
+          .from("jobs").select("id", { count: "exact", head: true })
+          .eq("is_active", true).eq("user_id", user.id)
+        if ((count ?? 0) >= limit) {
+          return Response.json({ error: "job_limit_reached", limit }, { status: 403 })
+        }
       }
     }
 

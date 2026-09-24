@@ -18,8 +18,15 @@ export interface BlogPost {
   title: string
   /** Kürzerer Titel für die Vorschaukarte, falls der volle zu lang ist. */
   cardTitle?: string
-  /** Anrisstext auf der Landing-Page. */
+  /** Anrisstext. Steht auch als Vorspann im Artikel und auf /blog. */
   excerpt: string
+  /**
+   * Anrisstext nur für die Startseite, in Du-Ansprache. Die Artikel selbst
+   * siezen; die Startseite duzt durchgehend. Ein eigenes Feld, damit die
+   * Startseite umgestellt werden kann, ohne den Vorspann der Artikel zu
+   * ändern. Fällt auf `excerpt` zurück.
+   */
+  teaser?: string
   /** Meta-Description für Suchmaschinen (max. ~155 Zeichen). */
   metaDescription: string
   keywords: string[]
@@ -38,6 +45,8 @@ export const BLOG_POSTS: BlogPost[] = [
     cardTitle: "EU AI Act im Recruiting",
     excerpt:
       "Software, die Bewerbungen bewertet, gilt in der EU als Hochrisiko-KI. Das bringt Pflichten mit sich, die viele Personalabteilungen noch nicht auf dem Schirm haben. Was das konkret bedeutet und woran Sie ein rechtssicheres System erkennen.",
+    teaser:
+      "Software, die Bewerbungen auswertet, gilt in der EU als Hochrisiko-KI. Das bringt Pflichten mit sich, die viele Personalabteilungen noch nicht auf dem Schirm haben. Was das konkret bedeutet und woran du ein rechtssicheres System erkennst.",
     metaDescription:
       "EU AI Act im Recruiting: Warum KI-Bewerberauswahl als Hochrisiko gilt, welche Pflichten daraus folgen und worauf Sie bei der Softwareauswahl achten sollten.",
     keywords: [
@@ -415,6 +424,8 @@ export const BLOG_POSTS: BlogPost[] = [
     cardTitle: "KI-Matching vs. Stichwortsuche",
     excerpt:
       "Filtert Ihr System nach Schlagworten, sortiert es zuverlässig alle aus, die dieselbe Fähigkeit anders benannt haben. Was der Unterschied zwischen Wortabgleich und inhaltlichem Verständnis in der Praxis bedeutet.",
+    teaser:
+      "Filtert dein System nach Schlagworten, sortiert es zuverlässig alle aus, die dieselbe Fähigkeit anders benannt haben. Was der Unterschied zwischen Wortabgleich und inhaltlichem Verständnis in der Praxis bedeutet.",
     metaDescription:
       "KI-Matching statt Keyword-Filter: Warum Stichwortsuche im CV-Screening passende Kandidaten aussortiert und woran Sie echtes semantisches Matching erkennen.",
     keywords: [
@@ -504,6 +515,8 @@ export const BLOG_POSTS: BlogPost[] = [
     cardTitle: "Software-Auswahl für KMU",
     excerpt:
       "Funktionslisten sind bei ATS-Anbietern erstaunlich austauschbar. Die Unterschiede zeigen sich an anderer Stelle: beim Einrichtungsaufwand, beim Umgang mit E-Mail-Bewerbungen und bei der Frage, was mit Ihren Daten passiert.",
+    teaser:
+      "Funktionslisten sind bei ATS-Anbietern erstaunlich austauschbar. Die Unterschiede zeigen sich an anderer Stelle: beim Einrichtungsaufwand, beim Umgang mit E-Mail-Bewerbungen und bei der Frage, was mit deinen Daten passiert.",
     metaDescription:
       "Bewerbermanagement-Software auswählen: Welche Kriterien für KMU wirklich zählen, welche Funktionen überschätzt werden und welche Fragen Sie Anbietern stellen sollten.",
     keywords: [

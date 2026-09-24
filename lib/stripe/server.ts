@@ -169,9 +169,7 @@ export async function ensurePrice(
   if (!product) {
     product = await stripe.products.create({
       name: `Revetly ${PLANS[plan].label}`,
-      description: `${PLANS[plan].matches_label} · ${
-        PLANS[plan].active_jobs === 999 ? "Unbegrenzte aktive Jobs" : `${PLANS[plan].active_jobs} aktive Jobs`
-      }`,
+      description: `${PLANS[plan].matches_label} · ${PLANS[plan].jobs_label}`,
       metadata: { revetly_plan: plan },
     })
   }

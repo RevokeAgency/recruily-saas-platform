@@ -1,11 +1,10 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Clock3, ShieldCheck } from "lucide-react"
+import { Layers, Lock, ScanSearch } from "lucide-react"
 
 import { useReveal } from "@/lib/hooks/useReveal"
 import { useCountUp } from "@/lib/hooks/useCountUp"
-import { RvCard } from "./rv-card"
 
 const LAYERS = [
   { label: "Hard Skills", value: 92 },
@@ -14,18 +13,21 @@ const LAYERS = [
   { label: "Motivation & Kultur-Fit", value: 71 },
 ]
 
-const SIDE_CARDS = [
+const POINTS = [
   {
-    icon: Clock3,
-    num: "3 min",
-    title: "Vom Job zum Apply-Link",
-    text: "Du fügst den Link deiner Stellenanzeige ein, Revetly liest sie aus und füllt die Felder. Danach teilst du deinen Apply-Link, und Bewerbungen laufen fertig bewertet bei dir ein.",
+    icon: Layers,
+    title: "Neun Ebenen statt Schlagwortsuche.",
+    text: "Hard Skills, Berufserfahrung, Ausbildung, Soft Skills, Sprachen, Standort, Branche, Gehaltsvorstellung und Kultur-Fit, jede einzeln begründet.",
   },
   {
-    icon: ShieldCheck,
-    num: "100%",
-    title: "Bewerberdaten bleiben in der EU",
-    text: "Speicherung und Auswertung finden ausschließlich in der EU statt. Trainiert wird auf diesen Daten nicht, und nach 180 Tagen löscht Revetly sie automatisch.",
+    icon: ScanSearch,
+    title: "Zweite Prüfinstanz.",
+    text: "Ein unabhängiges zweites Modell prüft jede Ebene nach und korrigiert Ausreißer. Beide Urteile bleiben sichtbar.",
+  },
+  {
+    icon: Lock,
+    title: "Qualifikationssperre.",
+    text: "Fehlt eine geforderte Zulassung, etwa ein Pflegediplom oder eine Nostrifikation, bleibt der Score gedeckelt. Gute Sprachkenntnisse rechnen sie nicht weg.",
   },
 ]
 
@@ -47,7 +49,7 @@ export function RvServices() {
   }, [])
 
   return (
-    <section id="services" ref={ref} className="relative overflow-hidden bg-[var(--rv-mist)] py-[clamp(72px,9vw,130px)]">
+    <section id="match-analyse" ref={ref} className="relative overflow-hidden bg-[var(--rv-mist)] py-[clamp(72px,9vw,130px)]">
       <div className="rv-patternbg" data-pattern="rings" />
       <div className="relative z-[1] mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="reveal mb-14 max-w-[660px]" data-dir="left">
@@ -55,20 +57,20 @@ export function RvServices() {
             Revetly Match Analyse
           </span>
           <h2 className="mt-[22px] text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-            Nicht raten,
+            Lies die Shortlist,
             <br />
-            <span className="rv-gradient-text">sondern nachweisen.</span>
+            <span className="rv-gradient-text">nicht den Stapel.</span>
           </h2>
           <p className="mt-[18px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Die Revetly Match Analyse liest Lebenslauf und Anschreiben gemeinsam, bewertet
-            neun Ebenen einzeln und legt zu jeder Zahl den Beleg aus den Unterlagen daneben.
-            Warum jemand vorne liegt, steht direkt daneben.
+            Revetly liest Lebenslauf und Anschreiben zusammen, prüft neun Ebenen einzeln und
+            legt zu jeder Zahl die Stelle aus den Unterlagen daneben. Du siehst nicht nur, wer
+            vorne liegt, sondern warum.
           </p>
         </div>
 
-        <div className="grid items-start gap-5 lg:grid-cols-[1.25fr_0.75fr]">
-          <div className="reveal grid overflow-hidden rounded-[var(--rv-radius-lg)] border border-[rgba(12,26,22,.10)] bg-white shadow-[var(--rv-shadow)] md:grid-cols-2" data-dir="left">
-            <div className="flex flex-col gap-[22px] border-b border-[rgba(12,26,22,.10)] bg-[var(--rv-mist-2)] p-[26px] md:border-r md:border-b-0">
+        <div className="reveal grid overflow-hidden rounded-[var(--rv-radius-lg)] border border-[rgba(12,26,22,.10)] bg-white shadow-[var(--rv-shadow)] md:grid-cols-2" data-dir="left">
+          <div className="flex flex-col gap-[22px] border-b border-[rgba(12,26,22,.10)] bg-[var(--rv-mist-2)] p-[26px] md:border-r md:border-b-0">
+            <div className="flex items-start justify-between gap-4">
               <div ref={scoreBoxRef}>
                 <div className="flex items-baseline gap-1.5">
                   <div className="text-[3.6rem] leading-none font-extrabold tracking-[-0.06em] text-[var(--rv-ink)]">{score}</div>
@@ -76,89 +78,73 @@ export function RvServices() {
                 </div>
                 <div className="mt-0.5 text-[.74rem] font-semibold tracking-[.06em] text-[var(--rv-muted)] uppercase">Match Score</div>
               </div>
-              <div className="flex flex-col gap-3">
-                {LAYERS.map((layer) => (
-                  <div key={layer.label}>
-                    <div className="mb-[5px] flex items-center justify-between">
-                      <span className="text-[.73rem] font-semibold text-[var(--rv-ink-soft)]">{layer.label}</span>
-                      <b className="text-[.73rem] font-bold text-[var(--rv-green-deep)]">{layer.value}</b>
-                    </div>
-                    <div className="h-1 overflow-hidden rounded-full bg-[rgba(12,26,22,.10)]">
-                      {/* Kein `reveal` auf dem Balken selbst: die Breite steuert der
-                          Vorfahre per `.reveal.in .rv-sb-bar`. Traegt der Balken die
-                          Klasse zusaetzlich, setzt ihn `.reveal` auf opacity 0, und
-                          er kommt da nie wieder raus, weil er mit Breite 0 keine
-                          Flaeche hat, die der IntersectionObserver sehen koennte. */}
-                      <div
-                        className="rv-sb-bar h-full rounded-full bg-[image:var(--rv-gradient)]"
-                        style={{ "--w": `${layer.value}%` } as React.CSSProperties}
-                      />
-                    </div>
+              {/* Kennzeichnet die Karte als Anschauungsbeispiel. Name, Foto und
+                  Werte sind keine echten Bewerberdaten. */}
+              <span className="rounded-full border border-[rgba(12,26,22,.12)] bg-white px-2.5 py-1 text-[.64rem] font-bold tracking-[.08em] text-[var(--rv-muted)] uppercase">
+                Beispiel
+              </span>
+            </div>
+            <div className="flex flex-col gap-3">
+              {LAYERS.map((layer) => (
+                <div key={layer.label}>
+                  <div className="mb-[5px] flex items-center justify-between">
+                    <span className="text-[.73rem] font-semibold text-[var(--rv-ink-soft)]">{layer.label}</span>
+                    <b className="text-[.73rem] font-bold text-[var(--rv-green-deep)]">{layer.value}</b>
                   </div>
-                ))}
+                  <div className="h-1 overflow-hidden rounded-full bg-[rgba(12,26,22,.10)]">
+                    {/* Kein `reveal` auf dem Balken selbst: die Breite steuert der
+                        Vorfahre per `.reveal.in .rv-sb-bar`. Traegt der Balken die
+                        Klasse zusaetzlich, setzt ihn `.reveal` auf opacity 0, und
+                        er kommt da nie wieder raus, weil er mit Breite 0 keine
+                        Flaeche hat, die der IntersectionObserver sehen koennte. */}
+                    <div
+                      className="rv-sb-bar h-full rounded-full bg-[image:var(--rv-gradient)]"
+                      style={{ "--w": `${layer.value}%` } as React.CSSProperties}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-2.5 rounded-xl border border-[rgba(12,26,22,.10)] bg-white p-[11px_13px]">
+              {/* Verlauf bleibt als Untergrund: Laedt das Foto nicht, steht dort
+                  weiter der Markenkreis statt eines kaputten Bildsymbols.
+                  alt ist leer, weil der Name direkt daneben steht. */}
+              <div
+                className="h-[34px] w-[34px] flex-none overflow-hidden rounded-full"
+                style={{ backgroundImage: "var(--rv-gradient)" }}
+              >
+                <img
+                  src="https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/candidate-photos/Bild1.png"
+                  alt=""
+                  width={34}
+                  height={34}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
               </div>
-              <div className="flex items-center gap-2.5 rounded-xl border border-[rgba(12,26,22,.10)] bg-white p-[11px_13px]">
-                {/* Verlauf bleibt als Untergrund: Laedt das Foto nicht, steht dort
-                    weiter der Markenkreis statt eines kaputten Bildsymbols.
-                    alt ist leer, weil der Name direkt daneben steht. */}
-                <div
-                  className="h-[34px] w-[34px] flex-none overflow-hidden rounded-full"
-                  style={{ backgroundImage: "var(--rv-gradient)" }}
-                >
-                  <img
-                    src="https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/candidate-photos/Bild1.png"
-                    alt=""
-                    width={34}
-                    height={34}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
+              <div>
+                <b className="block text-[.82rem] font-bold text-[var(--rv-ink)]">Lena Maier</b>
+                <span className="text-[.7rem] text-[var(--rv-muted)]">Frontend Dev · Wien</span>
+              </div>
+              <div className="ml-auto flex-none rounded-full bg-[image:var(--rv-gradient)] px-[9px] py-1 text-[.69rem] font-bold whitespace-nowrap text-[var(--rv-ink)]">
+                Top-Match
+              </div>
+            </div>
+          </div>
+          <ul className="flex flex-col justify-center gap-7 p-[26px] lg:p-[38px]">
+            {POINTS.map((point) => (
+              <li key={point.title} className="flex gap-4">
+                <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-[var(--rv-ink)] text-white">
+                  <point.icon className="h-[19px] w-[19px]" strokeWidth={2.1} />
                 </div>
                 <div>
-                  <b className="block text-[.82rem] font-bold text-[var(--rv-ink)]">Lena Maier</b>
-                  <span className="text-[.7rem] text-[var(--rv-muted)]">Frontend Dev · Wien</span>
+                  <h3 className="text-[1.05rem] leading-[1.35] font-bold tracking-[-0.02em] text-[var(--rv-ink)]">{point.title}</h3>
+                  <p className="mt-1.5 text-[.9rem] leading-[1.62] text-[var(--rv-muted)]">{point.text}</p>
                 </div>
-                <div className="ml-auto flex-none rounded-full bg-[image:var(--rv-gradient)] px-[9px] py-1 text-[.69rem] font-bold whitespace-nowrap text-[var(--rv-ink)]">
-                  Top-Match
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col justify-center gap-4 p-[26px]">
-              <div className="w-fit rounded-full bg-[rgba(22,199,124,.12)] px-3 py-[5px] text-[.71rem] font-bold tracking-[.08em] text-[var(--rv-green-deep)] uppercase">
-                9 Analyse-Ebenen
-              </div>
-              <h3 className="text-[clamp(1.05rem,1.5vw,1.28rem)] leading-[1.35] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-                Neun Ebenen statt einer Schlagwortsuche
-              </h3>
-              <p className="text-[.9rem] leading-[1.64] text-[var(--rv-muted)]">
-                Hard Skills, Berufserfahrung, Ausbildung, Soft Skills, Sprachen, Standort, Branche, Gehaltsvorstellung und Kultur-Fit werden einzeln bewertet. Zu jeder Ebene steht die Begründung und die Stelle aus den Unterlagen, auf die sie sich stützt.
-              </p>
-              <ul className="flex flex-col gap-2">
-                {["Jede Ebene begründet und belegt", "Zweite Prüfung korrigiert Ausreißer", "Fehlende Berufszulassung ist nicht ausgleichbar", "K.O.-Kriterien pro Stelle konfigurierbar"].map(
-                  (item) => (
-                    <li key={item} className="flex items-center gap-2.5 text-[.85rem] text-[var(--rv-ink-soft)]">
-                      <span className="h-1.5 w-1.5 flex-none rounded-full bg-[image:var(--rv-gradient)]" />
-                      {item}
-                    </li>
-                  ),
-                )}
-              </ul>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-5">
-            {SIDE_CARDS.map((card, i) => (
-              <RvCard key={card.title} tilt spotlight className={`reveal flex-1 p-[26px_24px] ${i > 0 ? `s${i + 1}` : "s1"}`} data-dir="right">
-                <div className="mb-[14px] flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--rv-ink)] text-white">
-                  <card.icon className="h-[19px] w-[19px]" strokeWidth={2.2} />
-                </div>
-                <div className="mb-2 text-[2.6rem] leading-none font-extrabold tracking-[-0.04em] text-[var(--rv-ink)]">{card.num}</div>
-                <h3 className="mb-2.5 text-[1.04rem] font-bold tracking-[-0.015em] text-[var(--rv-ink)]">{card.title}</h3>
-                <p className="text-[.87rem] leading-[1.58] text-[var(--rv-muted)]">{card.text}</p>
-              </RvCard>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
     </section>

@@ -48,6 +48,8 @@ export default async function DashboardPage() {
   }
   let recentJobs: RecentJob[] = []
   let firstName: string | null = null
+  // "lifetime" = Probestelle (Migration 028), sonst Monatskontingent.
+  let quotaPeriod: "lifetime" | "monthly" = "monthly"
   let priorities: PriorityItem[] = []
   let pipeline: PipelineBreakdown = { scored: 0, invited: 0, waiting: 0, rejected: 0 }
   let recentApplications: RecentApplication[] = []
@@ -123,8 +125,9 @@ export default async function DashboardPage() {
     ])
 
     const usage = (usageRes.data ?? null) as
-      | { used: number; limit: number; active_jobs_limit: number }
+      | { used: number; limit: number; active_jobs_limit: number; quota_period?: "lifetime" | "monthly" }
       | null
+    quotaPeriod = usage?.quota_period ?? "monthly"
 
     // Average match score
     const scores = (matchScoresRes.data || [])
@@ -233,8 +236,18 @@ export default async function DashboardPage() {
     const remaining = Math.max(limit - metricsData.matchesUsed, 0)
     const exhausted = limit > 0 && remaining <= 0
     const low = limit > 0 && remaining / limit <= 0.2
+    // Probestelle, aber Limit 0: Die Firmendomain hatte ihre Probestelle
+    // schon. Dann führt jeder Schritt ohne Plan ins Leere.
+    const noTrial = quotaPeriod === "lifetime" && limit === 0
 
-    if (metricsData.activeJobs === 0) {
+    if (noTrial) {
+      priorities.push({
+        id: "quota", kind: "quota",
+        title: "Probestelle bereits genutzt",
+        subtitle: "Wähle einen Plan, um loszulegen",
+        href: "/subscription",
+      })
+    } else if (metricsData.activeJobs === 0) {
       priorities.push({
         id: "firstjob", kind: "firstjob",
         title: "Ersten Job anlegen",
@@ -342,7 +355,7 @@ export default async function DashboardPage() {
         {/* Score gauge · segmented quota · dark priorities focus card */}
         <div className="reveal grid gap-4 lg:grid-cols-3">
           <ScoreGauge score={metricsData.avgMatchScore} scoredCount={metricsData.scoredCount} />
-          <QuotaProgress used={metricsData.matchesUsed} total={metricsData.matchesLimit} />
+          <QuotaProgress used={metricsData.matchesUsed} total={metricsData.matchesLimit} period={quotaPeriod} />
           <Priorities items={priorities} />
         </div>
 

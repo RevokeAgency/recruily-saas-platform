@@ -21,7 +21,7 @@ const plusJakartaSans = localFont({
 // jemand, der das Produkt noch nicht kennt.
 const title = 'KI-Recruiting-Software für den DACH-Raum | Revetly'
 const description =
-  'Revetly bündelt alle Bewerbungen, analysiert sie auf neun Ebenen und rankt die stärksten Profile nach oben. Lies die Shortlist statt den Stapel. DSGVO-konform.'
+  'Revetly übernimmt alles zwischen Stellenanzeige und Zusage: Bewerbungen sammeln, Passung prüfen, Gespräche planen. Die Entscheidung triffst du. Verarbeitung in der EU.'
 
 export const metadata: Metadata = {
   // Basis für relative canonical-/OG-URLs (z. B. der Blog-Beiträge).
@@ -41,23 +41,24 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'Revetly',
     title,
-    description:
-      'Alle Bewerbungen an einem Ort, auf neun Ebenen analysiert und nach Passung gerankt. Jeder Punkt mit der Stelle aus den Unterlagen belegt, zwei unabhängige Prüfungen je Kandidat. Verarbeitung in der EU.',
+    description,
     images: [{ url: '/revetly/og-image.jpg', width: 1200, height: 630 }],
     locale: 'de_DE',
   },
   twitter: {
     card: 'summary_large_image',
     title,
-    description: 'Lies die Shortlist, nicht den Stapel. Neun Analyse-Ebenen, jeder Punkt belegt, Verarbeitung in der EU.',
+    description,
     images: ['/revetly/og-image.jpg'],
   },
 }
 
+// Kein maximumScale: Eine Zoomsperre verhindert, dass sehbehinderte Nutzer
+// die Seite vergrößern (WCAG 1.4.4), und bringt auf aktuellen Browsern
+// ohnehin nichts mehr gegen versehentliches Zoomen.
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
   themeColor: '#16C77C',
 }
 

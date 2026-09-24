@@ -595,13 +595,6 @@ html { scroll-behavior: smooth; }
 .rv-marquee:hover .rv-marquee-track { animation-play-state: paused; }
 @keyframes rv-scrollx { to { transform: translateX(-50%); } }
 
-/* Features: sticky progress tracker */
-.rv-feat-step { border-top: 1px solid rgba(12,26,22,.10); opacity: .35; transition: opacity .4s cubic-bezier(0.16,1,0.3,1); }
-.rv-feat-step:last-child { border-bottom: 1px solid rgba(12,26,22,.10); }
-.rv-feat-step.active { opacity: 1; }
-.rv-feat-bar { width: 0; transition: width .4s cubic-bezier(0.16,1,0.3,1); }
-.rv-feat-step.active .rv-feat-bar { width: 32px; }
-
 /* Services bento: score bars fill once revealed */
 .rv-sb-bar { width: 0; transition: width 1.1s cubic-bezier(0.16,1,0.3,1); }
 .reveal.in .rv-sb-bar, .reveal.visible .rv-sb-bar { width: var(--w); }

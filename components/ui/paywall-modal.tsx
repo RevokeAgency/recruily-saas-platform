@@ -118,9 +118,7 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
                   {plan.matches_label}
                 </p>
                 <p className="text-muted-foreground text-xs mt-0.5 mb-3">
-                  {plan.active_jobs === 999
-                    ? 'Unbegrenzte Jobs'
-                    : `${plan.active_jobs} aktive Jobs`}
+                  {plan.jobs_label}
                 </p>
 
                 <ul className="space-y-1.5 mb-5 flex-1">

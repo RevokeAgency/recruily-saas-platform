@@ -2,26 +2,30 @@
 
 import { Fragment, useEffect, useRef } from "react"
 import Link from "next/link"
-import { Check, Play } from "lucide-react"
+import { Check } from "lucide-react"
 
 import { RvArrowIcon, RvButton } from "./rv-button"
 import { PLANS } from "@/lib/plans"
 
-// `break` erzwingt am Zeilenende einen Umbruch, aber nur ab lg. So steht auf
-// dem Desktop "und nachvollziehbar" zusammen und "bewertet." darunter, wie
-// gewuenscht. Auf schmalen Screens sind die Umbrueche aus und die Woerter
-// fliessen natuerlich, wodurch sich "und" an die Zeile darueber haengt statt
-// allein zu stehen. Der Verlauf beginnt bei "nachvollziehbar".
+// `break` setzt nach dem Wort einen erzwungenen Zeilenumbruch: ein leeres
+// Element mit basis-full in der flex-wrap-Zeile. So steht "Von 100
+// Bewerbungen" oben und das Ziel darunter, und der Verlauf liegt auf dem Ziel.
+// Die "100" ist ein Bild für den Stapel, keine Leistungszahl.
+//
+// Spaltenbreite und Schriftgröße sind auf die längere Zeile abgestimmt:
+// "zur richtigen Einstellung." braucht bei 64 px gut 718 px, die Spalte hatte
+// 620. Mit 60 px und 720 px Spalte steht sie auf dem Desktop in einer Zeile.
+// Nur die Spalte zu verbreitern hätte die Schrift weiter ins Foto geschoben.
 const HEADLINE: Array<{ text: string; gradient?: boolean; break?: boolean }> = [
-  { text: "Lies" },
-  { text: "die" },
-  { text: "Shortlist,", break: true },
-  { text: "nicht", gradient: true },
-  { text: "den", gradient: true },
-  { text: "Stapel.", gradient: true },
+  { text: "Von" },
+  { text: "100" },
+  { text: "Bewerbungen", break: true },
+  { text: "zur", gradient: true },
+  { text: "richtigen", gradient: true },
+  { text: "Einstellung.", gradient: true },
 ]
 
-const TRUST_ITEMS = ["DSGVO-konform", "EU AI Act", "Verarbeitung in der EU"]
+const TRUST_ITEMS = ["Entscheidung immer beim Menschen", "Jeder Match belegt", "Verarbeitung in der EU"]
 
 /**
  * Full-bleed Ken-Burns hero (index.html .hero): background photo drift,
@@ -94,10 +98,10 @@ export function RvHero() {
         }}
       />
       <div className="relative z-[3] mx-auto flex min-h-[clamp(620px,100dvh,960px)] max-w-[1200px] items-center px-4 pt-[clamp(120px,14dvh,168px)] pb-[clamp(64px,8dvh,104px)] sm:px-6 lg:px-8">
-        <div className="max-w-[620px]">
+        <div className="max-w-[720px]">
           <span className="mb-[30px] inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-[15px] py-[7px] text-[.78rem] font-semibold text-white/92 backdrop-blur-[10px]">
-            <span className="h-[7px] w-[7px] animate-pulse rounded-full bg-[var(--rv-green)]" />
-            {`${PLANS.free.matches} Matches gratis \u00b7 ohne Kreditkarte`}
+            <span className="h-[7px] w-[7px] rounded-full bg-[var(--rv-green)]" />
+            KI-Recruiting-Assistent für den DACH-Raum
           </span>
           {/* Schatten als filter auf der h1, nicht als text-shadow am Wort:
               Die Verlaufswoerter fuellen ihre Glyphen per background-clip, ein
@@ -106,7 +110,7 @@ export function RvHero() {
               Einblendung ueberschrieben. Der enge Schatten gibt der Schrift
               Kante auf hellen Bildstellen, der weite ersetzt den frueheren
               Schein. */}
-          <h1 className="mb-[22px] flex flex-wrap items-baseline gap-x-[0.26em] text-[clamp(2.4rem,5.4vw,4rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-white [filter:drop-shadow(0_1px_2px_rgba(8,22,20,.5))_drop-shadow(0_6px_24px_rgba(8,22,20,.4))]">
+          <h1 className="mb-[22px] flex flex-wrap items-baseline gap-x-[0.26em] text-[clamp(2.4rem,5vw,3.75rem)] leading-[1.04] font-extrabold tracking-[-0.03em] text-white [filter:drop-shadow(0_1px_2px_rgba(8,22,20,.5))_drop-shadow(0_6px_24px_rgba(8,22,20,.4))]">
             {HEADLINE.map((w, i) => (
               <Fragment key={i}>
                 <span
@@ -119,26 +123,21 @@ export function RvHero() {
               </Fragment>
             ))}
           </h1>
-          <p className="mb-[34px] max-w-[496px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-white/74">
-            Revetly bündelt alle Bewerbungen aus dem Custom Apply-Link und dem
-            E-Mail-Posteingang, bewertet sie automatisch und rankt die stärksten Profile
-            ganz oben. Du fokussierst dich sofort auf die Top-Kandidaten.
+          <p className="mb-[34px] max-w-[520px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-white/74">
+            Revetly übernimmt alles zwischen Stellenanzeige und Zusage: Bewerbungen
+            sammeln, Passung prüfen, Gespräche planen und strukturiert führen. Die
+            Entscheidung triffst du.
           </p>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col items-start gap-3">
             <RvButton variant="grad" size="lg" asChild>
               <Link href="/auth/register">
                 Erste Stelle kostenlos testen
                 <RvArrowIcon />
               </Link>
             </RvButton>
-            <RvButton
-              variant="ghostLight"
-              size="lg"
-              onClick={() => document.querySelector("#how")?.scrollIntoView({ behavior: "smooth" })}
-            >
-              <Play className="h-4 w-4" fill="currentColor" />
-              In 90 Sekunden ansehen
-            </RvButton>
+            <p className="pl-1 text-[.8rem] font-semibold text-white/60">
+              {`${PLANS.free.matches} Matches gratis · keine Kreditkarte`}
+            </p>
           </div>
           <div className="mt-[30px] flex flex-wrap items-center gap-[22px]">
             {TRUST_ITEMS.map((item) => (

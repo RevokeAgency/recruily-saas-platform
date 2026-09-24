@@ -161,9 +161,12 @@ export default function SubscriptionPage() {
   const currentPlanId = profile?.plan || 'free'
   const currentInterval = profile?.billing_interval || 'monthly'
   const selectedInterval: "monthly" | "yearly" = isAnnual ? "yearly" : "monthly"
-  const matchesUsed = profile?.matches_used || 0
-  const matchesLimit = profile?.matches_limit || 10
-  const matchPercentage = (matchesUsed / matchesLimit) * 100
+  const matchesUsed = profile?.matches_used ?? 0
+  // ?? statt ||: Ein Limit von 0 ist seit der Probestelle ein echter Wert
+  // (Domain hatte ihre Probestelle schon) und darf nicht zu 10 werden.
+  const matchesLimit = profile?.matches_limit ?? 0
+  const matchPercentage = matchesLimit > 0 ? (matchesUsed / matchesLimit) * 100 : 0
+  const isTrial = currentPlanId === 'free'
 
   // Format renewal date
   const renewalDate = profile?.billing_period_end 
@@ -244,7 +247,9 @@ export default function SubscriptionPage() {
             {/* Matches usage — same segmented meter as the dashboard quota card */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Matches verwendet</span>
+                <span className="text-muted-foreground">
+                  {isTrial ? 'Matches der Probestelle' : 'Matches verwendet'}
+                </span>
                 <span className="font-medium text-foreground tabular-nums">
                   {loading ? '...' : `${matchesUsed} / ${matchesLimit}`}
                 </span>
@@ -263,24 +268,34 @@ export default function SubscriptionPage() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground tabular-nums">
-                {loading ? 'Lädt...' : `Noch ${Math.max(matchesLimit - matchesUsed, 0)} Matches verfügbar`}
+                {loading
+                  ? 'Lädt...'
+                  : isTrial
+                    ? `Noch ${Math.max(matchesLimit - matchesUsed, 0)} Matches verfügbar, einmalig, keine Erneuerung`
+                    : `Noch ${Math.max(matchesLimit - matchesUsed, 0)} Matches verfügbar`}
               </p>
             </div>
 
             {/* Active jobs limit — plain statement, no fake meter */}
             <div className="space-y-1">
-              <span className="text-sm text-muted-foreground">Aktive Jobs</span>
+              <span className="text-sm text-muted-foreground">{isTrial ? 'Stellen' : 'Aktive Jobs'}</span>
               <p className="text-2xl font-bold leading-none text-foreground tabular-nums">
                 {loading
                   ? '…'
-                  : profile?.active_jobs_limit === 999
-                    ? 'Unbegrenzt'
-                    : `bis zu ${profile?.active_jobs_limit || 1}`}
+                  : isTrial
+                    ? (profile?.active_jobs_limit ?? 0) > 0 ? '1 Probestelle' : 'Keine Probestelle'
+                    : profile?.active_jobs_limit === 999
+                      ? 'Unbegrenzt'
+                      : `bis zu ${profile?.active_jobs_limit ?? 0}`}
               </p>
               <p className="pt-1 text-xs text-muted-foreground">
-                {PLANS[currentPlanId].active_jobs === 999
-                  ? 'Unbegrenzte aktive Stellenanzeigen'
-                  : 'gleichzeitig aktive Stellenanzeigen in deinem Plan'}
+                {isTrial
+                  ? (profile?.active_jobs_limit ?? 0) > 0
+                    ? 'einmalig pro Konto, für weitere Stellen einen Plan wählen'
+                    : 'Für deine Firmendomain wurde die Probestelle bereits genutzt. Wähle einen Plan, um loszulegen.'
+                  : PLANS[currentPlanId].active_jobs === 999
+                    ? 'Unbegrenzte aktive Stellenanzeigen'
+                    : 'gleichzeitig aktive Stellenanzeigen in deinem Plan'}
               </p>
             </div>
           </div>
@@ -425,9 +440,7 @@ export default function SubscriptionPage() {
                     {plan.matches_label}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {plan.active_jobs === 999 
-                      ? 'Unbegrenzte Jobs' 
-                      : `${plan.active_jobs} aktive Jobs`}
+                    {plan.jobs_label}
                   </p>
                 </div>
 

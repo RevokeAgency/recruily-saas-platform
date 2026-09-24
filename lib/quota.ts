@@ -26,6 +26,41 @@ export type MatchUsage = {
   remaining: number
   active_jobs_limit: number
   plan: PlanId
+  /** Seit 028: "lifetime" für die Probestelle, sonst "monthly". */
+  quota_period?: "lifetime" | "monthly"
+  trial_eligible?: boolean
+}
+
+export type JobQuota = {
+  allowed: boolean
+  used: number
+  limit: number
+  plan: PlanId
+  quota_period: "lifetime" | "monthly"
+}
+
+/**
+ * Darf eine Stelle angelegt (`creating = true`) oder wieder aktiviert werden?
+ *
+ * Die Regel lebt in der Datenbank (job_quota aus 028): Für die Probestelle
+ * zählt jede je angelegte Stelle, auch Entwürfe und gelöschte; für bezahlte
+ * Pläne die gerade aktiven. Der App-Code rechnet das Limit nicht mehr selbst
+ * aus, damit es nur eine Stelle gibt, an der die Regel steht.
+ *
+ * Gibt null zurück, wenn die Funktion fehlt (Migration 028 noch nicht
+ * eingespielt). Der Aufrufer fällt dann auf die bisherige Zählung zurück.
+ */
+export async function checkJobQuota(
+  supabase: SupabaseClient,
+  userId: string,
+  creating: boolean,
+): Promise<JobQuota | null> {
+  const { data, error } = await supabase.rpc("job_quota", { p_user: userId, p_creating: creating })
+  if (error || !data) {
+    if (error) console.error("job_quota RPC nicht verfügbar, Rückfall auf aktive Stellen:", error.message)
+    return null
+  }
+  return data as JobQuota
 }
 
 /**

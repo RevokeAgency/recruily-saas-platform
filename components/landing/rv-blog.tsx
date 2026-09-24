@@ -71,7 +71,7 @@ export function RvBlog() {
               <h3 className="mt-[18px] text-[clamp(1.35rem,2.2vw,1.75rem)] leading-[1.25] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
                 {lead.title}
               </h3>
-              <p className="mt-3.5 text-[.95rem] leading-[1.66] text-[var(--rv-muted)]">{lead.excerpt}</p>
+              <p className="mt-3.5 text-[.95rem] leading-[1.66] text-[var(--rv-muted)]">{lead.teaser ?? lead.excerpt}</p>
             </div>
             <div>
               <RvButton variant="primary" size="sm" asChild>
@@ -101,7 +101,7 @@ export function RvBlog() {
                 <h3 className="text-[1.05rem] leading-[1.35] font-bold tracking-[-0.02em] text-[var(--rv-ink)]">
                   {post.cardTitle ?? post.title}
                 </h3>
-                <p className="line-clamp-3 text-[.87rem] leading-[1.58] text-[var(--rv-muted)]">{post.excerpt}</p>
+                <p className="line-clamp-3 text-[.87rem] leading-[1.58] text-[var(--rv-muted)]">{post.teaser ?? post.excerpt}</p>
                 <Link
                   href={`/blog/${post.slug}`}
                   target="_blank"
@@ -139,7 +139,7 @@ export function RvBlog() {
                 <h3 className="text-[1.12rem] leading-[1.35] font-bold tracking-[-0.02em] text-[var(--rv-ink)]">
                   {post.cardTitle ?? post.title}
                 </h3>
-                <p className="text-[.88rem] leading-[1.6] text-[var(--rv-muted)]">{post.excerpt}</p>
+                <p className="text-[.88rem] leading-[1.6] text-[var(--rv-muted)]">{post.teaser ?? post.excerpt}</p>
                 <Link
                   href={`/blog/${post.slug}`}
                   target="_blank"

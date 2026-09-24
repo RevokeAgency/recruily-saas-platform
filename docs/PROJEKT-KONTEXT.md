@@ -138,22 +138,24 @@ Copy **keine Sekundenversprechen** stehen dürfen.
 Verbindlich in `lib/plans.ts`. Jahrespreis ist zehnmal der Monatspreis, also
 zwei Monate geschenkt.
 
-| Plan | Monat | Matches/Monat | Aktive Jobs |
+| Plan | Monat | Matches | Stellen |
 |---|---|---|---|
-| Free | 0 € | 5 | 1 |
-| Starter | 99 € | 50 | 3 |
-| Growth | 249 € | 300 | 10 |
-| Pro | 499 € | 1.000 | unbegrenzt |
+| Free | 0 € | 25, einmalig | 1 Probestelle |
+| Starter | 99 € | 50 pro Monat | 3 aktive |
+| Growth | 249 € | 300 pro Monat | 10 aktive |
+| Pro | 499 € | 1.000 pro Monat | unbegrenzt |
 | Enterprise | Verhandlung | individuell | unbegrenzt |
 
-Die Durchsetzung der Limits liegt gespiegelt in der Datenbank
-(`plan_match_limit` / `plan_job_limit`, `scripts/006_match_counter_system.sql`).
+**Free ist seit Migration 028 eine einmalige Probestelle**, kein Dauertarif:
+eine pro Firmendomain, Freemail-Adressen ausgeschlossen, gezählt wird, was
+verbraucht beziehungsweise angelegt wurde. Die Regel lebt in der Datenbank
+(`consume_match`, `match_usage`, `job_quota`), Details in
+`scripts/028_free_trial_lifetime.md`. Die Zahlen stehen in `lib/plans.ts` und
+müssen mit `plan_match_limit` / `plan_job_limit` übereinstimmen.
 
-> **Bekannte Inkonsistenz:** Die `features`-Arrays in `lib/plans.ts` tragen noch
-> die alte Sprache („Basic AI Matching Score", „Voller IMLRS Score",
-> „Branded Absage-Emails"). Die Landing Page hat eine eigene, gepflegte Liste.
-> Wo `lib/plans.ts` in der Produkt-UI angezeigt wird, steht damit veraltetes
-> Wording. Noch nicht bereinigt.
+Die `features`-Arrays in `lib/plans.ts` folgen der Wortwahl der Landing Page.
+Die ersten zwei Einträge sind strukturell Kontingent und Stellen, weil die
+Abo-Seite ab Index 2 und die Paywall die ersten fünf anzeigt.
 
 ---
 

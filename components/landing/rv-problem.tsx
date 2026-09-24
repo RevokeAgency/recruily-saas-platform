@@ -14,10 +14,10 @@ import { useReveal } from "@/lib/hooks/useReveal"
 // in der Mittelstellung links der vollstaendige Chaos-Text und rechts der
 // vollstaendige Revetly-Text.
 //
-// Die drei Punkte sind Gegenstuecke voneinander (Posteingang gegen Ranking,
-// liegengebliebene Absagen gegen Autopilot, Termin-Ping-Pong gegen Ein-Klick-
-// Interview) und teilen dasselbe vertikale Raster, damit sie sich beim Ziehen
-// gegenseitig abloesen.
+// Die drei Punkte sind Gegenstuecke voneinander (Reihenfolge gegen Ranking,
+// liegengebliebene Absagen gegen Absagen per Klick, Termin-Ping-Pong gegen
+// Selbstbuchung) und teilen dasselbe vertikale Raster, damit sie sich beim
+// Ziehen gegenseitig abloesen.
 //
 // Waehrend eine Seite zusammengeschoben wird, blendet ihr Text aus, bevor er
 // angeschnitten wirkt. Die dekorativen Haelften vertragen den Schnitt.
@@ -29,31 +29,31 @@ type Item = { t: string; d: string }
 
 const CHAOS: Item[] = [
   {
-    t: "Glücksspiel im Posteingang:",
-    d: "Wer als Erster schickt, wird gelesen. Wer später kommt, geht im Stapel unter.",
+    t: "Reihenfolge statt Eignung.",
+    d: "Wer früh schickt, wird gelesen. Wer später kommt, geht im Stapel unter.",
   },
   {
-    t: "Stille Post bei Absagen:",
-    d: "Rückmeldungen bleiben liegen, weil Zeit fehlt. Bewerber bleiben frustriert zurück.",
+    t: "Absagen bleiben liegen.",
+    d: "Bewerber warten wochenlang auf eine Antwort, die nie kommt.",
   },
   {
-    t: "Termin-Ping-Pong über Tage:",
-    d: "5 E-Mails für ein Erstgespräch. Der Kandidat springt genervt ab.",
+    t: "Termin-Ping-Pong.",
+    d: "Fünf Mails für ein Erstgespräch, und der beste Kandidat hat inzwischen woanders zugesagt.",
   },
 ]
 
 const REVETLY: Item[] = [
   {
-    t: "Ranking statt Posteingang:",
-    d: "Jedes eingehende Profil wird automatisch analysiert und nach Passung einsortiert.",
+    t: "Ranking nach Passung.",
+    d: "Jede Bewerbung wird gematcht, sobald sie eingeht, und landet an ihrem Platz.",
   },
   {
-    t: "Absagen gehen raus, nicht unter:",
-    d: "Personalisierte Rückmeldungen versendest du auf Knopfdruck.",
+    t: "Absagen mit einem Klick.",
+    d: "Persönlich formuliert, ohne dass du sie schreiben musst.",
   },
   {
-    t: "Ein Klick zum Interview:",
-    d: "Kandidaten wählen passende Zeiten direkt aus deinem Kalender.",
+    t: "Termin ohne Mailverkehr.",
+    d: "Bewerber wählen selbst eine deiner freien Zeiten.",
   },
 ]
 
@@ -136,10 +136,10 @@ export function RvProblem() {
             Vorher und nachher
           </span>
           <h2 className="mt-[22px] text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-balance text-[var(--rv-ink)]">
-            Recruiting-Chaos oder <span className="rv-gradient-text">Revetly-Realität.</span>
+            Bei 100 Bewerbungen entscheidet sonst <span className="rv-gradient-text">der Posteingang.</span>
           </h2>
           <p className="mx-auto mt-[18px] max-w-[540px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Dieselbe Stelle, dieselben Bewerbungen, zwei sehr verschiedene Nachmittage.
+            Dieselbe Stelle, dieselben Bewerbungen, zwei sehr verschiedene Wochen.
           </p>
         </div>
 
@@ -153,7 +153,7 @@ export function RvProblem() {
             >
               <div className="grid gap-6 lg:grid-cols-2 lg:gap-0">
                 <div className="rv-compare-fade lg:pr-[clamp(20px,2.5vw,34px)]" style={{ ["--fade" as string]: chaosFade }}>
-                  <Header chaos label="Das alltägliche Recruiting-Chaos" />
+                  <Header chaos label="Ohne Revetly" />
                   <List items={CHAOS} chaos />
                 </div>
                 {/* Dekor: vertraegt den Schnitt, anders als Text */}
@@ -202,8 +202,12 @@ export function RvProblem() {
                     </div>
                   </div>
                 </div>
-                <div className="rv-compare-fade" style={{ ["--fade" as string]: revFade, transition: glide }}>
-                  <Header chaos={false} label="Die Revetly-Realität" />
+                {/* Abstand zur Mitte, spiegelbildlich zum pr der Chaos-Seite, plus
+                    Platz für den Griff: Ohne ihn beginnt der Text bündig am
+                    Trenner, und der 44 px breite Griff deckt die ersten
+                    Buchstaben der mittleren Zeile ab. */}
+                <div className="rv-compare-fade lg:pl-[clamp(30px,3vw,42px)]" style={{ ["--fade" as string]: revFade, transition: glide }}>
+                  <Header chaos={false} label="Mit Revetly" />
                   <List items={REVETLY} chaos={false} />
                 </div>
               </div>
@@ -231,8 +235,8 @@ export function RvProblem() {
               onPointerUp={() => setDragging(false)}
               onPointerCancel={() => setDragging(false)}
               onBlur={() => setDragging(false)}
-              aria-label="Vergleich zwischen Recruiting-Chaos und Revetly-Realität"
-              aria-valuetext={`${pos} Prozent Recruiting-Chaos sichtbar`}
+              aria-label="Vergleich zwischen ohne Revetly und mit Revetly"
+              aria-valuetext={`${pos} Prozent der Seite ohne Revetly sichtbar`}
               className="rv-compare-range absolute inset-0 z-[4] hidden h-full w-full cursor-ew-resize appearance-none bg-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--rv-green-deep)] lg:block"
             />
           </div>

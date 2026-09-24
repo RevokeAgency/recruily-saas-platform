@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { checkJobQuota } from "@/lib/quota"
 
 export async function GET() {
   try {
@@ -60,10 +61,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 })
     }
 
-    // Enforce the active-job limit only when creating an ACTIVE job.
-    // Drafts (isActive === false) are always allowed.
+    // Stellenlimit. Die Regel steht in der Datenbank (job_quota, Migration
+    // 028): Für die Probestelle zählt jede je angelegte Stelle, auch
+    // Entwürfe, sonst ließe sich die Grenze mit Entwurf anlegen, aktivieren,
+    // deaktivieren umgehen. Bezahlte Pläne begrenzen nur aktive Stellen,
+    // Entwürfe bleiben dort frei.
     const willBeActive = body.isActive ?? true
-    if (willBeActive) {
+    const quota = await checkJobQuota(supabase, user.id, true)
+
+    if (quota) {
+      const mustCheck = willBeActive || quota.plan === "free"
+      if (mustCheck && !quota.allowed) {
+        return NextResponse.json(
+          { error: "job_limit_reached", limit: quota.limit, quotaPeriod: quota.quota_period },
+          { status: 403 }
+        )
+      }
+    } else if (willBeActive) {
+      // Rückfall, solange 028 nicht eingespielt ist: bisherige Zählung der
+      // aktiven Stellen gegen active_jobs_limit.
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")
         .select("active_jobs_limit")
@@ -125,6 +141,15 @@ export async function POST(req: Request) {
       console.warn("[jobs] KO-Spalte fehlt — Migration 019 noch nicht ausgeführt. Job wird ohne KO-Kriterien angelegt.")
       const { ko_criteria: _omit, ...withoutKo } = jobData
       ;({ data: job, error } = await supabase.from("jobs").insert(withoutKo).select().single())
+    }
+
+    // Der Datenbank-Trigger aus 028 ist die letzte Schranke, falls zwei
+    // Anlagen gleichzeitig durch die Vorprüfung gekommen sind.
+    if (error && /free_trial_job_limit/.test(error.message || "")) {
+      return NextResponse.json(
+        { error: "job_limit_reached", limit: 1, quotaPeriod: "lifetime" },
+        { status: 403 }
+      )
     }
 
     if (error) {

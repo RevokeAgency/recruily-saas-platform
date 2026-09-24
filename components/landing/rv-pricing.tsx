@@ -2,20 +2,20 @@
 
 import { Fragment, useState } from "react"
 import Link from "next/link"
-import { Check } from "lucide-react"
+import { Check, Minus } from "lucide-react"
 
 import { useReveal } from "@/lib/hooks/useReveal"
 import { RvButton } from "./rv-button"
 import { RvModal, RvModalTrigger, RvModalContent } from "./rv-modal"
+import { PLANS } from "@/lib/plans"
 
-// NOTE: prices/tiers are the marketing placeholders from
-// reference/revetly-landing/index.html (Free/Starter/Growth/Pro/Enterprise,
-// 0/99/249/499€). They intentionally do NOT match the live billing source
-// of truth in lib/plans.ts (4 tiers, 0/49/149/299€) — decided with the user
-// pending a separate pass to reconcile marketing copy with actual pricing.
+// Preise, Kontingente und Stellen kommen aus lib/plans.ts, derselben Quelle
+// wie die Abrechnung. Hart geschriebene Zahlen sind hier früher schon einmal
+// auseinandergelaufen ("5 Matches pro Monat", während die Datenbank anders
+// zählte). Hart stehen nur noch Funktionsbeschreibungen, keine Mengen.
+
 type Tier = {
   name: string
-  tag?: string
   desc: string
   monthly: string
   yearly: string
@@ -27,16 +27,22 @@ type Tier = {
   featured?: boolean
 }
 
+const euro = (n: number) => `€${n.toLocaleString("de-DE")}`
+const PER = { m: "/Monat", y: "/Jahr" }
+const SAVE = "2 Monate gratis"
+const fmt = (n: number) => n.toLocaleString("de-DE")
+
 const TIERS: Tier[] = [
   {
     name: "Free",
-    desc: "Zum Testen mit echten Bewerbungen",
-    monthly: "€0",
-    yearly: "€0",
-    per: { m: "/Monat", y: "/Jahr" },
+    desc: "Zum Testen mit einer echten Stelle",
+    monthly: euro(PLANS.free.price_monthly),
+    yearly: euro(PLANS.free.price_yearly),
+    // Kein "/Monat": Die Probestelle ist einmalig und läuft nicht monatlich.
+    per: null,
     features: [
-      "1 aktive Stelle",
-      "5 Matches pro Monat",
+      "1 Probestelle",
+      `${fmt(PLANS.free.matches)} Matches einmalig`,
       "Lebenslauf-Upload, auch gescannte PDFs",
       "Öffentliche Bewerbungsseite",
       "Revetly Match Analyse mit Gesamtscore",
@@ -47,14 +53,14 @@ const TIERS: Tier[] = [
   {
     name: "Starter",
     desc: "Für Einzel-Recruiter",
-    monthly: "€99",
-    yearly: "€990",
-    per: { m: "/Monat", y: "/Jahr" },
-    save: "2 Monate gratis",
+    monthly: euro(PLANS.starter.price_monthly),
+    yearly: euro(PLANS.starter.price_yearly),
+    per: PER,
+    save: SAVE,
     lead: "Alles aus Free, plus:",
     features: [
-      "3 aktive Stellen",
-      "50 Matches pro Monat",
+      `${PLANS.starter.active_jobs} aktive Stellen`,
+      `${fmt(PLANS.starter.matches)} Matches pro Monat`,
       "Alle neun Ebenen mit Begründung und Belegen",
       "K.O.-Kriterien pro Stelle",
       "Bewerbungen per E-Mail an die Stellenadresse",
@@ -64,16 +70,15 @@ const TIERS: Tier[] = [
   },
   {
     name: "Growth",
-    tag: "Am beliebtesten",
     desc: "Für wachsende Teams",
-    monthly: "€249",
-    yearly: "€2.490",
-    per: { m: "/Monat", y: "/Jahr" },
-    save: "2 Monate gratis",
+    monthly: euro(PLANS.growth.price_monthly),
+    yearly: euro(PLANS.growth.price_yearly),
+    per: PER,
+    save: SAVE,
     lead: "Alles aus Starter, plus:",
     features: [
-      "10 aktive Stellen",
-      "300 Matches pro Monat",
+      `${PLANS.growth.active_jobs} aktive Stellen`,
+      `${fmt(PLANS.growth.matches)} Matches pro Monat`,
       "Talent-Pool: neue Stellen gegen alte Bewerber",
       "Strukturierte Interviewleitfäden",
       "Bestenvergleich innerhalb einer Stelle",
@@ -85,14 +90,14 @@ const TIERS: Tier[] = [
   {
     name: "Pro",
     desc: "Für Agenturen & HR-Teams",
-    monthly: "€499",
-    yearly: "€4.990",
-    per: { m: "/Monat", y: "/Jahr" },
-    save: "2 Monate gratis",
+    monthly: euro(PLANS.pro.price_monthly),
+    yearly: euro(PLANS.pro.price_yearly),
+    per: PER,
+    save: SAVE,
     lead: "Alles aus Growth, plus:",
     features: [
       "Unbegrenzt viele Stellen",
-      "1.000 Matches pro Monat",
+      `${fmt(PLANS.pro.matches)} Matches pro Monat`,
       "Gewichtung lernt aus deinen Einstellungen",
       "Vorrangiger Support",
     ],
@@ -115,13 +120,34 @@ const TIERS: Tier[] = [
   },
 ]
 
+// false = nicht enthalten. Wird als Symbol mit Screenreader-Text gezeigt,
+// nicht als Strich: Ein Strich in einer Tabelle ist für Vorleseprogramme
+// bedeutungslos und liest sich wie ein Gedankenstrich.
 const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values: (string | boolean)[] }> }> = [
   {
     group: "Stellen & Matches",
     rows: [
-      { label: "Aktive Stellen", values: ["1", "3", "10", "Unbegrenzt", "Individuell"] },
-      { label: "Matches / Monat", values: ["5", "50", "300", "1.000", "Nach SLA"] },
-      { label: "Preis über dem Kontingent", values: ["—", "—", "€0,49", "€0,29", "nach Absprache"] },
+      {
+        label: "Stellen",
+        values: [
+          "1 Probestelle",
+          `${PLANS.starter.active_jobs} aktiv`,
+          `${PLANS.growth.active_jobs} aktiv`,
+          "Unbegrenzt",
+          "Individuell",
+        ],
+      },
+      {
+        label: "Matches",
+        values: [
+          `${fmt(PLANS.free.matches)} einmalig`,
+          `${fmt(PLANS.starter.matches)} / Monat`,
+          `${fmt(PLANS.growth.matches)} / Monat`,
+          `${fmt(PLANS.pro.matches)} / Monat`,
+          "Nach SLA",
+        ],
+      },
+      { label: "Preis über dem Kontingent", values: [false, false, "€0,49", "€0,29", "nach Absprache"] },
     ],
   },
   {
@@ -131,32 +157,34 @@ const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values:
       { label: "Öffentliche Bewerbungsseite", values: [true, true, true, true, true] },
       { label: "Revetly Match Analyse", values: ["Gesamtscore", true, true, true, true] },
       { label: "Absagen per E-Mail", values: [true, true, true, true, true] },
-      { label: "Terminbuchung durch den Bewerber", values: ["—", true, true, true, true] },
-      { label: "Bewerbung per E-Mail", values: ["—", true, true, true, true] },
-      { label: "Talent-Pool abgleichen", values: ["—", "—", true, true, true] },
-      { label: "Strukturierte Interviews", values: ["—", "—", true, true, true] },
-      { label: "Auswertungen", values: ["—", "einfach", true, true, true] },
-      { label: "Gewichtung lernt mit", values: ["—", "—", "—", true, true] },
-      { label: "Volumen nach Absprache", values: ["—", "—", "—", "—", true] },
-      { label: "Einrichtung und Schulung", values: ["—", "—", "—", "—", true] },
+      { label: "Terminbuchung durch den Bewerber", values: [false, true, true, true, true] },
+      { label: "Bewerbung per E-Mail", values: [false, true, true, true, true] },
+      { label: "Talent-Pool abgleichen", values: [false, false, true, true, true] },
+      { label: "Strukturierte Interviews", values: [false, false, true, true, true] },
+      { label: "Auswertungen", values: [false, "einfach", true, true, true] },
+      { label: "Gewichtung lernt mit", values: [false, false, false, true, true] },
+      { label: "Volumen nach Absprache", values: [false, false, false, false, true] },
+      { label: "Einrichtung und Schulung", values: [false, false, false, false, true] },
     ],
   },
   {
     group: "Team & Support",
     rows: [
       { label: "Teammitglieder", values: ["1", "2", "5", "Unbegrenzt", "Unbegrenzt"] },
-      { label: "DSGVO-Export", values: ["—", true, true, true, true] },
+      { label: "DSGVO-Export", values: [false, true, true, true, true] },
       { label: "Support", values: ["Community", "E-Mail", "Priorität", "Fest zugeordnet", "SLA"] },
     ],
   },
 ]
+
+const FEATURE_COUNT = MATRIX_GROUPS.reduce((n, g) => n + g.rows.length, 0)
 
 export function RvPricing() {
   const ref = useReveal()
   const [yearly, setYearly] = useState(false)
 
   return (
-    <section id="pricing" ref={ref} className="relative overflow-hidden bg-white py-[clamp(72px,9vw,130px)]">
+    <section id="preise" ref={ref} className="relative overflow-hidden bg-white py-[clamp(72px,9vw,130px)]">
       <div className="rv-patternbg" data-pattern="cross" />
       <div className="relative z-[1] mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="reveal mx-auto max-w-[660px] text-center">
@@ -164,10 +192,10 @@ export function RvPricing() {
             Preise
           </span>
           <h2 className="mt-[22px] text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-            Erst testen, dann zahlen.
+            Starte mit einer Stelle. <span className="rv-gradient-text">Wachse mit deinem Stapel.</span>
           </h2>
           <p className="mt-[18px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Du startest gratis und wechselst erst, wenn dein Recruiting mehr braucht.
+            Du startest gratis und wechselst erst, wenn dein Volumen wächst.
             Monatlich kündbar, ohne Mindestlaufzeit und ohne Einrichtungsgebühr.
           </p>
         </div>
@@ -215,11 +243,6 @@ export function RvPricing() {
               }`}
               style={{ borderRadius: "var(--rv-radius)" }}
             >
-              {tier.tag && (
-                <span className="absolute -top-[13px] left-1/2 -translate-x-1/2 rounded-full bg-[image:var(--rv-gradient)] px-[13px] py-1.5 text-[.66rem] font-extrabold tracking-[.05em] whitespace-nowrap text-[var(--rv-ink)] uppercase">
-                  {tier.tag}
-                </span>
-              )}
               <div className={`mb-1 text-[1.05rem] font-bold ${tier.featured ? "text-white" : "text-[var(--rv-ink)]"}`}>{tier.name}</div>
               <div className={`mb-[18px] min-h-[2.2em] text-[.8rem] ${tier.featured ? "text-[#9fc2ba]" : "text-[var(--rv-muted)]"}`}>{tier.desc}</div>
               <div className={`mb-0.5 text-[2.1rem] leading-none font-extrabold tracking-[-0.03em] ${tier.featured ? "text-white" : "text-[var(--rv-ink)]"}`}>
@@ -251,17 +274,19 @@ export function RvPricing() {
                 className="w-full"
                 asChild
               >
-                <Link
-                  href={
-                    tier.name === "Enterprise"
-                      ? "#faq"
-                      : tier.name === "Free"
+                {tier.name === "Enterprise" ? (
+                  <a href="mailto:hallo@revetly.ai">{tier.cta}</a>
+                ) : (
+                  <Link
+                    href={
+                      tier.name === "Free"
                         ? "/auth/register"
                         : `/auth/register?plan=${tier.name.toLowerCase()}&interval=${yearly ? "yearly" : "monthly"}`
-                  }
-                >
-                  {tier.cta}
-                </Link>
+                    }
+                  >
+                    {tier.cta}
+                  </Link>
+                )}
               </RvButton>
             </div>
           ))}
@@ -283,7 +308,6 @@ export function RvPricing() {
                       {TIERS.map((tier) => (
                         <th key={tier.name} className="sticky top-0 z-[2] border-b-2 border-[rgba(12,26,22,.10)] bg-white pt-[18px] pb-[18px] text-center">
                           <span className="text-[.96rem] font-bold tracking-[-0.01em] text-[var(--rv-ink)]">{tier.name}</span>
-                          {tier.tag && <span className="mt-[3px] block text-[.62rem] font-extrabold tracking-[.06em] text-[var(--rv-green-deep)] uppercase">Beliebt</span>}
                         </th>
                       ))}
                     </tr>
@@ -308,8 +332,11 @@ export function RvPricing() {
                               >
                                 {v === true ? (
                                   <Check className="mx-auto h-[17px] w-[17px] text-[var(--rv-green-deep)]" strokeWidth={2.6} />
-                                ) : v === "—" ? (
-                                  <span className="font-semibold text-[rgba(12,26,22,.16)]">—</span>
+                                ) : v === false ? (
+                                  <>
+                                    <Minus className="mx-auto h-[15px] w-[15px] text-[rgba(12,26,22,.22)]" strokeWidth={2.4} aria-hidden="true" />
+                                    <span className="sr-only">nicht enthalten</span>
+                                  </>
                                 ) : (
                                   <span className="font-bold text-[var(--rv-ink)]">{v}</span>
                                 )}
@@ -324,7 +351,7 @@ export function RvPricing() {
               </div>
             </RvModalContent>
           </RvModal>
-          <p className="text-[.8rem] text-[var(--rv-muted)]">18 Features &middot; 5 Pläne im direkten Vergleich</p>
+          <p className="text-[.8rem] text-[var(--rv-muted)]">{FEATURE_COUNT} Features &middot; {TIERS.length} Pläne im direkten Vergleich</p>
         </div>
       </div>
     </section>

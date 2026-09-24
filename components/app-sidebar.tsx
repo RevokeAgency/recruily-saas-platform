@@ -114,7 +114,10 @@ export function AppSidebar() {
   }
 
   // Calculate match usage percentage and color
-  const matchPercentage = user ? (user.matches_used / user.matches_limit) * 100 : 0
+  // Ein Limit von 0 heißt seit der Probestelle: kein Kontingent (Domain hatte
+  // ihre Probestelle schon). Das ist "aufgebraucht", nicht 0/0 = NaN, was die
+  // Leiste sonst als volle grüne Fläche zeichnen würde.
+  const matchPercentage = !user ? 0 : user.matches_limit > 0 ? (user.matches_used / user.matches_limit) * 100 : 100
   const remainingPercentage = 100 - matchPercentage
   const isLow = remainingPercentage <= 20
   const isExhausted = remainingPercentage <= 0

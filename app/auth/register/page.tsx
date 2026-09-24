@@ -14,17 +14,26 @@ import { RvBrandMark } from "@/components/landing/rv-brand-mark"
 import { AuthSplitLayout } from "@/components/auth/auth-split-layout"
 import { toast } from "sonner"
 import { PLANS } from "@/lib/plans"
+import { FREEMAIL_MESSAGE } from "@/lib/auth/freemail-domains"
 
 export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  // Gewählter bezahlter Plan aus der Preisseite, sonst null (= Probestelle).
+  const [planIntent, setPlanIntent] = useState<string | null>(null)
+  // Hinweis, wenn die Firmendomain ihre Probestelle schon hatte. Das Konto
+  // entsteht trotzdem, wird aber erst mit einem Plan nutzbar.
+  const [trialNotice, setTrialNotice] = useState<string | null>(null)
 
   // Landing-pricing → register carries ?plan=&interval=; remember the choice
   // so the subscription page can start checkout right after the first login.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const plan = params.get("plan")
-    if (plan) storeCheckoutIntent(plan, params.get("interval") ?? "monthly")
+    if (plan) {
+      storeCheckoutIntent(plan, params.get("interval") ?? "monthly")
+      setPlanIntent(plan)
+    }
   }, [])
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [formData, setFormData] = useState({
@@ -64,6 +73,22 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
+      // Serverseitige Vorprüfung: Freemail bekommt keine Probestelle. Die
+      // verbindliche Sperre sitzt in der Datenbank, hier geht es darum, die
+      // Adresse mit einer klaren Meldung abzuweisen, bevor ein Konto entsteht.
+      const check = await fetch("/api/auth/trial-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, plan: planIntent }),
+      })
+      const checkData = await check.json().catch(() => ({}))
+      if (!check.ok) {
+        toast.error(checkData.error ?? FREEMAIL_MESSAGE)
+        setLoading(false)
+        return
+      }
+      setTrialNotice(typeof checkData.notice === "string" ? checkData.notice : null)
+
       const supabase = createClient()
       const { error } = await supabase.auth.signUp({
         email: formData.email,
@@ -103,6 +128,11 @@ export default function RegisterPage() {
             Wir haben dir eine Bestätigungs-E-Mail an <strong className="text-foreground">{formData.email}</strong> gesendet.
             Bitte klicke auf den Link in der E-Mail, um dein Konto zu aktivieren.
           </p>
+          {trialNotice && (
+            <p className="-mt-4 mb-8 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm leading-relaxed text-amber-800">
+              {trialNotice}
+            </p>
+          )}
           <Link href="/">
             <Button variant="outline" className="w-full">
               Zurück zur Startseite
@@ -123,7 +153,9 @@ export default function RegisterPage() {
         Konto erstellen
       </h1>
       <p className="text-muted-foreground text-center text-sm mb-8">
-        Starte kostenlos mit {PLANS.free.matches} Matches pro Monat
+        {planIntent
+          ? "Leg dein Konto an, danach geht es direkt zum Plan."
+          : `Starte mit einer kostenlosen Probestelle und ${PLANS.free.matches} Matches.`}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">

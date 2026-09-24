@@ -3,7 +3,6 @@ import { ArrowUpRight, Play } from "lucide-react"
 
 import { useReveal } from "@/lib/hooks/useReveal"
 import { RvButton } from "./rv-button"
-import { PLANS } from "@/lib/plans"
 
 export function RvCta() {
   const ref = useReveal()
@@ -27,10 +26,11 @@ export function RvCta() {
             <h2 className="mb-3.5 text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
               Teste Revetly mit
               <br />
-              deinen echten Unterlagen.
+              deiner nächsten Stelle.
             </h2>
             <p className="mb-7 max-w-[440px] text-[rgba(12,26,22,.78)]">
-              {`Lade ${PLANS.free.matches} Bewerbungen kostenlos aus deiner Bewerber-Pipeline hoch und vergleiche Revetlys KI-Matching mit deiner eigenen Einschätzung. Du brauchst weder Kreditkarte noch Sales-Call. Erstelle einfach ein Konto und sieh selbst, wie viel Zeit du sparst.`}
+              Leg eine Stelle an, lade echte Bewerbungen hoch und vergleiche das Ranking mit
+              deiner eigenen Einschätzung. Ohne Kreditkarte, ohne Sales-Call.
             </p>
             <div className="flex flex-wrap gap-3">
               <RvButton variant="light" size="lg" asChild>
@@ -39,14 +39,16 @@ export function RvCta() {
               <RvButton
                 variant="ghost"
                 size="lg"
-                onClick={() => document.querySelector("#services")?.scrollIntoView({ behavior: "smooth" })}
+                // Ziel ist die als "Beispiel" gekennzeichnete Score-Karte in der
+                // Match-Analyse, also ein echtes Beispiel und kein Platzhalter.
+                onClick={() => document.querySelector("#match-analyse")?.scrollIntoView({ behavior: "smooth" })}
               >
                 <Play className="h-4 w-4" fill="currentColor" />
                 Beispiel ansehen
               </RvButton>
             </div>
             <p className="mt-3.5 text-[.84rem] text-[rgba(12,26,22,.65)]">
-              Kein Abo, keine Kreditkarte. Der kostenlose Plan bleibt kostenlos.
+              Die Probestelle ist kostenlos. Ein Abo brauchst du erst, wenn du mehr willst.
             </p>
           </div>
           {/* Foto fuellt die rechte Haelfte vollflaechig. Der dunkle Grund bleibt

@@ -35,6 +35,7 @@ interface UserProfile {
   email: string
   matches_used: number
   matches_limit: number
+  plan: string
 }
 
 const pillShadow = "shadow-[0_1px_2px_rgba(12,26,22,.06),0_6px_16px_-8px_rgba(12,26,22,.10)]"
@@ -87,7 +88,7 @@ export function AppTopbar() {
       if (!authUser) return
       const { data: profile } = await supabase
         .from("user_profiles")
-        .select("first_name, last_name, matches_used, matches_limit")
+        .select("first_name, last_name, matches_used, matches_limit, plan")
         .eq("id", authUser.id)
         .single()
       setUser({
@@ -95,7 +96,8 @@ export function AppTopbar() {
         last_name: profile?.last_name ?? null,
         email: authUser.email || "",
         matches_used: profile?.matches_used ?? 0,
-        matches_limit: profile?.matches_limit ?? 5,
+        matches_limit: profile?.matches_limit ?? 0,
+        plan: profile?.plan ?? "free",
       })
     }
     loadUser()
@@ -158,7 +160,7 @@ export function AppTopbar() {
                 pillShadow,
                 low ? "text-amber-600" : "text-foreground",
               )}
-              title="KI-Matches diesen Monat"
+              title={user.plan === "free" ? "KI-Matches der Probestelle, einmalig" : "KI-Matches diesen Monat"}
             >
               <Sparkles className="h-4 w-4 text-[var(--rv-green)]" strokeWidth={2} />
               {user.matches_used}/{user.matches_limit}

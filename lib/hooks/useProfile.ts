@@ -48,8 +48,9 @@ export function useProfile() {
         plan: data.plan || 'free',
         billing_interval: data.billing_interval || 'monthly',
         matches_used: data.matches_used || 0,
-        matches_limit: data.matches_limit || 10,
-        active_jobs_limit: data.active_jobs_limit || 1,
+        // ?? statt ||: 0 ist seit der Probestelle ein echter Wert.
+        matches_limit: data.matches_limit ?? 0,
+        active_jobs_limit: data.active_jobs_limit ?? 0,
         stripe_customer_id: data.stripe_customer_id || null,
         subscription_status: data.subscription_status || 'inactive',
         billing_period_end: data.billing_period_end || null,

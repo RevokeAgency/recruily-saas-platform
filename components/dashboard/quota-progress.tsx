@@ -10,10 +10,13 @@ import { cn } from "@/lib/utils"
 export function QuotaProgress({
   used,
   total,
+  period = "monthly",
   className,
 }: {
   used: number
   total: number
+  /** "lifetime" = Probestelle: einmaliges Kontingent ohne Erneuerung. */
+  period?: "lifetime" | "monthly"
   className?: string
 }) {
   const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0
@@ -40,7 +43,9 @@ export function QuotaProgress({
           </span>
           <div>
             <p className="text-[0.82rem] font-semibold text-foreground">Matching-Kontingent</p>
-            <p className="text-xs text-muted-foreground">Erneuert am 1. des Monats</p>
+            <p className="text-xs text-muted-foreground">
+              {period === "lifetime" ? "Probestelle, einmalig" : "Erneuert am 1. des Monats"}
+            </p>
           </div>
         </div>
         <div className="text-right leading-none">
