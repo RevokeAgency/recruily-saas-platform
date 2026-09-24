@@ -24,6 +24,7 @@ import { JobCandidatesTab } from "@/components/jobs/detail/candidates-tab"
 import { JobApplicationsTab } from "@/components/jobs/detail/applications-tab"
 import { JobAnalyticsTab } from "@/components/jobs/detail/analytics-tab"
 import { JobChannelsModal } from "@/components/jobs/job-channels-modal"
+import { CloseJobDialog } from "@/components/jobs/detail/close-job-dialog"
 
 interface Job {
   id: string
@@ -66,6 +67,9 @@ export default function JobDetailPage() {
   const [activeTab, setActiveTab] = useState("candidates")
   const [channelsOpen, setChannelsOpen] = useState(false)
   const [toggling, setToggling] = useState(false)
+  // Schließen läuft über den Abschluss-Dialog (Absagen an offene Bewerber),
+  // Wiederöffnen weiter direkt über toggleActive.
+  const [closeOpen, setCloseOpen] = useState(false)
 
   const { data, error, isLoading, mutate } = useSWR<{ job: Job }>(
     jobId ? `/api/jobs/${jobId}` : null,
@@ -170,9 +174,9 @@ export default function JobDetailPage() {
             <Share2 className="mr-2 h-4 w-4" />
             Kanäle & Bewerbungslink
           </Button>
-          <Button variant="outline" size="sm" className="rounded-full bg-white" onClick={toggleActive} disabled={toggling}>
+          <Button variant="outline" size="sm" className="rounded-full bg-white" onClick={job.is_active ? () => setCloseOpen(true) : toggleActive} disabled={toggling}>
             {job.is_active ? (
-              <><Lock className="mr-2 h-4 w-4" /> Job schließen</>
+              <><Lock className="mr-2 h-4 w-4" /> Stelle abschließen</>
             ) : (
               <><Unlock className="mr-2 h-4 w-4" /> Job öffnen</>
             )}
@@ -235,6 +239,7 @@ export default function JobDetailPage() {
         <TabsContent value="candidates">
           <JobCandidatesTab 
             jobId={jobId} 
+            onCandidateHired={job.is_active ? () => setCloseOpen(true) : undefined}
             jobTitle={job.title} 
             job={{
               id: job.id,
@@ -271,6 +276,8 @@ export default function JobDetailPage() {
         jobTitle={job.title}
         jobSlug={job.public_slug ?? undefined}
       />
+
+      <CloseJobDialog jobId={jobId} open={closeOpen} onOpenChange={setCloseOpen} onClosed={() => mutate()} />
     </div>
   )
 }

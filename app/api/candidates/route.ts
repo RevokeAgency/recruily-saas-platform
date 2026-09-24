@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { runIMLRSMatch } from "@/lib/matching/imlrs"
 import { checkAndIncrementMatch } from "@/app/actions/match"
+import { isMissingScreeningColumn } from "@/lib/matching/screening"
 
 export async function GET() {
   try {
@@ -212,6 +213,21 @@ async function triggerIMLRSMatch(
         ai_summary: match?.whyTheyFit?.join(" | "),
       })
       .eq("id", linkId)
+
+    if (!updateError) {
+      // Reiner Analysewert, getrennt vom Match (Migration 029). Der Trigger dort
+      // mischt ein vorhandenes Gespräch hinein. Eigenes Update, damit eine noch
+      // fehlende Migration nie die eigentliche Bewertung blockiert.
+      await supabase
+        .from("job_candidates")
+        .update({ screening_score: roundScore(match?.overallScore) })
+        .eq("id", linkId)
+        .then(({ error }) => {
+          if (error && !isMissingScreeningColumn(error.message)) {
+            console.error("[scoring] screening_score skipped:", error.message)
+          }
+        })
+    }
 
     if (updateError) {
       console.error("[v0] Error updating match scores:", updateError)

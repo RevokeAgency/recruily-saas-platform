@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest } from "next/server"
 import { rankPool, type PoolRankCandidate } from "@/lib/matching/pool-rank"
+import { isMissingScreeningColumn, screeningOf } from "@/lib/matching/screening"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
@@ -38,18 +39,26 @@ export async function POST(
     if (!job) return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
 
     // Scored, not rejected, not knocked out — the actual field to compare.
-    const { data: links, error: linksErr } = await supabase
-      .from("job_candidates")
-      .select(
-        "id, status, match_score, interview_score, hard_skills_score, experience_score, " +
-          "ai_summary, knockout, match_detail, candidate:candidates(full_name, dossier)",
-      )
-      .eq("job_id", jobId)
-      .eq("user_id", user.id)
-      .not("match_score", "is", null)
-      .neq("status", "Abgesagt")
-      .order("match_score", { ascending: false })
-      .limit(MAX_RANKED * 2)
+    // screening_score (029) trennt die Analyse vom Gespräch: Der Bestenvergleich
+    // bekommt beide getrennt, sonst zählte das Gespräch doppelt.
+    const fetchLinks = (withScreening: boolean) =>
+      supabase
+        .from("job_candidates")
+        .select(
+          (withScreening ? "screening_score, " : "") +
+            "id, status, match_score, interview_score, hard_skills_score, experience_score, " +
+            "ai_summary, knockout, match_detail, candidate:candidates(full_name, dossier)",
+        )
+        .eq("job_id", jobId)
+        .eq("user_id", user.id)
+        .not("match_score", "is", null)
+        .neq("status", "Abgesagt")
+        .order("match_score", { ascending: false })
+        .limit(MAX_RANKED * 2)
+    let { data: links, error: linksErr } = await fetchLinks(true)
+    if (linksErr && isMissingScreeningColumn(linksErr.message)) {
+      ;({ data: links, error: linksErr } = await fetchLinks(false))
+    }
     if (linksErr) {
       if (/pool_rank|match_detail|interview_score|dossier/i.test(linksErr.message || "")) {
         return Response.json(
@@ -80,7 +89,7 @@ export async function POST(
       return {
         linkId: l.id as string,
         name: cand.full_name ?? "Unbekannt",
-        matchScore: l.match_score as number,
+        matchScore: screeningOf(l) as number,
         interviewScore: (l.interview_score as number | null) ?? null,
         hardSkills: (l.hard_skills_score as number | null) ?? null,
         experience: (l.experience_score as number | null) ?? null,

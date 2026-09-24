@@ -7,19 +7,22 @@ import { Label } from "@/components/ui/label"
 import { Sparkles, ShieldCheck, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
-
-// Fassung der Einwilligungserklärung. Ändert sich der Text inhaltlich, MUSS
-// diese Kennung hochgezählt werden — nur so ist nachweisbar, wem wozu
-// zugestimmt wurde (Art. 7 Abs. 1 DSGVO).
-const CONSENT_VERSION = "2026-08-v1"
+import { MAX_WEIGHT_SHIFT, MIN_DECISIONS } from "@/lib/matching/calibration"
+import { CONSENT_VERSION, LEARNING_PLANS, hasLearningConsent } from "@/lib/training/consent"
 
 /**
- * Opt-in für die Verbesserung des Revetly-Matchings mit den eigenen
- * Entscheidungsdaten. Bewusst standardmäßig AUS und jederzeit widerrufbar —
- * ein Widerruf löscht die gesammelten Beispiele automatisch (DB-Trigger).
+ * Opt-in: Revetly lernt aus den eigenen Einstellungsentscheidungen, nur für
+ * dieses Konto. Bewusst standardmäßig AUS und jederzeit widerrufbar; ein
+ * Widerruf löscht die angepassten Gewichte (DB-Trigger aus 029).
+ *
+ * Die Fassung (CONSENT_VERSION) liegt in lib/training/consent.ts. Eine
+ * Zustimmung zu einer älteren Fassung gilt nicht weiter: 2026-08-v1 betraf
+ * ein gemeinsames Modell, also einen anderen Zweck.
  */
 export function AiTrainingConsent() {
   const [enabled, setEnabled] = useState(false)
+  const [outdated, setOutdated] = useState(false)
+  const [plan, setPlan] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [unavailable, setUnavailable] = useState(false)
@@ -32,11 +35,13 @@ export function AiTrainingConsent() {
         if (!user) return
         const { data, error } = await supabase
           .from("user_profiles")
-          .select("ai_training_consent")
+          .select("ai_training_consent, ai_training_consent_version, plan")
           .eq("id", user.id)
           .single()
         if (error) { setUnavailable(true); return }
-        setEnabled(data?.ai_training_consent === true)
+        setEnabled(hasLearningConsent(data))
+        setOutdated(data?.ai_training_consent === true && !hasLearningConsent(data))
+        setPlan((data?.plan as string | null) ?? null)
       } finally {
         setLoading(false)
       }
@@ -63,20 +68,20 @@ export function AiTrainingConsent() {
         return
       }
       setEnabled(next)
-      toast.success(
-        next ? "Danke — deine Entscheidungen verbessern jetzt das Matching" : "Einwilligung widerrufen",
-        {
-          description: next
-            ? "Pseudonymisiert und jederzeit widerrufbar."
-            : "Bereits gesammelte Trainingsdaten deines Kontos wurden gelöscht.",
-        },
-      )
+      setOutdated(false)
+      toast.success(next ? "Revetly lernt jetzt aus deinen Entscheidungen" : "Einwilligung widerrufen", {
+        description: next
+          ? "Nur für dein Konto und jederzeit widerrufbar."
+          : "Die angepassten Gewichte deines Kontos wurden gelöscht.",
+      })
     } finally {
       setSaving(false)
     }
   }
 
   if (loading || unavailable) return null
+
+  const weightsInPlan = LEARNING_PLANS.includes(plan ?? "")
 
   return (
     <Card className="reveal border border-border shadow-card">
@@ -85,24 +90,38 @@ export function AiTrainingConsent() {
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(34,193,238,.12)]">
             <Sparkles className="h-[17px] w-[17px] text-[var(--rv-cyan-deep)]" strokeWidth={2} />
           </span>
-          <CardTitle className="text-lg">Matching verbessern</CardTitle>
+          <CardTitle className="text-lg">Aus deinen Entscheidungen lernen</CardTitle>
         </div>
         <CardDescription>
-          Hilf mit, das Revetly-Matching für deine Branche treffsicherer zu machen.
+          Revetly passt sich an, wie du einstellst. Nur für dein Konto, nur mit deiner Zustimmung.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <Label htmlFor="ai-training" className="text-base font-medium">
-              Eigene Entscheidungen zum Training freigeben
+              Revetly aus meinen Entscheidungen lernen lassen
             </Label>
             <p className="text-sm text-muted-foreground">
-              Wenn aktiv, fließen deine Interview-Bewertungen und Einstellungsentscheidungen in die
-              Weiterentwicklung unseres KI-Modells ein — <strong>pseudonymisiert</strong>: Namen,
-              Kontaktdaten, Adressen und Arbeitgeber werden vorher entfernt. Es werden keine
-              Lebensläufe im Klartext und keine Kandidatendaten weitergegeben.
+              Wenn aktiv, wertet Revetly aus, wen du eingeladen, eingestellt oder abgesagt hast und
+              wie die Gespräche liefen, und passt die Gewichtung der neun Ebenen für dein Konto an.
+              Die Anpassung beginnt ab {MIN_DECISIONS} Entscheidungen und ist auf höchstens{" "}
+              {Math.round(MAX_WEIGHT_SHIFT * 100)} Prozentpunkte je Ebene begrenzt. Sie gilt{" "}
+              <strong>nur für dein Konto</strong>: Es wird kein gemeinsames Modell trainiert, und
+              andere Kunden profitieren nicht von deinen Daten.
             </p>
+            {!weightsInPlan && (
+              <p className="pt-1 text-xs text-muted-foreground">
+                Die angepasste Gewichtung ist Teil des Pro-Plans. In deinem Plan bleibt die
+                Gewichtung beim Standard.
+              </p>
+            )}
+            {outdated && (
+              <p className="pt-1 text-xs text-amber-700">
+                Deine frühere Zustimmung betraf ein gemeinsames Modell und gilt nicht mehr. Bitte
+                stimme neu zu, wenn Revetly aus deinen Entscheidungen lernen soll.
+              </p>
+            )}
           </div>
           <Switch id="ai-training" checked={enabled} onCheckedChange={toggle} disabled={saving} />
         </div>
@@ -112,9 +131,8 @@ export function AiTrainingConsent() {
             ? <Loader2 className="mt-0.5 h-4 w-4 flex-none animate-spin text-muted-foreground" />
             : <ShieldCheck className="mt-0.5 h-4 w-4 flex-none text-[var(--rv-green-deep)]" />}
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Freiwillig und jederzeit widerrufbar. Ein Widerruf löscht die bereits gesammelten
-            Trainingsdaten deines Kontos automatisch. Die Verarbeitung findet ausschließlich in der
-            EU statt. Details in der{" "}
+            Freiwillig und jederzeit widerrufbar. Ein Widerruf löscht die angepassten Gewichte deines
+            Kontos. Die Verarbeitung findet ausschließlich in der EU statt. Details in der{" "}
             <a href="/datenschutz" className="font-medium text-[var(--rv-green-deep)] underline">
               Datenschutzerklärung
             </a>

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { computeCalibration, type CalibRow } from "@/lib/matching/calibration"
+import { fetchCalibrationRows } from "@/lib/matching/screening"
 
 export const dynamic = "force-dynamic"
 
@@ -26,16 +27,7 @@ export async function GET() {
     }
 
     // Fallback: compute on the fly from the tenant's rows.
-    const { data: rows, error } = await supabase
-      .from("job_candidates")
-      .select(
-        "match_score, interview_score, status, knockout, " +
-          "hard_skills_score, experience_score, education_score, soft_skills_score, " +
-          "languages_score, location_score, industry_score, salary_score, culture_score",
-      )
-      .eq("user_id", user.id)
-      .not("match_score", "is", null)
-      .limit(3000)
+    const { rows, error } = await fetchCalibrationRows(supabase, user.id)
 
     if (error) return Response.json({ report: null, source: "unavailable" })
     return Response.json({ report: computeCalibration((rows || []) as unknown as CalibRow[]), source: "live" })

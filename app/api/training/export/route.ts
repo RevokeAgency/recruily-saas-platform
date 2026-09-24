@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
 import { NextRequest } from "next/server"
 import { containsLikelyPii } from "@/lib/training/anonymize"
+import { SHARED_TRAINING_ENABLED } from "@/lib/training/consent"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 120
@@ -22,6 +23,13 @@ const MIN_USEFUL = 100
  * Sammlung stellt das bereits sicher, hier läuft die finale Gegenprobe.
  */
 export async function GET(req: NextRequest) {
+  // Gemeinsames Modelltraining ist abgeschaltet (lib/training/consent.ts).
+  if (!SHARED_TRAINING_ENABLED) {
+    return Response.json(
+      { error: "Das gemeinsame Modelltraining ist abgeschaltet. Revetly lernt nur pro Konto." },
+      { status: 403 },
+    )
+  }
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

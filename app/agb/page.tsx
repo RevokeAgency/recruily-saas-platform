@@ -104,16 +104,18 @@ export default function AgbPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="10. KI-Verarbeitung & Modellverbesserung">
+      <LegalSection title="10. KI-Verarbeitung & Lernen aus Entscheidungen">
         <p>
           Die KI-gestützte Analyse erfolgt über einen Auftragsverarbeiter mit Sitz in der
           Europäischen Union; Bewerberdaten werden dabei nicht zum Training fremder Modelle
           verwendet. Der Kunde kann darüber hinaus in den Kontoeinstellungen freiwillig
-          einwilligen, dass seine eigenen Auswahlentscheidungen in pseudonymisierter Form zur
-          Verbesserung des Revetly-Matching-Modells genutzt werden. Diese Einwilligung ist
-          standardmäßig deaktiviert, freiwillig und jederzeit mit Wirkung für die Zukunft
-          widerrufbar; der Widerruf löscht die betreffenden Trainingsdaten. Aus der Erteilung
-          oder Verweigerung entstehen keine Nachteile bei der Nutzung der Plattform.
+          einwilligen, dass Revetly aus seinen eigenen Auswahlentscheidungen lernt und die
+          Gewichtung der Match Analyse für sein Konto anpasst. Das Ergebnis wird ausschließlich
+          für das Konto des Kunden verwendet; ein gemeinsames Modell über Kunden hinweg wird
+          nicht trainiert. Die Einwilligung ist standardmäßig deaktiviert, freiwillig und
+          jederzeit mit Wirkung für die Zukunft widerrufbar; der Widerruf löscht die angepassten
+          Gewichte. Ohne Einwilligung arbeitet die Match Analyse mit der Standardgewichtung;
+          weitere Nachteile entstehen daraus nicht.
         </p>
       </LegalSection>
 

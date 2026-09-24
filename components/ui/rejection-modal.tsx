@@ -1,11 +1,14 @@
 'use client'
 import { useState } from 'react'
-import { X, Send, Lock } from 'lucide-react'
-import { useProfile } from '@/lib/hooks/useProfile'
+import { X, Send } from 'lucide-react'
+import { toast } from 'sonner'
+import { defaultRejectionText } from '@/lib/email/rejection-text'
 
 interface Props {
   isOpen: boolean
   onClose: () => void
+  /** job_candidates.id. Der Server holt Empfänger und Stelle selbst daraus. */
+  linkId: string
   candidateName: string
   candidateEmail: string
   jobTitle: string
@@ -16,54 +19,49 @@ interface Props {
 export function RejectionModal({
   isOpen, 
   onClose, 
+  linkId,
   candidateName, 
   candidateEmail, 
   jobTitle, 
   companyName, 
   onSuccess
 }: Props) {
-  const { profile } = useProfile()
   const [text, setText] = useState('')
   const [notify, setNotify] = useState(true)
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [emailed, setEmailed] = useState(false)
 
-  const canSendEmail = profile?.plan === 'growth' || profile?.plan === 'pro'
-  // The e-mail is only actually sent when the plan allows it, the toggle is on,
-  // and we have an address. Otherwise the candidate is simply set to "Abgesagt".
-  const willEmail = canSendEmail && notify && !!candidateEmail
+  // Absage-Mails gibt es seit Positionierung v2 in allen Plänen. Gesendet wird,
+  // wenn der Haken gesetzt ist und eine Adresse vorliegt; sonst wird der
+  // Kandidat nur auf "Abgesagt" gesetzt.
+  const willEmail = notify && !!candidateEmail
 
   if (!isOpen) return null
 
-  const defaultText = `Sehr geehrte/r ${candidateName},
-
-vielen Dank für Ihre Bewerbung als ${jobTitle} bei ${companyName}.
-
-Nach sorgfältiger Prüfung aller eingegangenen Bewerbungen müssen wir Ihnen leider mitteilen, dass wir uns für andere Kandidatinnen und Kandidaten entschieden haben.
-
-Wir danken Ihnen für Ihr Interesse und wünschen Ihnen alles Gute.
-
-Mit freundlichen Grüßen,
-${companyName}`
+  const defaultText = defaultRejectionText(candidateName, jobTitle, companyName)
 
   const handleConfirm = async () => {
     setSending(true)
     try {
+      let mailed = false
       if (willEmail) {
-        await fetch('/api/send-rejection', {
+        const res = await fetch('/api/send-rejection', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            candidateName,
-            candidateEmail,
-            jobTitle,
-            companyName,
-            customText: text || defaultText,
-          }),
+          body: JSON.stringify({ linkId, customText: text || defaultText }),
         })
+        mailed = res.ok
+        // Die Absage selbst gilt trotzdem: Der Kandidat wird auf "Abgesagt"
+        // gesetzt, nur die Mail ist nicht rausgegangen. Das muss man wissen.
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          toast.warning('Kandidat abgesagt, aber die E-Mail wurde nicht gesendet', {
+            description: data.error,
+          })
+        }
       }
-      setEmailed(willEmail)
+      setEmailed(mailed)
       setSending(false)
       setSent(true)
       setTimeout(() => {
@@ -114,13 +112,13 @@ ${companyName}`
               {/* Notify toggle — rejecting always works; the e-mail is optional */}
               <label
                 className={`flex items-start gap-3 rounded-lg border px-4 py-3 mb-4 ${
-                  canSendEmail ? 'border-black/[0.06] cursor-pointer' : 'border-black/[0.05] bg-[var(--muted)]/60'
+                  candidateEmail ? 'border-black/[0.06] cursor-pointer' : 'border-black/[0.05] bg-[var(--muted)]/60'
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={willEmail}
-                  disabled={!canSendEmail}
+                  disabled={!candidateEmail}
                   onChange={(e) => setNotify(e.target.checked)}
                   className="mt-0.5 h-4 w-4 accent-[var(--rv-green)]"
                 />
@@ -128,18 +126,14 @@ ${companyName}`
                   <span className="text-sm font-medium text-foreground">
                     Bewerber per E-Mail benachrichtigen
                   </span>
-                  {canSendEmail ? (
+                  {candidateEmail ? (
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Der Kandidat erhält eine gebrandete Absage. Ohne Haken wird er nur
+                      Der Kandidat erhält eine persönliche Absage. Ohne Haken wird er nur
                       still auf „Abgesagt" gesetzt.
                     </p>
                   ) : (
-                    <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                      <Lock className="w-3 h-3 text-[var(--rv-green)]" />
-                      Gebrandete Absage-Mails ab Growth.{' '}
-                      <a href="/subscription" className="text-[var(--rv-green-deep)] font-medium underline">
-                        Upgraden
-                      </a>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Für diesen Bewerber ist keine E-Mail-Adresse hinterlegt.
                     </p>
                   )}
                 </div>

@@ -157,6 +157,15 @@ Reihenfolge egal, alle additiv:
       `consume_rate_limit()` und `purge_rate_limits()`. Ohne diese Migration
       zählt nichts und alle Zugriffe werden durchgelassen (bewusst
       fail-open), die Datei- und Doppelbewerbungsprüfungen greifen trotzdem.
+- [ ] `scripts/029_positionierung_v2.sql`: **Produkt passend zur Landing Page
+      v2.** Das Gespräch fließt in den Match ein (neue Spalte
+      `screening_score`, Trigger mischt 40 Prozent Gespräch hinein, gedeckelt
+      durch Qualifikationssperre und K.O.). Widerruf der Lern-Einwilligung
+      löscht angepasste Gewichte sofort, Zustimmungen zur alten Fassung
+      (gemeinsames Modell) gelten nicht weiter. Am Ende steht auskommentiert
+      das Löschen der gesammelten Beispiele für das gemeinsame Modell, das ist
+      beim Einspielen zu entscheiden. Lokal mit 16 Prüfungen getestet,
+      Details in `scripts/029_positionierung_v2.md`.
 - [ ] `scripts/028_free_trial_lifetime.sql`: **Probestelle statt Gratistarif
       und Spaltenschutz auf `user_profiles`.** Free wird zu einer einmaligen
       Probestelle (1 Stelle, 25 Matches, eine pro Firmendomain, Freemail
@@ -234,6 +243,11 @@ Reihenfolge egal, alle additiv:
       lassen**: Nur so ist zugesichert, dass Bewerberdaten die EU nie verlassen.
       Wird er aktiviert, muss Google als Auftragsverarbeiter in der
       Datenschutzerklärung genannt werden.
+- [ ] `AI_SHARED_TRAINING` **nicht setzen.** Schaltet das gemeinsame
+      Modelltraining über Kunden hinweg ein. Seit Positionierung v2 sagt
+      Revetly zu, nur pro Konto zu lernen; der Schalter bleibt deshalb aus.
+      Wer ihn einschaltet, muss vorher Landing Page, FAQ, Einwilligungstext,
+      Datenschutzerklärung §5 und AGB §10 ändern.
 
 ## DSGVO
 
@@ -250,13 +264,15 @@ Reihenfolge egal, alle additiv:
 - [ ] **AVV mit Mistral AI abschließen** (Data Processing Agreement) und in die
       Auftragsverarbeiter-Liste aufnehmen. Ebenso prüfen: eigener AVV mit den
       Kunden (Revetly ist bezüglich Bewerberdaten Auftragsverarbeiter).
-- [ ] **Einwilligungstext zum Modelltraining juristisch prüfen lassen**
-      (`components/settings/ai-training-consent.tsx`, Datenschutz §5, AGB §10).
-      Bei inhaltlicher Änderung `CONSENT_VERSION` hochzählen — die Fassung wird
-      pro Einwilligung gespeichert (Nachweispflicht Art. 7 Abs. 1 DSGVO).
-- [ ] Vor dem ersten Fine-Tune: Export stichprobenartig auf Restdaten prüfen
-      (`/api/training/export?task=judge&stats=1` und eine Zeile des JSONL
-      manuell ansehen).
+- [ ] **Einwilligung zum Lernen pro Konto juristisch prüfen lassen.** Neu
+      gefasst mit Positionierung v2: Einstellungsschalter
+      (`components/settings/ai-training-consent.tsx`), Datenschutz §5, AGB §10.
+      Fassung `2026-09-v2` in `lib/training/consent.ts`; bei inhaltlicher
+      Änderung hochzählen, die Fassung wird pro Einwilligung gespeichert
+      (Nachweispflicht Art. 7 Abs. 1 DSGVO).
+- [ ] **Entscheiden, ob die Beispiele für das gemeinsame Modell gelöscht
+      werden** (auskommentierter Schritt am Ende von 029). Das gemeinsame
+      Training ist abgeschaltet, der Export antwortet mit 403.
 
 ---
 
@@ -286,14 +302,10 @@ Nichts davon hält den Launch auf, alles davon ist vorher billig zu erledigen.
       nichts den Stil. Entweder eine Flat-Config anlegen oder das Skript aus
       `package.json` nehmen, damit es keine Sicherheit vortäuscht.
 - [ ] **Verirrtes Verzeichnis `undefined/` im Repo-Root** entfernen.
-- [ ] **Die vier Social-Links im Footer zeigen auf `href="#"`**
-      (`components/landing/rv-footer.tsx:40`). Entweder echte Profile
-      hinterlegen oder die Spalte bis dahin ausblenden. Tote Links im Footer
-      sind das erste, was in einem SEO-Audit auffällt.
-- [ ] **Toter TODO in `components/jobs/detail/candidates-tab.tsx:943`.** Der
-      Status wird im Modal selbst bereits gespeichert, der Callback ruft aber
-      kein `mutate()` auf. Folge: Nach einer Interview-Einladung zeigt die
-      Kandidatenliste bis zum Reload den alten Stand.
+- [x] **Tote Social-Links im Footer** entfernt (Positionierung v2). Wenn es
+      echte Profile gibt, kommt die Spalte zurück.
+- [x] **Toter TODO in der Kandidatenliste** behoben: Nach einer
+      Interview-Einladung frischt die Liste jetzt auf.
 - [ ] **Hero-Bild ist das LCP-Element** und liegt als einzelnes PNG auf der
       Supabase-Domain (`components/landing/rv-hero.tsx`). Sobald die Datei in
       `public/revetly/` liegt, lassen sich responsive Größen per `srcSet`

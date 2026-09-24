@@ -73,6 +73,8 @@ interface JobCandidatesTabProps {
   jobId: string
   jobTitle: string
   job: Job
+  /** Nach "Eingestellt": Stelle abschließen und den übrigen Bewerbern absagen. */
+  onCandidateHired?: () => void
 }
 
 interface Candidate {
@@ -150,7 +152,7 @@ function statusMeta(status: Candidate["status"]): { label: string; className: st
 
 const MAX_VISIBLE_SKILLS = 8
 
-export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps) {
+export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: JobCandidatesTabProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [sortBy, setSortBy] = useState("match")
@@ -913,6 +915,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
         <RejectionModal
           isOpen={!!rejectionCandidate}
           onClose={() => setRejectionCandidate(null)}
+          linkId={rejectionCandidate.linkId}
           candidateName={rejectionCandidate.full_name}
           candidateEmail={rejectionCandidate.email ?? ""}
           jobTitle={jobTitle}
@@ -938,9 +941,12 @@ export function JobCandidatesTab({ jobId, jobTitle, job }: JobCandidatesTabProps
         onOpenChange={setMatchModalOpen}
         candidate={selectedCandidate}
         job={job}
-        onInviteToInterview={(candidateId) => {
-          console.log("Invite to interview:", candidateId)
-          // TODO: Update candidate status in database
+        // Den Status speichert das Modal selbst; hier nur die Liste auffrischen,
+        // sonst zeigt sie bis zum Neuladen den alten Stand.
+        onInviteToInterview={() => mutate()}
+        onHired={() => {
+          mutate()
+          onCandidateHired?.()
         }}
       />
 

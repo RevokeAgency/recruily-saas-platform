@@ -1,8 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { anonymizeText, anonymizeDeep, containsLikelyPii } from "./anonymize"
+import { SHARED_TRAINING_ENABLED } from "./consent"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sammlung von Trainingsbeispielen für ein eigenes Revetly-Modell.
+//
+// ABGESCHALTET seit Positionierung v2 (Schalter AI_SHARED_TRAINING, Standard
+// aus): Ein gemeinsames Modell lernt über Konten hinweg und widerspricht
+// damit der Zusage "nur für dein Konto". Begründung in ./consent.ts.
 //
 // Zwei Regeln, die den Wert dieser Daten ausmachen:
 //
@@ -29,6 +34,7 @@ export async function hasTrainingConsent(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<boolean> {
+  if (!SHARED_TRAINING_ENABLED) return false
   const { data, error } = await supabase
     .from("user_profiles")
     .select("ai_training_consent")
@@ -57,6 +63,9 @@ export async function recordTrainingExample(
     assistant: string
   },
 ): Promise<boolean> {
+  // Zweite Sperre am einzigen Schreibpunkt, falls ein Aufrufer die
+  // Einwilligungsprüfung überspringt.
+  if (!SHARED_TRAINING_ENABLED) return false
   try {
     if (!(await hasTrainingConsent(supabase, args.userId))) return false
 

@@ -4,6 +4,8 @@ import { runIMLRSMatch } from "@/lib/matching/imlrs"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { extractDocumentText } from "@/lib/cv-parse"
 import { captureAndNotify } from "@/lib/monitoring/capture"
+import { isMissingScreeningColumn } from "@/lib/matching/screening"
+import { mayApplyLearnedWeights } from "@/lib/training/consent"
 
 const roundScore = (s: number | undefined | null): number | null =>
   s == null ? null : Math.round(s)
@@ -92,14 +94,20 @@ export async function scoreJobCandidateLink(
 
     // Tenant-calibrated IMLRS weights (nightly cron, migration 022). Missing
     // column or row → defaults; runIMLRSMatch re-validates the bounds anyway.
+    // Angepasste Gewichte wirken nur mit gültiger Einwilligung und in den
+    // Plänen, die "Gewichtung lernt mit" zusagen (lib/training/consent.ts).
+    // Die Prüfung steht hier und nicht nur im Cron: Nach einem Widerruf oder
+    // Planwechsel dürfen alte Gewichte nicht bis zur nächsten Nacht weiterwirken.
     let tenantWeights: Record<string, number> | null = null
     if (link.user_id) {
       const { data: prof } = await supabase
         .from("user_profiles")
-        .select("imlrs_weights")
+        .select("imlrs_weights, plan, ai_training_consent, ai_training_consent_version")
         .eq("id", link.user_id)
         .single()
-      tenantWeights = (prof?.imlrs_weights as Record<string, number> | null) ?? null
+      if (mayApplyLearnedWeights(prof)) {
+        tenantWeights = (prof?.imlrs_weights as Record<string, number> | null) ?? null
+      }
     }
 
     const [{ data: job }, { data: candidate }] = await Promise.all([
@@ -191,6 +199,19 @@ export async function scoreJobCandidateLink(
         ai_summary: match?.whyTheyFit?.join(" | "),
       })
       .eq("id", linkId)
+
+    // Reiner Analysewert, getrennt vom Match (Migration 029). Der Trigger dort
+    // mischt ein vorhandenes Gespräch hinein. Eigenes Update, damit eine noch
+    // fehlende Migration nie die eigentliche Bewertung blockiert.
+    await supabase
+      .from("job_candidates")
+      .update({ screening_score: roundScore(match?.overallScore) })
+      .eq("id", linkId)
+      .then(({ error }) => {
+        if (error && !isMissingScreeningColumn(error.message)) {
+          console.error("[scoring] screening_score skipped:", error.message)
+        }
+      })
 
     // KO result is written separately and best-effort so a pending migration
     // (019_ko_criteria) can never break the core scoring update.

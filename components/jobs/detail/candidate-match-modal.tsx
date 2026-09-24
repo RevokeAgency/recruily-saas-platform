@@ -53,6 +53,7 @@ import {
   Loader2,
 } from "lucide-react"
 import { toast } from "sonner"
+import { INTERVIEW_WEIGHT } from "@/lib/matching/screening"
 
 // Reasoning trail written by IMLRS 2.0 (migration 021) — optional on older rows.
 export interface MatchDetail {
@@ -97,6 +98,9 @@ interface Candidate {
   location: string | null
   status: string
   match_score: number | null
+  /** Reiner Analysewert (029). Weicht vom Match ab, sobald ein Gespräch gewertet ist. */
+  screening_score?: number | null
+  interview_score?: number | null
   hard_skills_score: number | null
   experience_score: number | null
   education_score: number | null
@@ -135,6 +139,8 @@ interface CandidateMatchModalProps {
   candidate: Candidate | null
   job: Job
   onInviteToInterview?: (candidateId: string) => void
+  /** Nach "Eingestellt": bietet an, die Stelle abzuschließen. */
+  onHired?: () => void
 }
 
 // Category config (detailKey = key inside match_detail.categories, IMLRS 2.0)
@@ -334,6 +340,7 @@ export function CandidateMatchModal({
   candidate,
   job,
   onInviteToInterview,
+  onHired,
 }: CandidateMatchModalProps) {
 
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -383,8 +390,14 @@ export function CandidateMatchModal({
         .eq("id", candidate.linkId)
         .then(({ error: e }) => { if (e) console.error("[hire] hired_at skipped:", e.message) })
       setHired(true)
+      // Nächster Schritt laut Ablauf: Stelle abschließen, Revetly sagt den
+      // übrigen Bewerbern ab. Der frühere Hinweis auf die Kalibrierung stimmte
+      // nur mit Einwilligung und entfällt deshalb hier.
       toast.success("Als eingestellt markiert ✓", {
-        description: "Fließt in die Kalibrierung deiner Match-Qualität ein.",
+        description: onHired
+          ? "Du kannst die Stelle jetzt abschließen und den übrigen Bewerbern absagen."
+          : undefined,
+        action: onHired ? { label: "Stelle abschließen", onClick: onHired } : undefined,
       })
     } catch {
       toast.error("Status konnte nicht gespeichert werden")
@@ -613,6 +626,17 @@ export function CandidateMatchModal({
               <div className="flex justify-center">
                 <CircularProgress value={candidate.match_score} />
               </div>
+
+              {/* Zusammensetzung, sobald ein Gespräch gewertet ist: Ohne den
+                  Hinweis wirkt ein Match, der sich nach dem Interview ändert,
+                  wie ein Fehler. */}
+              {candidate.interview_score != null && candidate.screening_score != null && (
+                <p className="-mt-2 text-center text-xs text-muted-foreground tabular-nums">
+                  Analyse {candidate.screening_score} ({Math.round((1 - INTERVIEW_WEIGHT) * 100)} %) und
+                  Gespräch {candidate.interview_score} ({Math.round(INTERVIEW_WEIGHT * 100)} %)
+                  {candidate.knockout ? ". Bei K.O. hebt das Gespräch den Match nicht an." : ""}
+                </p>
+              )}
 
               {/* KO-Kriterien verletzt — hard warning, shown to every plan */}
               {candidate.knockout && (candidate.knockout_reasons?.length ?? 0) > 0 && (
@@ -1182,6 +1206,7 @@ export function CandidateMatchModal({
     <RejectionModal
       isOpen={rejectionOpen}
       onClose={() => setRejectionOpen(false)}
+      linkId={candidate.linkId}
       candidateName={candidate.full_name}
       candidateEmail={candidate.email ?? ""}
       jobTitle={job.title}

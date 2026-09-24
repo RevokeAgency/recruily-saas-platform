@@ -37,6 +37,9 @@ export async function GET(
     // 021 matching v2, 022 feedback loop). Never let a pending migration break
     // the whole list — try the richest select and fall back progressively.
     const selects = [
+      // screening_score aus 029: reiner Analysewert, damit die Liste zeigen
+      // kann, was davon aus dem Gespräch kommt.
+      `${baseColumns}, ${koColumns}, ${interviewColumns}, ${matchV2Columns}, ${poolRankColumns}, screening_score`,
       `${baseColumns}, ${koColumns}, ${interviewColumns}, ${matchV2Columns}, ${poolRankColumns}`,
       `${baseColumns}, ${koColumns}, ${interviewColumns}, ${matchV2Columns}`,
       `${baseColumns}, ${koColumns}, ${interviewColumns}`,
@@ -53,7 +56,7 @@ export async function GET(
         .order("created_at", { ascending: false })
       if (!res.error) { jobCandidates = res.data as unknown as Record<string, unknown>[]; error = null; break }
       error = res.error
-      if (!/knockout|interview_|match_detail|match_engine|pool_rank/i.test(res.error.message || "")) break // real error → stop
+      if (!/knockout|interview_|match_detail|match_engine|pool_rank|screening_score/i.test(res.error.message || "")) break // real error → stop
     }
 
     if (error) {
@@ -81,6 +84,7 @@ export async function GET(
       cover_letter_path: jc.candidate?.cover_letter_path,
       status: jc.status,
       match_score: jc.match_score,
+      screening_score: jc.screening_score ?? null,
       hard_skills_score: jc.hard_skills_score,
       experience_score: jc.experience_score,
       education_score: jc.education_score,

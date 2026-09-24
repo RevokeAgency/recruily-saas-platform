@@ -5,7 +5,10 @@ frische Session so weit bringen, dass sie ohne Rückfragen mitarbeiten kann:
 Was das Produkt ist, wie es gebaut ist, welche Regeln gelten, was entschieden
 wurde und warum, und was vor dem Launch noch offen ist.
 
-Stand: 24. September 2026. Vor dem Go-Live, noch keine zahlenden Kunden.
+Stand: 24. September 2026, **Positionierung v2**. Vor dem Go-Live, noch keine
+zahlenden Kunden. Maßgeblich für alle Texte ist Positionierung v2; wo ältere
+Notizen abweichen, gilt v2. Das Produkt ist so gebaut, dass es jede Aussage
+der Landing Page deckt.
 
 Ergänzende Dateien im Repo:
 - `docs/GO-LIVE.md`: die operative Launch-Checkliste, Punkt für Punkt abhakbar
@@ -15,18 +18,20 @@ Ergänzende Dateien im Repo:
 
 ## 1 · Was Revetly ist
 
-KI-gestützte Recruiting-Software für den DACH-Raum. Sie nimmt eingehende
-Bewerbungen, prüft sie gegen eine konkrete Stelle, sortiert sie zu einer
-begründeten Rangfolge und lässt Kandidaten ihren Gesprächstermin selbst buchen.
+KI-Recruiting-Assistent für den DACH-Raum. Revetly übernimmt alles zwischen
+Stellenanzeige und Zusage: Bewerbungen sammeln, Passung prüfen, Gespräche
+planen und strukturiert führen. **Die Entscheidung trifft der Mensch.**
 
-Das Versprechen an den Nutzer lautet: **Lies die Shortlist, nicht den Stapel.**
+Hero: „Von 100 Bewerbungen zur richtigen Einstellung." Markenzeile:
+„Lies die Shortlist, nicht den Stapel." Nach der Einstellung übernimmt das
+HR-System des Kunden; Revetly ersetzt es nicht.
 
 Firmierung: **Revetly e.U.**, österreichischer eingetragener Unternehmer.
 Zielmarkt DACH, Produktsprache durchgehend Deutsch, Du-Ansprache.
 
-Drei Zielsegmente in dieser Reihenfolge: Personalberatung und Zeitarbeit,
-dann interne HR-Teams im Mittelstand, dann kleinere Unternehmen ohne eigene
-Personalabteilung. Details in `.agents/product-marketing.md`.
+Drei Zielgruppen, geschnitten nach dem Stapel pro Stelle: Personaldienstleister
+und Recruiter, Unternehmen mit vielen offenen Stellen, Betriebe mit einer Stelle
+und vollem Posteingang. Details in `.agents/product-marketing.md`.
 
 ---
 
@@ -123,8 +128,20 @@ Zulassung lässt sich nicht durch Sprachkenntnisse oder Kultur-Fit wegrechnen.
 Ausdrücklicher Kundenwunsch, entstanden am Beispiel einer Bürokraft ohne
 Pflegeausbildung, die auf eine Pflegestelle 28 Prozent erreichte.
 
+**Das Gespräch zählt mit (Migration 029).** Jede Antwort im strukturierten
+Gespräch bekommt 1 bis 5 Punkte. Das Ergebnis fließt in den Match ein:
+`Match = Analyse × 0,6 + Gespräch × 0,4`. Dafür gibt es zwei Spalten:
+`screening_score` ist der reine Analysewert, `match_score` der Match, den
+Nutzer sehen. Gemischt wird per Trigger in der Datenbank, weil mehrere Stellen
+den Score schreiben. Die Qualifikationssperre deckelt auch den gemischten
+Wert, und bei K.O. kann das Gespräch den Match nur senken. Kalibrierung,
+Qualitätsprüfung und Bestenvergleich lesen den reinen Analysewert
+(`lib/matching/screening.ts`), sonst zählte das Gespräch doppelt.
+
 **Kalibrierung.** Ein nächtlicher Cron (`/api/cron/calibrate-matching`, 04:00
-UTC) lernt aus tatsächlichen Einstellungen und justiert die Gewichte pro Kunde.
+UTC) lernt aus den Entscheidungen eines Kontos und justiert dessen Gewichte.
+Seit v2 nur mit Einwilligung, und die Gewichte wirken nur in Pro und
+Enterprise. Siehe Abschnitt 5.
 
 **Laufzeit.** Ein vollständiger Durchlauf dauert rund 60 Sekunden, vier
 Modellaufrufe nacheinander. Beim erneuten Matchen desselben Kandidaten entfällt
@@ -169,10 +186,14 @@ erklärt.
 - `AI_ALLOW_NON_EU_FALLBACK` ist absichtlich **aus**. Nur so ist zugesichert,
   dass Bewerberdaten die EU nie verlassen. Wer ihn aktiviert, muss Google als
   Auftragsverarbeiter in der Datenschutzerklärung nennen.
-- Auf Bewerberdaten wird **nicht trainiert**, außer der Kunde willigt
-  ausdrücklich ein (Opt-in, `CONSENT_VERSION` wird pro Einwilligung gespeichert,
-  Nachweispflicht Art. 7 Abs. 1 DSGVO). Widerruf löscht die Trainingsdaten per
-  Datenbank-Trigger.
+- **Revetly lernt nur für das eigene Konto und nur mit Zustimmung.** Die
+  Kalibrierung pro Konto läuft nur mit Einwilligung in der aktuellen Fassung
+  (`CONSENT_VERSION` in `lib/training/consent.ts`, pro Einwilligung gespeichert,
+  Nachweispflicht Art. 7 Abs. 1 DSGVO). Ein Widerruf löscht die angepassten
+  Gewichte sofort (Trigger aus 029). Das **gemeinsame Modelltraining** über
+  Kunden hinweg ist abgeschaltet (`AI_SHARED_TRAINING`, Standard aus), weil es
+  der Zusage widerspricht. Wer es einschaltet, muss vorher Landing Page, FAQ,
+  Einwilligungstext, Datenschutzerklärung §5 und AGB §10 ändern.
 - **Automatische Löschung nach 180 Tagen** (`RETENTION_DAYS` in
   `app/api/cron/purge-candidates/route.ts`). Bewerber können ihre Löschung
   zusätzlich selbst anstoßen (`/datenschutz/loeschung`).
@@ -194,17 +215,25 @@ Diese sind im Lauf der Arbeit festgelegt worden und gelten weiter.
    rechtliches: UWG-Anhang und Richtlinie 2005/29/EG. Das Produkt hat noch keine
    zahlenden Kunden, also sagt die Seite das auch. Fehlt eine Zahl, kommt sie
    nicht rein.
-2. **Das Wort „Bewertung" wird im Marketingtext nicht verwendet.** Stattdessen:
-   **Match** und **Passung** für die Einschätzung pro Kandidat, **Ranking** oder
-   **Candidate-Ranking** für den Gesamtzustand. Betrifft die Landing Page.
-   Rechtstexte und die Produkt-UI im Dashboard sind bewusst ausgenommen.
+2. **„Bewertung" und „bewerten" in allen Formen kommen auf der Landing Page
+   nicht vor.** Stattdessen: Match, Passung, prüfen, Ranking. Rechtstexte und
+   Dashboard sind ausgenommen.
 3. **Keine Gedankenstriche** im Fließtext, weder Halbgeviert noch Geviert.
    Stattdessen Punkt, Komma, Doppelpunkt oder Klammer.
 4. **Keine Ausrufezeichen.**
-5. **Keine KI- und Mailanbieter namentlich** in der Marketing-Copy. In
-   Datenschutzerklärung und AVV-Liste selbstverständlich schon.
-6. **Keine Zeitversprechen, die die Pipeline nicht hält.** Siehe Laufzeit oben.
-7. Du-Ansprache, durchgehend.
+5. **Keine KI-, Mail- oder Zahlungsanbieter namentlich** in der Marketing-Copy
+   (kein Mistral, Lettermint, Resend, Stripe). Google- und Microsoft-Kalender
+   dürfen genannt werden. In Datenschutzerklärung und AVV-Liste
+   selbstverständlich schon.
+6. **Keine Zeitversprechen** in Sekunden oder Minuten. Siehe Laufzeit oben.
+7. **Du-Ansprache durchgehend**, auch in Blog-Teasern auf der Startseite
+   (Feld `teaser` in `lib/blog/posts.ts`; die Artikel selbst siezen).
+8. **Kontingentzahlen nie hart schreiben**, immer aus `PLANS` ableiten.
+9. **Jede Produktaussage muss der Code decken.** Wer eine Aussage auf der
+   Landing Page ändert, prüft sie gegen das Produkt. Bei v2 hat genau diese
+   Prüfung vier Lücken aufgedeckt, die dann im Produkt geschlossen wurden
+   (Gespräch im Match, Stelle abschließen, Absagen für alle, Lernen nur mit
+   Zustimmung).
 
 ### Code
 
@@ -241,8 +270,12 @@ laufen über `useReveal()` und die Klasse `reveal` mit `data-dir`.
 
 **Vercel baut `main`.** Das ist die Produktionslinie.
 
-Daneben existiert `feat/match-counter-system`, das denselben Stand trägt; es
-wird parallel mitgeschoben.
+Daneben existiert `feat/match-counter-system`, das den Stand von `main`
+trägt; es wird parallel mitgeschoben.
+
+**`feat/positionierung-v2`** enthält die Positionierung v2: neue Landing Page,
+Probestelle (028) und das Produkt passend zur Landing Page (029). Noch nicht
+gemerged; beide Migrationen müssen vor oder mit dem Merge eingespielt werden.
 
 **`claude/design-handoff-audit-j3761y` ist tot und darf nicht gemerged werden.**
 Der Branch ist ein Abzug des Projekts vom 3. Juli 2026 mit einem aufgesetzten
@@ -272,8 +305,10 @@ Vollständig und abhakbar in `docs/GO-LIVE.md`. Die Blocker in Kürze:
    Firmenbuchnummer, UID, WKO-Fachgruppe), AGB (Gerichtsstand), Datenschutz
    (Verantwortlicher). Beim Impressum sind das Pflichtangaben nach ECG und UGB,
    in AT und DE unmittelbar abmahnfähig.
-3. **Migrationsstand 015 bis 027 ungeprüft.** `015_rls_hardening.sql` ist der
-   wichtigste Einzelpunkt, ohne sie sind die Daten nicht owner-scoped.
+3. **Migrationsstand 015 bis 029 ungeprüft.** `015_rls_hardening.sql` und
+   `028_free_trial_lifetime.sql` sind die wichtigsten Einzelpunkte: ohne 015
+   sind die Daten nicht owner-scoped, ohne 028 kann sich jeder angemeldete
+   Nutzer per Browser selbst auf Pro setzen.
 4. **Stripe steht im Testmodus.** Live-Key, eigener Live-Webhook, Stripe Tax.
    Achtung: `automatic_tax` steht **gar nicht** im Code, auch nicht
    auskommentiert, und muss erst geschrieben werden.
@@ -290,11 +325,9 @@ Pflicht-Umgebungsvariablen, die still fail-closed laufen, wenn sie fehlen:
 
 Kleineres, alles billig zu erledigen: `ignoreBuildErrors` abschalten,
 `pnpm lint` reparieren (es gibt keine `eslint.config.js`, ESLint 10 liest die
-alte Form nicht), das verirrte Verzeichnis `undefined/` im Repo-Root entfernen,
-die vier Social-Links im Footer zeigen auf `href="#"`, und der tote TODO in
-`components/jobs/detail/candidates-tab.tsx:943` (der Status wird im Modal
-bereits gespeichert, es fehlt nur `mutate()`, weshalb die Liste bis zum Reload
-veraltet aussieht).
+alte Form nicht) und das verirrte Verzeichnis `undefined/` im Repo-Root
+entfernen. Die toten Social-Links im Footer und der tote TODO in der
+Kandidatenliste sind auf `feat/positionierung-v2` erledigt.
 
 ---
 
@@ -338,9 +371,31 @@ entstünde eine Naht.
 
 **Die Landing-Copy ist mehrfach überarbeitet worden.** Reihenfolge: Premium-
 SaaS-Ton, dann `/copywriting`, dann `writing-landing-page-copy`, dann eine
-Neuausrichtung der Leitaussage von Nachvollziehbarkeit auf **Tempo**, zuletzt
-ein Abgleich gegen den Slop-Katalog. Wer hier weiterarbeitet, sollte wissen,
-dass der Text schon dicht ist. Ein weiterer Rundumschlag bringt wenig.
+Neuausrichtung der Leitaussage von Nachvollziehbarkeit auf Tempo, ein Abgleich
+gegen den Slop-Katalog, und zuletzt **Positionierung v2** („alles zwischen
+Stellenanzeige und Zusage, die Entscheidung triffst du"). v2 ist der gültige
+Standard.
+
+**Bei v2 wurde das Produkt an die Texte angepasst, nicht umgekehrt.** Die
+Gegenprüfung ergab vier Aussagen, die der Code nicht deckte. Entscheidung des
+Inhabers: Die v2-Texte sind der Standard. Umgesetzt wurde deshalb:
+- Das Gespräch fließt in den Match ein (029, Gewicht 40 Prozent, gedeckelt
+  durch Qualifikationssperre und K.O.).
+- „Stelle abschließen" schließt die Stelle, setzt offene Bewerber auf
+  „Abgesagt" und verschickt auf Wunsch die Absagen
+  (`/api/jobs/[id]/close`, Dialog im Stellen-Detail, Angebot direkt nach
+  „Eingestellt").
+- Absage-Mails in allen Plänen statt nur Growth und Pro. Der Endpunkt wurde
+  dabei gehärtet: Empfänger nur aus der eigenen Kandidatenliste, Text für HTML
+  maskiert, Mengenbremse. Vorher nahm er Adresse und Text ungeprüft an und
+  setzte den Text roh ins HTML.
+- Lernen nur für das eigene Konto und nur mit Zustimmung (Abschnitt 5).
+
+**Probestelle statt Gratistarif (028).** Einmal pro Konto und Firmendomain,
+freigeschaltet erst nach bestätigter E-Mail, damit niemand mit einer fremden
+Adresse die Probestelle einer ganzen Domain verbrennt. Dabei fiel auf, dass
+jeder angemeldete Nutzer seine Profilzeile komplett selbst ändern konnte,
+einschließlich des Plans. 028 schließt das mit einem Spaltenschutz.
 
 ---
 

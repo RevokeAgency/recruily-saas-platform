@@ -110,20 +110,26 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">5. Verbesserung unseres KI-Modells</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">5. Lernen aus Auswahlentscheidungen, nur für das eigene Konto</h2>
             <p>
               Kundinnen und Kunden können in ihren Kontoeinstellungen freiwillig einwilligen, dass
-              ihre eigenen Auswahlentscheidungen (z. B. Interview-Bewertungen) zur Verbesserung
-              unseres Matching-Modells genutzt werden (Art. 6 Abs. 1 lit. a DSGVO). Diese
-              Einwilligung ist <strong>standardmäßig deaktiviert</strong> und jederzeit mit Wirkung
-              für die Zukunft widerrufbar; ein Widerruf löscht die bereits gespeicherten
-              Trainingsdaten des Kontos.
+              Revetly aus ihren eigenen Auswahlentscheidungen lernt (Art. 6 Abs. 1 lit. a DSGVO).
+              Ausgewertet wird, welche Kandidatinnen und Kandidaten eingeladen, eingestellt oder
+              abgesagt wurden und wie die strukturierten Gespräche ausgefallen sind. Daraus berechnet
+              Revetly statistisch, wie gut die Match Analyse diese Entscheidungen vorhergesagt hat,
+              und passt die Gewichtung der Analyseebenen innerhalb enger Grenzen an.
             </p>
             <p className="mt-2">
-              Vor der Speicherung werden die Daten <strong>pseudonymisiert</strong>: Namen,
-              Kontaktdaten, Anschriften, Geburtsdaten und Arbeitgeberbezeichnungen werden durch
-              Platzhalter ersetzt. Es werden keine vollständigen Lebensläufe und keine
-              Bewerbungsfotos für das Training gespeichert. Die Verarbeitung findet in der EU statt.
+              Das Ergebnis gilt <strong>ausschließlich für das Konto</strong>, aus dessen Daten es
+              stammt. Es wird kein gemeinsames Modell über Kundinnen und Kunden hinweg trainiert, und
+              die Daten eines Kontos werden nicht für andere Konten genutzt. Die Verarbeitung findet
+              in der EU statt.
+            </p>
+            <p className="mt-2">
+              Die Einwilligung ist <strong>standardmäßig deaktiviert</strong> und jederzeit mit Wirkung
+              für die Zukunft widerrufbar. Ein Widerruf löscht die angepassten Gewichte und den
+              Auswertungsbericht des Kontos. Ohne Einwilligung arbeitet die Match Analyse mit der
+              Standardgewichtung.
             </p>
           </section>
 
