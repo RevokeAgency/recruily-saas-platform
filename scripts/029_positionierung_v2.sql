@@ -8,8 +8,30 @@
 --      Fassung (gemeinsames Modell) gelten nicht weiter.
 --
 -- Erläuterung: 029_positionierung_v2.md
--- Voraussetzungen: 003, 019, 020, 021, 022, 023.
+-- Voraussetzung: 003. Die Spalten aus 019 bis 023, die hier gelesen werden,
+-- legt 029 selbst an (Abschnitt 0).
 -- ============================================================================
+
+
+-- ---------------------------------------------------------------------------
+-- 0) Spalten aus früheren Migrationen, defensiv
+--
+--    029 liest Spalten aus 019 bis 023. Fehlt eine davon, scheitert nicht nur
+--    diese Migration: Der Match-Trigger unten würde danach jedes Speichern
+--    eines Kandidaten abbrechen lassen. Deshalb hier angelegt, exakt so
+--    definiert wie in ihrer Ursprungs-Migration. Läuft die später doch noch,
+--    ist ihr "add column if not exists" für diese Spalten ein No-op und der
+--    Rest der Migration greift normal.
+-- ---------------------------------------------------------------------------
+alter table public.job_candidates
+  add column if not exists knockout boolean not null default false,   -- 019
+  add column if not exists interview_score numeric,                   -- 020
+  add column if not exists match_detail jsonb;                        -- 021
+
+alter table public.user_profiles
+  add column if not exists ai_training_consent boolean not null default false,  -- 023
+  add column if not exists ai_training_consent_at timestamptz,                  -- 023
+  add column if not exists ai_training_consent_version text;                    -- 023
 
 
 -- ---------------------------------------------------------------------------

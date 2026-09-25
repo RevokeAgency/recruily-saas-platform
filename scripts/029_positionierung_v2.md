@@ -5,7 +5,13 @@ und AGB seit Positionierung v2 zusagen. **Nicht automatisch ausführen.** Im
 Supabase-SQL-Editor einspielen, additiv und idempotent. Setzt 028 nicht
 voraus, die Reihenfolge der beiden ist egal.
 
-Voraussetzungen: 003, 019, 020, 021, 022, 023.
+Voraussetzung: 003. Die Spalten aus 019 bis 023, die 029 liest, legt die
+Migration selbst an (Abschnitt 0), exakt so definiert wie im Original. Grund:
+Beim ersten Einspielen fehlte 023, und 029 brach mit „column
+ai_training_consent does not exist" ab. Schlimmer wäre ein fehlendes 019, 020
+oder 021 gewesen: Der Match-Trigger hätte danach jedes Speichern eines
+Kandidaten abbrechen lassen. Empfohlen bleibt trotzdem, 019 bis 023 vollständig
+einzuspielen, weil sie mehr enthalten als diese Spalten.
 
 ## A · „Das Gespräch zählt mit"
 
