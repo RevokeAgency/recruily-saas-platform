@@ -1,7 +1,5 @@
 "use client"
 
-import { Briefcase, Building2, Store } from "lucide-react"
-
 import { useReveal } from "@/lib/hooks/useReveal"
 import { RvCard } from "./rv-card"
 
@@ -11,24 +9,80 @@ import { RvCard } from "./rv-card"
 // steht hier, für wen Revetly gebaut ist.
 //
 // Die Segmente sind nach der Größe des Stapels pro Stelle geschnitten, nicht
-// nach Unternehmensgröße. Das ist der eigentliche Auslöser für den Bedarf.
-const SEGMENTE = [
+// nach Unternehmensgröße. Genau das zeigen die Grafiken: jede die Form des
+// Stapels, mit dem diese Gruppe arbeitet. Das Blatt-Motiv ist dasselbe wie
+// bei den Zetteln im Vorher-Nachher-Slider oben.
+
+type Stack = { sheets: number; ranked?: boolean }
+type Pile = { stacks: Stack[]; width: number; pool?: boolean }
+
+const SEGMENTE: Array<{ title: string; text: string; pile: Pile }> = [
   {
-    icon: Briefcase,
     title: "Personaldienstleister und Recruiter.",
     text: "Viele Mandate gleichzeitig, jede Woche neue Stellen. Revetly gleicht jedes neue Mandat gegen deinen bestehenden Pool ab, bevor du neu suchst.",
+    // Mehrere Mandate auf einem gemeinsamen Sockel: dem bestehenden Pool.
+    pile: { stacks: [{ sheets: 5 }, { sheets: 8 }, { sheets: 4 }, { sheets: 7 }], width: 34, pool: true },
   },
   {
-    icon: Building2,
     title: "Unternehmen mit vielen offenen Stellen.",
     text: "Jede Stelle bekommt ihre eigene Bewerbungsseite und ihr eigenes Ranking. Du behältst den Überblick, auch wenn zwanzig Stellen gleichzeitig laufen.",
+    // Viele Stellen, jede mit eigenem Ranking: das beste Blatt obenauf.
+    pile: {
+      stacks: [{ sheets: 5 }, { sheets: 7 }, { sheets: 4 }, { sheets: 6 }, { sheets: 8 }, { sheets: 5 }].map((s) => ({ ...s, ranked: true })),
+      width: 20,
+    },
   },
   {
-    icon: Store,
     title: "Betriebe mit einer Stelle und vollem Posteingang.",
     text: "Eine Anzeige, sechzig Bewerbungen, keine Personalabteilung. Revetly sortiert, du führst die Gespräche.",
+    // Eine Stelle, ein hoher Stapel, oben das beste Profil.
+    pile: { stacks: [{ sheets: 11, ranked: true }], width: 68 },
   },
 ]
+
+// Kleine, feste Versätze, damit die Stapel gelegt aussehen und nicht
+// gezeichnet. Fest statt zufällig, damit Server und Browser dasselbe rendern.
+const JITTER = [0, 2, -1, 1, -2, 1, 0, -1, 2, -1, 1, 0, -2]
+
+function PileGraphic({ pile }: { pile: Pile }) {
+  return (
+    <div
+      className="flex h-[112px] flex-col items-center justify-end rounded-2xl border border-[rgba(12,26,22,.06)] bg-[var(--rv-mist)] px-4 pb-4"
+      aria-hidden="true"
+    >
+      <div className="flex items-end gap-2.5">
+        {pile.stacks.map((stack, si) => (
+          <div
+            key={si}
+            className="rv-pile flex flex-col-reverse gap-[2px]"
+            style={{ ["--d" as string]: `${0.3 + si * 0.07}s` }}
+          >
+            {Array.from({ length: stack.sheets }).map((_, i) => {
+              const top = i === stack.sheets - 1
+              return (
+                <span
+                  key={i}
+                  className={`block h-[5px] rounded-[2px] ${
+                    top && stack.ranked
+                      ? "bg-[image:var(--rv-gradient)]"
+                      : "border border-[rgba(12,26,22,.24)] bg-white"
+                  }`}
+                  style={{
+                    width: pile.width,
+                    transform: `translateX(${JITTER[(i + si * 3) % JITTER.length]}px)`,
+                  }}
+                />
+              )
+            })}
+          </div>
+        ))}
+      </div>
+      {pile.pool && (
+        <span className="rv-pile mt-[3px] block h-[7px] w-full rounded-[3px] bg-[rgba(12,26,22,.14)]" style={{ ["--d" as string]: "0.25s" }} />
+      )}
+    </div>
+  )
+}
 
 export function RvAudience() {
   const ref = useReveal()
@@ -55,14 +109,12 @@ export function RvAudience() {
               key={s.title}
               tilt
               spotlight
-              className={`reveal s${i + 1} flex flex-col p-[30px_28px]`}
+              className={`reveal s${i + 1} flex flex-col p-[16px_16px_28px]`}
               data-dir={i === 0 ? "left" : i === 2 ? "right" : "scale"}
             >
-              <div className="mb-[18px] flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--rv-ink)] text-white">
-                <s.icon className="h-5 w-5" strokeWidth={2.1} />
-              </div>
-              <h3 className="text-[1.12rem] leading-[1.35] font-bold tracking-[-0.02em] text-[var(--rv-ink)]">{s.title}</h3>
-              <p className="mt-3 text-[.9rem] leading-[1.62] text-[var(--rv-muted)]">{s.text}</p>
+              <PileGraphic pile={s.pile} />
+              <h3 className="mt-6 px-3 text-[1.12rem] leading-[1.35] font-bold tracking-[-0.02em] text-[var(--rv-ink)]">{s.title}</h3>
+              <p className="mt-3 px-3 text-[.9rem] leading-[1.62] text-[var(--rv-muted)]">{s.text}</p>
             </RvCard>
           ))}
         </div>

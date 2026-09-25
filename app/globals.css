@@ -708,5 +708,44 @@ html { scroll-behavior: smooth; }
   pointer-events: none;
   z-index: 0;
 }
-.rv-spotlight:hover::before { opacity: 1; }
+/* Nur mit echter Maus: Auf Touch-Geräten löst ein Antippen :hover aus, und
+   der Schein bliebe stehen, bis woanders hingetippt wird. */
+@media (hover: hover) and (pointer: fine) {
+  .rv-spotlight:hover::before { opacity: 1; }
+}
 .rv-spotlight > * { position: relative; z-index: 1; }
+
+/* ─────────────────────────────────────────────
+   Positionierung v2: Gespräch, Entscheidung, Nebenher, Zielgruppen.
+   Alles hängt am selben Auslöser wie der Rest der Seite (.reveal.in aus
+   useReveal), nutzt die Hauskurve und animiert nur transform, opacity und
+   die leichte Unschärfe, die .reveal auch nutzt. Die Zeitpunkte stehen als
+   --d an den Elementen, damit die Reihenfolge im Markup lesbar bleibt.
+   ───────────────────────────────────────────── */
+
+/* Gesprächskarte: gewählte Punktzahl wird "gesetzt". Start bei 0.85, nicht
+   bei 0: Nichts in der echten Welt taucht aus dem Nichts auf. */
+.rv-iv-fill { opacity: 0; transform: scale(0.85); }
+.reveal.in .rv-iv-fill { animation: rv-v2Pick .32s cubic-bezier(0.16,1,0.3,1) var(--d, 0s) forwards; }
+@keyframes rv-v2Pick { to { opacity: 1; transform: none; } }
+
+/* Entscheidung: Wort-Einblendung wie die Hero-Headline, aber beim Scrollen.
+   Der Container selbst bleibt stehen, nur die Wörter bewegen sich. */
+.reveal.rv-words { opacity: 1; transform: none; filter: none; }
+.rv-words .rv-w { display: inline-block; opacity: 0; transform: translateY(0.4em); filter: blur(8px); }
+.rv-words.in .rv-w { animation: rv-wordIn .85s cubic-bezier(0.16,1,0.3,1) var(--d, 0s) forwards; }
+
+/* Nebenher: Ereignisse treffen nacheinander ein, das älteste zuerst. */
+.rv-feed-item { opacity: 0; transform: translateY(10px); filter: blur(3px); }
+.reveal.in .rv-feed-item { animation: rv-v2Arrive .6s cubic-bezier(0.16,1,0.3,1) var(--d, 0s) forwards; }
+@keyframes rv-v2Arrive { to { opacity: 1; transform: none; filter: none; } }
+
+/* Zielgruppen: die Stapel steigen gestaffelt auf. */
+.rv-pile { opacity: 0; transform: translateY(10px); }
+.reveal.in .rv-pile { animation: rv-v2Arrive .55s cubic-bezier(0.16,1,0.3,1) var(--d, 0s) forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-iv-fill, .rv-words .rv-w, .rv-feed-item, .rv-pile {
+    opacity: 1 !important; transform: none !important; filter: none !important; animation: none !important;
+  }
+}

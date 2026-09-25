@@ -1,8 +1,11 @@
 "use client"
 
-import { Check } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { ArrowRight, Check, Plus } from "lucide-react"
 
 import { useReveal } from "@/lib/hooks/useReveal"
+import { useCountUp } from "@/lib/hooks/useCountUp"
+import { INTERVIEW_WEIGHT } from "@/lib/matching/screening"
 
 const CHIPS = ["Fragen aus dem Lebenslauf abgeleitet", "1 bis 5 Punkte pro Antwort", "Fließt in den Match ein"]
 
@@ -29,15 +32,40 @@ const QUESTIONS = [
 
 const SCALE = [1, 2, 3, 4, 5]
 
-// Durchschnitt mit deutschem Dezimalkomma, aus den Beispielwerten gerechnet
-// statt hart geschrieben, damit Karte und Summe nicht auseinanderlaufen.
-const AVERAGE = (QUESTIONS.reduce((sum, q) => sum + q.points, 0) / QUESTIONS.length).toLocaleString("de-DE", {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-})
+// Die Rechnung der Karte folgt dem Produkt, nicht einer Behauptung:
+//   Gesprächswert = Durchschnitt der Punkte × 20 (wie die Interview-Route)
+//   Match = Analyse × (1 − Gewicht) + Gespräch × Gewicht (Trigger aus 029)
+// Ändert sich INTERVIEW_WEIGHT, rechnet die Karte automatisch mit.
+const ANALYSE = 72
+const AVG = QUESTIONS.reduce((sum, q) => sum + q.points, 0) / QUESTIONS.length
+const GESPRAECH = Math.round(AVG * 20)
+const MATCH = Math.round(ANALYSE * (1 - INTERVIEW_WEIGHT) + GESPRAECH * INTERVIEW_WEIGHT)
+const AVG_LABEL = AVG.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const pct = (n: number) => `${Math.round(n * 100)} %`
+
+// Zeitplan der Karte beim Einblenden: erst werden die Punkte gesetzt, eine
+// Frage nach der anderen, dann zählt der Match vom Analysewert hoch. Die
+// Abstände sind bewusst ruhiger als bei UI-Rückmeldungen: Das hier erklärt,
+// wie es funktioniert, und soll mitgelesen werden können.
+const PICK_DELAY = (i: number) => 0.55 + i * 0.22 // Sekunden, per CSS
+const COUNT_DELAY = 1350 // Millisekunden, nach dem letzten Punkt
 
 export function RvInterview() {
   const ref = useReveal()
+  const resultRef = useRef<HTMLDivElement>(null)
+  const [inView, setInView] = useState(false)
+  const match = useCountUp(MATCH, inView, 900, ANALYSE, COUNT_DELAY)
+
+  useEffect(() => {
+    const el = resultRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && setInView(true)),
+      { threshold: 0.6 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <section id="gespraech" ref={ref} className="relative overflow-hidden bg-white py-[clamp(72px,9vw,130px)]">
@@ -56,26 +84,31 @@ export function RvInterview() {
             und das Ergebnis fließt in den Match ein. So wird aus dem Eindruck nach dem Gespräch
             ein Wert, den du mit den anderen Finalisten vergleichen kannst.
           </p>
-          <ul className="mt-7 flex flex-wrap gap-2.5">
+          {/* Untereinander statt umbrechend: Nebeneinander passten die drei nicht in
+              eine Zeile und brachen eins zu zwei um. Als Spalte lesen sie sich wie
+              die drei Eigenschaften, die sie sind. */}
+          <ul className="mt-7 flex flex-col items-start gap-2.5">
             {CHIPS.map((chip) => (
               <li
                 key={chip}
-                className="flex items-center gap-2 rounded-full border border-[rgba(12,26,22,.10)] bg-[var(--rv-mist)] px-[14px] py-[8px] text-[.82rem] font-semibold text-[var(--rv-ink-soft)]"
+                className="flex items-center gap-2 rounded-full border border-[rgba(12,26,22,.10)] bg-[var(--rv-mist)] px-[14px] py-[8px] text-[.84rem] font-semibold text-[var(--rv-ink-soft)]"
               >
-                <Check className="h-3 w-3 flex-none text-[var(--rv-green-deep)]" strokeWidth={2.6} />
+                <Check className="h-3.5 w-3.5 flex-none text-[var(--rv-green-deep)]" strokeWidth={2.6} />
                 {chip}
               </li>
             ))}
           </ul>
         </div>
 
-        <div
+        <figure
           className="reveal s1 overflow-hidden rounded-[var(--rv-radius-lg)] border border-[rgba(12,26,22,.10)] bg-white shadow-[var(--rv-shadow)]"
           data-dir="right"
-          aria-label="Beispiel eines Gesprächsleitfadens"
-          role="figure"
         >
-          <div className="flex items-center justify-between gap-4 border-b border-[rgba(12,26,22,.10)] bg-[var(--rv-mist-2)] px-[24px] py-[16px]">
+          <figcaption className="sr-only">
+            Beispiel eines Gesprächsleitfadens: drei Fragen mit {QUESTIONS.map((q) => q.points).join(", ")} von 5
+            Punkten. Analyse {ANALYSE} und Gespräch {GESPRAECH} ergeben einen Match von {MATCH}.
+          </figcaption>
+          <div className="flex items-center justify-between gap-4 border-b border-[rgba(12,26,22,.10)] bg-[var(--rv-mist-2)] px-[24px] py-[16px]" aria-hidden="true">
             <div>
               <div className="text-[.74rem] font-semibold tracking-[.06em] text-[var(--rv-muted)] uppercase">Gesprächsleitfaden</div>
               <div className="mt-0.5 text-[.95rem] font-bold text-[var(--rv-ink)]">Frontend Dev · Erstgespräch</div>
@@ -85,23 +118,28 @@ export function RvInterview() {
             </span>
           </div>
 
-          <ol className="flex flex-col">
+          <ol className="flex flex-col" aria-hidden="true">
             {QUESTIONS.map((q, i) => (
               <li key={q.text} className={`px-[24px] py-[18px] ${i > 0 ? "border-t border-[rgba(12,26,22,.08)]" : ""}`}>
                 <span className="text-[.68rem] font-bold tracking-[.08em] text-[var(--rv-green-deep)] uppercase">{q.source}</span>
                 <p className="mt-1.5 text-[.9rem] leading-[1.55] text-[var(--rv-ink-soft)]">{q.text}</p>
-                <div className="mt-3 flex items-center gap-1.5" aria-label={`${q.points} von 5 Punkten`}>
+                <div className="mt-3 flex items-center gap-1.5">
                   {SCALE.map((n) => (
                     <span
                       key={n}
-                      aria-hidden="true"
-                      className={`flex h-7 w-7 items-center justify-center rounded-lg text-[.76rem] font-bold tabular-nums ${
-                        n === q.points
-                          ? "bg-[image:var(--rv-gradient)] text-[var(--rv-ink)]"
-                          : "border border-[rgba(12,26,22,.10)] text-[var(--rv-muted)]"
-                      }`}
+                      className="relative flex h-7 w-7 items-center justify-center rounded-lg border border-[rgba(12,26,22,.10)] text-[.76rem] font-bold text-[var(--rv-muted)] tabular-nums"
                     >
                       {n}
+                      {/* Die gewählte Punktzahl liegt als Füllung darüber und wird
+                          beim Einblenden "gesetzt", eine Frage nach der anderen. */}
+                      {n === q.points && (
+                        <span
+                          className="rv-iv-fill absolute -inset-px flex items-center justify-center rounded-lg bg-[image:var(--rv-gradient)] text-[var(--rv-ink)]"
+                          style={{ ["--d" as string]: `${PICK_DELAY(i)}s` }}
+                        >
+                          {n}
+                        </span>
+                      )}
                     </span>
                   ))}
                 </div>
@@ -109,12 +147,43 @@ export function RvInterview() {
             ))}
           </ol>
 
-          <div className="flex items-center justify-between gap-4 border-t border-[rgba(12,26,22,.10)] bg-[var(--rv-mist)] px-[24px] py-[14px]">
-            <span className="text-[.82rem] font-semibold text-[var(--rv-ink-soft)]">Durchschnitt über alle Antworten</span>
-            <b className="text-[1.05rem] font-extrabold text-[var(--rv-ink)] tabular-nums">{AVERAGE} / 5</b>
+          {/* Die Rechnung, um die es in der Sektion geht: Das Gespräch verschiebt
+              den Match. Früher stand hier nur der Durchschnitt, die Kernaussage
+              fehlte im Bild. */}
+          <div ref={resultRef} className="border-t border-[rgba(12,26,22,.10)] bg-[var(--rv-mist)] px-[24px] pt-[16px] pb-[14px]" aria-hidden="true">
+            {/* Als Gleichung gesetzt: Die Glieder stehen dicht beieinander, das
+                Ergebnis rückt nach rechts. Im Raster mit gleich breiten Spalten
+                zerfiel die Rechnung in fünf lose Werte. */}
+            <div className="flex items-end gap-3">
+              <Term label="Analyse" value={String(ANALYSE)} />
+              <Plus className="mb-[5px] h-3.5 w-3.5 flex-none text-[var(--rv-muted)]" strokeWidth={2.4} />
+              <Term label="Gespräch" value={String(GESPRAECH)} note={`Ø ${AVG_LABEL} von 5`} />
+              <div className="ml-auto flex items-end gap-3">
+                <ArrowRight className="mb-[9px] h-3.5 w-3.5 flex-none text-[var(--rv-muted)]" strokeWidth={2.4} />
+                <div className="text-right">
+                  <div className="text-[.68rem] font-bold tracking-[.08em] text-[var(--rv-green-deep)] uppercase">Match</div>
+                  <div className="rv-gradient-text text-[1.9rem] leading-none font-extrabold tracking-[-0.04em] tabular-nums">{match}</div>
+                </div>
+              </div>
+            </div>
+            <p className="mt-2.5 text-[.74rem] text-[var(--rv-muted)]">
+              {pct(1 - INTERVIEW_WEIGHT)} Analyse, {pct(INTERVIEW_WEIGHT)} Gespräch
+            </p>
           </div>
-        </div>
+        </figure>
       </div>
     </section>
+  )
+}
+
+function Term({ label, value, note }: { label: string; value: string; note?: string }) {
+  return (
+    <div>
+      <div className="text-[.68rem] font-bold tracking-[.08em] text-[var(--rv-muted)] uppercase">{label}</div>
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-[1.35rem] leading-none font-extrabold tracking-[-0.03em] text-[var(--rv-ink)] tabular-nums">{value}</span>
+        {note && <span className="text-[.7rem] text-[var(--rv-muted)] tabular-nums">{note}</span>}
+      </div>
+    </div>
   )
 }

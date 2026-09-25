@@ -16,8 +16,13 @@ import { useEffect, useRef, useState } from "react"
  *
  * Ändert sich `target` später (etwa wenn im Dashboard Daten nachladen), folgt
  * der Rückgabewert direkt, ohne erneut von 0 zu zählen.
+ *
+ * `from` und `delay` sind für erklärende Animationen: Die Gesprächskarte der
+ * Landing Page zählt vom Analysewert zum Match. Beim Aktivieren springt der
+ * Wert sofort auf `from` (die Karte blendet in diesem Moment noch ein) und
+ * zählt nach `delay` Millisekunden los.
  */
-export function useCountUp(target: number, active: boolean, duration = 1500) {
+export function useCountUp(target: number, active: boolean, duration = 1500, from = 0, delay = 0) {
   const [frame, setFrame] = useState<number | null>(null)
   const started = useRef(false)
 
@@ -28,21 +33,24 @@ export function useCountUp(target: number, active: boolean, duration = 1500) {
 
     let finished = false
     let raf = 0
-    const start = performance.now()
+    let timer = 0
+    let start = 0
     const tick = (now: number) => {
+      if (!start) start = now
       const p = Math.min((now - start) / duration, 1)
       if (p >= 1) {
         finished = true
         setFrame(null)
         return
       }
-      setFrame(Math.round((1 - Math.pow(1 - p, 3)) * target))
+      setFrame(Math.round(from + (1 - Math.pow(1 - p, 3)) * (target - from)))
       raf = requestAnimationFrame(tick)
     }
-    setFrame(0)
-    raf = requestAnimationFrame(tick)
+    setFrame(from)
+    timer = window.setTimeout(() => { raf = requestAnimationFrame(tick) }, delay)
 
     return () => {
+      window.clearTimeout(timer)
       cancelAnimationFrame(raf)
       // Unterbrochen, bevor die Animation durch war (Strict Mode, neues
       // Ziel): Zustand zurücksetzen, damit der nächste Lauf sauber startet
@@ -52,7 +60,7 @@ export function useCountUp(target: number, active: boolean, duration = 1500) {
         setFrame(null)
       }
     }
-  }, [target, active, duration])
+  }, [target, active, duration, from, delay])
 
   return frame ?? target
 }
