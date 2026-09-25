@@ -139,7 +139,7 @@ Reihenfolge egal, alle additiv:
       (`pool_rank`, `pool_rank_reason`) und Kalibrierung pro Kunde
       (`user_profiles.match_calibration`, `imlrs_weights`). Danach läuft der
       nächtliche Cron `/api/cron/calibrate-matching` (04:00 UTC).
-- [ ] `scripts/023_ai_training_consent.sql` — Einwilligung (Opt-in) + Tabelle
+- [x] `scripts/023_ai_training_consent.sql` *(eingespielt 25.09.2026)* — Einwilligung (Opt-in) + Tabelle
       `ai_training_examples` für ein eigenes, feingetuntes Revetly-Modell.
       Enthält einen Trigger, der bei Widerruf die Trainingsdaten löscht.
 - [ ] `scripts/025_scheduling.sql` — Terminplanung: Verfügbarkeitsprofil,
@@ -157,7 +157,7 @@ Reihenfolge egal, alle additiv:
       `consume_rate_limit()` und `purge_rate_limits()`. Ohne diese Migration
       zählt nichts und alle Zugriffe werden durchgelassen (bewusst
       fail-open), die Datei- und Doppelbewerbungsprüfungen greifen trotzdem.
-- [ ] `scripts/029_positionierung_v2.sql`: **Produkt passend zur Landing Page
+- [x] `scripts/029_positionierung_v2.sql` *(eingespielt 25.09.2026)*: **Produkt passend zur Landing Page
       v2.** Das Gespräch fließt in den Match ein (neue Spalte
       `screening_score`, Trigger mischt 40 Prozent Gespräch hinein, gedeckelt
       durch Qualifikationssperre und K.O.). Widerruf der Lern-Einwilligung
@@ -166,7 +166,7 @@ Reihenfolge egal, alle additiv:
       das Löschen der gesammelten Beispiele für das gemeinsame Modell, das ist
       beim Einspielen zu entscheiden. Lokal mit 16 Prüfungen getestet,
       Details in `scripts/029_positionierung_v2.md`.
-- [ ] `scripts/028_free_trial_lifetime.sql`: **Probestelle statt Gratistarif
+- [x] `scripts/028_free_trial_lifetime.sql` *(eingespielt 25.09.2026)*: **Probestelle statt Gratistarif
       und Spaltenschutz auf `user_profiles`.** Free wird zu einer einmaligen
       Probestelle (1 Stelle, 25 Matches, eine pro Firmendomain, Freemail
       ausgeschlossen). Schließt außerdem ein bestehendes Loch: Bis dahin kann

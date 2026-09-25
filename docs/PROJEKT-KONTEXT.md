@@ -273,9 +273,10 @@ laufen über `useReveal()` und die Klasse `reveal` mit `data-dir`.
 Daneben existiert `feat/match-counter-system`, das den Stand von `main`
 trägt; es wird parallel mitgeschoben.
 
-**`feat/positionierung-v2`** enthält die Positionierung v2: neue Landing Page,
-Probestelle (028) und das Produkt passend zur Landing Page (029). Noch nicht
-gemerged; beide Migrationen müssen vor oder mit dem Merge eingespielt werden.
+**Positionierung v2 ist live.** `feat/positionierung-v2` wurde am 25.09.2026
+per Fast-Forward nach `main` gemerged (`ab51ca1`): neue Landing Page,
+Probestelle (028) und das Produkt passend zur Landing Page (029). Die
+Migrationen 023, 028 und 029 waren vorher in Supabase eingespielt.
 
 **`claude/design-handoff-audit-j3761y` ist tot und darf nicht gemerged werden.**
 Der Branch ist ein Abzug des Projekts vom 3. Juli 2026 mit einem aufgesetzten
@@ -305,10 +306,10 @@ Vollständig und abhakbar in `docs/GO-LIVE.md`. Die Blocker in Kürze:
    Firmenbuchnummer, UID, WKO-Fachgruppe), AGB (Gerichtsstand), Datenschutz
    (Verantwortlicher). Beim Impressum sind das Pflichtangaben nach ECG und UGB,
    in AT und DE unmittelbar abmahnfähig.
-3. **Migrationsstand 015 bis 029 ungeprüft.** `015_rls_hardening.sql` und
-   `028_free_trial_lifetime.sql` sind die wichtigsten Einzelpunkte: ohne 015
-   sind die Daten nicht owner-scoped, ohne 028 kann sich jeder angemeldete
-   Nutzer per Browser selbst auf Pro setzen.
+3. **Migrationsstand.** 023, 028 und 029 sind seit 25.09.2026 eingespielt,
+   019 bis 022 waren es laut Inhaber schon vorher. Für 015 bis 018 und 024
+   bis 027 steht die Bestätigung noch aus; `015_rls_hardening.sql` ist dabei
+   der wichtigste Einzelpunkt, ohne sie sind die Daten nicht owner-scoped.
 4. **Stripe steht im Testmodus.** Live-Key, eigener Live-Webhook, Stripe Tax.
    Achtung: `automatic_tax` steht **gar nicht** im Code, auch nicht
    auskommentiert, und muss erst geschrieben werden.
