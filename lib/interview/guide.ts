@@ -1,6 +1,7 @@
 import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
 import { withApplicantTextRule } from "@/lib/ai/applicant-text"
+import { checkCoverLetterClaims, type ClaimStatus, type CoverClaim } from "./claims"
 
 
 // A single structured-interview question with an anchored rating scale — the
@@ -27,12 +28,32 @@ export interface InterviewQuestion {
   lookFor: string
   weakAnchor: string
   strongAnchor: string
+  /** Gesetzt bei Nachfragen aus dem Abgleich Anschreiben gegen Lebenslauf. */
+  quelle?: "anschreiben"
+}
+
+/** Ergebnis des Abgleichs, gespeichert im Leitfaden. */
+export interface CoverLetterCheck {
+  geprueft: number
+  belegt: number
+  /** Aussagen ohne Beleg oder mit Abweichung, in der Reihenfolge der Dringlichkeit. */
+  offen: Array<{ aussage: string; status: Exclude<ClaimStatus, "belegt">; beleg: string | null; hinweis: string }>
 }
 
 export interface InterviewGuide {
   focusSummary: string
   questions: InterviewQuestion[]
+  anschreibenAbgleich?: CoverLetterCheck
 }
+
+/** Text aus den Unterlagen für den Abgleich (bereits ohne versteckten Text). */
+export interface GuideDocuments {
+  resumeText?: string | null
+  coverText?: string | null
+}
+
+/** Höchstens so viele Nachfragen aus dem Abgleich, damit der Leitfaden ein Gespräch bleibt. */
+const MAX_CLAIM_QUESTIONS = 3
 
 export interface GuideCandidateInput {
   full_name?: string | null
@@ -108,7 +129,28 @@ export async function generateInterviewGuide(
   candidate: GuideCandidateInput,
   job: GuideJobInput,
   scores: GuideScores,
+  documents?: GuideDocuments,
 ): Promise<InterviewGuide> {
+  // Erst der Abgleich, damit der Leitfaden dieselben Themen nicht doppelt
+  // fragt. Best-effort: Scheitert er, entsteht der Leitfaden ohne ihn.
+  let claims: CoverClaim[] = []
+  try {
+    const result = await checkCoverLetterClaims({
+      resumeText: documents?.resumeText,
+      coverText: documents?.coverText,
+      jobTitle: job.title,
+      requiredSkills: job.required_skills,
+    })
+    claims = result?.claims ?? []
+  } catch (err) {
+    console.error("[interview] Abgleich Anschreiben übersprungen:", err)
+  }
+  // Abweichungen zuerst: Ein Widerspruch ist dringender als eine Lücke.
+  const open = claims
+    .filter((c) => c.status !== "belegt")
+    .sort((a, b) => (a.status === "abweichend" ? 0 : 1) - (b.status === "abweichend" ? 0 : 1))
+  const asked = open.slice(0, MAX_CLAIM_QUESTIONS)
+
   // Rank categories by score so the model knows where to dig.
   const scored = Object.entries(CATEGORY_LABELS)
     .map(([key, label]) => ({ label, value: (scores as Record<string, number | null | undefined>)[key] }))
@@ -164,14 +206,52 @@ ${uncertain.length ? `\n=== SCHWACH BELEGTE BEREICHE (laut Matching-Prüfung —
 Die schwächsten/unsichersten Bereiche sind: ${weakest || "—"}. Priorisiere diese im Leitfaden.
 `
 
+  const claimInfo = asked.length
+    ? `
+=== BEREITS ERGÄNZT: NACHFRAGEN ZUM ANSCHREIBEN ===
+Diese Fragen kommen separat in den Leitfaden. Frag die folgenden Themen NICHT noch einmal und erstelle deshalb nur 4–5 eigene Fragen:
+${asked.map((c) => `- ${c.aussage}`).join("\n")}
+`
+    : ""
+
   const { output } = await generateStructured({
     task: "utility",
     label: "Interviewleitfaden",
     schema: interviewGuideSchema,
     system: withApplicantTextRule(systemPrompt),
-    prompt: `Erstelle einen strukturierten Interviewleitfaden für dieses Kandidaten-Job-Paar. Zielge­nau auf die schwachen/unsicheren Score-Bereiche.\n${candidateInfo}\n${jobInfo}\n${scoreInfo}`,
+    prompt: `Erstelle einen strukturierten Interviewleitfaden für dieses Kandidaten-Job-Paar. Zielge­nau auf die schwachen/unsicheren Score-Bereiche.\n${candidateInfo}\n${jobInfo}\n${scoreInfo}${claimInfo}`,
   })
 
   if (!output) throw new Error("Failed to generate interview guide")
-  return output
+  if (claims.length === 0) return output
+
+  // Die Begründung stammt aus den geprüften Zitaten, nicht aus freiem
+  // Modelltext: So sieht der Recruiter genau, worauf die Frage beruht.
+  const claimQuestions: InterviewQuestion[] = asked.map((c) => ({
+    competency: "Anschreiben",
+    question: c.nachfrage,
+    rationale:
+      c.status === "abweichend"
+        ? `Im Anschreiben steht „${c.aussage}“, im Lebenslauf „${c.beleg}“. ${c.hinweis}`
+        : `Im Anschreiben steht „${c.aussage}“. Im Lebenslauf findet sich dazu nichts. ${c.hinweis}`,
+    lookFor: c.wofuer,
+    weakAnchor: c.schwach,
+    strongAnchor: c.stark,
+    quelle: "anschreiben",
+  }))
+
+  return {
+    ...output,
+    questions: [...output.questions, ...claimQuestions],
+    anschreibenAbgleich: {
+      geprueft: claims.length,
+      belegt: claims.length - open.length,
+      offen: open.map((c) => ({
+        aussage: c.aussage,
+        status: c.status as Exclude<ClaimStatus, "belegt">,
+        beleg: c.beleg,
+        hinweis: c.hinweis,
+      })),
+    },
+  }
 }

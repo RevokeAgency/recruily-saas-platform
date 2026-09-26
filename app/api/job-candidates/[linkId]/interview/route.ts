@@ -2,11 +2,13 @@ import { createClient } from "@/lib/supabase/server"
 import { NextRequest, after } from "next/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
 import { generateInterviewGuide } from "@/lib/interview/guide"
+import { screenCandidateDocuments } from "@/lib/document-guard/store"
 import { recordTrainingExample, buildJudgeExample } from "@/lib/training/collect"
 import { renderDossier } from "@/lib/matching/dossier"
 
 export const dynamic = "force-dynamic"
-export const maxDuration = 60
+// Dokumentprüfung, Abgleich Anschreiben und Leitfaden laufen nacheinander.
+export const maxDuration = 120
 
 const MISSING_COL =
   "Interview-Funktion noch nicht aktiv — bitte Migration 020_interview_guide.sql in Supabase ausführen."
@@ -88,7 +90,19 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ li
     ])
     if (!candidate || !job) return Response.json({ error: "Kandidat oder Job fehlt" }, { status: 404 })
 
-    const guide = await generateInterviewGuide(candidate, job, link)
+    // Für den Abgleich Anschreiben gegen Lebenslauf zählt nur Text, den ein
+    // Mensch im Dokument sieht. Noch nie geprüfte Unterlagen jetzt prüfen.
+    let resumeText: string | null = candidate.resume_text ?? null
+    let coverText: string | null = candidate.cover_letter_text ?? null
+    if ("document_findings" in candidate && candidate.document_findings == null) {
+      const screened = await screenCandidateDocuments(candidate)
+      if (screened) {
+        resumeText = screened.resumeText ?? resumeText
+        coverText = screened.coverText
+      }
+    }
+
+    const guide = await generateInterviewGuide(candidate, job, link, { resumeText, coverText })
 
     const { error: upErr } = await supabase
       .from("job_candidates")

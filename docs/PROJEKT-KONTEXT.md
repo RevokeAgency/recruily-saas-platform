@@ -388,9 +388,16 @@ Dokument nicht sieht, bevor ein Modell ihn liest (PDF per Rendering und
 Kontrastprüfung, DOCX per Formatierung), meldet sichtbare Sätze an eine KI,
 und jeder Prompt mit Bewerbertext trägt die Regel aus
 `lib/ai/applicant-text.ts`. Befunde mit Beleg stehen beim Kandidaten
-(Migration 030). Als nächster Schritt vorgeschlagen: Aussagen im Anschreiben
-ohne Beleg im Lebenslauf markieren und als Nachfragen in den
-Gesprächsleitfaden geben.
+(Migration 030). Dazu der Abgleich Anschreiben gegen Lebenslauf
+(`lib/interview/claims.ts`): Beim Erstellen des Gesprächsleitfadens werden
+prüfbare Aussagen aus dem Anschreiben (Dauer, Rollen, Ergebnisse, Werkzeuge,
+Abschlüsse, Sprachen) mit dem Lebenslauf abgeglichen. Jede Aussage muss
+wörtlich im Anschreiben stehen, jeder Beleg oder Widerspruch wörtlich im
+Lebenslauf, sonst wird sie verworfen. Bis zu drei offene Aussagen (Abweichungen
+zuerst) werden zu Nachfragen mit Bewertungsskala. Der Abgleich selbst ändert
+den Match nicht, nur die Bewertung der Antworten zählt wie jede
+Leitfaden-Frage. Keine Migration, gespeichert im Leitfaden
+(`interview_guide.anschreibenAbgleich`).
 
 **Bei v2 wurde das Produkt an die Texte angepasst, nicht umgekehrt.** Die
 Gegenprüfung ergab vier Aussagen, die der Code nicht deckte. Entscheidung des

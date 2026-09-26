@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { ClipboardList, Sparkles, Loader2, CheckCircle2, RefreshCw, HelpCircle, Eye } from "lucide-react"
+import { ClipboardList, Sparkles, Loader2, CheckCircle2, RefreshCw, HelpCircle, Eye, FileSearch } from "lucide-react"
 import { toast } from "sonner"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
@@ -18,10 +18,17 @@ interface Question {
   lookFor: string
   weakAnchor: string
   strongAnchor: string
+  quelle?: "anschreiben"
+}
+interface CoverLetterCheck {
+  geprueft: number
+  belegt: number
+  offen: Array<{ aussage: string; status: "abweichend" | "ohne_beleg"; beleg: string | null; hinweis: string }>
 }
 interface Guide {
   focusSummary: string
   questions: Question[]
+  anschreibenAbgleich?: CoverLetterCheck
 }
 interface SavedRating {
   competency?: string
@@ -155,7 +162,8 @@ export function InterviewGuidePanel({ linkId }: { linkId: string }) {
               <p className="mt-0.5 text-sm text-muted-foreground">
                 REVETLY erstellt aus den unsicheren Score-Bereichen einen Leitfaden mit festen
                 Fragen und Bewertungsskala — strukturierte Interviews sagen Berufserfolg deutlich
-                besser vorher als freie Gespräche.
+                besser vorher als freie Gespräche. Aussagen im Anschreiben, die der Lebenslauf
+                nicht belegt, kommen als Nachfragen dazu.
               </p>
               <Button size="sm" className="mt-3 rounded-full" onClick={generate} disabled={generating}>
                 {generating
@@ -209,13 +217,22 @@ export function InterviewGuidePanel({ linkId }: { linkId: string }) {
           {guide.focusSummary}
         </p>
 
+        {guide.anschreibenAbgleich && <CoverLetterSummary check={guide.anschreibenAbgleich} questions={guide.questions} />}
+
         <ol className="space-y-4">
           {guide.questions.map((q, i) => (
             <li key={i} className="rounded-2xl border border-black/[0.06] p-4">
               <div className="mb-1.5 flex items-center gap-2">
-                <Badge variant="outline" className="border-[rgba(34,193,238,.35)] text-xs text-[var(--rv-cyan-deep)]">
-                  {q.competency}
-                </Badge>
+                {q.quelle === "anschreiben" ? (
+                  <Badge variant="outline" className="gap-1 border-amber-300 text-xs text-amber-700">
+                    <FileSearch className="h-3 w-3" />
+                    Nachfrage zum Anschreiben
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="border-[rgba(34,193,238,.35)] text-xs text-[var(--rv-cyan-deep)]">
+                    {q.competency}
+                  </Badge>
+                )}
               </div>
               <p className="font-medium text-foreground">{i + 1}. {q.question}</p>
 
@@ -302,5 +319,48 @@ export function InterviewGuidePanel({ linkId }: { linkId: string }) {
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+/**
+ * Kurzfassung des Abgleichs Anschreiben gegen Lebenslauf. Die Einzelheiten
+ * stehen bei den Nachfragen. Hier nur, was geprüft wurde und was darüber
+ * hinaus offen ist (mehr als drei Aussagen werden nicht zur Frage).
+ */
+function CoverLetterSummary({ check, questions }: { check: CoverLetterCheck; questions: Question[] }) {
+  const asked = new Set(
+    questions.filter((q) => q.quelle === "anschreiben").map((q) => q.rationale),
+  )
+  const rest = check.offen.filter((o) => ![...asked].some((r) => r.includes(o.aussage)))
+  const open = check.offen.length
+
+  return (
+    <div className="rounded-xl border border-amber-200/70 bg-amber-50/50 p-3 text-sm">
+      <p className="flex items-start gap-2 text-amber-900/85">
+        <FileSearch className="mt-0.5 h-4 w-4 flex-none text-amber-700" />
+        <span>
+          {check.geprueft === 1 ? "1 Aussage" : `${check.geprueft} Aussagen`} aus dem Anschreiben mit dem Lebenslauf
+          abgeglichen, {check.belegt} davon belegt.
+          {open === 0
+            ? " Nichts offen."
+            : rest.length === 0
+              ? ` ${open === 1 ? "Eine ist" : `${open} sind`} offen, die Nachfragen stehen unten im Leitfaden.`
+              : ` ${open} sind offen. Zu ${open - rest.length} davon stehen Nachfragen unten, die übrigen hier:`}
+        </span>
+      </p>
+      {rest.length > 0 && (
+        <ul className="mt-2 space-y-1.5 pl-6 text-xs text-amber-900/75">
+          {rest.map((o, i) => (
+            <li key={i}>
+              „{o.aussage}“ <span className="text-amber-800/60">· {o.status === "abweichend" ? "weicht ab" : "im Lebenslauf nicht zu finden"}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-2 pl-6 text-xs text-amber-900/60">
+        Nicht im Lebenslauf heißt nicht unwahr. Lebensläufe sind knapp, das Gespräch klärt es. Der Abgleich selbst
+        ändert den Match nicht, nur deine Bewertung der Antworten zählt wie bei jeder Frage.
+      </p>
+    </div>
   )
 }
