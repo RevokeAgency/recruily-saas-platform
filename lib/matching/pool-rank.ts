@@ -1,5 +1,6 @@
 import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
+import { withApplicantTextRule } from "@/lib/ai/applicant-text"
 
 
 
@@ -66,7 +67,7 @@ Schwach belegt: ${c.lowConfidence.length ? c.lowConfidence.join(", ") : "nichts"
     task: "reasoning",
     label: "Bestenvergleich",
     schema: rankSchema,
-    system: systemPrompt,
+    system: withApplicantTextRule(systemPrompt),
     prompt: `Reihe diese ${candidates.length} Kandidaten für die Stelle vergleichend.
 
 === STELLE ===

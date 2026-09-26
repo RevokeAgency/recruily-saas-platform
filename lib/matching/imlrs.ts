@@ -2,6 +2,7 @@ import { z } from "zod"
 import { generateStructured } from "@/lib/ai/generate"
 import { describeChain } from "@/lib/ai/provider"
 import { generateDossier, renderDossier, type CareerDossier } from "./dossier"
+import { withApplicantTextRule } from "@/lib/ai/applicant-text"
 import {
   computeHardFacts,
   renderHardFacts,
@@ -330,7 +331,7 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
   const { output: judged, run: judgeRun } = await generateStructured({
     task: "reasoning",
     schema: judgeSchema,
-    system: judgeSystemPrompt,
+    system: withApplicantTextRule(judgeSystemPrompt),
     prompt: `Bewerte dieses Kandidaten-Job-Paar nach der strengen Rubrik.\n\n=== KARRIERE-DOSSIER ===\n${dossierText}\n\n=== HARD FACTS (deterministisch, bindend) ===\n${hardFactsText}${coverText}\n\n${jobText}`,
     label: "IMLRS-Bewertung",
   })
@@ -345,7 +346,7 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
     const { output: verified } = await generateStructured({
       task: "verification",
       schema: verifierSchema,
-      system: verifierSystemPrompt,
+      system: withApplicantTextRule(verifierSystemPrompt),
       prompt: `=== KARRIERE-DOSSIER ===\n${dossierText}\n\n=== HARD FACTS ===\n${hardFactsText}\n\n${jobText}\n\n=== ZU PRÜFENDE BEWERTUNG ===\n${judgedRendered}`,
       label: "IMLRS-Prüfung",
     })

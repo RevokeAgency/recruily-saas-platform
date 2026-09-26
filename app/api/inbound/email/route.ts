@@ -5,6 +5,7 @@ import { parseInboundRecipient } from "@/lib/email/routing"
 import { parseCvBuffer, isSupportedCvType, isUsableCandidate, isPdfFile } from "@/lib/cv-parse"
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
+import { screenCandidateDocuments } from "@/lib/document-guard/store"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { loadInboundAttachment } from "@/lib/email/attachments"
 import { sendApplicationReceived } from "@/lib/email/send"
@@ -194,16 +195,18 @@ export async function POST(req: NextRequest) {
         .then(({ error }) => { if (error) console.error("[inbound] source skipped:", error.message) })
     }
 
-    if (link && quota.allowed) {
-      // Score after the response — after() keeps the function alive so scoring
-      // completes (fire-and-forget was killed on serverless, leaving candidates
-      // stuck "analyzing"). supabase is already a service-role client.
-      const linkId = link.id
-      after(async () => {
-        try { await scoreJobCandidateLink(supabase, linkId) }
-        catch (err) { await captureAndNotify(err, { route: "/api/inbound/email", extra: { stufe: "scoring" } }) }
-      })
-    }
+    // Score after the response — after() keeps the function alive so scoring
+    // completes (fire-and-forget was killed on serverless, leaving candidates
+    // stuck "analyzing"). supabase is already a service-role client.
+    // Vorher die Dokumentprüfung (lib/document-guard), auch ohne Kontingent.
+    const linkId = link && quota.allowed ? link.id : null
+    const candidateId = candidate.id
+    after(async () => {
+      await screenCandidateDocuments(candidateId)
+      if (!linkId) return
+      try { await scoreJobCandidateLink(supabase, linkId) }
+      catch (err) { await captureAndNotify(err, { route: "/api/inbound/email", extra: { stufe: "scoring" } }) }
+    })
 
     // Confirm receipt to the applicant (best-effort, never blocks intake).
     await sendApplicationReceived({

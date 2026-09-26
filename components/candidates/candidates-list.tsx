@@ -34,6 +34,8 @@ import { EmptyState } from "@/components/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 import { JobMatchModal } from "./job-match-modal"
 import { toast } from "sonner"
+import { DocumentFindingsPanel } from "@/components/candidates/document-findings"
+import type { DocumentCheck } from "@/lib/document-guard/types"
 
 interface Candidate {
   id: string
@@ -50,6 +52,7 @@ interface Candidate {
   photo_url?: string | null
   created_at: string
   job_count: number
+  document_findings?: DocumentCheck | null
 }
 
 interface CandidatesListProps {
@@ -340,6 +343,8 @@ export function CandidatesList({ filter, searchQuery }: CandidatesListProps) {
                   </div>
                 )}
               </div>
+
+              <DocumentFindingsPanel check={selectedCandidate.document_findings} />
 
               {/* AI Summary */}
               {selectedCandidate.summary_ai && (

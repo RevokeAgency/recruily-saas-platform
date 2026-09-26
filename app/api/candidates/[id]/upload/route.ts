@@ -3,6 +3,7 @@ import { createClient as createAdmin } from "@supabase/supabase-js"
 import { NextRequest } from "next/server"
 import { extractDocumentText, isPdfFile } from "@/lib/cv-parse"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
+import { screenCandidateDocuments } from "@/lib/document-guard/store"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -78,6 +79,11 @@ export async function POST(
       const { error } = await admin.from("candidates").update(update).eq("id", id)
       if (error) console.error("[candidate upload] enrichment skipped:", error.message)
     }
+
+    // Neue Unterlagen: versteckten Text prüfen und den Lebenslauftext aus der
+    // neuen Datei übernehmen (lib/document-guard). Ersetzt auch einen alten,
+    // zwischengespeicherten Text, falls hier ein Lebenslauf ausgetauscht wird.
+    if (cvFile || coverFile) await screenCandidateDocuments(id)
 
     return Response.json({ success: true, ...update })
   } catch (error) {

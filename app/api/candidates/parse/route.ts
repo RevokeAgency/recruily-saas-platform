@@ -1,8 +1,9 @@
 import { generateStructured } from "@/lib/ai/generate"
-import { parseCvBuffer } from "@/lib/cv-parse"
+import { extractDocumentText, parseCvBuffer } from "@/lib/cv-parse"
 import { z } from "zod"
-import mammoth from "mammoth"
 import { NextRequest } from "next/server"
+import { withApplicantTextRule } from "@/lib/ai/applicant-text"
+import { checkApplicantText } from "@/lib/document-guard"
 
 // App Router route segment config
 export const maxDuration = 60 // Allow up to 60 seconds for AI processing
@@ -68,8 +69,8 @@ export async function POST(req: NextRequest) {
         task: "extraction",
         label: "CV-Analyse",
         schema: candidateSchema,
-        system: systemPrompt,
-        prompt: `CV-Inhalt:\n${textContent}`,
+        system: withApplicantTextRule(systemPrompt),
+        prompt: `CV-Inhalt:\n${checkApplicantText(textContent, "lebenslauf").text}`,
       })
 
       if (!output) {
@@ -89,10 +90,9 @@ export async function POST(req: NextRequest) {
                      (fileName && fileName.toLowerCase().endsWith(".docx"))
 
       if (isDocx) {
-        // Extract text from DOCX using mammoth
+        // Text aus der DOCX, ohne versteckte Textläufe (lib/document-guard).
         const buffer = Buffer.from(fileData, "base64")
-        const result = await mammoth.extractRawText({ buffer })
-        const extractedText = result.value
+        const extractedText = await extractDocumentText(buffer, mimeType, fileName)
 
         if (!extractedText || extractedText.trim().length === 0) {
           return Response.json(
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
           task: "extraction",
           label: "CV-Analyse",
           schema: candidateSchema,
-          system: systemPrompt,
+          system: withApplicantTextRule(systemPrompt),
           prompt: `CV-Inhalt:\n${extractedText}`,
         })
 

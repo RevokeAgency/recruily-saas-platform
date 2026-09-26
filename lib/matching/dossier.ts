@@ -1,5 +1,6 @@
 import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
+import { withApplicantTextRule } from "@/lib/ai/applicant-text"
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -95,7 +96,7 @@ Zusammenfassung: ${input.summaryAi || "—"}`
     task: "extraction",
     label: "Dossier-Extraktion",
     schema: dossierSchema,
-    system: systemPrompt,
+    system: withApplicantTextRule(systemPrompt),
     prompt: `Erstelle das Karriere-Dossier für diesen Kandidaten:\n\n${source}${cover}`,
   })
 

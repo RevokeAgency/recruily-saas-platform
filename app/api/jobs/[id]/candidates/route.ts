@@ -82,6 +82,7 @@ export async function GET(
       photo_url: jc.candidate?.photo_url,
       resume_path: jc.candidate?.resume_path,
       cover_letter_path: jc.candidate?.cover_letter_path,
+      document_findings: jc.candidate?.document_findings ?? null,
       status: jc.status,
       match_score: jc.match_score,
       screening_score: jc.screening_score ?? null,

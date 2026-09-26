@@ -157,6 +157,13 @@ Reihenfolge egal, alle additiv:
       `consume_rate_limit()` und `purge_rate_limits()`. Ohne diese Migration
       zählt nichts und alle Zugriffe werden durchgelassen (bewusst
       fail-open), die Datei- und Doppelbewerbungsprüfungen greifen trotzdem.
+- [ ] `scripts/030_document_findings.sql`: **Befunde der Dokumentprüfung.**
+      Eine neue Spalte `candidates.document_findings`. Versteckter Text in
+      Lebenslauf und Anschreiben (weiße oder winzige Schrift, verdeckt, in
+      Word ausgeblendet) wird seit `lib/document-guard` vor jeder Analyse
+      entfernt, auch ohne diese Migration. Mit ihr werden die Befunde
+      gespeichert und im Dashboard mit Beleg angezeigt. Details in
+      `scripts/030_document_findings.md`.
 - [x] `scripts/029_positionierung_v2.sql` *(eingespielt 25.09.2026)*: **Produkt passend zur Landing Page
       v2.** Das Gespräch fließt in den Match ein (neue Spalte
       `screening_score`, Trigger mischt 40 Prozent Gespräch hinein, gedeckelt

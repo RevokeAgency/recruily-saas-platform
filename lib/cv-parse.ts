@@ -1,8 +1,8 @@
 import { generateStructured } from "@/lib/ai/generate"
-import { loadPdfjs, renderPdfPagesToPng } from "@/lib/pdf-runtime"
+import { withApplicantTextRule } from "@/lib/ai/applicant-text"
+import { checkApplicantText, extractWithoutHiddenText } from "@/lib/document-guard"
+import { renderPdfPagesToPng } from "@/lib/pdf-runtime"
 import { z } from "zod"
-import mammoth from "mammoth"
-
 
 // Structured candidate data — mirrors the schema used by /api/candidates/parse
 // so the manual-upload and email-inbound paths produce identical shapes.
@@ -21,14 +21,14 @@ export const candidateSchema = z.object({
 
 export type ParsedCandidate = z.infer<typeof candidateSchema>
 
-const systemPrompt = `Du bist ein HR-Experte. Analysiere den Lebenslauf/CV und extrahiere alle relevanten Informationen.
+const systemPrompt = withApplicantTextRule(`Du bist ein HR-Experte. Analysiere den Lebenslauf/CV und extrahiere alle relevanten Informationen.
 
 Wichtig:
 - Extrahiere alle Skills (technische und Soft Skills)
 - Schätze die Berufserfahrung in Jahren
 - Erstelle einen kurzen, professionellen 2-Satz-Pitch über den Kandidaten
 - Falls ein Anschreiben mitgeliefert wird, berücksichtige es für Soft Skills und Motivation
-- Antworte auf Deutsch`
+- Antworte auf Deutsch`)
 
 const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -49,7 +49,7 @@ export function isSupportedCvType(mimeType: string | null, filename: string | nu
 /**
  * Parses a CV buffer (PDF or DOCX) into structured candidate data. PDFs are sent
  * straight to Gemini (which reads text PDFs and, later, scanned PDFs via OCR);
- * DOCX is converted to text with mammoth first. An optional cover letter is
+ * DOCX is converted to text first (without hidden runs). An optional cover letter is
  * appended so the AI can factor motivation / soft skills into the summary.
  *
  * Returns null when nothing usable could be extracted — callers must handle this
@@ -63,12 +63,12 @@ export async function parseCvBuffer(
   coverLetter?: string | null,
 ): Promise<ParsedCandidate | null> {
   try {
-    const coverBlock = coverLetter?.trim()
-      ? `\n\n=== ANSCHREIBEN / E-MAIL-TEXT ===\n${coverLetter.trim()}`
-      : ""
+    const cover = coverLetter?.trim() ? checkApplicantText(coverLetter.trim(), "anschreiben").text : ""
+    const coverBlock = cover ? `\n\n=== ANSCHREIBEN / E-MAIL-TEXT ===\n${cover}` : ""
 
     if (isDocx(mimeType, filename)) {
-      const { value: text } = await mammoth.extractRawText({ buffer })
+      // Ohne versteckte Textläufe (lib/document-guard), wie beim PDF.
+      const text = await extractDocumentText(buffer, mimeType, filename)
       if (!text || text.trim().length < 30) return null
       const { output } = await generateStructured({
         task: "extraction",
@@ -118,8 +118,13 @@ export function isPdfFile(mimeType: string | null, filename: string | null): boo
 }
 
 /**
- * Extracts plain text from a cover-letter / motivation document (PDF or DOCX)
- * so it can be stored and fed into matching. Best-effort: returns "" on failure.
+ * Extracts plain text from a CV or cover letter (PDF or DOCX) so it can be
+ * stored and fed into matching. Best-effort: returns "" on failure.
+ *
+ * Text, den ein Mensch im Dokument nicht sieht (weiße oder winzige Schrift,
+ * verdeckt, in Word ausgeblendet), ist hier bereits entfernt. Jeder Weg, auf
+ * dem Bewerbertext zu einem Modell gelangt, geht über diese Funktion. Die
+ * Befunde dazu hält lib/document-guard/store.ts fest.
  */
 export async function extractDocumentText(
   buffer: Buffer,
@@ -127,29 +132,8 @@ export async function extractDocumentText(
   filename: string | null,
 ): Promise<string> {
   try {
-    if (isDocx(mimeType, filename)) {
-      const { value } = await mammoth.extractRawText({ buffer })
-      return (value || "").trim()
-    }
-    if (isPdf(mimeType, filename)) {
-      // Über die gemeinsame Laufzeitumgebung — ohne gesetzten Worker und
-      // Browser-Globals scheitert pdfjs in Serverless bei praktisch jedem PDF.
-      const pdfjs = await loadPdfjs()
-      const doc = await pdfjs.getDocument({
-        data: new Uint8Array(buffer),
-        useSystemFonts: true,
-      }).promise
-      const pages = Math.min(doc.numPages, 6)
-      let text = ""
-      for (let i = 1; i <= pages; i++) {
-        const page = await doc.getPage(i)
-        const content = await page.getTextContent()
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        text += content.items.map((it: any) => ("str" in it ? it.str : "")).join(" ") + "\n"
-      }
-      return text.trim()
-    }
-    return ""
+    const { text } = await extractWithoutHiddenText(buffer, mimeType, filename, "lebenslauf")
+    return checkApplicantText(text, "lebenslauf").text.trim()
   } catch (err) {
     console.error("extractDocumentText failed:", err)
     return ""

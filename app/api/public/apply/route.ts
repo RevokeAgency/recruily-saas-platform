@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js"
 import { NextRequest, after } from "next/server"
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
+import { screenCandidateDocuments } from "@/lib/document-guard/store"
 import { parseCvBuffer, isUsableCandidate, isPdfFile, extractDocumentText } from "@/lib/cv-parse"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { sendApplicationReceived } from "@/lib/email/send"
@@ -233,16 +234,21 @@ export async function POST(req: NextRequest) {
     await supabase.from("job_candidates").update({ source: "public_page" }).eq("id", link.id)
       .then(({ error }) => { if (error) console.error("[apply] source skipped:", error.message) })
 
-    if (quota.allowed) {
-      // Score after the response — after() ensures the work survives on
-      // serverless (fire-and-forget got killed and left "analyzing" forever).
-      // supabase here is already a service-role client, safe post-response.
-      const linkId = link.id
-      after(async () => {
-        try { await scoreJobCandidateLink(supabase, linkId) }
-        catch (err) { console.error("[apply] background scoring failed:", err) }
-      })
-    }
+    // Score after the response — after() ensures the work survives on
+    // serverless (fire-and-forget got killed and left "analyzing" forever).
+    // supabase here is already a service-role client, safe post-response.
+    // Vorher die Dokumentprüfung (lib/document-guard): auch für Bewerbungen,
+    // die mangels Kontingent erst einmal warten, damit der Hinweis auf
+    // versteckten Text sofort im Dashboard steht.
+    const linkId = link.id
+    const candidateId = candidate.id
+    const score = quota.allowed
+    after(async () => {
+      await screenCandidateDocuments(candidateId)
+      if (!score) return
+      try { await scoreJobCandidateLink(supabase, linkId) }
+      catch (err) { console.error("[apply] background scoring failed:", err) }
+    })
 
     // Send the applicant an eingangsbestätigung (best-effort, never blocks).
     await sendApplicationReceived({

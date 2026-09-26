@@ -3,6 +3,7 @@ import { createClient as createAdmin } from "@supabase/supabase-js"
 import { runIMLRSMatch } from "@/lib/matching/imlrs"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { extractDocumentText } from "@/lib/cv-parse"
+import { screenCandidateDocuments } from "@/lib/document-guard/store"
 import { captureAndNotify } from "@/lib/monitoring/capture"
 import { isMissingScreeningColumn } from "@/lib/matching/screening"
 import { mayApplyLearnedWeights } from "@/lib/training/consent"
@@ -120,10 +121,25 @@ export async function scoreJobCandidateLink(
       return
     }
 
+    // Noch nie geprüfte Unterlagen (Kandidat älter als Migration 030) jetzt
+    // prüfen: versteckten Text entfernen, Befunde speichern. Zwischengespeicherter
+    // Text und Dossier können sonst Text enthalten, den kein Mensch gesehen hat.
+    // Fehlt die Spalte (030 nicht eingespielt), fehlt der Schlüssel in der Zeile.
+    let resumeText: string | null = candidate.resume_text ?? null
+    let coverText: string | null = candidate.cover_letter_text ?? null
+    let cachedDossier = candidate.dossier ?? null
+    if ("document_findings" in candidate && candidate.document_findings == null) {
+      const screened = await screenCandidateDocuments(candidate)
+      if (screened) {
+        resumeText = screened.resumeText ?? resumeText
+        coverText = screened.coverText
+        if (screened.textChanged) cachedDossier = null
+      }
+    }
+
     // IMLRS 2.0 works from the FULL CV text. If it isn't stored yet (candidate
     // predates migration 021 or arrived via an older path), extract it now from
     // the stored PDF/DOCX and persist it for every future match.
-    let resumeText: string | null = candidate.resume_text ?? null
     if (!resumeText && candidate.resume_path) {
       resumeText = await extractResumeText(candidate.resume_path)
       if (resumeText) {
@@ -149,9 +165,9 @@ export async function scoreJobCandidateLink(
         education: candidate.education,
         location: candidate.location,
         summary_ai: candidate.summary_ai,
-        cover_letter_text: candidate.cover_letter_text ?? null,
+        cover_letter_text: coverText,
         resume_text: resumeText,
-        dossier: candidate.dossier ?? null, // cached Stage A from a previous match
+        dossier: cachedDossier, // cached Stage A from a previous match
       },
       {
         id: job.id,

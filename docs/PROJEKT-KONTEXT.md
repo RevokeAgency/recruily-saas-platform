@@ -306,7 +306,8 @@ Vollständig und abhakbar in `docs/GO-LIVE.md`. Die Blocker in Kürze:
    Firmenbuchnummer, UID, WKO-Fachgruppe), AGB (Gerichtsstand), Datenschutz
    (Verantwortlicher). Beim Impressum sind das Pflichtangaben nach ECG und UGB,
    in AT und DE unmittelbar abmahnfähig.
-3. **Migrationsstand.** 023, 028 und 029 sind seit 25.09.2026 eingespielt,
+3. **Migrationsstand.** 030 (Befunde der Dokumentprüfung) ist angelegt, aber
+   noch nicht eingespielt. 023, 028 und 029 sind seit 25.09.2026 eingespielt,
    019 bis 022 waren es laut Inhaber schon vorher. Für 015 bis 018 und 024
    bis 027 steht die Bestätigung noch aus; `015_rls_hardening.sql` ist dabei
    der wichtigste Einzelpunkt, ohne sie sind die Daten nicht owner-scoped.
@@ -376,6 +377,20 @@ Neuausrichtung der Leitaussage von Nachvollziehbarkeit auf Tempo, ein Abgleich
 gegen den Slop-Katalog, und zuletzt **Positionierung v2** („alles zwischen
 Stellenanzeige und Zusage, die Entscheidung triffst du"). v2 ist der gültige
 Standard.
+
+**Schutz vor verstecktem Text in Bewerbungen (26.09.2026).** Frage des
+Inhabers war, ob Revetly erkennen kann, ob eine Bewerbung mit KI geschrieben
+wurde. Entscheidung: nein, weil das nicht verlässlich geht, Nicht-Muttersprachler
+überdurchschnittlich oft fälschlich trifft und unter AI Act (Hochrisiko,
+Anhang III) und Gleichbehandlungsrecht heikel ist. Stattdessen gebaut, was
+nachprüfbar ist: `lib/document-guard` entfernt Text, den ein Mensch im
+Dokument nicht sieht, bevor ein Modell ihn liest (PDF per Rendering und
+Kontrastprüfung, DOCX per Formatierung), meldet sichtbare Sätze an eine KI,
+und jeder Prompt mit Bewerbertext trägt die Regel aus
+`lib/ai/applicant-text.ts`. Befunde mit Beleg stehen beim Kandidaten
+(Migration 030). Als nächster Schritt vorgeschlagen: Aussagen im Anschreiben
+ohne Beleg im Lebenslauf markieren und als Nachfragen in den
+Gesprächsleitfaden geben.
 
 **Bei v2 wurde das Produkt an die Texte angepasst, nicht umgekehrt.** Die
 Gegenprüfung ergab vier Aussagen, die der Code nicht deckte. Entscheidung des

@@ -1,5 +1,6 @@
 import { generateStructured } from "@/lib/ai/generate"
 import { z } from "zod"
+import { withApplicantTextRule } from "@/lib/ai/applicant-text"
 
 
 // A single structured-interview question with an anchored rating scale — the
@@ -167,7 +168,7 @@ Die schwächsten/unsichersten Bereiche sind: ${weakest || "—"}. Priorisiere di
     task: "utility",
     label: "Interviewleitfaden",
     schema: interviewGuideSchema,
-    system: systemPrompt,
+    system: withApplicantTextRule(systemPrompt),
     prompt: `Erstelle einen strukturierten Interviewleitfaden für dieses Kandidaten-Job-Paar. Zielge­nau auf die schwachen/unsicheren Score-Bereiche.\n${candidateInfo}\n${jobInfo}\n${scoreInfo}`,
   })
 

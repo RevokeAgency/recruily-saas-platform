@@ -37,6 +37,8 @@ import {
   ClipboardList,
   Trophy,
 } from "lucide-react"
+import { DocumentFindingsBadge, DocumentFindingsPanel } from "@/components/candidates/document-findings"
+import type { DocumentCheck } from "@/lib/document-guard/types"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -93,6 +95,7 @@ interface Candidate {
   photo_url: string | null
   resume_path: string | null
   cover_letter_path: string | null
+  document_findings?: DocumentCheck | null
   status: "queued" | "analyzing" | "scored" | "error" | "stale" | "new" | "shortlisted" | "interviewed" | "Eingeladen" | "Eingestellt" | "Abgesagt"
   match_score: number | null
   hard_skills_score: number | null
@@ -575,6 +578,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
                           KO
                         </span>
                       )}
+                      <DocumentFindingsBadge check={candidate.document_findings} />
                     </p>
                     <p className="hidden truncate text-sm text-muted-foreground lg:block">{candidate.email || "–"}</p>
                     <p className="hidden truncate text-sm text-muted-foreground lg:block">{candidate.location || "–"}</p>
@@ -721,6 +725,10 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
                       </ul>
                     </div>
                   )}
+
+                  {/* Versteckter Text oder Sätze an eine KI in den Unterlagen
+                      (lib/document-guard), mit Beleg. */}
+                  <DocumentFindingsPanel check={candidate.document_findings} className="mb-4" />
 
                   {/* Scoring fehlgeschlagen — Grund zeigen statt Sackgasse. Der
                       Text stammt aus scoreJobCandidateLink (match_detail.error). */}
