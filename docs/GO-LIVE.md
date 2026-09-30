@@ -45,6 +45,13 @@ Stand der Durchsicht: 19.09.2026.
 - [ ] **Rechtstexte enthalten Platzhalter** (siehe Abschnitt DSGVO weiter
       unten). Beim Impressum sind das Pflichtangaben nach ECG und UGB, das ist
       in AT und DE unmittelbar abmahnfähig.
+- [ ] **„Daten exportieren“ und „Konto löschen“ in den Einstellungen haben
+      keine Funktion** (gefunden 30.09.2026). Der Export zeigt nur die Meldung
+      „Du erhältst eine E-Mail“, verschickt aber nichts, der Löschknopf tut
+      nichts. Beides wird in der Hilfe versprochen, der Export zusätzlich in
+      der Preistabelle („DSGVO-Export“). Entweder bauen oder die Versprechen
+      entfernen. Ebenfalls ohne Funktion: die Schalter „Produkt-Updates“ und
+      „Marketing E-Mails“.
 - [ ] **Datenbank-Migrationen `015` bis `027`.** Welche davon in der
       Supabase-Instanz schon gelaufen sind, lässt sich nur dort nachsehen.
       `015_rls_hardening.sql` ist der wichtigste Einzelpunkt: ohne sie sind die
@@ -107,11 +114,15 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
       `customer.subscription.deleted` → Live-`STRIPE_WEBHOOK_SECRET` in Vercel.
 - [ ] Der **Produktkatalog legt sich beim ersten Live-Checkout selbst an**
       (idempotent via lookup_keys) — kein manuelles Anlegen nötig.
-- [ ] **Stripe Tax** aktivieren (AT/EU-USt). Danach `automatic_tax: { enabled:
-      true }` in der Checkout-Session ergänzen
-      (`app/api/stripe/checkout/route.ts`). Achtung: Die Zeile steht dort
-      aktuell **gar nicht**, auch nicht auskommentiert, sie muss also erst
-      geschrieben werden. Ohne sie weist Stripe keine Umsatzsteuer aus.
+- [ ] **Stripe Tax** im Stripe-Dashboard einrichten: Ursprungsadresse und
+      Steuerregistrierung Österreich hinterlegen. **Erst danach**
+      `STRIPE_AUTOMATIC_TAX=true` in Vercel setzen. Ohne eingerichtetes Stripe
+      Tax lehnt Stripe jeden Checkout mit automatischer Steuer ab. Der Code ist
+      fertig (30.09.2026): UID-Erfassung im Checkout, Nettopreise
+      (`tax_behavior: exclusive`, bei bestehenden Preisen einmalig
+      nachgetragen), Steuercode SaaS am Produkt. Danach einen Testkauf mit
+      österreichischer Adresse und einen mit UID aus einem anderen EU-Land
+      (Reverse Charge) machen.
 - [ ] Stripe-Account: Firmendaten + Auszahlungskonto vollständig (Live-Pflicht).
 
 ---
@@ -157,6 +168,11 @@ Reihenfolge egal, alle additiv:
       `consume_rate_limit()` und `purge_rate_limits()`. Ohne diese Migration
       zählt nichts und alle Zugriffe werden durchgelassen (bewusst
       fail-open), die Datei- und Doppelbewerbungsprüfungen greifen trotzdem.
+- [ ] `scripts/031_launch_readiness.sql`: **Benachrichtigungen, Talent-Pool-
+      Einwilligung, Google for Jobs, Entscheidungsprotokoll.** Achtung:
+      Danach erscheinen im Talent-Pool nur noch Kandidaten mit Einwilligung,
+      bestehende also zunächst gar nicht. Lokal getestet, Details und
+      Prüfliste in `scripts/031_launch_readiness.md`.
 - [ ] `scripts/030_document_findings.sql`: **Befunde der Dokumentprüfung.**
       Eine neue Spalte `candidates.document_findings`. Versteckter Text in
       Lebenslauf und Anschreiben (weiße oder winzige Schrift, verdeckt, in
@@ -231,7 +247,11 @@ Reihenfolge egal, alle additiv:
       um 03:00 und `/api/cron/calibrate-matching` um 04:00 UTC). Vercel sendet ihn
       als Bearer-Token an Cron-Aufrufe. In Vercel setzen; ohne ihn liefern die
       Endpoints 401 (fail-closed). Seit dem Fehler-Monitoring kommt
-      `/api/cron/error-digest` um 06:00 UTC dazu.
+      `/api/cron/error-digest` um 06:00 UTC dazu, seit 30.09.2026
+      `/api/cron/application-digest` um 05:30 UTC (tägliche Zusammenfassung
+      neuer Bewerbungen).
+- [ ] `STRIPE_AUTOMATIC_TAX` = `true`, **erst nachdem** Stripe Tax im
+      Stripe-Dashboard eingerichtet ist (siehe Abschnitt Stripe).
 - [ ] `MISTRAL_API_KEY` — **Pflicht.** Standard-KI-Provider (Mistral AI,
       Frankreich). Ohne diesen Key läuft kein Matching.
 - [ ] `AI_MODEL_REASONING` / `AI_MODEL_EXTRACTION` / `AI_MODEL_UTILITY` /
@@ -336,5 +356,11 @@ Nichts davon hält den Launch auf, alles davon ist vorher billig zu erledigen.
 - [ ] Abo-Kauf (Abo-Seite) → Plan + Kontingent aktiv nach wenigen Sekunden
 - [ ] „Abo verwalten" → Stripe-Portal öffnet, Planwechsel/Kündigung möglich
 - [ ] Kontingent aufbrauchen → Paywall → Upgrade schaltet frei
-- [ ] Public-Job-Page-Bewerbung + Inbound-E-Mail → Kandidat landet im Job
+- [ ] Public-Job-Page-Bewerbung + Inbound-E-Mail → Kandidat landet im Job,
+      Recruiter bekommt die Mail „Neue Bewerbung“ mit Match
+- [ ] Stellenseite im Google Rich Results Test prüfen (JobPosting ohne
+      Fehler), danach Sitemap in der Search Console einreichen
+- [ ] Stelle abschließen → Bestätigung der Prüfung nötig → „Protokoll“ lädt
+      eine CSV mit Bewerbungen und Ereignissen
+- [ ] Vercel → Deployment → Functions: Region zeigt `fra1`
 - [ ] DSGVO: Kandidat löschen entfernt auch Storage-Dateien

@@ -299,16 +299,19 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
           <div className="flex items-start gap-3">
             <Checkbox id="dsgvo" checked={dsgvo} onCheckedChange={(v) => setDsgvo(v === true)} className="mt-0.5" />
             <Label htmlFor="dsgvo" className="cursor-pointer text-sm font-normal leading-relaxed text-muted-foreground">
-              Ich habe die{" "}
-              <a
-                href="/datenschutz"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-[var(--rv-green-deep)] underline"
-              >
-                Datenschutzhinweise
-              </a>{" "}
-              gelesen. *
+              {/* Ein Element, damit der Satz im Flex-Label nicht in Spalten zerfällt. */}
+              <span>
+                Ich habe die{" "}
+                <a
+                  href="/datenschutz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-[var(--rv-green-deep)] underline"
+                >
+                  Datenschutzhinweise
+                </a>{" "}
+                gelesen. *
+              </span>
             </Label>
           </div>
           {errors.dsgvo && <p className="text-xs text-destructive">{errors.dsgvo}</p>}

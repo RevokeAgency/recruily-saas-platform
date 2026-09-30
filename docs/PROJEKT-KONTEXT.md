@@ -306,8 +306,9 @@ Vollständig und abhakbar in `docs/GO-LIVE.md`. Die Blocker in Kürze:
    Firmenbuchnummer, UID, WKO-Fachgruppe), AGB (Gerichtsstand), Datenschutz
    (Verantwortlicher). Beim Impressum sind das Pflichtangaben nach ECG und UGB,
    in AT und DE unmittelbar abmahnfähig.
-3. **Migrationsstand.** 030 (Befunde der Dokumentprüfung) ist angelegt, aber
-   noch nicht eingespielt. 023, 028 und 029 sind seit 25.09.2026 eingespielt,
+3. **Migrationsstand.** 030 (Befunde der Dokumentprüfung) und 031
+   (Benachrichtigungen, Talent-Pool-Einwilligung, Google for Jobs,
+   Entscheidungsprotokoll) sind angelegt, aber noch nicht eingespielt. 023, 028 und 029 sind seit 25.09.2026 eingespielt,
    019 bis 022 waren es laut Inhaber schon vorher. Für 015 bis 018 und 024
    bis 027 steht die Bestätigung noch aus; `015_rls_hardening.sql` ist dabei
    der wichtigste Einzelpunkt, ohne sie sind die Daten nicht owner-scoped.
@@ -398,6 +399,22 @@ zuerst) werden zu Nachfragen mit Bewertungsskala. Der Abgleich selbst ändert
 den Match nicht, nur die Bewertung der Antworten zählt wie jede
 Leitfaden-Frage. Keine Migration, gespeichert im Leitfaden
 (`interview_guide.anschreibenAbgleich`).
+
+**Startklar-Runde (30.09.2026).** Auf Wunsch des Inhabers umgesetzt:
+Teamzeile aus der Preistabelle (Teamzugänge gibt es noch nicht);
+Bewerbungsformular mit Bestätigung „Datenschutzhinweise gelesen“ statt
+Einwilligung, KI-Hinweis und freiwilliger Talent-Pool-Einwilligung (Pool zeigt
+nur noch Einwilligende); Merkmal „EU AI Act“ auf der Login-Seite ersetzt;
+Vercel-Funktionen fest in `fra1`; Stripe mit UID-Erfassung, Nettopreisen und
+automatischer Steuer per `STRIPE_AUTOMATIC_TAX`; Mail an Recruiter bei neuer
+Bewerbung (sofort oder täglich, einstellbar); Google for Jobs (JobPosting-Daten,
+Stellen in der Sitemap); KI-Verordnung als Produktfunktion: Seite
+`/ki-transparenz` (Gebrauchsanweisung, Betreiberpflichten),
+Entscheidungsprotokoll mit CSV-Export pro Stelle, Hinweis an Bewerber auch in
+der Eingangsbestätigung, Bestätigung der menschlichen Prüfung beim Abschließen
+einer Stelle, Gleichbehandlungsregel in allen Prompts mit Bewerbertext.
+Gefunden, aber nicht umgesetzt: Datenexport und Kontolöschung in den
+Einstellungen sind ohne Funktion.
 
 **Bei v2 wurde das Produkt an die Texte angepasst, nicht umgekehrt.** Die
 Gegenprüfung ergab vier Aussagen, die der Code nicht deckte. Entscheidung des

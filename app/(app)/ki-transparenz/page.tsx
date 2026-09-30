@@ -19,7 +19,7 @@ import { INTERVIEW_WEIGHT } from "@/lib/matching/screening"
 // Keine Aussagen zur Konformitätsbewertung, solange sie nicht abgeschlossen ist.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const STAND = "30. September 2026"
+const STAND = "30.\u00a0September\u00a02026"
 const pct = (n: number) => `${Math.round(n * 100)} Prozent`
 
 type Block = { title: string; intro?: string; items: string[] }
@@ -108,7 +108,7 @@ export default function KiTransparenzPage() {
               {block.title}
             </h2>
             <Card className="border border-border">
-              <CardContent className="space-y-3 p-5 text-sm leading-relaxed text-muted-foreground sm:p-6">
+              <CardContent className="space-y-3 px-5 py-0 text-sm leading-relaxed text-muted-foreground sm:px-6">
                 {block.intro && <p className="text-foreground">{block.intro}</p>}
                 <ul className="list-disc space-y-2 pl-5">
                   {block.items.map((item) => (
