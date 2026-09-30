@@ -3,6 +3,7 @@ import { NextRequest, after } from "next/server"
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
 import { screenCandidateDocuments } from "@/lib/document-guard/store"
+import { notifyNewApplication } from "@/lib/notifications/applications"
 import { parseCvBuffer, isUsableCandidate, isPdfFile, extractDocumentText } from "@/lib/cv-parse"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { sendApplicationReceived } from "@/lib/email/send"
@@ -257,9 +258,12 @@ export async function POST(req: NextRequest) {
     const score = quota.allowed
     after(async () => {
       await screenCandidateDocuments(candidateId)
-      if (!score) return
-      try { await scoreJobCandidateLink(supabase, linkId) }
-      catch (err) { console.error("[apply] background scoring failed:", err) }
+      if (score) {
+        try { await scoreJobCandidateLink(supabase, linkId) }
+        catch (err) { console.error("[apply] background scoring failed:", err) }
+      }
+      // Nach der Analyse, damit der Match in der Mail an den Recruiter steht.
+      await notifyNewApplication(linkId)
     })
 
     // Send the applicant an eingangsbestätigung (best-effort, never blocks).

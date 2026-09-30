@@ -6,6 +6,7 @@ import { parseCvBuffer, isSupportedCvType, isUsableCandidate, isPdfFile } from "
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
 import { screenCandidateDocuments } from "@/lib/document-guard/store"
+import { notifyNewApplication } from "@/lib/notifications/applications"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { loadInboundAttachment } from "@/lib/email/attachments"
 import { sendApplicationReceived } from "@/lib/email/send"
@@ -199,13 +200,18 @@ export async function POST(req: NextRequest) {
     // completes (fire-and-forget was killed on serverless, leaving candidates
     // stuck "analyzing"). supabase is already a service-role client.
     // Vorher die Dokumentprüfung (lib/document-guard), auch ohne Kontingent.
-    const linkId = link && quota.allowed ? link.id : null
+    const linkId = link?.id ?? null
+    const score = !!link && quota.allowed
     const candidateId = candidate.id
     after(async () => {
       await screenCandidateDocuments(candidateId)
       if (!linkId) return
-      try { await scoreJobCandidateLink(supabase, linkId) }
-      catch (err) { await captureAndNotify(err, { route: "/api/inbound/email", extra: { stufe: "scoring" } }) }
+      if (score) {
+        try { await scoreJobCandidateLink(supabase, linkId) }
+        catch (err) { await captureAndNotify(err, { route: "/api/inbound/email", extra: { stufe: "scoring" } }) }
+      }
+      // Nach der Analyse, damit der Match in der Mail an den Recruiter steht.
+      await notifyNewApplication(linkId)
     })
 
     // Confirm receipt to the applicant (best-effort, never blocks intake).

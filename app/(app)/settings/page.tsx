@@ -37,6 +37,7 @@ import { toast } from "sonner"
 import { PageHero } from "@/components/app/page-hero"
 import { RevealGroup } from "@/components/app/reveal-group"
 import { useProfile } from "@/lib/hooks/useProfile"
+import { createClient } from "@/lib/supabase/client"
 import { updateCompanyName } from "@/app/actions/onboarding"
 import { AiTrainingConsent } from "@/components/settings/ai-training-consent"
 import { FeedbackCard } from "@/components/settings/feedback-card"
@@ -83,11 +84,39 @@ export default function SettingsPage() {
   }
 
   const [notifications, setNotifications] = useState({
-    newMatch: true,
-    weeklyReport: true,
+    newApplication: true,
+    dailyDigest: false,
     productUpdates: false,
     marketingEmails: false,
   })
+
+  // Die beiden Bewerbungs-Benachrichtigungen sind echt: gespeichert im Profil
+  // (Migration 031), verschickt bei Eingang bzw. vom täglichen Cron.
+  useEffect(() => {
+    if (!account) return
+    setNotifications((n) => ({
+      ...n,
+      newApplication: account.notify_applications_instant,
+      dailyDigest: account.notify_applications_daily,
+    }))
+  }, [account])
+
+  const saveApplicationNotification = async (
+    key: "newApplication" | "dailyDigest",
+    checked: boolean,
+  ) => {
+    if (!account) return
+    setNotifications((n) => ({ ...n, [key]: checked }))
+    const column = key === "newApplication" ? "notify_applications_instant" : "notify_applications_daily"
+    const { error } = await createClient()
+      .from("user_profiles")
+      .update({ [column]: checked })
+      .eq("id", account.id)
+    if (error) {
+      setNotifications((n) => ({ ...n, [key]: !checked }))
+      toast.error("Einstellung konnte nicht gespeichert werden")
+    }
+  }
 
   const [apiKey] = useState("rcy_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 
@@ -204,33 +233,29 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="notify-match">Neue Matches</Label>
+                <Label htmlFor="notify-application">Neue Bewerbungen</Label>
                 <p className="text-sm text-muted-foreground">
-                  Benachrichtigung bei neuen Kandidaten-Matches
+                  Eine E-Mail, sobald eine Bewerbung über deine Stellenseite oder per E-Mail eingeht
                 </p>
               </div>
               <Switch
-                id="notify-match"
-                checked={notifications.newMatch}
-                onCheckedChange={(checked) =>
-                  setNotifications({ ...notifications, newMatch: checked })
-                }
+                id="notify-application"
+                checked={notifications.newApplication}
+                onCheckedChange={(checked) => saveApplicationNotification("newApplication", checked)}
               />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="notify-report">Wöchentlicher Report</Label>
+                <Label htmlFor="notify-digest">Tägliche Zusammenfassung</Label>
                 <p className="text-sm text-muted-foreground">
-                  Zusammenfassung deiner Recruiting-Aktivitäten
+                  Jeden Morgen alle neuen Bewerbungen der letzten 24 Stunden in einer E-Mail
                 </p>
               </div>
               <Switch
-                id="notify-report"
-                checked={notifications.weeklyReport}
-                onCheckedChange={(checked) =>
-                  setNotifications({ ...notifications, weeklyReport: checked })
-                }
+                id="notify-digest"
+                checked={notifications.dailyDigest}
+                onCheckedChange={(checked) => saveApplicationNotification("dailyDigest", checked)}
               />
             </div>
             <Separator />

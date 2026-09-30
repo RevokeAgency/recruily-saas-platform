@@ -19,6 +19,10 @@ export interface Profile {
   slug: string | null
   company_name: string | null
   logo_url: string | null
+  /** Mail bei jeder neuen Bewerbung (Migration 031, Standard an). */
+  notify_applications_instant: boolean
+  /** Tägliche Zusammenfassung neuer Bewerbungen (Migration 031, Standard aus). */
+  notify_applications_daily: boolean
 }
 
 export function useProfile() {
@@ -57,6 +61,8 @@ export function useProfile() {
         slug: data.slug || null,
         company_name: data.company_name || null,
         logo_url: data.logo_url || null,
+        notify_applications_instant: data.notify_applications_instant ?? true,
+        notify_applications_daily: data.notify_applications_daily ?? false,
       })
     }
     setLoading(false)
