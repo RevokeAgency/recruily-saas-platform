@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import { 
   ArrowLeft,
   FileUp,
@@ -40,6 +41,8 @@ interface CandidateData {
   education: string | null
   location: string | null
   summary_ai: string | null
+  /** Einwilligung für den Talent-Pool, vom Recruiter bestätigt (Migration 031). */
+  talent_pool_consent?: boolean
 }
 
 const experienceLevelConfig = {
@@ -656,6 +659,21 @@ function PreviewSection({
                 placeholder="Höchster Abschluss"
                 className="border-slate-200"
               />
+            </div>
+
+            {/* Talent-Pool: nur mit Einwilligung der Person. Bei selbst
+                angelegten Kandidaten holt der Recruiter sie ein. */}
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="talent-pool-consent"
+                checked={data.talent_pool_consent === true}
+                onCheckedChange={(v) => onDataChange({ ...data, talent_pool_consent: v === true })}
+                className="mt-0.5"
+              />
+              <label htmlFor="talent-pool-consent" className="cursor-pointer text-sm leading-relaxed text-slate-600">
+                Die Person hat eingewilligt, auch für andere passende Stellen berücksichtigt zu werden
+                (Talent-Pool). Ohne Einwilligung erscheint sie nicht in den Vorschlägen für neue Stellen.
+              </label>
             </div>
           </div>
         </CardContent>

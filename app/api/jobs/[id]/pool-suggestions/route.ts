@@ -46,12 +46,21 @@ export async function GET(
       .eq("job_id", jobId)
     const linkedIds = new Set((links || []).map((l) => l.candidate_id))
 
-    // The pool: this user's candidates.
-    const { data: pool } = await supabase
+    // The pool: this user's candidates, aber nur mit Einwilligung für den
+    // Talent-Pool (Migration 031). Wer sich für eine Stelle beworben hat,
+    // erscheint nur dann als Vorschlag für eine andere, wenn er zugestimmt
+    // hat. Ohne die Spalte gibt es noch keine Einwilligungen, also auch
+    // keine Vorschläge.
+    const { data: pool, error: poolError } = await supabase
       .from("candidates")
       .select("id, full_name, job_title, photo_url, skills, years_of_experience, experience_level, education, location")
       .eq("user_id", user.id)
+      .eq("talent_pool_consent", true)
       .limit(POOL_SCAN_LIMIT)
+    if (poolError) {
+      console.error("[pool-suggestions] Talent-Pool nicht verfügbar:", poolError.message)
+      return Response.json({ suggestions: [], strongCount: 0, matchCount: 0, poolSize: 0 })
+    }
 
     let strongCount = 0
     const scored = (pool || [])

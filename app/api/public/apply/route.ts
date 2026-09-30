@@ -50,6 +50,8 @@ export async function POST(req: NextRequest) {
     const email = ((form.get("email") as string) || "").trim()
     const phone = ((form.get("phone") as string) || "").trim()
     const message = ((form.get("message") as string) || "").trim()
+    // Freiwillige Einwilligung für den Talent-Pool (Checkbox, nicht vorausgewählt).
+    const talentPool = form.get("talentPool") === "1"
     const cvFile = form.get("cv") as File | null
     const coverFile = form.get("cover") as File | null
 
@@ -213,6 +215,16 @@ export async function POST(req: NextRequest) {
       photo_url: photoUrl,
     }).eq("id", candidate.id).then(({ error }) => {
       if (error) console.error("[apply] document enrichment skipped:", error.message)
+    })
+
+    // Talent-Pool-Einwilligung (Migration 031), eigenes Update: Fehlt die
+    // Spalte noch, bleibt der Rest der Bewerbung davon unberührt. Der
+    // Zeitpunkt ist der Nachweis der Einwilligung.
+    await supabase.from("candidates").update({
+      talent_pool_consent: talentPool,
+      talent_pool_consent_at: talentPool ? new Date().toISOString() : null,
+    }).eq("id", candidate.id).then(({ error }) => {
+      if (error) console.error("[apply] talent_pool_consent skipped:", error.message)
     })
 
     // Spend a match (or queue if over the limit) then link + score.

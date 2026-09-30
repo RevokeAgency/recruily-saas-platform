@@ -83,15 +83,38 @@ export default function DatenschutzPage() {
           <section>
             <h2 className="mb-2 text-lg font-semibold text-foreground">3. Zwecke und Rechtsgrundlagen</h2>
             <p>
-              Bewerberdaten werden zur Durchführung des Bewerbungsverfahrens verarbeitet
-              (Art. 6 Abs. 1 lit. b bzw. lit. f DSGVO, § 26 BDSG). Die Bewerbung erfolgt
-              auf Grundlage deiner Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die du
-              jederzeit mit Wirkung für die Zukunft widerrufen kannst.
+              Bewerberdaten werden zur Durchführung des Bewerbungsverfahrens verarbeitet, also zur
+              Anbahnung eines Arbeitsverhältnisses (Art. 6 Abs. 1 lit. b DSGVO, in Deutschland
+              zusätzlich § 26 BDSG). Dafür ist keine Einwilligung nötig.
+            </p>
+            <p className="mt-2">
+              <strong>Talent-Pool.</strong> Nur wenn du im Bewerbungsformular ausdrücklich zustimmst,
+              berücksichtigt das Unternehmen deine Bewerbung auch für andere passende Stellen
+              (Art. 6 Abs. 1 lit. a DSGVO). Die Zustimmung ist freiwillig und jederzeit mit Wirkung
+              für die Zukunft widerrufbar, gegenüber dem Unternehmen, bei dem du dich beworben hast,
+              oder indem du die Löschung deiner Daten veranlasst. Ohne Zustimmung wird deine
+              Bewerbung nur für die Stelle genutzt, auf die du dich beworben hast. In beiden Fällen
+              gilt die Speicherdauer aus Abschnitt 7.
             </p>
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">4. Hosting & Auftragsverarbeiter</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">4. KI-gestützte Auswertung, menschliche Entscheidung</h2>
+            <p>
+              Revetly liest Lebenslauf und Anschreiben aus und ordnet Bewerbungen nach ihrer Passung
+              zur Stelle. Dafür werden die Angaben aus den Unterlagen mit den Anforderungen der Stelle
+              abgeglichen, jede Einschätzung mit der Stelle in den Unterlagen, auf der sie beruht.
+              Text, der im Dokument nicht sichtbar ist, bleibt dabei unberücksichtigt.
+            </p>
+            <p className="mt-2">
+              Das Ergebnis ist eine Entscheidungshilfe für das Unternehmen. Wer eingeladen,
+              eingestellt oder abgesagt wird, entscheidet ein Mensch. Eine ausschließlich
+              automatisierte Entscheidung im Sinne von Art. 22 DSGVO findet nicht statt.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">5. Hosting & Auftragsverarbeiter</h2>
             <p>
               Die Plattform wird in der EU betrieben; die Datenbank und Dateien werden auf
               Servern innerhalb der EU (Frankfurt, Deutschland) gespeichert. Wir setzen
@@ -110,7 +133,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">5. Lernen aus Auswahlentscheidungen, nur für das eigene Konto</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">6. Lernen aus Auswahlentscheidungen, nur für das eigene Konto</h2>
             <p>
               Kundinnen und Kunden können in ihren Kontoeinstellungen freiwillig einwilligen, dass
               Revetly aus ihren eigenen Auswahlentscheidungen lernt (Art. 6 Abs. 1 lit. a DSGVO).
@@ -134,7 +157,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">6. Speicherdauer</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">7. Speicherdauer</h2>
             <p>
               Bewerberdaten werden nur so lange gespeichert, wie es für den
               Bewerbungsprozess erforderlich ist, und spätestens <strong>6 Monate</strong>{" "}
@@ -145,7 +168,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">7. Deine Rechte</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">8. Deine Rechte</h2>
             <p>
               Dir stehen die Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung
               der Verarbeitung, Datenübertragbarkeit und Widerspruch zu. Außerdem hast du
@@ -167,7 +190,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">8. Kontakt</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">9. Kontakt</h2>
             <p>
               Bei Fragen zum Datenschutz erreichst du uns unter [Datenschutz-Kontakt,
               E-Mail]. Für Bewerbungen bei einem bestimmten Unternehmen wende dich bitte

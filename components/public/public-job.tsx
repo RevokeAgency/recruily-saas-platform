@@ -77,6 +77,7 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
   const [phone, setPhone] = useState("")
   const [message, setMessage] = useState("")
   const [dsgvo, setDsgvo] = useState(false)
+  const [talentPool, setTalentPool] = useState(false)
   const [cvFile, setCvFile] = useState<File | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -127,7 +128,7 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
     if (!lastName.trim()) errs.lastName = "Pflichtfeld"
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) errs.email = "Gültige E-Mail erforderlich"
     if (!cvFile) errs.cv = "Bitte lade deinen Lebenslauf hoch."
-    if (!dsgvo) errs.dsgvo = "Bitte stimme der Datenschutzerklärung zu."
+    if (!dsgvo) errs.dsgvo = "Bitte bestätige, dass du die Datenschutzhinweise gelesen hast."
     return errs
   }
 
@@ -148,6 +149,7 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
       fd.append("email", email)
       fd.append("phone", phone)
       fd.append("message", message)
+      fd.append("talentPool", talentPool ? "1" : "0")
       if (cvFile) fd.append("cv", cvFile)
       if (coverFile) fd.append("cover", coverFile)
 
@@ -282,22 +284,44 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
             <p className="text-xs text-muted-foreground">Du kannst Lebenslauf und Anschreiben auch als eine gemeinsame PDF hochladen.</p>
           </div>
 
+          {/* Hinweis nach Art. 13 DSGVO und Art. 26 Abs. 11 KI-Verordnung: Die
+              Bewerbung wird KI-gestützt geordnet, entschieden wird von einem
+              Menschen. Die Bewerbung selbst braucht keine Einwilligung
+              (Anbahnung eines Arbeitsverhältnisses), deshalb bestätigt die
+              Pflicht-Checkbox nur, dass die Hinweise gelesen wurden. */}
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {job.company} nutzt Revetly, um Bewerbungen mit Unterstützung von KI nach ihrer Passung zur
+            Stelle zu ordnen. Wen {job.company} einlädt oder einstellt, entscheidet immer ein Mensch.
+            Deine Daten werden für dieses Bewerbungsverfahren verarbeitet und spätestens sechs Monate
+            nach dessen Abschluss gelöscht.
+          </p>
+
           <div className="flex items-start gap-3">
             <Checkbox id="dsgvo" checked={dsgvo} onCheckedChange={(v) => setDsgvo(v === true)} className="mt-0.5" />
             <Label htmlFor="dsgvo" className="cursor-pointer text-sm font-normal leading-relaxed text-muted-foreground">
-              Ich stimme der Verarbeitung meiner Daten gemäß{" "}
+              Ich habe die{" "}
               <a
                 href="/datenschutz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-[var(--rv-green-deep)] underline"
               >
-                Datenschutzerklärung
+                Datenschutzhinweise
               </a>{" "}
-              zu. *
+              gelesen. *
             </Label>
           </div>
           {errors.dsgvo && <p className="text-xs text-destructive">{errors.dsgvo}</p>}
+
+          {/* Freiwillig, nicht vorausgewählt: Nur wer hier zustimmt, erscheint
+              später in den Talent-Pool-Vorschlägen für andere Stellen. */}
+          <div className="flex items-start gap-3">
+            <Checkbox id="talentPool" checked={talentPool} onCheckedChange={(v) => setTalentPool(v === true)} className="mt-0.5" />
+            <Label htmlFor="talentPool" className="cursor-pointer text-sm font-normal leading-relaxed text-muted-foreground">
+              Ich bin einverstanden, dass {job.company} meine Bewerbung auch für andere passende Stellen
+              berücksichtigt (Talent-Pool). Freiwillig und jederzeit widerrufbar.
+            </Label>
+          </div>
 
           {errors.submit && <p className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">{errors.submit}</p>}
 

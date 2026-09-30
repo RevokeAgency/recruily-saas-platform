@@ -83,6 +83,18 @@ export async function POST(req: Request) {
       return Response.json({ error: error.message }, { status: 500 })
     }
 
+    // Talent-Pool-Einwilligung, vom Recruiter bestätigt (Migration 031).
+    // Eigenes Update, damit eine fehlende Spalte das Anlegen nicht verhindert.
+    if (body.talent_pool_consent === true && candidate) {
+      await supabase
+        .from("candidates")
+        .update({ talent_pool_consent: true, talent_pool_consent_at: new Date().toISOString() })
+        .eq("id", candidate.id)
+        .then(({ error: consentError }) => {
+          if (consentError) console.error("[candidates] talent_pool_consent skipped:", consentError.message)
+        })
+    }
+
     let linkId: string | null = null
 
     // If a jobId was provided, create the job_candidates link with "analyzing" status
