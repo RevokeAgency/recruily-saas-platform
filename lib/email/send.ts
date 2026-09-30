@@ -5,7 +5,9 @@ import { escapeHtml, sendMail, shell } from "./client"
 
 /**
  * Application-received confirmation ("Eingangsbestätigung") sent to the
- * applicant. Best-effort: returns false and logs on any failure so it can never
+ * applicant. Enthält den Hinweis auf die KI-gestützte Auswertung und die
+ * menschliche Entscheidung (KI-Verordnung Art. 26 Abs. 11). Für Bewerbungen
+ * per E-Mail ist das der einzige Ort, an dem sie ihn sehen. Best-effort: returns false and logs on any failure so it can never
  * block the application pipeline. Skips silently when no key or no recipient.
  */
 export async function sendApplicationReceived(opts: {
@@ -33,6 +35,12 @@ export async function sendApplicationReceived(opts: {
       Ihre Bewerbung wird nun geprüft. Sie hören von uns, sobald es einen
       nächsten Schritt gibt. Bitte antworten Sie nicht auf diese automatische
       Nachricht.
+    </p>
+    <p style="margin: 0 0 16px; font-size: 13px; color: #64748b;">
+      Hinweis: Ihre Unterlagen werden mit Unterstützung von KI ausgewertet und nach
+      ihrer Passung zur Stelle geordnet. Wen wir einladen und wen wir auswählen,
+      entscheidet ein Mensch. Ihre Daten werden spätestens sechs Monate nach
+      Abschluss des Verfahrens gelöscht.
     </p>
     <p style="margin: 24px 0 0;">Freundliche Grüße<br>${escapeHtml(company)}</p>
   `

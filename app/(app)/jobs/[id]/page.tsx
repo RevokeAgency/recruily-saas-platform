@@ -17,6 +17,7 @@ import {
   Share2,
   Lock,
   Unlock,
+  ScrollText,
 } from "lucide-react"
 import { toast } from "sonner"
 import { JobOverviewTab } from "@/components/jobs/detail/overview-tab"
@@ -173,6 +174,13 @@ export default function JobDetailPage() {
           <Button variant="outline" size="sm" className="rounded-full bg-white" onClick={() => setChannelsOpen(true)}>
             <Share2 className="mr-2 h-4 w-4" />
             Kanäle & Bewerbungslink
+          </Button>
+          {/* Entscheidungsprotokoll als CSV (KI-Verordnung Art. 12 und 26). */}
+          <Button variant="outline" size="sm" className="rounded-full bg-white" asChild>
+            <a href={`/api/jobs/${jobId}/decision-log`} download title="Wer hat wann was entschieden, mit den Werten der Match Analyse">
+              <ScrollText className="mr-2 h-4 w-4" />
+              Protokoll
+            </a>
           </Button>
           <Button variant="outline" size="sm" className="rounded-full bg-white" onClick={job.is_active ? () => setCloseOpen(true) : toggleActive} disabled={toggling}>
             {job.is_active ? (

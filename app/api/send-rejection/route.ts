@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
 
 import { mailProvider } from "@/lib/email/client"
+import { logDecisions } from "@/lib/compliance/decision-log"
 import { sendRejectionMail } from "@/lib/email/rejection"
 import { consumeRateLimit } from "@/lib/rate-limit"
 import { createClient } from "@/lib/supabase/server"
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
     // RLS und user_id-Filter: nur eigene Bewerber.
     const { data: link } = await supabase
       .from("job_candidates")
-      .select("id, candidate:candidates(full_name, email), job:jobs(title, company)")
+      .select("id, job_id, candidate:candidates(full_name, email), job:jobs(title, company)")
       .eq("id", linkId)
       .eq("user_id", user.id)
       .single()
@@ -72,6 +73,11 @@ export async function POST(req: Request) {
       text: customText,
     })
     if (!sent) return NextResponse.json({ error: "Versand fehlgeschlagen" }, { status: 502 })
+
+    await logDecisions(supabase, [{
+      userId: user.id, actorId: user.id, jobId: (link.job_id as string) ?? null, jobCandidateId: linkId,
+      event: "absage_verschickt", detail: { weg: "einzeln", eigener_text: !!customText },
+    }])
 
     return NextResponse.json({ success: true })
   } catch (error) {

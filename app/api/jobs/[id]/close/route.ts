@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
 
+import { logDecisions, OVERSIGHT_STATEMENT, type DecisionEntry } from "@/lib/compliance/decision-log"
 import { mailProvider } from "@/lib/email/client"
 import { sendRejectionMail } from "@/lib/email/rejection"
 import { consumeRateLimit } from "@/lib/rate-limit"
@@ -37,7 +38,11 @@ type OpenLink = {
  *
  * Body:
  *   { preview: true }   nur zählen, nichts ändern (für den Bestätigungsdialog)
- *   { notify: boolean } abschließen, mit oder ohne Absage-Mails
+ *   { notify: boolean, oversight: true }
+ *                       abschließen, mit oder ohne Absage-Mails. oversight
+ *                       bestätigt die menschliche Prüfung und ist Pflicht,
+ *                       sobald offene Bewerber abgesagt werden (KI-Verordnung
+ *                       Art. 14). Beides landet im Entscheidungsprotokoll.
  */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -49,6 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const body = await req.json().catch(() => ({}))
     const preview = body.preview === true
     const notify = body.notify === true
+    const oversight = body.oversight === true
 
     const { data: job } = await supabase
       .from("jobs").select("id, title, company, is_active").eq("id", jobId).eq("user_id", user.id).single()
@@ -73,6 +79,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         hired,
         canEmail: !!mailProvider(),
       })
+    }
+
+    if (open.length > 0 && !oversight) {
+      return Response.json(
+        { error: "Bitte bestätige, dass du die offenen Bewerbungen geprüft hast." },
+        { status: 400 },
+      )
     }
 
     if (notify) {
@@ -113,6 +126,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // 3. Absage-Mails.
     let emailed = 0
     let failed = 0
+    const sentTo: string[] = []
     if (notify && mailProvider()) {
       const queue = [...withEmail]
       const worker = async () => {
@@ -123,12 +137,32 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             jobTitle: job.title || "die ausgeschriebene Stelle",
             companyName: job.company || "unser Unternehmen",
           }).catch(() => false)
-          if (ok) emailed++
-          else failed++
+          if (ok) {
+            emailed++
+            sentTo.push(l.id)
+          } else failed++
         }
       }
       await Promise.all(Array.from({ length: Math.min(PARALLEL, queue.length) }, worker))
     }
+
+    // 4. Entscheidungsprotokoll. Die Statuswechsel selbst schreibt der
+    //    Datenbank-Trigger, hier kommen Prüfung, Abschluss und Absagen dazu.
+    const entries: DecisionEntry[] = []
+    if (open.length > 0) {
+      entries.push({
+        userId: user.id, actorId: user.id, jobId, event: "pruefung_bestaetigt",
+        detail: { bestaetigung: OVERSIGHT_STATEMENT, offene_bewerbungen: open.length, stelle: job.title },
+      })
+    }
+    entries.push({
+      userId: user.id, actorId: user.id, jobId, event: "stelle_abgeschlossen",
+      detail: { stelle: job.title, abgesagt: open.length, mails_verschickt: emailed, mails_fehlgeschlagen: failed },
+    })
+    for (const linkId of sentTo) {
+      entries.push({ userId: user.id, actorId: user.id, jobId, jobCandidateId: linkId, event: "absage_verschickt", detail: { weg: "stelle_abgeschlossen" } })
+    }
+    await logDecisions(supabase, entries)
 
     return Response.json({
       closed: true,

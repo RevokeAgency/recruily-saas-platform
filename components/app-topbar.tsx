@@ -6,7 +6,7 @@ import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { hasCheckoutIntent } from "@/lib/stripe/client"
-import { HelpCircle, LogOut, Settings, Sparkles } from "lucide-react"
+import { HelpCircle, LogOut, ScrollText, Settings, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ActivityBell } from "@/components/app/activity-bell"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -210,6 +210,12 @@ export function AppTopbar() {
                 <Link href="/help">
                   <HelpCircle className="mr-2 h-4 w-4" />
                   Hilfe & Support
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/ki-transparenz">
+                  <ScrollText className="mr-2 h-4 w-4" />
+                  KI-Transparenz
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

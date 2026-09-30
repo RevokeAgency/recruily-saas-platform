@@ -13,6 +13,10 @@ const SECTIONS: Section[] = [
     title: "Erste Schritte",
     items: [
       {
+        q: "Wie arbeitet die KI, und was muss ich nach der KI-Verordnung beachten?",
+        a: "Revetly ordnet Bewerbungen nach ihrer Passung zur Stelle, entscheiden tust du. Wie der Match entsteht, wo seine Grenzen liegen und welche Pflichten du als Betreiber hast, steht unter KI-Transparenz (Menü oben rechts). Das Entscheidungsprotokoll jeder Stelle lädst du auf der Stelle über „Protokoll“ herunter.",
+      },
+      {
         q: "Was ist Revetly?",
         a: "Revetly ist dein KI-Recruiting-Assistent. Du legst eine Stelle an, sammelst Bewerbungen automatisch über eine öffentliche Job-Page und eine eigene Bewerbungs-E-Mail-Adresse, und die KI bewertet jeden Lebenslauf passgenau zur Stelle. So siehst du auf einen Blick, wer wirklich passt.",
       },

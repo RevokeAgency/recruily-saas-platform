@@ -7,6 +7,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { OVERSIGHT_STATEMENT } from "@/lib/compliance/decision-log"
 import {
   Dialog,
   DialogContent,
@@ -36,12 +37,16 @@ export function CloseJobDialog({
 }) {
   const [preview, setPreview] = useState<Preview | null>(null)
   const [notify, setNotify] = useState(true)
+  // Menschliche Prüfung vor den Absagen (KI-Verordnung Art. 14). Pflicht,
+  // sobald offene Bewerber abgesagt werden, der Server prüft es ebenfalls.
+  const [reviewed, setReviewed] = useState(false)
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     if (!open) return
     setPreview(null)
     setNotify(true)
+    setReviewed(false)
     fetch(`/api/jobs/${jobId}/close`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -53,6 +58,7 @@ export function CloseJobDialog({
   }, [open, jobId])
 
   const canNotify = !!preview && preview.canEmail && preview.withEmail > 0
+  const needsReview = !!preview && preview.open > 0
   const withoutEmail = preview ? preview.open - preview.withEmail : 0
 
   const confirm = async () => {
@@ -61,7 +67,7 @@ export function CloseJobDialog({
       const res = await fetch(`/api/jobs/${jobId}/close`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notify: canNotify && notify }),
+        body: JSON.stringify({ notify: canNotify && notify, oversight: reviewed }),
       })
       const d = await res.json()
       if (!res.ok) {
@@ -135,6 +141,18 @@ export function CloseJobDialog({
                 </span>
               </label>
             )}
+
+            {needsReview && (
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5">
+                <Checkbox checked={reviewed} onCheckedChange={(v) => setReviewed(v === true)} className="mt-0.5" />
+                <span className="text-sm">
+                  <span className="font-medium text-foreground">{OVERSIGHT_STATEMENT}</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                    Wird mit Datum im Entscheidungsprotokoll der Stelle festgehalten.
+                  </span>
+                </span>
+              </label>
+            )}
           </div>
         )}
 
@@ -142,7 +160,7 @@ export function CloseJobDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
             Abbrechen
           </Button>
-          <Button onClick={confirm} disabled={busy || !preview}>
+          <Button onClick={confirm} disabled={busy || !preview || (needsReview && !reviewed)}>
             {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Lock className="mr-2 h-4 w-4" />}
             Stelle abschließen
           </Button>
