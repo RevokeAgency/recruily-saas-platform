@@ -15,8 +15,11 @@ sammeln, Passung prüfen, Gespräche planen und strukturiert führen. Die
 Entscheidung triffst du.**
 
 Oberzeile: KI-Recruiting-Assistent für den DACH-Raum.
-Hero: „Von 100 Bewerbungen zur richtigen Einstellung." Die 100 ist ein Bild
-für den Stapel, keine Leistungszahl.
+Hero: „Du führst die Gespräche. Revetly macht den Rest." Zwei Sätze, immer
+auf eigener Zeile, der zweite im Markenverlauf. Unterzeile: „Revetly liest
+jede Bewerbung, prüft die Passung mit Beleg, bucht die Termine und schreibt
+die Absagen. Die Entscheidung, wen du einstellst, bleibt immer deine."
+Vorher/Nachher: „Die beste Bewerbung liegt selten oben."
 Markenzeile: „Lies die Shortlist, nicht den Stapel."
 
 Drei Versprechen, in dieser Reihenfolge:

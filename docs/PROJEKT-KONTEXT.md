@@ -22,7 +22,9 @@ KI-Recruiting-Assistent für den DACH-Raum. Revetly übernimmt alles zwischen
 Stellenanzeige und Zusage: Bewerbungen sammeln, Passung prüfen, Gespräche
 planen und strukturiert führen. **Die Entscheidung trifft der Mensch.**
 
-Hero: „Von 100 Bewerbungen zur richtigen Einstellung." Markenzeile:
+Hero (seit 01.10.2026): „Du führst die Gespräche. Revetly macht den Rest."
+Beide Sätze immer auf eigener Zeile, der zweite im Verlauf. Vorher/Nachher:
+„Die beste Bewerbung liegt selten oben." Markenzeile:
 „Lies die Shortlist, nicht den Stapel." Nach der Einstellung übernimmt das
 HR-System des Kunden; Revetly ersetzt es nicht.
 

@@ -8,21 +8,23 @@ import { RvArrowIcon, RvButton } from "./rv-button"
 import { PLANS } from "@/lib/plans"
 
 // `break` setzt nach dem Wort einen erzwungenen Zeilenumbruch: ein leeres
-// Element mit basis-full in der flex-wrap-Zeile. So steht "Von 100
-// Bewerbungen" oben und das Ziel darunter, und der Verlauf liegt auf dem Ziel.
-// Die "100" ist ein Bild für den Stapel, keine Leistungszahl.
+// Element mit basis-full in der flex-wrap-Zeile. Die beiden Sätze stehen so
+// auf jeder Bildschirmbreite auf eigenen Zeilen, nie nebeneinander. Bricht
+// ein Satz auf sehr schmalen Bildschirmen zusätzlich in sich um, bleibt der
+// Umbruch zwischen den Sätzen trotzdem bestehen. Kein <br> mit
+// Breakpoint-Klassen, die ihn irgendwo wieder aufheben könnten.
 //
-// Spaltenbreite und Schriftgröße sind auf die längere Zeile abgestimmt:
-// "zur richtigen Einstellung." braucht bei 64 px gut 718 px, die Spalte hatte
-// 620. Mit 60 px und 720 px Spalte steht sie auf dem Desktop in einer Zeile.
-// Nur die Spalte zu verbreitern hätte die Schrift weiter ins Foto geschoben.
+// Die Arbeitsteilung ist die These der Seite: Der Mensch führt die
+// Gespräche (Tinte), Revetly erledigt den Rest (Verlauf).
 const HEADLINE: Array<{ text: string; gradient?: boolean; break?: boolean }> = [
-  { text: "Von" },
-  { text: "100" },
-  { text: "Bewerbungen", break: true },
-  { text: "zur", gradient: true },
-  { text: "richtigen", gradient: true },
-  { text: "Einstellung.", gradient: true },
+  { text: "Du" },
+  { text: "führst" },
+  { text: "die" },
+  { text: "Gespräche.", break: true },
+  { text: "Revetly", gradient: true },
+  { text: "macht", gradient: true },
+  { text: "den", gradient: true },
+  { text: "Rest.", gradient: true },
 ]
 
 const TRUST_ITEMS = ["Entscheidung immer beim Menschen", "Jeder Match belegt", "Verarbeitung in der EU"]
@@ -124,9 +126,9 @@ export function RvHero() {
             ))}
           </h1>
           <p className="mb-[34px] max-w-[520px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-white/74">
-            Revetly übernimmt alles zwischen Stellenanzeige und Zusage: Bewerbungen
-            sammeln, Passung prüfen, Gespräche planen und strukturiert führen. Die
-            Entscheidung triffst du.
+            Revetly liest jede Bewerbung, prüft die Passung mit Beleg, bucht die
+            Termine und schreibt die Absagen. Die Entscheidung, wen du einstellst,
+            bleibt immer deine.
           </p>
           <div className="flex flex-col items-start gap-3">
             <RvButton variant="grad" size="lg" asChild>

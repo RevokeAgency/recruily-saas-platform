@@ -136,10 +136,11 @@ export function RvProblem() {
             Vorher und nachher
           </span>
           <h2 className="mt-[22px] text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-balance text-[var(--rv-ink)]">
-            Bei 100 Bewerbungen entscheidet sonst <span className="rv-gradient-text">der Posteingang.</span>
+            Die beste Bewerbung liegt <span className="rv-gradient-text">selten oben.</span>
           </h2>
           <p className="mx-auto mt-[18px] max-w-[540px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
-            Dieselbe Stelle, dieselben Bewerbungen, zwei sehr verschiedene Wochen.
+            Im Posteingang entscheidet, wer zuerst geschrieben hat. Bei Revetly entscheidet,
+            wer am besten passt.
           </p>
         </div>
 
