@@ -6,6 +6,7 @@ import {
   ensurePrice,
   ensurePortalConfiguration,
   bestActiveSubscription,
+  automaticTaxEnabled,
   PAID_PLANS,
   type PaidPlanId,
   type BillingInterval,
@@ -84,6 +85,16 @@ export async function POST(req: NextRequest) {
       client_reference_id: user.id,
       allow_promotion_codes: true,
       billing_address_collection: "required",
+      // UID des Kunden für die Rechnung. Bei Unternehmen in einem anderen
+      // EU-Land ergibt sich daraus das Reverse-Charge-Verfahren. Freiwillig,
+      // weil die AGB auch Nicht-Unternehmer nicht ausschließen.
+      tax_id_collection: { enabled: true },
+      // Umsatzsteuer nach Land und UID berechnen (Stripe Tax). Erst aktiv,
+      // wenn Stripe Tax im Dashboard eingerichtet ist, siehe automaticTaxEnabled().
+      automatic_tax: { enabled: automaticTaxEnabled() },
+      // Pflicht bei bestehendem Kunden: Name, Adresse und UID aus dem
+      // Checkout werden am Kunden gespeichert und erscheinen auf Rechnungen.
+      customer_update: { name: "auto", address: "auto" },
       subscription_data: { metadata: { user_id: user.id, plan } },
       metadata: { user_id: user.id, plan, interval },
     })

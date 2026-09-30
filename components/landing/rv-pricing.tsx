@@ -199,6 +199,7 @@ export function RvPricing() {
           <p className="mt-[18px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
             Du startest gratis und wechselst erst, wenn dein Volumen wächst.
             Monatlich kündbar, ohne Mindestlaufzeit und ohne Einrichtungsgebühr.
+            Alle Preise zuzüglich Umsatzsteuer.
           </p>
         </div>
 

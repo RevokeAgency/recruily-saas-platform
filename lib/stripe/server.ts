@@ -149,6 +149,22 @@ export function planFromLookupKey(
 }
 
 /**
+ * Steuercode für die automatische Steuerberechnung: Software as a Service
+ * für geschäftliche Nutzung. Revetly richtet sich an Unternehmen (AGB).
+ */
+export const SAAS_TAX_CODE = "txcd_10103001"
+
+/**
+ * Stripe Tax ist nur aktiv, wenn es im Stripe-Dashboard eingerichtet ist
+ * (Steuerregistrierung Österreich, Ursprungsadresse). Sonst lehnt Stripe
+ * jeden Checkout mit automatic_tax ab. Deshalb ein eigener Schalter, der
+ * erst nach der Einrichtung gesetzt wird: STRIPE_AUTOMATIC_TAX=true.
+ */
+export function automaticTaxEnabled(): boolean {
+  return process.env.STRIPE_AUTOMATIC_TAX === "true"
+}
+
+/**
  * Returns the price id for a plan/interval, creating product + price on the
  * fly when missing. Idempotent: prices are addressed by unique lookup_key,
  * products carry metadata.revetly_plan and are reused across intervals.
@@ -161,7 +177,16 @@ export async function ensurePrice(
   const lookupKey = lookupKeyFor(plan, interval)
 
   const existing = await stripe.prices.list({ lookup_keys: [lookupKey], active: true, limit: 1 })
-  if (existing.data[0]) return existing.data[0].id
+  if (existing.data[0]) {
+    const price = existing.data[0]
+    // Ältere Preise wurden ohne Steuerverhalten angelegt. Die Preise sind
+    // netto ("zzgl. MwSt."), Stripe Tax braucht das ausdrücklich. Einmalig
+    // nachtragen, das ist bei "unspecified" erlaubt.
+    if (!price.tax_behavior || price.tax_behavior === "unspecified") {
+      await stripe.prices.update(price.id, { tax_behavior: "exclusive" })
+    }
+    return price.id
+  }
 
   // Find or create the product for this plan.
   const products = await stripe.products.list({ active: true, limit: 100 })
@@ -170,8 +195,11 @@ export async function ensurePrice(
     product = await stripe.products.create({
       name: `Revetly ${PLANS[plan].label}`,
       description: `${PLANS[plan].matches_label} · ${PLANS[plan].jobs_label}`,
+      tax_code: SAAS_TAX_CODE,
       metadata: { revetly_plan: plan },
     })
+  } else if (!product.tax_code) {
+    product = await stripe.products.update(product.id, { tax_code: SAAS_TAX_CODE })
   }
 
   const amount = interval === "yearly" ? PLANS[plan].price_yearly : PLANS[plan].price_monthly
@@ -180,6 +208,8 @@ export async function ensurePrice(
     currency: "eur",
     unit_amount: amount * 100,
     recurring: { interval: interval === "yearly" ? "year" : "month" },
+    // Nettopreise: Die Umsatzsteuer kommt dazu ("zzgl. MwSt.").
+    tax_behavior: "exclusive",
     lookup_key: lookupKey,
     // If a deactivated price still holds the key, take it over instead of failing.
     transfer_lookup_key: true,
