@@ -1,6 +1,9 @@
 import { Check } from "lucide-react"
 
-const TRUST_ITEMS = ["DSGVO-konform", "EU AI Act", "Server in Deutschland"]
+// Nur, was stimmt: Konformität mit der KI-Verordnung ist erst nach der
+// Konformitätsbewertung zu behaupten. Bis dahin steht hier die Zusage, die das
+// Produkt heute schon einlöst.
+const TRUST_ITEMS = ["DSGVO-konform", "Die Entscheidung triffst du", "Server in Deutschland"]
 
 /**
  * Split-screen shell for the full-page auth flows (register/reset), per
