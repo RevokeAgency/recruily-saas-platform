@@ -1,6 +1,7 @@
 import { createClient as createAdmin, type SupabaseClient } from "@supabase/supabase-js"
 
-import { escapeHtml, sendMail, shell } from "@/lib/email/client"
+import { sendMail } from "@/lib/email/client"
+import { MAIL, avatar, button, escapeHtml, eyebrow, heading, panel, paragraph, shell } from "@/lib/email/layout"
 import { absoluteUrl } from "@/lib/site"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -22,6 +23,11 @@ import { absoluteUrl } from "@/lib/site"
 const SOURCE_LABEL: Record<string, string> = {
   public_page: "über deine Stellenseite",
   email: "per E-Mail",
+}
+
+const SOURCE_SHORT: Record<string, string> = {
+  public_page: "Stellenseite",
+  email: "E-Mail",
 }
 
 function admin(): SupabaseClient | null {
@@ -53,19 +59,45 @@ function one<T>(v: T | T[] | null | undefined): T | null {
   return (Array.isArray(v) ? v[0] : v) ?? null
 }
 
-function statusLine(status: string | null, score: number | null): string {
-  if (score != null) return `Match: <strong>${score}</strong>`
-  if (status === "queued") return "Die Analyse wartet, bis in deinem Kontingent wieder Matches frei sind."
-  if (status === "error") return "Die Analyse ist fehlgeschlagen, im Dashboard kannst du sie neu starten."
-  return "Die Analyse läuft noch."
+// Einordnung des Match in Worten. Dieselben Schwellen wie in der
+// Kandidatenansicht (80 und 60), damit Mail und Dashboard dasselbe sagen.
+function band(score: number): { label: string; color: string; bg: string } {
+  if (score >= 80) return { label: "Sehr gute Passung", color: MAIL.greenDeep, bg: "#DDF6EA" }
+  if (score >= 60) return { label: "Gute Passung", color: "#0B7FA3", bg: "#DDF3FB" }
+  return { label: "Geringe Passung", color: MAIL.muted, bg: "#EAF0ED" }
 }
 
-function button(href: string, label: string): string {
-  return `<p style="margin: 24px 0;"><a href="${href}" style="background: #0C1A16; color: #ffffff; padding: 12px 22px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px;">${escapeHtml(label)}</a></p>`
+function statusChip(status: string | null): string {
+  const text = status === "queued" ? "Wartet auf Kontingent" : status === "error" ? "Analyse fehlgeschlagen" : "Analyse läuft"
+  return `<span style="display:inline-block;padding:5px 11px;border-radius:999px;background:#EAF0ED;font-size:12px;font-weight:700;color:${MAIL.muted};white-space:nowrap;">${text}</span>`
 }
 
-const FOOTER =
-  '<p style="margin: 24px 0 0; font-size: 12px; color: #94a3b8;">Diese Benachrichtigungen stellst du in den Einstellungen unter „Benachrichtigungen“ ein.</p>'
+/** Rechte Spalte der Kandidatenzeile: Match als Zahl mit Einordnung, sonst der Stand. */
+function scoreCell(score: number | null, status: string | null, size: "lg" | "sm"): string {
+  if (score == null) return statusChip(status)
+  const b = band(score)
+  if (size === "sm") {
+    return `<span style="display:inline-block;min-width:34px;padding:5px 10px;border-radius:999px;background:${b.bg};font-size:14px;font-weight:800;color:${MAIL.ink};text-align:center;">${score}</span>`
+  }
+  return `<div style="font-size:34px;line-height:1;font-weight:800;letter-spacing:-0.03em;color:${MAIL.ink};">${score}</div>
+    <div style="margin-top:6px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:${MAIL.greenDeep};">Match</div>`
+}
+
+/** Karte mit Initialen, Name, Stelle und Match. */
+function candidateCard(opts: { name: string; meta: string; score: number | null; status: string | null }): string {
+  const b = opts.score != null ? band(opts.score) : null
+  return panel(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td width="44" valign="middle">${avatar(opts.name)}</td>
+    <td valign="middle" style="padding:0 12px 0 14px;">
+      <div style="font-size:17px;line-height:1.3;font-weight:800;letter-spacing:-0.015em;color:${MAIL.ink};">${escapeHtml(opts.name)}</div>
+      <div style="margin-top:3px;font-size:13px;line-height:1.45;color:${MAIL.muted};">${opts.meta}</div>
+      ${b ? `<div style="margin-top:9px;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${b.bg};font-size:12px;font-weight:700;color:${b.color};">${b.label}</span></div>` : ""}
+    </td>
+    <td valign="middle" align="right" style="white-space:nowrap;">${scoreCell(opts.score, opts.status, "lg")}</td>
+  </tr></table>`)
+}
+
+const SETTINGS_NOTE = `Diese Benachrichtigungen stellst du in den <a href="${absoluteUrl("/settings")}" style="color:${MAIL.muted};text-decoration:underline;">Einstellungen</a> ein.`
 
 /**
  * Sofortmail für eine neue Bewerbung. Best-effort: wirft nie, liefert false,
@@ -91,15 +123,33 @@ export async function notifyNewApplication(linkId: string): Promise<boolean> {
     const name = one(link.candidate as { full_name?: string } | { full_name?: string }[] | null)?.full_name || "Eine Person"
     const source = SOURCE_LABEL[(link.source as string) ?? ""] ?? ""
 
+    const score = (link.match_score as number | null) ?? null
+    const status = (link.status as string | null) ?? null
+    const sourceShort = SOURCE_SHORT[(link.source as string) ?? ""]
+    const note =
+      status === "queued"
+        ? "Die Analyse startet, sobald in deinem Kontingent wieder Matches frei sind."
+        : status === "error"
+          ? "Die Analyse ist fehlgeschlagen. Im Dashboard kannst du sie neu starten."
+          : score == null
+            ? "Die Analyse läuft noch. Den Match siehst du in wenigen Augenblicken im Dashboard."
+            : "Im Dashboard findest du die Unterlagen, die Belege zum Match und einen Gesprächsleitfaden."
+
     const body = `
-      <p style="margin: 0 0 16px;">Für <strong>${escapeHtml(job)}</strong> ist ${source ? `${source} ` : ""}eine neue Bewerbung eingegangen:</p>
-      <p style="margin: 0 0 8px; font-size: 17px;"><strong>${escapeHtml(name)}</strong></p>
-      <p style="margin: 0 0 16px;">${statusLine(link.status as string, (link.match_score as number | null) ?? null)}</p>
+      ${eyebrow("Neue Bewerbung")}
+      ${heading(`${name} hat sich beworben`)}
+      ${paragraph(`Für <strong style="color:${MAIL.ink};">${escapeHtml(job)}</strong> ist ${source ? `${source} ` : ""}eine neue Bewerbung eingegangen.`)}
+      ${candidateCard({ name, meta: `${escapeHtml(job)}${sourceShort ? ` · ${sourceShort}` : ""}`, score, status })}
       ${button(absoluteUrl(`/jobs/${link.job_id}`), "Bewerbung ansehen")}
-      ${FOOTER}
+      ${paragraph(note, { muted: true, small: true, last: true })}
     `
+    const preheader = score != null ? `Match ${score} · ${band(score).label} · ${job}` : `${job} · ${source || "neue Bewerbung"}`
     return await sendMail(
-      { to, subject: `Neue Bewerbung: ${name} für ${job}`, html: shell("Revetly", body) },
+      {
+        to,
+        subject: `Neue Bewerbung: ${name} für ${job}`,
+        html: shell("Revetly", body, { preheader, footerNote: SETTINGS_NOTE }),
+      },
       "Neue Bewerbung",
     )
   } catch (err) {
@@ -160,31 +210,50 @@ export async function sendApplicationDigests(): Promise<{ accounts: number; sent
           const title = one(list[0].job)?.title || "Stelle"
           const items = [...list]
             .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1))
-            .map((r) => {
+            .map((r, i, all) => {
               const name = one(r.candidate)?.full_name || "Eine Person"
-              const score = r.match_score != null ? `Match ${r.match_score}` : r.status === "queued" ? "wartet auf Kontingent" : "Analyse läuft"
-              return `<li style="margin: 0 0 6px;"><strong>${escapeHtml(name)}</strong> · ${score}</li>`
+              const source = SOURCE_SHORT[r.source ?? ""] ?? ""
+              // Gleicher Abstand über und unter jeder Trennlinie.
+              const pad = `padding:${i ? 12 : 0}px 0 ${i < all.length - 1 ? 12 : 0}px;`
+              const rule = i < all.length - 1 ? `border-bottom:1px solid ${MAIL.line};` : ""
+              return `<tr>
+                <td width="34" valign="middle" style="${pad}${rule}">${avatar(name, 34)}</td>
+                <td valign="middle" style="${pad}padding-left:12px;padding-right:10px;${rule}">
+                  <div style="font-size:15px;font-weight:700;color:${MAIL.ink};">${escapeHtml(name)}</div>
+                  ${source ? `<div style="font-size:12px;color:${MAIL.faint};">${source}</div>` : ""}
+                </td>
+                <td valign="middle" align="right" style="${pad}white-space:nowrap;${rule}">${scoreCell(r.match_score, r.status, "sm")}</td>
+              </tr>`
             })
             .join("")
           return `
-            <p style="margin: 20px 0 8px;"><a href="${absoluteUrl(`/jobs/${jobId}`)}" style="color: #0C1A16; font-weight: 700;">${escapeHtml(title)}</a> (${list.length})</p>
-            <ul style="margin: 0; padding-left: 18px;">${items}</ul>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 10px;"><tr>
+              <td><a href="${absoluteUrl(`/jobs/${jobId}`)}" style="font-size:16px;font-weight:800;letter-spacing:-0.01em;color:${MAIL.ink};text-decoration:none;">${escapeHtml(title)}</a></td>
+              <td align="right"><span style="display:inline-block;padding:3px 10px;border-radius:999px;background:#DDF6EA;font-size:12px;font-weight:800;color:${MAIL.greenDeep};">${list.length} neu</span></td>
+            </tr></table>
+            ${panel(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${items}</table>`)}
           `
         })
         .join("")
 
       const count = rows.length
+      const jobs = byJob.size
+      const best = rows.reduce<number | null>((m, r) => (r.match_score != null && (m == null || r.match_score > m) ? r.match_score : m), null)
       const body = `
-        <p style="margin: 0 0 8px;">In den letzten 24 Stunden ${count === 1 ? "ist eine neue Bewerbung" : `sind ${count} neue Bewerbungen`} eingegangen.</p>
+        ${eyebrow("Tägliche Zusammenfassung")}
+        ${heading(count === 1 ? "Eine neue Bewerbung seit gestern" : `${count} neue Bewerbungen seit gestern`)}
+        ${paragraph(`Verteilt auf ${jobs === 1 ? "eine Stelle" : `${jobs} Stellen`}, innerhalb jeder Stelle nach Match sortiert.`, { muted: true })}
         ${sections}
         ${button(absoluteUrl("/dashboard"), "Zum Dashboard")}
-        ${FOOTER}
       `
       const ok = await sendMail(
         {
           to,
           subject: count === 1 ? "1 neue Bewerbung seit gestern" : `${count} neue Bewerbungen seit gestern`,
-          html: shell("Revetly", body),
+          html: shell("Revetly", body, {
+            preheader: best != null ? `Bester Match: ${best} · ${jobs === 1 ? "1 Stelle" : `${jobs} Stellen`}` : `${jobs === 1 ? "1 Stelle" : `${jobs} Stellen`}`,
+            footerNote: SETTINGS_NOTE,
+          }),
         },
         "Tägliche Zusammenfassung",
       )

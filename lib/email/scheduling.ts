@@ -1,4 +1,5 @@
-import { escapeHtml, sendMail, shell, type MailAttachment } from "./client"
+import { sendMail, type MailAttachment } from "./client"
+import { MAIL, button as mailButton, details, escapeHtml, eyebrow, heading, panel, paragraph, shell } from "./layout"
 import { buildIcs } from "@/lib/scheduling/ics"
 import { formatInZone, zoneAbbreviation } from "@/lib/scheduling/timezone"
 import { LOCATION_LABELS, type LocationKind } from "@/lib/scheduling/types"
@@ -9,15 +10,16 @@ import { LOCATION_LABELS, type LocationKind } from "@/lib/scheduling/types"
 // damit eine Buchung nie an einem Mailfehler scheitert.
 
 
+// Mails an Bewerber kommen vom Unternehmen, deshalb ein neutraler dunkler
+// Knopf statt des Revetly-Verlaufs.
 function button(href: string, label: string): string {
-  return `
-    <p style="margin: 0 0 24px;">
-      <a href="${href}" style="display:inline-block;background:#0C1A16;color:#fff;font-weight:700;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:14px;">
-        ${escapeHtml(label)}
-      </a>
-    </p>
-  `
+  return mailButton(href, label, { variant: "dark" })
 }
+
+const SIGN = (company: string) =>
+  `<p style="margin:26px 0 0;color:${MAIL.text};">Freundliche Grüße<br><strong style="color:${MAIL.ink};">${escapeHtml(company)}</strong></p>`
+
+const note = (text: string) => panel(`<div style="font-size:14px;line-height:1.6;color:${MAIL.text};">${escapeHtml(text).replace(/\n/g, "<br>")}</div>`)
 
 /** Ort des Termins als lesbare Zeile, für Mail und Kalendereintrag. */
 export function locationLine(
@@ -62,32 +64,24 @@ export async function sendBookingInvite(opts: {
   const job = opts.jobTitle?.trim()
 
   const body = `
-    <p style="margin: 0 0 16px;">${greeting}</p>
-    <p style="margin: 0 0 16px;">
-      wir würden Sie gerne zu einem Gespräch${job ? ` zur Stelle <strong>${escapeHtml(job)}</strong>` : ""} einladen.
-      Suchen Sie sich einfach den Termin aus, der Ihnen am besten passt.
-    </p>
-    <p style="margin: 0 0 20px;">
-      <strong>${escapeHtml(opts.meetingTypeName)}</strong>, ${opts.durationMinutes} Minuten
-    </p>
+    ${eyebrow("Einladung zum Gespräch")}
+    ${heading("Wählen Sie Ihren Termin")}
+    ${paragraph(`${greeting} wir würden Sie gerne zu einem Gespräch${job ? ` zur Stelle <strong style="color:${MAIL.ink};">${escapeHtml(job)}</strong>` : ""} einladen. Suchen Sie sich einfach den Termin aus, der Ihnen am besten passt.`)}
+    ${details([
+      ["Was", `<strong>${escapeHtml(opts.meetingTypeName)}</strong>`],
+      ["Dauer", `${opts.durationMinutes} Minuten`],
+    ])}
+    ${opts.personalNote?.trim() ? note(opts.personalNote.trim()) : ""}
     ${button(opts.bookingUrl, "Termin auswählen")}
-    ${
-      opts.personalNote?.trim()
-        ? `<p style="margin: 0 0 16px; padding: 14px 16px; background:#F4F7F6; border-radius:12px;">${escapeHtml(opts.personalNote.trim()).replace(/\n/g, "<br>")}</p>`
-        : ""
-    }
-    <p style="margin: 0 0 16px; color:#64707B; font-size:13px;">
-      Der Link gilt bis ${escapeHtml(formatInZone(opts.expiresAt, opts.timezone))} Uhr und ist nur für Sie bestimmt.
-      Passt kein Termin? Antworten Sie einfach auf diese E-Mail.
-    </p>
-    <p style="margin: 24px 0 0;">Freundliche Grüße<br>${escapeHtml(company)}</p>
+    ${paragraph(`Der Link gilt bis ${escapeHtml(formatInZone(opts.expiresAt, opts.timezone))} Uhr und ist nur für Sie bestimmt. Passt kein Termin? Antworten Sie einfach auf diese E-Mail.`, { muted: true, small: true, last: true })}
+    ${SIGN(company)}
   `
 
   return sendMail(
     {
       to: opts.to,
       subject: job ? `Terminvorschlag: Gespräch zur Stelle ${job}` : "Terminvorschlag für ein Gespräch",
-      html: shell(company, body),
+      html: shell(company, body, { preheader: `${opts.meetingTypeName}, ${opts.durationMinutes} Minuten. Wählen Sie einen passenden Termin.` }),
     },
     "Buchungseinladung",
   )
@@ -160,28 +154,29 @@ export async function sendBookingConfirmation(ctx: BookingMailContext): Promise<
   const greeting = ctx.candidateName?.trim() ? `Hallo ${escapeHtml(ctx.candidateName.trim())},` : "Hallo,"
 
   const body = `
-    <p style="margin: 0 0 16px;">${greeting}</p>
-    <p style="margin: 0 0 20px;">Ihr Termin steht.</p>
-    <table style="width:100%; border-collapse:collapse; margin:0 0 22px;">
-      <tr><td style="padding:6px 0; color:#64707B; width:110px;">Wann</td><td style="padding:6px 0;"><strong>${escapeHtml(whenLine(ctx))}</strong></td></tr>
-      <tr><td style="padding:6px 0; color:#64707B;">Dauer</td><td style="padding:6px 0;">${Math.round((ctx.end.getTime() - ctx.start.getTime()) / 60000)} Minuten</td></tr>
-      <tr><td style="padding:6px 0; color:#64707B;">Was</td><td style="padding:6px 0;">${escapeHtml(ctx.meetingTypeName)}${ctx.jobTitle ? ` zur Stelle ${escapeHtml(ctx.jobTitle)}` : ""}</td></tr>
-      <tr><td style="padding:6px 0; color:#64707B;">Wo</td><td style="padding:6px 0;">${escapeHtml(locationLine(ctx.locationKind, ctx.locationValue, ctx.meetingUrl))}</td></tr>
-    </table>
+    ${eyebrow("Termin bestätigt")}
+    ${heading("Ihr Termin steht")}
+    ${paragraph(`${greeting} wir freuen uns auf das Gespräch. Den Termin finden Sie auch als Kalendereintrag im Anhang.`)}
+    ${details([
+      ["Wann", `<strong>${escapeHtml(whenLine(ctx))}</strong>`],
+      ["Dauer", `${Math.round((ctx.end.getTime() - ctx.start.getTime()) / 60000)} Minuten`],
+      ["Was", `${escapeHtml(ctx.meetingTypeName)}${ctx.jobTitle ? ` zur Stelle ${escapeHtml(ctx.jobTitle)}` : ""}`],
+      ["Wo", escapeHtml(locationLine(ctx.locationKind, ctx.locationValue, ctx.meetingUrl))],
+    ])}
     ${ctx.meetingUrl ? button(ctx.meetingUrl, "Zum Videocall") : ""}
     ${
       ctx.manageUrl
-        ? `<p style="margin: 0 0 16px; color:#64707B; font-size:13px;">Sie können den Termin jederzeit <a href="${ctx.manageUrl}" style="color:#0E9F62;">verschieben oder absagen</a>.</p>`
+        ? paragraph(`Sie können den Termin jederzeit <a href="${ctx.manageUrl}" style="color:${MAIL.greenDeep};font-weight:700;">verschieben oder absagen</a>.`, { muted: true, small: true, last: true })
         : ""
     }
-    <p style="margin: 24px 0 0;">Freundliche Grüße<br>${escapeHtml(company)}</p>
+    ${SIGN(company)}
   `
 
   return sendMail(
     {
       to: ctx.candidateEmail,
       subject: `Termin bestätigt: ${formatInZone(ctx.start, ctx.timezone)} Uhr`,
-      html: shell(company, body),
+      html: shell(company, body, { preheader: `${whenLine(ctx)} · ${ctx.meetingTypeName}` }),
       attachments: [icsAnhang(ctx, "REQUEST")],
     },
     "Terminbestätigung",
@@ -192,23 +187,24 @@ export async function sendBookingConfirmation(ctx: BookingMailContext): Promise<
 export async function sendRecruiterBookingNotice(ctx: BookingMailContext): Promise<boolean> {
   if (!ctx.recruiterEmail) return false
 
+  const who = ctx.candidateName || ctx.candidateEmail || "Ein Bewerber"
   const body = `
-    <p style="margin: 0 0 16px;">
-      <strong>${escapeHtml(ctx.candidateName || ctx.candidateEmail || "Ein Bewerber")}</strong> hat einen Termin gebucht.
-    </p>
-    <table style="width:100%; border-collapse:collapse; margin:0 0 22px;">
-      <tr><td style="padding:6px 0; color:#64707B; width:110px;">Wann</td><td style="padding:6px 0;"><strong>${escapeHtml(whenLine(ctx))}</strong></td></tr>
-      <tr><td style="padding:6px 0; color:#64707B;">Was</td><td style="padding:6px 0;">${escapeHtml(ctx.meetingTypeName)}${ctx.jobTitle ? ` zur Stelle ${escapeHtml(ctx.jobTitle)}` : ""}</td></tr>
-      <tr><td style="padding:6px 0; color:#64707B;">Wo</td><td style="padding:6px 0;">${escapeHtml(locationLine(ctx.locationKind, ctx.locationValue, ctx.meetingUrl))}</td></tr>
-      ${ctx.candidateEmail ? `<tr><td style="padding:6px 0; color:#64707B;">Kontakt</td><td style="padding:6px 0;">${escapeHtml(ctx.candidateEmail)}</td></tr>` : ""}
-    </table>
+    ${eyebrow("Neuer Termin")}
+    ${heading(`${who} hat einen Termin gebucht`)}
+    ${details([
+      ["Wann", `<strong>${escapeHtml(whenLine(ctx))}</strong>`],
+      ["Was", `${escapeHtml(ctx.meetingTypeName)}${ctx.jobTitle ? ` zur Stelle ${escapeHtml(ctx.jobTitle)}` : ""}`],
+      ["Wo", escapeHtml(locationLine(ctx.locationKind, ctx.locationValue, ctx.meetingUrl))],
+      ...(ctx.candidateEmail ? ([["Kontakt", escapeHtml(ctx.candidateEmail)]] as Array<[string, string]>) : []),
+    ])}
+    ${paragraph("Der Termin ist als Kalendereintrag angehängt und steht in deinem verbundenen Kalender.", { muted: true, small: true, last: true })}
   `
 
   return sendMail(
     {
       to: ctx.recruiterEmail,
       subject: `Neuer Termin: ${ctx.candidateName || "Bewerber"} am ${formatInZone(ctx.start, ctx.timezone)}`,
-      html: shell("Revetly", body),
+      html: shell("Revetly", body, { preheader: `${whenLine(ctx)} · ${ctx.meetingTypeName}` }),
       attachments: [icsAnhang(ctx, "REQUEST")],
     },
     "Recruiter-Benachrichtigung",
@@ -223,18 +219,12 @@ export async function sendBookingCancellation(
 
   const company = (ctx.companyName || "Revetly").trim()
   const body = `
-    <p style="margin: 0 0 16px;">
-      Der Termin am <strong>${escapeHtml(whenLine(ctx))}</strong> wurde abgesagt${
-        opts.byRecruiter ? "" : " (durch den Bewerber)"
-      }.
-    </p>
-    ${
-      opts.reason?.trim()
-        ? `<p style="margin: 0 0 16px; padding: 14px 16px; background:#F4F7F6; border-radius:12px;">${escapeHtml(opts.reason.trim())}</p>`
-        : ""
-    }
+    ${eyebrow("Termin abgesagt")}
+    ${heading(opts.byRecruiter ? "Der Termin findet nicht statt" : "Der Bewerber hat den Termin abgesagt")}
+    ${paragraph(`Der Termin am <strong style="color:${MAIL.ink};">${escapeHtml(whenLine(ctx))}</strong> wurde abgesagt.`)}
+    ${opts.reason?.trim() ? note(opts.reason.trim()) : ""}
     ${opts.rebookUrl ? button(opts.rebookUrl, "Neuen Termin wählen") : ""}
-    <p style="margin: 24px 0 0;">Freundliche Grüße<br>${escapeHtml(company)}</p>
+    ${SIGN(company)}
   `
 
   return sendMail(

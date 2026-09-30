@@ -121,30 +121,6 @@ export async function sendMail(mail: MailInput, label: string): Promise<boolean>
 }
 
 // ── Gemeinsame Bausteine der Mailvorlagen ───────────────────────────────────
-
-export function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-}
-
-/** Wickelt einen Textkörper (bereits escaptes HTML) in die Revetly-Hülle. */
-export function shell(companyName: string, bodyHtml: string): string {
-  return `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-      <div style="margin-bottom: 32px;">
-        <span style="background: #16C77C; color: #0C1A16; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;">
-          ${escapeHtml(companyName)}
-        </span>
-      </div>
-      <div style="color: #334155; line-height: 1.7; font-size: 15px;">
-        ${bodyHtml}
-      </div>
-      <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 11px;">
-        Powered by REVETLY — revetly.ai
-      </div>
-    </div>
-  `
-}
+// Liegen in ./layout.ts (Designsystem aller Mails). Hier weitergereicht, damit
+// bestehende Importe aus ./client unverändert funktionieren.
+export { escapeHtml, shell } from "./layout"

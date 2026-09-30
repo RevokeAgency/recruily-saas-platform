@@ -1,4 +1,5 @@
 import { sendMail } from "@/lib/email/client"
+import { MAIL, shell } from "@/lib/email/layout"
 import { MAX_REJECTION_TEXT, defaultRejectionText } from "@/lib/email/rejection-text"
 
 // Absage-Mails an Bewerber. Genutzt von der Einzelabsage (/api/send-rejection)
@@ -30,27 +31,18 @@ export async function sendRejectionMail(input: {
 }): Promise<boolean> {
   const custom = input.text?.trim().slice(0, MAX_REJECTION_TEXT)
   const text = custom || defaultRejectionText(input.candidateName, input.jobTitle, input.companyName)
-  const company = escapeHtml(input.companyName)
 
   return sendMail(
     {
       to: input.to,
       subject: `Ihre Bewerbung als ${input.jobTitle} bei ${input.companyName}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-          <div style="margin-bottom: 32px;">
-            <span style="background: #0d9488; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-              ${company}
-            </span>
-          </div>
-          <div style="white-space: pre-line; color: #334155; line-height: 1.7; font-size: 15px;">
-            ${escapeHtml(text)}
-          </div>
-          <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 11px;">
-            Powered by REVETLY, revetly.ai
-          </div>
-        </div>
-      `,
+      // Ohne Überschrift und Oberzeile: Eine Absage soll wie ein Brief wirken,
+      // nicht wie eine Systemmeldung. Der Text bleibt, wie er geschrieben ist.
+      html: shell(
+        input.companyName,
+        `<div style="white-space:pre-line;font-size:15px;line-height:1.7;color:${MAIL.text};">${escapeHtml(text)}</div>`,
+        { preheader: `Rückmeldung zu Ihrer Bewerbung als ${input.jobTitle}` },
+      ),
     },
     "Absage",
   )

@@ -1,4 +1,5 @@
-import { escapeHtml, sendMail, shell } from "./client"
+import { sendMail } from "./client"
+import { MAIL, button, details, escapeHtml, eyebrow, heading, paragraph, shell } from "./layout"
 
 // Transaktionsmails rund um die Bewerbung. Der Versand selbst liegt in
 // ./client.ts (Lettermint, Europa) — hier stehen nur noch die Inhalte.
@@ -24,29 +25,30 @@ export async function sendApplicationReceived(opts: {
   const greetName = opts.candidateName?.trim()
   const greeting = greetName ? `Hallo ${escapeHtml(greetName)},` : "Hallo,"
 
+  const received = new Date().toLocaleDateString("de-AT", { timeZone: "Europe/Vienna", day: "numeric", month: "long", year: "numeric" })
   const body = `
-    <p style="margin: 0 0 16px;">${greeting}</p>
-    <p style="margin: 0 0 16px;">
-      vielen Dank für Ihre Bewerbung als <strong>${escapeHtml(job)}</strong>${
-        company !== "Revetly" ? ` bei <strong>${escapeHtml(company)}</strong>` : ""
-      }. Wir haben Ihre Unterlagen erhalten und bestätigen hiermit den Eingang.
-    </p>
-    <p style="margin: 0 0 16px;">
-      Ihre Bewerbung wird nun geprüft. Sie hören von uns, sobald es einen
-      nächsten Schritt gibt. Bitte antworten Sie nicht auf diese automatische
-      Nachricht.
-    </p>
-    <p style="margin: 0 0 16px; font-size: 13px; color: #64748b;">
-      Hinweis: Ihre Unterlagen werden mit Unterstützung von KI ausgewertet und nach
-      ihrer Passung zur Stelle geordnet. Wen wir einladen und wen wir auswählen,
-      entscheidet ein Mensch. Ihre Daten werden spätestens sechs Monate nach
-      Abschluss des Verfahrens gelöscht.
-    </p>
-    <p style="margin: 24px 0 0;">Freundliche Grüße<br>${escapeHtml(company)}</p>
+    ${eyebrow("Bewerbung eingegangen")}
+    ${heading("Vielen Dank für Ihre Bewerbung")}
+    ${paragraph(`${greeting} wir haben Ihre Unterlagen erhalten und bestätigen hiermit den Eingang.`)}
+    ${details([
+      ["Stelle", `<strong>${escapeHtml(job)}</strong>`],
+      ...(company !== "Revetly" ? ([["Bei", escapeHtml(company)]] as Array<[string, string]>) : []),
+      ["Eingang", escapeHtml(received)],
+    ])}
+    ${paragraph("Ihre Bewerbung wird nun geprüft. Sie hören von uns, sobald es einen nächsten Schritt gibt. Bitte antworten Sie nicht auf diese automatische Nachricht.")}
+    ${paragraph(
+      "Hinweis: Ihre Unterlagen werden mit Unterstützung von KI ausgewertet und nach ihrer Passung zur Stelle geordnet. Wen wir einladen und wen wir auswählen, entscheidet ein Mensch. Ihre Daten werden spätestens sechs Monate nach Abschluss des Verfahrens gelöscht.",
+      { muted: true, small: true },
+    )}
+    <p style="margin:24px 0 0;color:${MAIL.text};">Freundliche Grüße<br><strong style="color:${MAIL.ink};">${escapeHtml(company)}</strong></p>
   `
 
   return sendMail(
-    { to, subject: `Eingangsbestätigung: Ihre Bewerbung als ${job}`, html: shell(company, body) },
+    {
+      to,
+      subject: `Eingangsbestätigung: Ihre Bewerbung als ${job}`,
+      html: shell(company, body, { preheader: `Ihre Unterlagen für ${job} sind angekommen.` }),
+    },
     "Eingangsbestätigung",
   )
 }
@@ -104,25 +106,19 @@ export async function sendDeletionConfirmation(opts: {
   if (!opts.to) return false
 
   const body = `
-    <p style="margin: 0 0 16px;">Hallo,</p>
-    <p style="margin: 0 0 16px;">
-      du hast die Löschung deiner Bewerberdaten angefragt. Bitte bestätige die
-      Löschung über den folgenden Button. Der Link ist 48 Stunden gültig.
-    </p>
-    <p style="margin: 0 0 24px;">
-      <a href="${opts.confirmUrl}" style="display:inline-block;background:#0C1A16;color:#fff;font-weight:700;text-decoration:none;padding:12px 20px;border-radius:999px;font-size:14px;">
-        Löschung bestätigen
-      </a>
-    </p>
-    <p style="margin: 0 0 16px; color:#64707B; font-size:13px;">
-      Wenn du diese Anfrage nicht gestellt hast, ignoriere diese E-Mail einfach —
-      es wird nichts gelöscht.
-    </p>
-    <p style="margin: 24px 0 0;">Freundliche Grüße<br>Revetly</p>
+    ${eyebrow("Datenschutz")}
+    ${heading("Löschung deiner Daten bestätigen")}
+    ${paragraph("Du hast die Löschung deiner Bewerberdaten angefragt. Bestätige sie über den folgenden Knopf. Der Link ist 48 Stunden gültig.")}
+    ${button(opts.confirmUrl, "Löschung bestätigen", { variant: "dark" })}
+    ${paragraph("Wenn du diese Anfrage nicht gestellt hast, ignoriere diese E-Mail einfach. Dann wird nichts gelöscht.", { muted: true, small: true, last: true })}
   `
 
   return sendMail(
-    { to: opts.to, subject: "Löschung deiner Bewerberdaten bestätigen", html: shell("Revetly", body) },
+    {
+      to: opts.to,
+      subject: "Löschung deiner Bewerberdaten bestätigen",
+      html: shell("Revetly", body, { preheader: "Ein Klick, dann sind deine Bewerberdaten gelöscht. Der Link gilt 48 Stunden." }),
+    },
     "Löschbestätigung",
   )
 }
