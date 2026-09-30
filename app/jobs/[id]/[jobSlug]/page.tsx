@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
 import { PublicJobView, type PublicJob } from "@/components/public/public-job"
+import { jobPostingJsonLd } from "@/lib/seo/job-posting"
+import { absoluteUrl } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
 
@@ -17,7 +19,10 @@ function anonClient() {
   )
 }
 
-async function resolve(customerSlug: string, jobSlug: string): Promise<{ job: PublicJob; logoUrl: string | null } | null> {
+async function resolve(
+  customerSlug: string,
+  jobSlug: string,
+): Promise<{ job: PublicJob; logoUrl: string | null; createdAt: string | null } | null> {
   const supabase = anonClient()
   const { data, error } = await supabase.rpc("public_job_by_slug", {
     p_customer_slug: customerSlug,
@@ -39,6 +44,8 @@ async function resolve(customerSlug: string, jobSlug: string): Promise<{ job: Pu
       is_active: Boolean(d.is_active),
     },
     logoUrl: (d.logo_url as string) ?? null,
+    // Seit Migration 031 liefert die Abfrage das Veröffentlichungsdatum mit.
+    createdAt: (d.created_at as string) ?? null,
   }
 }
 
@@ -51,6 +58,9 @@ export async function generateMetadata(
   return {
     title: `${res.job.title} · ${res.job.company}`,
     description: `Jetzt bewerben als ${res.job.title} bei ${res.job.company}.`,
+    alternates: { canonical: absoluteUrl(`/jobs/${customerSlug}/${jobSlug}`) },
+    // Geschlossene Stellen raus aus dem Index, wie Google es für Jobs verlangt.
+    ...(res.job.is_active ? {} : { robots: { index: false, follow: false } }),
   }
 }
 
@@ -60,5 +70,23 @@ export default async function PublicJobPage(
   const { id: customerSlug, jobSlug } = await params
   const res = await resolve(customerSlug, jobSlug)
   if (!res) notFound()
-  return <PublicJobView job={res.job} logoUrl={res.logoUrl} />
+
+  // Google for Jobs: strukturierte Daten für die Jobsuche (lib/seo/job-posting.ts).
+  const jsonLd = jobPostingJsonLd(
+    { ...res.job, created_at: res.createdAt },
+    { url: absoluteUrl(`/jobs/${customerSlug}/${jobSlug}`), logoUrl: res.logoUrl },
+  )
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          // "<" maskiert, damit Text aus der Stellenbeschreibung das Script-Tag nicht schließen kann.
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+        />
+      )}
+      <PublicJobView job={res.job} logoUrl={res.logoUrl} />
+    </>
+  )
 }
