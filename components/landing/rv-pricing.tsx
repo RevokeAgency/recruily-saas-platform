@@ -168,9 +168,11 @@ const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values:
     ],
   },
   {
-    group: "Team & Support",
+    // Keine Zeile "Teammitglieder": Teamzugänge gibt es noch nicht, und was
+    // die Tabelle verspricht, muss das Produkt können. Kommt zurück, sobald
+    // mehrere Nutzer pro Konto möglich sind.
+    group: "Daten & Support",
     rows: [
-      { label: "Teammitglieder", values: ["1", "2", "5", "Unbegrenzt", "Unbegrenzt"] },
       { label: "DSGVO-Export", values: [false, true, true, true, true] },
       { label: "Support", values: ["Community", "E-Mail", "Priorität", "Fest zugeordnet", "SLA"] },
     ],
