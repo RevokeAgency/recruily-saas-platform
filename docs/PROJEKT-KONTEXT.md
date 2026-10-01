@@ -308,9 +308,10 @@ Vollständig und abhakbar in `docs/GO-LIVE.md`. Die Blocker in Kürze:
    Firmenbuchnummer, UID, WKO-Fachgruppe), AGB (Gerichtsstand), Datenschutz
    (Verantwortlicher). Beim Impressum sind das Pflichtangaben nach ECG und UGB,
    in AT und DE unmittelbar abmahnfähig.
-3. **Migrationsstand.** 030 (Befunde der Dokumentprüfung) und 031
+3. **Migrationsstand.** 030 (Befunde der Dokumentprüfung), 031
    (Benachrichtigungen, Talent-Pool-Einwilligung, Google for Jobs,
-   Entscheidungsprotokoll) sind angelegt, aber noch nicht eingespielt. 023, 028 und 029 sind seit 25.09.2026 eingespielt,
+   Entscheidungsprotokoll) und 032 (Gehalt auf der Stellenseite,
+   Bewerberfotos privat) sind angelegt, aber noch nicht eingespielt. 023, 028 und 029 sind seit 25.09.2026 eingespielt,
    019 bis 022 waren es laut Inhaber schon vorher. Für 015 bis 018 und 024
    bis 027 steht die Bestätigung noch aus; `015_rls_hardening.sql` ist dabei
    der wichtigste Einzelpunkt, ohne sie sind die Daten nicht owner-scoped.
@@ -415,8 +416,12 @@ Stellen in der Sitemap); KI-Verordnung als Produktfunktion: Seite
 Entscheidungsprotokoll mit CSV-Export pro Stelle, Hinweis an Bewerber auch in
 der Eingangsbestätigung, Bestätigung der menschlichen Prüfung beim Abschließen
 einer Stelle, Gleichbehandlungsregel in allen Prompts mit Bewerbertext.
-Gefunden, aber nicht umgesetzt: Datenexport und Kontolöschung in den
-Einstellungen sind ohne Funktion.
+Am 01.10.2026 nachgezogen: Datenexport und Kontolöschung funktionieren,
+Scheinfunktionen in den Einstellungen entfernt, Gehalt auf der Stellenseite
+(Pflicht in Österreich), Bewerberfotos privat, Typprüfung im Build scharf,
+ESLint, 45 Tests und eine GitHub-Action. Bewusst nicht gebaut: Fotos in den
+Benachrichtigungsmails (erster Eindruck sollte nicht das Aussehen sein, Kopien
+in Postfächern lassen sich nicht löschen).
 
 **Bei v2 wurde das Produkt an die Texte angepasst, nicht umgekehrt.** Die
 Gegenprüfung ergab vier Aussagen, die der Code nicht deckte. Entscheidung des

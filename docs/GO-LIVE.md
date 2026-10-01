@@ -45,13 +45,11 @@ Stand der Durchsicht: 19.09.2026.
 - [ ] **Rechtstexte enthalten Platzhalter** (siehe Abschnitt DSGVO weiter
       unten). Beim Impressum sind das Pflichtangaben nach ECG und UGB, das ist
       in AT und DE unmittelbar abmahnfähig.
-- [ ] **„Daten exportieren“ und „Konto löschen“ in den Einstellungen haben
-      keine Funktion** (gefunden 30.09.2026). Der Export zeigt nur die Meldung
-      „Du erhältst eine E-Mail“, verschickt aber nichts, der Löschknopf tut
-      nichts. Beides wird in der Hilfe versprochen, der Export zusätzlich in
-      der Preistabelle („DSGVO-Export“). Entweder bauen oder die Versprechen
-      entfernen. Ebenfalls ohne Funktion: die Schalter „Produkt-Updates“ und
-      „Marketing E-Mails“.
+- [x] **Datenexport und Kontolöschung** *(01.10.2026)*: funktionieren jetzt
+      (`/api/account/export`, `/api/account`). Die Löschung kündigt zuerst
+      laufende Abos und bricht ab, wenn Stripe nicht erreichbar ist.
+      Scheinfunktionen (API-Schlüssel, Produkt-Updates, Marketing-Mails) sind
+      aus den Einstellungen entfernt.
 - [ ] **Datenbank-Migrationen `015` bis `027`.** Welche davon in der
       Supabase-Instanz schon gelaufen sind, lässt sich nur dort nachsehen.
       `015_rls_hardening.sql` ist der wichtigste Einzelpunkt: ohne sie sind die
@@ -168,6 +166,11 @@ Reihenfolge egal, alle additiv:
       `consume_rate_limit()` und `purge_rate_limits()`. Ohne diese Migration
       zählt nichts und alle Zugriffe werden durchgelassen (bewusst
       fail-open), die Datei- und Doppelbewerbungsprüfungen greifen trotzdem.
+- [ ] `scripts/032_salary_and_private_photos.sql`: **Gehalt auf der
+      Stellenseite und Bewerberfotos privat.** Der Fotospeicher war
+      öffentlich, ab jetzt liefert die App Fotos nur an das eigene Konto aus.
+      Unabhängig von 031. Lokal getestet, Details in
+      `scripts/032_salary_and_private_photos.md`.
 - [ ] `scripts/031_launch_readiness.sql`: **Benachrichtigungen, Talent-Pool-
       Einwilligung, Google for Jobs, Entscheidungsprotokoll.** Achtung:
       Danach erscheinen im Talent-Pool nur noch Kandidaten mit Einwilligung,
@@ -320,19 +323,11 @@ Reihenfolge egal, alle additiv:
 
 Nichts davon hält den Launch auf, alles davon ist vorher billig zu erledigen.
 
-- [ ] **`typescript: { ignoreBuildErrors: true }` in `next.config.mjs`
-      abschalten.** `npx tsc --noEmit` läuft aktuell fehlerfrei durch, das Flag
-      kostet also nichts und verhindert danach, dass ein Deploy mit kaputten
-      Typen still durchgeht.
-- [ ] **`pnpm lint` ist kaputt.** Es gibt keine `eslint.config.js`, und
-      ESLint 10 liest die alte `.eslintrc`-Form nicht mehr. Aktuell prüft also
-      nichts den Stil. Entweder eine Flat-Config anlegen oder das Skript aus
-      `package.json` nehmen, damit es keine Sicherheit vortäuscht.
-- [ ] **Verirrtes Verzeichnis `undefined/` im Repo-Root** entfernen.
-- [x] **Tote Social-Links im Footer** entfernt (Positionierung v2). Wenn es
-      echte Profile gibt, kommt die Spalte zurück.
-- [x] **Toter TODO in der Kandidatenliste** behoben: Nach einer
-      Interview-Einladung frischt die Liste jetzt auf.
+- [x] **Prüfungen eingerichtet** *(01.10.2026)*: `ignoreBuildErrors` ist
+      entfernt, Typfehler brechen den Build. ESLint läuft mit der
+      Next.js-Konfiguration (0 Fehler), 45 Tests mit Vitest (`pnpm test`).
+      `.github/workflows/ci.yml` prüft Typen, Lint, Tests und Build bei jedem
+      Push auf main. Das verirrte Verzeichnis `undefined/` ist entfernt.
 - [ ] **Hero-Bild ist das LCP-Element** und liegt als einzelnes PNG auf der
       Supabase-Domain (`components/landing/rv-hero.tsx`). Sobald die Datei in
       `public/revetly/` liegt, lassen sich responsive Größen per `srcSet`
@@ -360,6 +355,11 @@ Nichts davon hält den Launch auf, alles davon ist vorher billig zu erledigen.
       Recruiter bekommt die Mail „Neue Bewerbung“ mit Match
 - [ ] Stellenseite im Google Rich Results Test prüfen (JobPosting ohne
       Fehler), danach Sitemap in der Search Console einreichen
+- [ ] Einstellungen → „Exportieren“ lädt eine JSON-Datei, die Links zu den
+      Lebensläufen öffnen sich. Kontolöschung mit einem Testkonto mit
+      Testabo: Abo in Stripe gekündigt, Konto weg, Anmeldung nicht mehr möglich
+- [ ] Bewerberfoto im Dashboard sichtbar, dieselbe Adresse in einem privaten
+      Fenster ohne Anmeldung liefert nichts
 - [ ] Stelle abschließen → Bestätigung der Prüfung nötig → „Protokoll“ lädt
       eine CSV mit Bewerbungen und Ereignissen
 - [ ] Vercel → Deployment → Functions: Region zeigt `fra1`
