@@ -4,7 +4,10 @@ import { absoluteUrl } from "@/lib/site"
 // Mail-Layout: ein Designsystem für jede Mail, die Revetly verschickt.
 //
 // Mailprogramme sind keine Browser. Deshalb: Tabellen statt Flex und Grid,
-// Stile inline, Webfont nur als Wunsch mit Systemschriften dahinter, und bei
+// Stile inline, Markenschrift nur, wenn sie auf dem Gerät installiert ist,
+// sonst die Systemschrift. Bewusst keine Schrift von Google Fonts: Beim Öffnen
+// ginge die IP-Adresse des Empfängers an Google, ohne Einwilligung (vgl.
+// LG München I, 3 O 17493/20). Und bei
 // jedem Verlauf eine Vollfarbe als Rückfall (Outlook zeichnet keine
 // Verläufe). Das Logo ist ein PNG in doppelter Auflösung, SVG zeigen viele
 // Programme nicht an.
@@ -80,8 +83,6 @@ export function shell(companyName: string, bodyHtml: string, opts: ShellOptions 
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
 <title></title>
-<!-- Markenschrift für Apple Mail und iOS. Programme, die sie nicht laden, nehmen die Systemschrift. -->
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   @media (max-width: 520px) {
     .rv-card { padding: 28px 22px 26px !important; }

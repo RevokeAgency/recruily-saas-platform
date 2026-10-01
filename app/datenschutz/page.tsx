@@ -94,7 +94,7 @@ export default function DatenschutzPage() {
               für die Zukunft widerrufbar, gegenüber dem Unternehmen, bei dem du dich beworben hast,
               oder indem du die Löschung deiner Daten veranlasst. Ohne Zustimmung wird deine
               Bewerbung nur für die Stelle genutzt, auf die du dich beworben hast. In beiden Fällen
-              gilt die Speicherdauer aus Abschnitt 7.
+              gilt die Speicherdauer aus Abschnitt 8.
             </p>
           </section>
 
@@ -117,7 +117,11 @@ export default function DatenschutzPage() {
             <h2 className="mb-2 text-lg font-semibold text-foreground">5. Hosting & Auftragsverarbeiter</h2>
             <p>
               Die Plattform wird in der EU betrieben; die Datenbank und Dateien werden auf
-              Servern innerhalb der EU (Frankfurt, Deutschland) gespeichert. Wir setzen
+              Servern innerhalb der EU (Frankfurt, Deutschland) gespeichert. Die Webanwendung
+              wird von Vercel Inc. (USA) bereitgestellt, die Serverfunktionen laufen ebenfalls
+              in Frankfurt. Für Übermittlungen in die USA stützen wir uns auf den
+              Angemessenheitsbeschluss zum EU-US Data Privacy Framework, ergänzend auf
+              Standardvertragsklauseln. Wir setzen
               sorgfältig ausgewählte Auftragsverarbeiter ein, u. a. für Hosting/Datenbank,
               E-Mail-Versand, KI-gestützte Auswertung der Unterlagen und
               Zahlungsabwicklung. Mit diesen bestehen Verträge zur Auftragsverarbeitung.
@@ -133,7 +137,50 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">6. Lernen aus Auswahlentscheidungen, nur für das eigene Konto</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">6. Cookies, lokale Speicherung und Reichweitenmessung</h2>
+            <p>
+              Revetly setzt <strong>keine Werbe- oder Tracking-Cookies</strong> und bindet keine
+              Inhalte von Werbenetzwerken oder sozialen Netzwerken ein. Schriften werden von
+              unseren eigenen Servern geladen, nicht von Drittanbietern.
+            </p>
+            <p className="mt-2">
+              Wir speichern nur, was für die Nutzung unbedingt erforderlich ist
+              (§ 165 Abs. 3 TKG 2021, § 25 Abs. 2 TDDDG). Dafür ist keine Einwilligung nötig:
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>
+                <strong>Anmelde-Cookies</strong>, damit du nach dem Login angemeldet bleibst. Sie
+                werden beim Abmelden gelöscht.
+              </li>
+              <li>
+                Ein Cookie, das sich merkt, ob die <strong>Seitenleiste</strong> auf- oder zugeklappt
+                ist (7 Tage).
+              </li>
+              <li>
+                Einträge im lokalen Speicher deines Browsers, die du selbst auslöst: die gewählte
+                Ansicht der Kandidatenliste, der Zeitpunkt, an dem du Benachrichtigungen zuletzt
+                angesehen hast, und der gewählte Tarif zwischen Auswahl und Bezahlung. Diese Daten
+                verlassen deinen Browser nicht.
+              </li>
+            </ul>
+            <p className="mt-2">
+              Zur <strong>Reichweitenmessung</strong> nutzen wir Vercel Web Analytics (Vercel Inc.,
+              USA). Das Verfahren kommt ohne Cookies aus und speichert nichts auf deinem Gerät.
+              Besuche werden über einen Wert gezählt, der täglich wechselt, sodass sich niemand über
+              mehrere Tage wiedererkennen lässt. Die IP-Adresse wird nicht gespeichert. Erfasst
+              werden aufgerufene Seite, Herkunftsseite, Land, Browser, Betriebssystem und
+              Gerätetyp. Rechtsgrundlage ist unser berechtigtes Interesse, das Angebot zu
+              verbessern (Art. 6 Abs. 1 lit. f DSGVO). Für die Übermittlung in die USA gilt das in
+              Abschnitt 5 Gesagte.
+            </p>
+            <p className="mt-2">
+              Die Bezahlung läuft auf der Seite unseres Zahlungsdienstleisters. Dort gelten dessen
+              Datenschutzhinweise.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">7. Lernen aus Auswahlentscheidungen, nur für das eigene Konto</h2>
             <p>
               Kundinnen und Kunden können in ihren Kontoeinstellungen freiwillig einwilligen, dass
               Revetly aus ihren eigenen Auswahlentscheidungen lernt (Art. 6 Abs. 1 lit. a DSGVO).
@@ -157,7 +204,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">7. Speicherdauer</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">8. Speicherdauer</h2>
             <p>
               Bewerberdaten werden nur so lange gespeichert, wie es für den
               Bewerbungsprozess erforderlich ist, und spätestens <strong>6 Monate</strong>{" "}
@@ -168,7 +215,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">8. Deine Rechte</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">9. Deine Rechte</h2>
             <p>
               Dir stehen die Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung
               der Verarbeitung, Datenübertragbarkeit und Widerspruch zu. Außerdem hast du
@@ -190,7 +237,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">9. Kontakt</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">10. Kontakt</h2>
             <p>
               Bei Fragen zum Datenschutz erreichst du uns unter [Datenschutz-Kontakt,
               E-Mail]. Für Bewerbungen bei einem bestimmten Unternehmen wende dich bitte
