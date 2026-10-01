@@ -41,6 +41,8 @@ async function resolve(
       description: (d.description as string) ?? null,
       required_skills: (d.required_skills as string[]) ?? null,
       years_experience: (d.years_experience as string) ?? null,
+      // Seit Migration 032 liefert die Abfrage das Gehalt mit.
+      salary_range: (d.salary_range as string) ?? null,
       is_active: Boolean(d.is_active),
     },
     logoUrl: (d.logo_url as string) ?? null,

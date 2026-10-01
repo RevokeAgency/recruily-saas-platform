@@ -86,7 +86,7 @@ const jobSchema = z.object({
   company: z.string().describe("The company name"),
   location: z.string().nullable().describe("Job location, city and country"),
   employmentType: z.enum(["full-time", "part-time", "remote", "contract"]).describe("Type of employment"),
-  salaryRange: z.string().nullable().describe("Salary range if mentioned, format: €XX.XXX - €XX.XXX"),
+  salaryRange: z.string().nullable().describe("Gehaltsangabe wie in der Anzeige, mit Zeitraum (z. B. 'ab € 3.200 brutto/Monat') und, falls genannt, Bereitschaft zur Überzahlung. Nicht umrechnen. null, wenn kein Gehalt genannt ist."),
   description: z.string().describe(
     "Die vollständige Stellenbeschreibung, sauber strukturiert und gut lesbar formatiert. " +
     "REGELN: (1) Beginne mit 1-2 einleitenden Sätzen als Fließtext (kurze Vorstellung der Rolle/Firma). " +

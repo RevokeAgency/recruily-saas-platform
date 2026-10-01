@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { MapPin, Clock, Upload, FileText, X, Loader2, CheckCircle2, GraduationCap, Lock, ArrowDown } from "lucide-react"
+import { MapPin, Clock, Upload, FileText, X, Loader2, CheckCircle2, GraduationCap, Lock, ArrowDown, Banknote } from "lucide-react"
 import { FormattedJobDescription } from "@/components/jobs/formatted-description"
 
 export interface PublicJob {
@@ -18,6 +18,8 @@ export interface PublicJob {
   description: string | null
   required_skills: string[] | null
   years_experience: string | null
+  /** Gehaltsangabe. In Österreich Pflicht in jeder Stellenanzeige (§ 9 Abs. 2 GlBG). */
+  salary_range?: string | null
   is_active: boolean
 }
 
@@ -359,6 +361,7 @@ export function PublicJobView({ job, logoUrl }: { job: PublicJob; logoUrl: strin
           <div className="mt-6 flex flex-wrap gap-2">
             {job.location && <MetaChip icon={MapPin}>{job.location}</MetaChip>}
             <MetaChip icon={Clock}>{getEmploymentLabel(job.employment_type)}</MetaChip>
+            {job.salary_range?.trim() && <MetaChip icon={Banknote}>{job.salary_range.trim()}</MetaChip>}
             {job.years_experience && <MetaChip icon={GraduationCap}>{job.years_experience} Erfahrung</MetaChip>}
           </div>
 

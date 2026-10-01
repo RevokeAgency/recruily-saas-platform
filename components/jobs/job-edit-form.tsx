@@ -148,8 +148,9 @@ export function JobEditForm({ jobId, initial }: { jobId: string; initial: JobEdi
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="salary">Gehaltsrahmen <span className="font-normal text-muted-foreground">(optional)</span></Label>
-              <Input id="salary" value={form.salaryRange} onChange={(e) => set("salaryRange", e.target.value)} placeholder="€60.000 - €80.000" />
+              <Label htmlFor="salary">Gehalt</Label>
+              <Input id="salary" value={form.salaryRange} onChange={(e) => set("salaryRange", e.target.value)} placeholder="ab € 3.200 brutto/Monat, Überzahlung möglich" />
+              <p className="text-xs text-muted-foreground">In Österreich Pflicht: Mindestgehalt laut Kollektivvertrag und ob Überzahlung möglich ist. Steht auf der Stellenseite.</p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="exp">Berufserfahrung</Label>

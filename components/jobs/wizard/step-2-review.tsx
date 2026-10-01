@@ -135,13 +135,14 @@ export function JobWizardStep2({ formData, updateFormData, onNext, onBack }: Ste
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="salary">Gehaltsrahmen (optional)</Label>
+              <Label htmlFor="salary">Gehalt</Label>
               <Input
                 id="salary"
                 value={formData.salaryRange}
                 onChange={(e) => updateFormData({ salaryRange: e.target.value })}
-                placeholder="z.B. €60.000 - €80.000"
+                placeholder="z. B. ab € 3.200 brutto/Monat, Überzahlung möglich"
               />
+              <p className="text-xs text-muted-foreground">In Österreich Pflicht: Mindestgehalt laut Kollektivvertrag und ob Überzahlung möglich ist. Steht auf der Stellenseite.</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="experience">Berufserfahrung</Label>

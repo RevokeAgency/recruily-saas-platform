@@ -14,6 +14,7 @@ export interface JobPostingInput {
   description: string | null
   location: string | null
   employment_type: string | null
+  salary_range?: string | null
   is_active: boolean
   created_at?: string | null
   updated_at?: string | null
@@ -56,6 +57,46 @@ function descriptionHtml(text: string): string {
     .join("")
 }
 
+/**
+ * Gehalt aus dem Freitext für Google ("baseSalary"). Nur bei eindeutigen
+ * Angaben, sonst null: Ein falsch gelesenes Gehalt in der Jobsuche wäre
+ * schlimmer als keins. Der Freitext steht ohnehin auf der Stellenseite.
+ *
+ *   "ab € 3.200 brutto/Monat"      → MONTH, min 3200
+ *   "€60.000 - €80.000"            → YEAR (ohne Zeitraum, Betrag > 15.000)
+ *   "€ 22,50 pro Stunde"           → HOUR, 22.5
+ */
+export function parseSalary(text: string | null | undefined): { min: number; max?: number; unit: "HOUR" | "MONTH" | "YEAR" } | null {
+  if (!text?.trim()) return null
+  // "14x", "14 mal", "14 Gehälter": Anzahl der Monatsgehälter, kein Betrag.
+  const t = text.toLowerCase().replace(/\b1[2-5]\s*(x|×|-?mal|monatsgehälter|gehälter)/g, " ")
+  if (!/€|eur/.test(t)) return null
+  // Deutsche Schreibweise: Punkt als Tausender-, Komma als Dezimaltrenner.
+  const nums = [...t.matchAll(/(\d{1,3}(?:[.\s]\d{3})+|\d+)(?:,(\d{1,2}))?\s*(k\b|tsd\.?)?/g)]
+    .map((m) => {
+      const base = Number(m[1].replace(/[.\s]/g, "")) + (m[2] ? Number(`0.${m[2]}`) : 0)
+      return m[3] ? base * 1000 : base
+    })
+    .filter((n) => n > 0)
+  if (nums.length === 0 || nums.length > 2) return null
+  const [a, b] = nums
+  const min = b != null ? Math.min(a, b) : a
+  const max = b != null ? Math.max(a, b) : undefined
+
+  let unit: "HOUR" | "MONTH" | "YEAR" | null = null
+  if (/stunde|stündlich|\/\s*h\b|pro h\b/.test(t)) unit = "HOUR"
+  else if (/monat|mtl|monatlich/.test(t)) unit = "MONTH"
+  else if (/jahr|jährlich|p\.\s*a\.?|\bpa\b/.test(t)) unit = "YEAR"
+  else if (min >= 15000) unit = "YEAR"
+  else if (min >= 900) unit = "MONTH"
+  if (!unit) return null
+
+  // Plausibilität: grobe Bandbreiten, damit "ab 2026" oder Tippfehler nicht durchrutschen.
+  const range = { HOUR: [8, 500], MONTH: [800, 60000], YEAR: [10000, 700000] }[unit]
+  if (min < range[0] || min > range[1] || (max != null && max > range[1])) return null
+  return { min, ...(max != null ? { max } : {}), unit }
+}
+
 export function jobPostingJsonLd(
   job: JobPostingInput,
   opts: { url: string; logoUrl?: string | null },
@@ -91,6 +132,19 @@ export function jobPostingJsonLd(
     },
     directApply: true,
     url: opts.url,
+  }
+
+  const salary = parseSalary(job.salary_range)
+  if (salary) {
+    data.baseSalary = {
+      "@type": "MonetaryAmount",
+      currency: "EUR",
+      value: {
+        "@type": "QuantitativeValue",
+        ...(salary.max != null ? { minValue: salary.min, maxValue: salary.max } : { value: salary.min }),
+        unitText: salary.unit,
+      },
+    }
   }
 
   if (locality) {

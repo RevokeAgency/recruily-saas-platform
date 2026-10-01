@@ -19,7 +19,7 @@ export default async function LegacyApplyPage(
 
   const { data: job } = await supabase
     .from("jobs")
-    .select("id, title, company, location, employment_type, description, required_skills, years_experience, is_active, public_slug, user_id")
+    .select("id, title, company, location, employment_type, salary_range, description, required_skills, years_experience, is_active, public_slug, user_id")
     .eq("id", jobId)
     .single()
 
