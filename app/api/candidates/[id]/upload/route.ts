@@ -4,6 +4,7 @@ import { NextRequest } from "next/server"
 import { extractDocumentText, isPdfFile } from "@/lib/cv-parse"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { screenCandidateDocuments } from "@/lib/document-guard/store"
+import { candidatePhotoUrl } from "@/lib/candidate-photo"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -59,7 +60,7 @@ export async function POST(
           const { error } = await admin.storage.from("candidate-photos").upload(pp, photo, {
             contentType: "image/png", upsert: true,
           })
-          if (!error) update.photo_url = admin.storage.from("candidate-photos").getPublicUrl(pp).data.publicUrl
+          if (!error) update.photo_url = candidatePhotoUrl(id)
         }
       }
     }

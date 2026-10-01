@@ -3,6 +3,7 @@ import { NextRequest, after } from "next/server"
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
 import { screenCandidateDocuments } from "@/lib/document-guard/store"
+import { candidatePhotoUrl } from "@/lib/candidate-photo"
 import { notifyNewApplication } from "@/lib/notifications/applications"
 import { parseCvBuffer, isUsableCandidate, isPdfFile, extractDocumentText } from "@/lib/cv-parse"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
@@ -204,7 +205,7 @@ export async function POST(req: NextRequest) {
       const { error: upErr } = await supabase.storage.from(PHOTOS).upload(photoPath, photo, {
         contentType: "image/png", upsert: true,
       })
-      if (!upErr) photoUrl = supabase.storage.from(PHOTOS).getPublicUrl(photoPath).data.publicUrl
+      if (!upErr) photoUrl = candidatePhotoUrl(candidate.id)
     }
 
     // Enrichment columns land here (migration 014). Best-effort: if the columns

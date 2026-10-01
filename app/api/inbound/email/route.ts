@@ -6,6 +6,7 @@ import { parseCvBuffer, isSupportedCvType, isUsableCandidate, isPdfFile } from "
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
 import { screenCandidateDocuments } from "@/lib/document-guard/store"
+import { candidatePhotoUrl } from "@/lib/candidate-photo"
 import { notifyNewApplication } from "@/lib/notifications/applications"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { loadInboundAttachment } from "@/lib/email/attachments"
@@ -170,7 +171,7 @@ export async function POST(req: NextRequest) {
           const { error: pErr } = await supabase.storage.from("candidate-photos").upload(photoPath, photo, {
             contentType: "image/png", upsert: true,
           })
-          if (!pErr) photoUrl = supabase.storage.from("candidate-photos").getPublicUrl(photoPath).data.publicUrl
+          if (!pErr) photoUrl = candidatePhotoUrl(candidate.id)
         }
       }
       await supabase.from("candidates")

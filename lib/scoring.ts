@@ -4,6 +4,7 @@ import { runIMLRSMatch } from "@/lib/matching/imlrs"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { extractDocumentText } from "@/lib/cv-parse"
 import { screenCandidateDocuments } from "@/lib/document-guard/store"
+import { candidatePhotoUrl } from "@/lib/candidate-photo"
 import { captureAndNotify } from "@/lib/monitoring/capture"
 import { isMissingScreeningColumn } from "@/lib/matching/screening"
 import { mayApplyLearnedWeights } from "@/lib/training/consent"
@@ -65,7 +66,7 @@ async function backfillCandidatePhoto(candidate: {
       contentType: "image/png", upsert: true,
     })
     if (error) return
-    const publicUrl = admin.storage.from("candidate-photos").getPublicUrl(photoPath).data.publicUrl
+    const publicUrl = candidatePhotoUrl(candidate.id)
     await admin.from("candidates").update({ photo_url: publicUrl }).eq("id", candidate.id)
   } catch (err) {
     console.error("[scoring] photo backfill skipped:", err)
