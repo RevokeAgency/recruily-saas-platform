@@ -44,7 +44,7 @@ export default function DatenschutzPage() {
             <h2 className="mb-2 text-lg font-semibold text-foreground">1. Verantwortlichkeit</h2>
             <p>
               Revetly stellt eine Recruiting-Plattform bereit, über die Unternehmen
-              (nachfolgend „Kunden") Stellen ausschreiben und Bewerbungen verwalten.
+              (nachfolgend „Kunden“) Stellen ausschreiben und Bewerbungen verwalten.
               Für die Verarbeitung der Bewerberdaten im Rahmen eines konkreten
               Bewerbungsprozesses ist das jeweilige <strong>Kundenunternehmen</strong> der
               datenschutzrechtlich Verantwortliche; Revetly handelt insoweit als

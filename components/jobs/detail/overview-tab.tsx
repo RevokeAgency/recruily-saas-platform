@@ -75,7 +75,7 @@ export function JobOverviewTab({ job }: JobOverviewTabProps) {
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 Harte Muss-Anforderungen. Kandidaten, die eine davon nachweislich nicht erfüllen,
-                werden im Matching als „KO" markiert.
+                werden im Matching als „KO“ markiert.
               </p>
             </CardHeader>
             <CardContent>

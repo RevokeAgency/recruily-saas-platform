@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -62,10 +63,10 @@ function PoweredBy() {
   return (
     <div className="flex items-center justify-center gap-2 py-10 text-xs text-muted-foreground">
       <span>Intelligentes Recruiting mit</span>
-      <a href="/" aria-label="Revetly" className="inline-flex items-center">
+      <Link href="/" aria-label="Revetly" className="inline-flex items-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/revetly/LogoEntwurf-trim.png" alt="Revetly" className="h-5 w-auto" />
-      </a>
+      </Link>
     </div>
   )
 }

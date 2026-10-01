@@ -1,0 +1,47 @@
+name: Prüfung
+
+# Läuft bei jedem Push auf main und bei jedem Pull Request. Fehler fallen
+# damit vor dem Vercel-Deploy auf, nicht danach.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Abhängigkeiten
+        run: pnpm install --frozen-lockfile
+
+      - name: Typprüfung
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+        env:
+          # Der Build braucht keine echten Zugangsdaten, nur gesetzte Werte.
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder

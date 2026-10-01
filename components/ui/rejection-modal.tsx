@@ -129,7 +129,7 @@ export function RejectionModal({
                   {candidateEmail ? (
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Der Kandidat erhält eine persönliche Absage. Ohne Haken wird er nur
-                      still auf „Abgesagt" gesetzt.
+                      still auf „Abgesagt“ gesetzt.
                     </p>
                   ) : (
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -158,7 +158,7 @@ export function RejectionModal({
 
               {!willEmail && (
                 <p className="text-sm text-muted-foreground">
-                  Der Kandidat wird auf „Abgesagt" gesetzt, ohne benachrichtigt zu werden.
+                  Der Kandidat wird auf „Abgesagt“ gesetzt, ohne benachrichtigt zu werden.
                 </p>
               )}
 

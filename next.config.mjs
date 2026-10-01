@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // Typfehler brechen den Build ab. Früher stand hier ignoreBuildErrors: true,
+  // Fehler landeten so ungebremst in Produktion. Geprüft wird zusätzlich in
+  // der GitHub-Action (.github/workflows/ci.yml).
   images: {
     unoptimized: true,
   },

@@ -124,7 +124,7 @@ export function OnboardingWizard({ initial }: Props) {
                 </div>
                 <h1 className="text-xl font-bold text-foreground">Willkommen bei Revetly</h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Richte in unter 2 Minuten deine Firma ein. Los geht's mit den Basics.
+                  Richte in unter 2 Minuten deine Firma ein. Los geht’s mit den Basics.
                 </p>
               </div>
 

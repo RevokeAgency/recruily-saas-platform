@@ -95,7 +95,7 @@ export function CloseJobDialog({
           <DialogTitle>Stelle abschließen</DialogTitle>
           <DialogDescription>
             Die Stelle nimmt danach keine neuen Bewerbungen mehr an. Alle noch offenen Bewerber
-            werden auf „Abgesagt" gesetzt. Eingestellte und bereits abgesagte bleiben unverändert.
+            werden auf „Abgesagt“ gesetzt. Eingestellte und bereits abgesagte bleiben unverändert.
           </DialogDescription>
         </DialogHeader>
 

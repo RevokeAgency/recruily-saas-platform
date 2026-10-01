@@ -51,10 +51,10 @@ export default async function DashboardPage() {
   // "lifetime" = Probestelle (Migration 028), sonst Monatskontingent.
   let quotaPeriod: "lifetime" | "monthly" = "monthly"
   let priorities: PriorityItem[] = []
-  let pipeline: PipelineBreakdown = { scored: 0, invited: 0, waiting: 0, rejected: 0 }
+  const pipeline: PipelineBreakdown = { scored: 0, invited: 0, waiting: 0, rejected: 0 }
   let recentApplications: RecentApplication[] = []
   let topCandidates: TopCandidate[] = []
-  let kpis: KpiData = {
+  const kpis: KpiData = {
     weekCount: 0,
     prevWeekCount: 0,
     inviteRate: null,

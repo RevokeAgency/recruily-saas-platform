@@ -167,7 +167,7 @@ export function JobEditForm({ jobId, initial }: { jobId: string; initial: JobEdi
             <Label htmlFor="description">Stellenbeschreibung</Label>
             <Textarea id="description" rows={8} value={form.description} onChange={(e) => set("description", e.target.value)}
               placeholder={"Kurze Einleitung.\n\nDeine Aufgaben:\n- …\n\nDein Profil:\n- …"} />
-            <p className="text-xs text-muted-foreground">Tipp: Überschriften mit „:" und Stichpunkte mit „- " werden auf der Job-Page schön formatiert.</p>
+            <p className="text-xs text-muted-foreground">Tipp: Überschriften mit „:“ und Stichpunkte mit „- “ werden auf der Job-Page schön formatiert.</p>
           </div>
 
           <ChipInput label="Erforderliche Skills" values={form.requiredSkills} onChange={(v) => set("requiredSkills", v)} placeholder="Skill eingeben, Enter" />

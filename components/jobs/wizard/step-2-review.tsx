@@ -301,7 +301,7 @@ export function JobWizardStep2({ formData, updateFormData, onNext, onBack }: Ste
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Harte Muss-Anforderungen. Kandidaten, die eine davon nachweislich nicht erfüllen,
-            werden im Matching als „KO" markiert und ans Ende gereiht – der Score bleibt zur
+            werden im Matching als „KO“ markiert und ans Ende gereiht – der Score bleibt zur
             Nachvollziehbarkeit erhalten. Im Zweifel (nicht eindeutig belegbar) wird niemand ausgeschlossen.
           </p>
         </CardHeader>
