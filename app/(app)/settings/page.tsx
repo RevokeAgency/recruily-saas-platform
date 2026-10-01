@@ -22,14 +22,11 @@ import {
 import {
   User,
   Bell,
-  Key,
   Shield,
   Users,
   Upload,
   Download,
   Trash2,
-  Copy,
-  RefreshCw,
   Server,
   Loader2,
 } from "lucide-react"
@@ -87,8 +84,6 @@ export default function SettingsPage() {
   const [notifications, setNotifications] = useState({
     newApplication: true,
     dailyDigest: false,
-    productUpdates: false,
-    marketingEmails: false,
   })
 
   // Die beiden Bewerbungs-Benachrichtigungen sind echt: gespeichert im Profil
@@ -119,12 +114,6 @@ export default function SettingsPage() {
     }
   }
 
-  const [apiKey] = useState("rcy_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-
-  const copyApiKey = () => {
-    navigator.clipboard.writeText(apiKey)
-    toast.success("API Key kopiert")
-  }
 
   const handleSaveProfile = async () => {
     setSavingProfile(true)
@@ -175,7 +164,7 @@ export default function SettingsPage() {
         <PageHero
           eyebrow="Einstellungen"
           title="Konto & Präferenzen"
-          subtitle="Verwalte dein Profil, Benachrichtigungen, Integrationen und Datenschutz."
+          subtitle="Verwalte dein Profil, Benachrichtigungen und Datenschutz."
         />
 
         {/* Profile Section */}
@@ -284,91 +273,6 @@ export default function SettingsPage() {
                 checked={notifications.dailyDigest}
                 onCheckedChange={(checked) => saveApplicationNotification("dailyDigest", checked)}
               />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="notify-updates">Produkt-Updates</Label>
-                <p className="text-sm text-muted-foreground">
-                  Neue Features und Verbesserungen
-                </p>
-              </div>
-              <Switch
-                id="notify-updates"
-                checked={notifications.productUpdates}
-                onCheckedChange={(checked) =>
-                  setNotifications({ ...notifications, productUpdates: checked })
-                }
-              />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="notify-marketing">Marketing E-Mails</Label>
-                <p className="text-sm text-muted-foreground">
-                  Tipps und Best Practices für Recruiting
-                </p>
-              </div>
-              <Switch
-                id="notify-marketing"
-                checked={notifications.marketingEmails}
-                onCheckedChange={(checked) =>
-                  setNotifications({ ...notifications, marketingEmails: checked })
-                }
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* API & Integrations Section */}
-        <Card className="reveal border border-border shadow-card">
-          <CardHeader>
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--app-green-wash)]">
-                <Key className="h-4 w-4 text-[var(--rv-green-deep)]" strokeWidth={2} />
-              </span>
-              <CardTitle className="text-lg">API & Integrationen</CardTitle>
-            </div>
-            <CardDescription>
-              Verbinde Revetly mit deinen bestehenden Tools
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>API Key</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  value={apiKey}
-                  readOnly
-                  className="font-mono text-sm"
-                />
-                <Button variant="outline" size="icon" onClick={copyApiKey}>
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon">
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Verwende diesen Key, um die Revetly API zu nutzen.
-              </p>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-2">
-              <Label>ATS Integrationen</Label>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className="text-muted-foreground">
-                  SAP SuccessFactors (bald verfügbar)
-                </Badge>
-                <Badge variant="outline" className="text-muted-foreground">
-                  Workday (bald verfügbar)
-                </Badge>
-                <Badge variant="outline" className="text-muted-foreground">
-                  Personio (bald verfügbar)
-                </Badge>
-              </div>
             </div>
           </CardContent>
         </Card>
