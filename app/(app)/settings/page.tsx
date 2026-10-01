@@ -38,6 +38,7 @@ import { PageHero } from "@/components/app/page-hero"
 import { RevealGroup } from "@/components/app/reveal-group"
 import { useProfile } from "@/lib/hooks/useProfile"
 import { createClient } from "@/lib/supabase/client"
+import { DELETE_CONFIRMATION } from "@/lib/account/constants"
 import { updateCompanyName } from "@/app/actions/onboarding"
 import { AiTrainingConsent } from "@/components/settings/ai-training-consent"
 import { FeedbackCard } from "@/components/settings/feedback-card"
@@ -136,11 +137,37 @@ export default function SettingsPage() {
     }
   }
 
+  // Datenexport: die Datei kommt direkt als Download (/api/account/export).
   const handleExportData = () => {
-    toast.info("Export gestartet", {
-      description: "Du erhältst eine E-Mail, sobald der Export bereit ist.",
-    })
+    window.location.href = "/api/account/export"
+    toast.info("Export wird erstellt", { description: "Der Download startet gleich." })
   }
+
+  // Konto löschen: endgültig, inklusive Abo-Kündigung (/api/account).
+  const [deleting, setDeleting] = useState(false)
+  const handleDeleteAccount = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    setDeleting(true)
+    try {
+      const res = await fetch("/api/account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: DELETE_CONFIRMATION }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || "Konto konnte nicht gelöscht werden")
+        setDeleting(false)
+        return
+      }
+      await createClient().auth.signOut().catch(() => {})
+      window.location.href = "/"
+    } catch {
+      toast.error("Konto konnte nicht gelöscht werden")
+      setDeleting(false)
+    }
+  }
+
 
   return (
     <div className="relative min-h-full overflow-hidden">
@@ -410,12 +437,20 @@ export default function SettingsPage() {
                     <AlertDialogDescription>
                       Diese Aktion kann nicht rückgängig gemacht werden. Alle
                       deine Daten, Jobs, Kandidaten und Matches werden permanent
-                      gelöscht.
+                      gelöscht, ein laufendes Abo wird sofort gekündigt. Lade
+                      vorher deine Daten herunter, wenn du sie behalten willst.
+                      Rechnungen bleiben aus gesetzlichen Gründen bei unserem
+                      Zahlungsanbieter gespeichert.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                    <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      disabled={deleting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Ja, Konto löschen
                     </AlertDialogAction>
                   </AlertDialogFooter>
