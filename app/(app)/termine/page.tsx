@@ -19,7 +19,7 @@ import {
   type RecruiterBooking,
 } from "@/components/scheduling/upcoming-bookings-card"
 import { useProfile } from "@/lib/hooks/useProfile"
-import { AUTOMATION_FROM, hasAutomation } from "@/lib/quota"
+import { featureFrom, hasFeature } from "@/lib/plans"
 import type { MeetingType, SchedulingProfile } from "@/lib/scheduling/types"
 
 const CONNECT_ERRORS: Record<string, string> = {
@@ -44,7 +44,7 @@ export default function TerminePage() {
   // Einrichten geht in jedem Plan, Buchungslinks verschicken erst ab Growth.
   // So ist nach einem Upgrade schon alles vorbereitet.
   const { profile: account } = useProfile()
-  const bookingLocked = !!account && !hasAutomation(account.plan)
+  const bookingLocked = !!account && !hasFeature(account.plan, "self_booking")
 
   const load = useCallback(async () => {
     try {
@@ -139,10 +139,10 @@ export default function TerminePage() {
           <div className="flex gap-3 rounded-2xl border border-black/[0.06] bg-[var(--muted)]/60 px-5 py-4 text-sm">
             <Lock className="mt-0.5 h-4 w-4 flex-none text-muted-foreground" />
             <div>
-              <p className="font-medium text-foreground">Terminbuchung ab dem Plan {AUTOMATION_FROM}</p>
+              <p className="font-medium text-foreground">Terminbuchung ab dem Plan {featureFrom("self_booking")}</p>
               <p className="mt-0.5 text-muted-foreground">
                 Du kannst Kalender, Zeiten und Terminarten schon einrichten. Buchungslinks an Bewerber
-                verschickst du nach dem Wechsel auf {AUTOMATION_FROM}.{" "}
+                verschickst du nach dem Wechsel auf {featureFrom("self_booking")}.{" "}
                 <Link href="/subscription" className="font-medium text-[var(--rv-green-deep)] hover:underline">
                   Pläne ansehen
                 </Link>

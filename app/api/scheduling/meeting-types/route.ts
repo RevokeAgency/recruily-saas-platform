@@ -8,7 +8,8 @@ import {
   mapMeetingType,
 } from "@/lib/scheduling/store"
 import type { LocationKind } from "@/lib/scheduling/types"
-import { getPlan, hasAutomation } from "@/lib/quota"
+import { hasFeature } from "@/lib/plans"
+import { getPlan } from "@/lib/quota"
 
 export const dynamic = "force-dynamic"
 
@@ -98,7 +99,7 @@ export async function GET() {
 
   // Selbstbuchung ab Growth. Die Terminarten bleiben sichtbar und
   // bearbeitbar, damit nach einem Upgrade alles schon eingerichtet ist.
-  if (!hasAutomation(await getPlan(db, user.id))) {
+  if (!hasFeature(await getPlan(db, user.id), "self_booking")) {
     return Response.json({ meetingTypes, verfuegbar: false, grund: "plan" })
   }
 

@@ -13,6 +13,9 @@ import {
   ClipboardList,
 } from "lucide-react"
 import useSWR from "swr"
+import Link from "next/link"
+import { Lock } from "lucide-react"
+import { featureFrom } from "@/lib/plans"
 
 interface JobAnalyticsTabProps {
   jobId: string
@@ -78,6 +81,27 @@ export function JobAnalyticsTab({ jobId }: JobAnalyticsTabProps) {
           </CardContent>
         </Card>
       </div>
+    )
+  }
+
+  // Statistiken pro Stelle ab Growth. Der Server antwortet dann mit
+  // upgrade: true statt mit Zahlen.
+  if (data && (data as unknown as { upgrade?: boolean }).upgrade) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--muted)]">
+            <Lock className="h-4 w-4 text-muted-foreground" />
+          </span>
+          <p className="font-semibold text-foreground">Statistiken pro Stelle ab dem Plan {featureFrom("analytics_full")}</p>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Pipeline der Kandidaten, Verteilung der Matches, Quote der Einladungen und Ø Interview pro Stelle.
+          </p>
+          <Link href="/subscription" className="text-sm font-medium text-[var(--rv-green-deep)] hover:underline">
+            Pläne ansehen
+          </Link>
+        </CardContent>
+      </Card>
     )
   }
 

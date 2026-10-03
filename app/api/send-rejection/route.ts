@@ -4,12 +4,12 @@ import { createClient as createAdmin } from "@supabase/supabase-js"
 import { mailProvider } from "@/lib/email/client"
 import { logDecisions } from "@/lib/compliance/decision-log"
 import { sendRejectionMail } from "@/lib/email/rejection"
-import { AUTOMATION_FROM, getPlan, hasAutomation } from "@/lib/quota"
+import { requireFeature } from "@/lib/quota"
 import { consumeRateLimit } from "@/lib/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
 /**
- * Absage-Mail an einen einzelnen Bewerber. Ab Growth (hasAutomation). Das
+ * Absage-Mail an einen einzelnen Bewerber. Ab Growth (rejection_email). Das
  * bloße Absagen ohne Mail geht in jedem Plan, das macht die Oberfläche direkt
  * über den Status.
  *
@@ -33,12 +33,8 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 })
 
-    if (!hasAutomation(await getPlan(supabase, user.id))) {
-      return NextResponse.json(
-        { error: `Absagen per E-Mail gibt es ab dem Plan ${AUTOMATION_FROM}.`, upgrade: true },
-        { status: 403 },
-      )
-    }
+    const locked = await requireFeature(supabase, user.id, "rejection_email", "Absagen per E-Mail")
+    if (locked) return locked
 
     const body = await req.json().catch(() => ({}))
     const linkId = typeof body.linkId === "string" ? body.linkId : null

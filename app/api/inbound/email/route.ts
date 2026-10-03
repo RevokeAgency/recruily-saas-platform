@@ -12,6 +12,7 @@ import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { loadInboundAttachment } from "@/lib/email/attachments"
 import { sendApplicationReceived } from "@/lib/email/send"
 import { captureAndNotify } from "@/lib/monitoring/capture"
+import { featureFrom, hasFeature } from "@/lib/plans"
 
 export const maxDuration = 300
 export const dynamic = "force-dynamic"
@@ -108,6 +109,16 @@ export async function POST(req: NextRequest) {
     if (!job) {
       await finalize("unassigned", jobId ? "Job nicht gefunden" : "Keine Job-ID in Adresse")
       return Response.json({ success: true, status: "unassigned" })
+    }
+
+    // Bewerbungen per E-Mail ab Starter. Die Mail bleibt im Posteingang des
+    // Kunden liegen (oben protokolliert), wird aber nicht ausgewertet. So geht
+    // nichts verloren, und nach einem Upgrade ist sie noch da.
+    const { data: ownerProfile } = await supabase
+      .from("user_profiles").select("plan").eq("id", job.user_id).single()
+    if (!hasFeature(ownerProfile?.plan as string | null, "inbound_email")) {
+      await finalize("unassigned", `Bewerbungen per E-Mail gibt es ab dem Plan ${featureFrom("inbound_email")}`)
+      return Response.json({ success: true, status: "plan" })
     }
 
     // Pick the first usable, non-infected CV attachment.

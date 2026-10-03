@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { computeCalibration, type CalibRow } from "@/lib/matching/calibration"
 import { fetchCalibrationRows } from "@/lib/matching/screening"
+import { hasFeature } from "@/lib/plans"
+import { getPlan } from "@/lib/quota"
 
 export const dynamic = "force-dynamic"
 
@@ -14,6 +16,12 @@ export async function GET() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+
+    // Match-Qualität gehört zu den ausführlichen Auswertungen (ab Growth).
+    // Ohne Bericht zeigt das Dashboard die Karte einfach nicht.
+    if (!hasFeature(await getPlan(supabase, user.id), "analytics_full")) {
+      return Response.json({ report: null, source: "plan" })
+    }
 
     // Prefer the stored nightly report.
     const { data: profile, error: profErr } = await supabase

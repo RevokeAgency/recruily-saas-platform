@@ -6,8 +6,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { ClipboardList, Sparkles, Loader2, CheckCircle2, RefreshCw, HelpCircle, Eye, FileSearch } from "lucide-react"
+import Link from "next/link"
+import { ClipboardList, Sparkles, Loader2, CheckCircle2, RefreshCw, HelpCircle, Eye, FileSearch, Lock } from "lucide-react"
 import { toast } from "sonner"
+import { useProfile } from "@/lib/hooks/useProfile"
+import { featureFrom, hasFeature } from "@/lib/plans"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
@@ -62,6 +65,9 @@ export function InterviewGuidePanel({ linkId }: { linkId: string }) {
     fetcher,
   )
   const [generating, setGenerating] = useState(false)
+  // Leitfäden ab Growth. Ein vorhandener Leitfaden bleibt lesbar.
+  const { profile } = useProfile()
+  const locked = !!profile && !hasFeature(profile.plan, "interview_guide")
   const [saving, setSaving] = useState(false)
   const [ratings, setRatings] = useState<RatingEntry[]>([])
   const [overallNotes, setOverallNotes] = useState("")
@@ -165,11 +171,22 @@ export function InterviewGuidePanel({ linkId }: { linkId: string }) {
                 besser vorher als freie Gespräche. Aussagen im Anschreiben, die der Lebenslauf
                 nicht belegt, kommen als Nachfragen dazu.
               </p>
-              <Button size="sm" className="mt-3 rounded-full" onClick={generate} disabled={generating}>
-                {generating
-                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Leitfaden wird erstellt…</>
-                  : <><Sparkles className="mr-2 h-4 w-4" /> Interviewleitfaden erstellen</>}
-              </Button>
+              {locked ? (
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <Button asChild size="sm" variant="outline" className="rounded-full">
+                    <Link href="/subscription"><Lock className="mr-2 h-4 w-4" /> Pläne ansehen</Link>
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    Interviewleitfäden gibt es ab dem Plan {featureFrom("interview_guide")}.
+                  </span>
+                </div>
+              ) : (
+                <Button size="sm" className="mt-3 rounded-full" onClick={generate} disabled={generating}>
+                  {generating
+                    ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Leitfaden wird erstellt…</>
+                    : <><Sparkles className="mr-2 h-4 w-4" /> Interviewleitfaden erstellen</>}
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>

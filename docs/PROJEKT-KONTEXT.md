@@ -512,19 +512,29 @@ Claude-Umgebung nicht sinnvoll durchführbar.
 
 ## Planpakete (Oktober 2026)
 
-Growth (249 €) soll der Standard werden. Deshalb gibt es Absagen per E-Mail
-und Terminbuchung über Google- oder Microsoft-Kalender erst ab Growth
-(`PLANS.*.automation`, Prüfung über `hasAutomation` in `lib/quota.ts`).
+Growth (249 €) soll der Standard werden. Welche Funktion ab welchem Plan
+gilt, steht an genau einer Stelle: `FEATURE_MIN_PLAN` in `lib/plans.ts`
+(`hasFeature`, `featureFrom`). Serverseitig prüft `requireFeature` in
+`lib/quota.ts` und antwortet mit 403 und `upgrade: true`. Die Oberfläche
+zeigt an diesen Stellen ein Schloss und „Pläne ansehen“ statt eines Fehlers.
 
-- Gesperrt wird serverseitig: `/api/send-rejection` und
-  `/api/scheduling/invites` antworten mit 403, `/api/jobs/[id]/close` lehnt
-  `notify` ab und meldet `planAllowsEmail` in der Vorschau,
-  `/api/scheduling/meeting-types` meldet `grund: "plan"`.
-- Absagen ohne Mail, Stelle abschließen und der feste Termin mit
-  Kalenderdatei (`/api/send-interview-invite`) bleiben in jedem Plan.
-- Kalender, Zeiten und Terminarten lassen sich auch in Free und Starter
-  einrichten, damit nach dem Upgrade alles bereitsteht. Bereits verschickte
-  Buchungslinks bleiben gültig.
+| Funktion | ab | Sperre im Server |
+| --- | --- | --- |
+| Bewerbungen per E-Mail (`inbound_email`) | Starter | `/api/inbound/email` legt die Mail im Posteingang ab, wertet sie aber nicht aus; Adresse im Kanal-Dialog ausgeblendet |
+| Recruiting-Kennzahlen (`analytics_basic`) | Starter | Dashboard rendert die Karte mit Hinweis |
+| Statistiken pro Stelle, Match-Qualität (`analytics_full`) | Growth | `/api/jobs/[id]/analytics` 403, `/api/matching/quality` ohne Bericht |
+| Absagen per E-Mail (`rejection_email`) | Growth | `/api/send-rejection` 403, `/api/jobs/[id]/close` lehnt `notify` ab |
+| Terminbuchung (`self_booking`) | Growth | `/api/scheduling/invites` 403, `meeting-types` mit `grund: "plan"` |
+| Talent-Pool (`talent_pool`) | Growth | `/api/jobs/[id]/pool-suggestions` liefert nur Anzahlen (`locked`) |
+| Interviewleitfäden (`interview_guide`) | Growth | `/api/job-candidates/[linkId]/interview` POST und PUT 403, GET bleibt |
+| Bestenvergleich (`pool_rank`) | Growth | `/api/jobs/[id]/pool-rank` 403 |
+
+- In jedem Plan bleiben: Absagen ohne Mail, Stelle abschließen, fester Termin
+  mit Kalenderdatei, Dashboard-Übersicht, öffentliche Bewerbungsseite.
+- Kalender, Zeiten und Terminarten lassen sich in jedem Plan einrichten.
+  Bereits verschickte Buchungslinks und vorhandene Leitfäden bleiben nach
+  einem Wechsel auf einen kleineren Plan gültig beziehungsweise lesbar.
 - Planlisten: jede Funktion nur beim kleinsten Plan, der sie hat, ab Starter
   an dritter Stelle „Alles aus <Vorgänger>“. Gilt für `lib/plans.ts` (Abo-Seite,
-  Paywall) und `components/landing/rv-pricing.tsx`.
+  Paywall) und `components/landing/rv-pricing.tsx`. `tests/plans.test.ts`
+  prüft, dass Listen und Sperren zusammenpassen.

@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Sparkles, Plus, Loader2, Users, ChevronDown, ChevronUp, Zap } from "lucide-react"
+import { Sparkles, Plus, Loader2, Users, ChevronDown, ChevronUp, Zap, Lock } from "lucide-react"
 import { toast } from "sonner"
 import { useProfile } from "@/lib/hooks/useProfile"
+import { featureFrom } from "@/lib/plans"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
@@ -30,6 +31,8 @@ interface PoolResponse {
   strongCount: number
   matchCount: number
   poolSize: number
+  /** Plan ohne Talent-Pool: nur Anzahlen, keine Namen. */
+  locked?: boolean
 }
 
 function initials(name: string) {
@@ -64,7 +67,38 @@ export function PoolSuggestions({
     fetcher,
   )
 
-  if (isLoading || !data || !data.suggestions?.length) return null
+  if (isLoading || !data) return null
+
+  // Kleiner Plan: zeigen, was im Pool steckt, ohne Namen. Nichts zeigen, wenn
+  // ohnehin niemand passt.
+  if (data.locked) {
+    const n = data.strongCount > 0 ? data.strongCount : data.matchCount
+    if (!n) return null
+    return (
+      <Card className="border border-[rgba(34,193,238,.25)] bg-[rgba(34,193,238,.04)]">
+        <CardContent className="flex items-start gap-3 p-5">
+          <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-[rgba(34,193,238,.14)]">
+            <Lock className="h-[18px] w-[18px] text-[var(--rv-cyan-deep)]" strokeWidth={2} />
+          </span>
+          <div className="flex-1">
+            <h3 className="font-semibold text-foreground">
+              {n} {n === 1 ? "frühere Bewerbung passt" : "frühere Bewerbungen passen"}
+              {data.strongCount > 0 ? " sehr gut" : ""} zu dieser Stelle
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Der Talent-Pool gleicht neue Stellen mit Bewerbern ab, die dir schon vorliegen. Ab dem
+              Plan {featureFrom("talent_pool")} siehst du, wer es ist, und nimmst sie mit einem Klick auf.
+            </p>
+          </div>
+          <Button asChild size="sm" variant="outline" className="flex-none rounded-full">
+            <Link href="/subscription">Pläne ansehen</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!data.suggestions?.length) return null
 
   const { suggestions, strongCount, matchCount } = data
   const shown = expanded ? suggestions : suggestions.slice(0, 3)

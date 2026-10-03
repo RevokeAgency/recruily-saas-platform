@@ -1,5 +1,7 @@
-import { ArrowDownRight, ArrowUpRight, Gauge, Minus } from "lucide-react"
+import Link from "next/link"
+import { ArrowDownRight, ArrowUpRight, Gauge, Lock, Minus } from "lucide-react"
 
+import { featureFrom } from "@/lib/plans"
 import { cn } from "@/lib/utils"
 
 export interface KpiData {
@@ -28,7 +30,32 @@ const sourceBar = [
  * with trend, invite conversion, load per job, time-to-interview, and where
  * applications come from (stacked source bar). All derived read-only.
  */
-export function KpiPanel({ data }: { data: KpiData }) {
+export function KpiPanel({ data, locked = false }: { data: KpiData; locked?: boolean }) {
+  // Kennzahlen ab Starter. Die Probestelle sieht dieselbe Karte mit Hinweis,
+  // damit das Dashboard gleich aufgebaut bleibt.
+  if (locked) {
+    return (
+      <div className="flex h-full flex-col rounded-[24px] border border-black/[0.04] bg-card p-6 shadow-[var(--app-shadow-card)]">
+        <div className="flex items-center gap-2">
+          <Gauge className="h-4 w-4 text-[var(--rv-green-deep)]" strokeWidth={2} />
+          <span className="text-[0.82rem] font-semibold text-foreground">Recruiting-Kennzahlen</span>
+        </div>
+        <div className="mt-4 flex flex-1 flex-col items-start justify-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--muted)]">
+            <Lock className="h-4 w-4 text-muted-foreground" />
+          </span>
+          <p className="text-sm text-muted-foreground">
+            Bewerbungen pro Woche, Einladungsquote, Zeit bis zur Einladung und woher deine
+            Bewerbungen kommen. Ab dem Plan {featureFrom("analytics_basic")}.
+          </p>
+          <Link href="/subscription" className="text-sm font-medium text-[var(--rv-green-deep)] hover:underline">
+            Pläne ansehen
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   const delta = data.weekCount - data.prevWeekCount
   const TrendIcon = delta > 0 ? ArrowUpRight : delta < 0 ? ArrowDownRight : Minus
   const trendClass = delta > 0 ? "text-[var(--rv-green-deep)]" : delta < 0 ? "text-destructive" : "text-muted-foreground"

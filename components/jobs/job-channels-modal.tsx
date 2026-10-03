@@ -8,9 +8,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Link2, Mail, Copy, ExternalLink, Check } from "lucide-react"
+import NextLink from "next/link"
+import { Link2, Mail, Copy, ExternalLink, Check, Lock } from "lucide-react"
 import { useProfile } from "@/lib/hooks/useProfile"
 import { buildJobEmailAddress, slugify } from "@/lib/email/routing"
+import { featureFrom, hasFeature } from "@/lib/plans"
 
 interface JobChannelsModalProps {
   isOpen: boolean
@@ -29,6 +31,9 @@ export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle, jobSlug }: 
   const emailAddress = profile?.slug
     ? buildJobEmailAddress(profile.slug, jobTitle || "job", jobId)
     : null
+  // Bewerbungen per E-Mail ab Starter. Die Probestelle bekommt keine Adresse
+  // angezeigt, Mails an sie würden nicht ausgewertet.
+  const emailLocked = !!profile && !hasFeature(profile.plan, "inbound_email")
 
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
 
@@ -95,6 +100,18 @@ export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle, jobSlug }: 
               <span className="font-medium text-sm">Bewerbungs-Email</span>
             </div>
 
+            {emailLocked ? (
+              <div className="flex items-start gap-2 rounded-lg bg-muted/50 px-3 py-2.5 text-xs text-muted-foreground">
+                <Lock className="mt-0.5 h-3.5 w-3.5 flex-none" />
+                <span>
+                  Eine eigene Bewerbungsadresse pro Stelle gibt es ab dem Plan {featureFrom("inbound_email")}.{" "}
+                  <NextLink href="/subscription" className="font-medium text-[var(--rv-green-deep)] hover:underline">
+                    Pläne ansehen
+                  </NextLink>
+                </span>
+              </div>
+            ) : (
+            <>
             <div className="bg-muted/50 rounded-lg px-3 py-2.5">
               <p className="text-xs text-muted-foreground font-mono break-all">
                 {emailAddress ?? "…"}
@@ -121,6 +138,8 @@ export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle, jobSlug }: 
               Bewerbungen an diese Adresse werden automatisch geparst, gescort und
               landen direkt in diesem Job — EU-gehostet, DSGVO-konform.
             </p>
+            </>
+            )}
           </div>
 
           {/* Footer hint */}

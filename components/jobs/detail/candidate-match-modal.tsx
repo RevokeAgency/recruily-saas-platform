@@ -24,7 +24,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { useProfile } from "@/lib/hooks/useProfile"
-import { AUTOMATION_FROM, hasFullScore } from "@/lib/quota"
+import { featureFrom } from "@/lib/plans"
+import { hasFullScore } from "@/lib/quota"
 import { RejectionModal } from "@/components/ui/rejection-modal"
 import { CalendarConnectButtons } from "@/components/scheduling/calendar-connect"
 import { InterviewGuidePanel } from "./interview-guide-panel"
@@ -1059,7 +1060,7 @@ export function CandidateMatchModal({
               {schedulingReason === "plan" ? (
                 <>
                   Dass der Bewerber seinen Termin selbst aus deinem Kalender wählt, gibt es ab dem
-                  Plan {AUTOMATION_FROM}. Einen festen Termin kannst du jederzeit vorgeben.{" "}
+                  Plan {featureFrom("self_booking")}. Einen festen Termin kannst du jederzeit vorgeben.{" "}
                   <Link href="/subscription" className="font-medium underline underline-offset-2">
                     Pläne ansehen
                   </Link>

@@ -77,7 +77,7 @@ const SECTIONS: Section[] = [
     items: [
       {
         q: "Wie wechsle ich meinen Plan?",
-        a: "Unter Abonnement siehst du alle Pläne im Vergleich und kannst jederzeit wechseln. Höhere Pläne bieten mehr Matches pro Monat, mehr aktive Jobs und die volle Match-Aufschlüsselung.",
+        a: "Unter Abonnement siehst du alle Pläne im Vergleich und kannst jederzeit wechseln. Höhere Pläne bieten mehr Matches pro Monat und mehr aktive Jobs. Ab Starter siehst du die volle Match-Aufschlüsselung, ab Growth kommen Absagen per E-Mail, Terminbuchung, Talent-Pool, Interviewleitfäden und Bestenvergleich dazu.",
       },
       {
         q: "Wo werden meine Daten gespeichert?",

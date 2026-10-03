@@ -72,7 +72,16 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
           .then((r) => r.json())
           .then((pool) => {
             const count = pool?.strongCount > 0 ? pool.strongCount : pool?.matchCount || 0
-            if (count > 0) {
+            if (count > 0 && pool?.locked) {
+              toast(
+                `${count} ${count === 1 ? "frühere Bewerbung passt" : "frühere Bewerbungen passen"} zu dieser Stelle`,
+                {
+                  description: "Mit dem Talent-Pool ab Growth siehst du, wer es ist.",
+                  action: { label: "Pläne ansehen", onClick: () => router.push("/subscription") },
+                  duration: 9000,
+                },
+              )
+            } else if (count > 0) {
               toast.success(
                 `${count} ${count === 1 ? "Kandidat" : "Kandidaten"} aus deinem Talent-Pool passen`,
                 {

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
-import { PLANS, type PlanId } from "@/lib/plans"
+import { featureFrom, hasFeature, type Feature, type PlanId } from "@/lib/plans"
 
 /**
  * Match-quota helpers. Single source of truth for spending / reading a
@@ -100,21 +100,31 @@ export function hasFullScore(plan: PlanId | string | null | undefined): boolean 
 }
 
 /**
- * Absagen per E-Mail und Terminbuchung über den Kalender: ab Growth
- * (PLANS[plan].automation). Unbekannte oder fehlende Pläne bekommen nichts.
- */
-export function hasAutomation(plan: PlanId | string | null | undefined): boolean {
-  return plan != null && plan in PLANS && PLANS[plan as PlanId].automation
-}
-
-/** Ab diesem Plan gibt es hasAutomation. Für Hinweise in der Oberfläche. */
-export const AUTOMATION_FROM = PLANS.growth.label
-
-/**
  * Plan eines Kontos, serverseitig. Die Spalte ist gegen Änderungen aus dem
  * Browser geschützt (protect_profile_columns, Migration 028).
  */
 export async function getPlan(supabase: SupabaseClient, userId: string): Promise<PlanId | null> {
   const { data } = await supabase.from("user_profiles").select("plan").eq("id", userId).single()
   return (data?.plan as PlanId | undefined) ?? null
+}
+
+/**
+ * Sperre für Funktionen nach Plan (FEATURE_MIN_PLAN in lib/plans.ts). Gibt
+ * null zurück, wenn das Konto die Funktion hat, sonst eine 403-Antwort mit
+ * `upgrade: true`, an der die Oberfläche den Hinweis festmacht.
+ *
+ *   const locked = await requireFeature(supabase, user.id, "talent_pool", "Den Talent-Pool")
+ *   if (locked) return locked
+ */
+export async function requireFeature(
+  supabase: SupabaseClient,
+  userId: string,
+  feature: Feature,
+  what: string,
+): Promise<Response | null> {
+  if (hasFeature(await getPlan(supabase, userId), feature)) return null
+  return Response.json(
+    { error: `${what} gibt es ab dem Plan ${featureFrom(feature)}.`, upgrade: true, feature },
+    { status: 403 },
+  )
 }

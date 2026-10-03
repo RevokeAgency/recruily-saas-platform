@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest } from "next/server"
+import { hasFeature } from "@/lib/plans"
 import { poolMatchScore } from "@/lib/pool-match"
+import { getPlan } from "@/lib/quota"
 
 export const dynamic = "force-dynamic"
 
@@ -18,6 +20,10 @@ const POOL_SCAN_LIMIT = 2000
  * pool against this job and returns the most promising people who are NOT yet
  * linked to it. No AI, no match-quota — the real IMLRS score runs only when the
  * recruiter adds a suggestion (via /api/candidates/[id]/match).
+ *
+ * Talent-Pool gibt es ab Growth. Kleinere Pläne bekommen nur die Anzahl
+ * passender früherer Bewerber (locked: true), keine Namen. Die Oberfläche
+ * zeigt daraus den Hinweis aufs Upgrade.
  */
 export async function GET(
   _req: NextRequest,
@@ -82,6 +88,16 @@ export async function GET(
       })
       .filter((c) => c.score >= SUGGEST_THRESHOLD)
       .sort((a, b) => b.score - a.score)
+
+    if (!hasFeature(await getPlan(supabase, user.id), "talent_pool")) {
+      return Response.json({
+        suggestions: [],
+        strongCount,
+        matchCount: scored.length,
+        poolSize: (pool || []).length,
+        locked: true,
+      })
+    }
 
     return Response.json({
       suggestions: scored.slice(0, MAX_SUGGESTIONS),

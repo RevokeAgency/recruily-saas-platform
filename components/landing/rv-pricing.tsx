@@ -12,7 +12,7 @@ import { PLANS } from "@/lib/plans"
 // Preise, Kontingente und Stellen kommen aus lib/plans.ts, derselben Quelle
 // wie die Abrechnung. Jede Funktion steht nur beim kleinsten Plan, der sie
 // hat, die größeren erben sie über "Alles aus …, plus:". Absagen per E-Mail
-// und Terminbuchung gibt es ab Growth (PLANS.*.automation). Hart geschriebene Zahlen sind hier früher schon einmal
+// und Terminbuchung gibt es ab Growth (FEATURE_MIN_PLAN in lib/plans.ts). Hart geschriebene Zahlen sind hier früher schon einmal
 // auseinandergelaufen ("5 Matches pro Monat", während die Datenbank anders
 // zählte). Hart stehen nur noch Funktionsbeschreibungen, keine Mengen.
 
@@ -65,6 +65,7 @@ const TIERS: Tier[] = [
       "Alle neun Ebenen mit Begründung und Belegen",
       "K.O.-Kriterien pro Stelle",
       "Bewerbungen per E-Mail an die Stellenadresse",
+      "Recruiting-Kennzahlen im Dashboard",
     ],
     cta: "Starter wählen",
   },
@@ -84,7 +85,7 @@ const TIERS: Tier[] = [
       "Talent-Pool: neue Stellen gegen alte Bewerber",
       "Strukturierte Interviewleitfäden",
       "Bestenvergleich innerhalb einer Stelle",
-      "Auswertungen im Dashboard",
+      "Ausführliche Statistiken pro Stelle",
     ],
     cta: "Growth wählen",
     featured: true,
@@ -163,7 +164,8 @@ const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values:
       { label: "Bewerbung per E-Mail", values: [false, true, true, true, true] },
       { label: "Talent-Pool abgleichen", values: [false, false, true, true, true] },
       { label: "Strukturierte Interviews", values: [false, false, true, true, true] },
-      { label: "Auswertungen", values: [false, "einfach", true, true, true] },
+      { label: "Bestenvergleich", values: [false, false, true, true, true] },
+      { label: "Auswertungen", values: [false, "Kennzahlen", "ausführlich", "ausführlich", "ausführlich"] },
       { label: "Gewichtung lernt mit", values: [false, false, false, true, true] },
       { label: "Volumen nach Absprache", values: [false, false, false, false, true] },
       { label: "Einrichtung und Schulung", values: [false, false, false, false, true] },

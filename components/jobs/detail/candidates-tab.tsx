@@ -36,6 +36,7 @@ import {
   RefreshCw,
   ClipboardList,
   Trophy,
+  Lock,
 } from "lucide-react"
 import { DocumentFindingsBadge, DocumentFindingsPanel } from "@/components/candidates/document-findings"
 import type { DocumentCheck } from "@/lib/document-guard/types"
@@ -55,6 +56,8 @@ import { CandidateMatchModal } from "./candidate-match-modal"
 import { PoolSuggestions } from "./pool-suggestions"
 import { RejectionModal } from "@/components/ui/rejection-modal"
 import { createClient } from "@/lib/supabase/client"
+import { useProfile } from "@/lib/hooks/useProfile"
+import { featureFrom, hasFeature } from "@/lib/plans"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -271,9 +274,20 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
     }
   }
 
-  // Bestenvergleich: comparative ranking of this job's candidates.
+  // Bestenvergleich: comparative ranking of this job's candidates. Ab Growth;
+  // kleinere Pläne sehen den Knopf mit Schloss und einen Hinweis statt des
+  // Aufrufs. Der Server prüft den Plan ebenfalls.
+  const { profile } = useProfile()
+  const rankLocked = !!profile && !hasFeature(profile.plan, "pool_rank")
   const [ranking, setRanking] = useState(false)
   const rankPool = async () => {
+    if (rankLocked) {
+      toast(`Den Bestenvergleich gibt es ab dem Plan ${featureFrom("pool_rank")}`, {
+        description: "Er stellt die Kandidaten einer Stelle direkt nebeneinander und reiht sie.",
+        action: { label: "Pläne ansehen", onClick: () => { window.location.href = "/subscription" } },
+      })
+      return
+    }
     setRanking(true)
     try {
       const res = await fetch(`/api/jobs/${jobId}/pool-rank`, { method: "POST" })
@@ -410,7 +424,9 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
             >
               {ranking
                 ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                : <Trophy className="mr-2 h-4 w-4 text-[var(--rv-cyan-deep)]" />}
+                : rankLocked
+                  ? <Lock className="mr-2 h-4 w-4 text-muted-foreground" />
+                  : <Trophy className="mr-2 h-4 w-4 text-[var(--rv-cyan-deep)]" />}
               Bestenvergleich
             </Button>
           )}

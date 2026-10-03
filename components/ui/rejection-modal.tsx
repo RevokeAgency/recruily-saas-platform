@@ -5,7 +5,7 @@ import { X, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { defaultRejectionText } from '@/lib/email/rejection-text'
 import { useProfile } from '@/lib/hooks/useProfile'
-import { AUTOMATION_FROM, hasAutomation } from '@/lib/quota'
+import { featureFrom, hasFeature } from '@/lib/plans'
 
 interface Props {
   isOpen: boolean
@@ -40,7 +40,7 @@ export function RejectionModal({
   // vorliegt; sonst wird der Kandidat nur auf "Abgesagt" gesetzt. Solange das
   // Profil lädt, gilt der Haken; der Server prüft den Plan ohnehin.
   const { profile } = useProfile()
-  const planAllows = !profile || hasAutomation(profile.plan)
+  const planAllows = !profile || hasFeature(profile.plan, 'rejection_email')
   const canEmail = planAllows && !!candidateEmail
   const willEmail = notify && canEmail
 
@@ -135,7 +135,7 @@ export function RejectionModal({
                   </span>
                   {!planAllows ? (
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Absagen per E-Mail gibt es ab dem Plan {AUTOMATION_FROM}.{' '}
+                      Absagen per E-Mail gibt es ab dem Plan {featureFrom('rejection_email')}.{' '}
                       <Link href="/subscription" className="text-[var(--rv-green-deep)] hover:underline">
                         Pläne ansehen
                       </Link>

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { NextRequest } from "next/server"
 import { rankPool, type PoolRankCandidate } from "@/lib/matching/pool-rank"
 import { isMissingScreeningColumn, screeningOf } from "@/lib/matching/screening"
+import { requireFeature } from "@/lib/quota"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
@@ -29,6 +30,9 @@ export async function POST(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+
+    const locked = await requireFeature(supabase, user.id, "pool_rank", "Den Bestenvergleich")
+    if (locked) return locked
 
     const { data: job } = await supabase
       .from("jobs")

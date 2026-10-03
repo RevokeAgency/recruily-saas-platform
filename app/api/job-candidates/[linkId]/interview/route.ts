@@ -5,6 +5,7 @@ import { generateInterviewGuide } from "@/lib/interview/guide"
 import { screenCandidateDocuments } from "@/lib/document-guard/store"
 import { recordTrainingExample, buildJudgeExample } from "@/lib/training/collect"
 import { renderDossier } from "@/lib/matching/dossier"
+import { requireFeature } from "@/lib/quota"
 
 export const dynamic = "force-dynamic"
 // Dokumentprüfung, Abgleich Anschreiben und Leitfaden laufen nacheinander.
@@ -78,6 +79,11 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ li
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
 
+    // Leitfäden ab Growth. Lesen (GET) bleibt offen, damit ein vorhandener
+    // Leitfaden nach einem Wechsel auf einen kleineren Plan sichtbar bleibt.
+    const locked = await requireFeature(supabase, user.id, "interview_guide", "Interviewleitfäden")
+    if (locked) return locked
+
     const { data: link, error: linkErr } = await loadLink(supabase, linkId, user.id)
     if (linkErr && isMissingColumn(linkErr.message)) {
       return Response.json({ error: MISSING_COL }, { status: 400 })
@@ -128,6 +134,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ link
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+
+    const locked = await requireFeature(supabase, user.id, "interview_guide", "Strukturierte Interviews")
+    if (locked) return locked
 
     const body = await req.json()
     const ratings: { competency?: string; question?: string; rating?: number; notes?: string }[] =

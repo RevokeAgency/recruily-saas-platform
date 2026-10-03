@@ -16,9 +16,9 @@
 // "Alles aus <Vorgänger>", danach nur, was dazukommt. So steht jede Funktion
 // genau einmal da, beim kleinsten Plan, der sie hat.
 //
-// automation: Absagen per E-Mail und Terminbuchung über den Kalender. Ab
-// Growth, damit der Plan für 249 € der klare Standard ist. Durchgesetzt in
-// den Schnittstellen über hasAutomation (lib/quota.ts), nicht nur hier.
+// Welche Funktion ab welchem Plan gilt, steht in FEATURE_MIN_PLAN unten.
+// Durchgesetzt wird das in den Schnittstellen (requireFeature in
+// lib/quota.ts), die Oberfläche zeigt nur den passenden Hinweis.
 
 export type QuotaPeriod = 'lifetime' | 'monthly'
 
@@ -37,7 +37,6 @@ export const PLANS = {
     basic_score: true,
     custom: false,
     featured: false,
-    automation: false,
     features: [
       `${FREE_MATCHES} Matches einmalig`,
       '1 Probestelle',
@@ -59,7 +58,6 @@ export const PLANS = {
     basic_score: false,
     custom: false,
     featured: false,
-    automation: false,
     features: [
       '50 Matches pro Monat',
       '3 aktive Stellen',
@@ -67,6 +65,7 @@ export const PLANS = {
       'Alle neun Ebenen mit Begründung und Belegen',
       'K.O.-Kriterien pro Stelle',
       'Bewerbungen per E-Mail an die Stellenadresse',
+      'Recruiting-Kennzahlen im Dashboard',
       'Support per E-Mail',
     ],
   },
@@ -82,7 +81,6 @@ export const PLANS = {
     basic_score: false,
     custom: false,
     featured: true,
-    automation: true,
     features: [
       '300 Matches pro Monat',
       '10 aktive Stellen',
@@ -92,7 +90,7 @@ export const PLANS = {
       'Talent-Pool: neue Stellen gegen alte Bewerber',
       'Strukturierte Interviewleitfäden',
       'Bestenvergleich innerhalb einer Stelle',
-      'Auswertungen im Dashboard',
+      'Ausführliche Statistiken pro Stelle',
     ],
   },
   pro: {
@@ -107,7 +105,6 @@ export const PLANS = {
     basic_score: false,
     custom: false,
     featured: false,
-    automation: true,
     features: [
       '1.000 Matches pro Monat',
       'Unbegrenzt viele Stellen',
@@ -128,7 +125,6 @@ export const PLANS = {
     basic_score: false,
     custom: true,
     featured: false,
-    automation: true,
     features: [
       'Match-Volumen nach Absprache',
       'Unbegrenzt viele Stellen',
@@ -164,4 +160,44 @@ export function getPlanByMatchLimit(limit: number): Plan {
 
 export function getMatchLimitByPlan(planId: PlanId): number {
   return PLANS[planId].matches
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Funktionen nach Plan. Jede Funktion gilt ab dem genannten Plan und in allen
+// größeren. Muss zur Preistabelle passen (components/landing/rv-pricing.tsx),
+// tests/plans.test.ts prüft das.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const PLAN_ORDER: PlanId[] = ['free', 'starter', 'growth', 'pro', 'enterprise']
+
+export const FEATURE_MIN_PLAN = {
+  /** Bewerbungen per E-Mail an die Stellenadresse. */
+  inbound_email: 'starter',
+  /** Recruiting-Kennzahlen im Dashboard. */
+  analytics_basic: 'starter',
+  /** Statistiken pro Stelle und Match-Qualität. */
+  analytics_full: 'growth',
+  /** Absagen per E-Mail. */
+  rejection_email: 'growth',
+  /** Terminbuchung durch den Bewerber über den Kalender. */
+  self_booking: 'growth',
+  /** Talent-Pool: neue Stellen gegen frühere Bewerber. */
+  talent_pool: 'growth',
+  /** Strukturierte Interviewleitfäden. */
+  interview_guide: 'growth',
+  /** Bestenvergleich innerhalb einer Stelle. */
+  pool_rank: 'growth',
+} as const satisfies Record<string, PlanId>
+
+export type Feature = keyof typeof FEATURE_MIN_PLAN
+
+/** Hat der Plan die Funktion? Unbekannte oder fehlende Pläne bekommen nichts. */
+export function hasFeature(plan: PlanId | string | null | undefined, feature: Feature): boolean {
+  const have = PLAN_ORDER.indexOf(plan as PlanId)
+  return have >= 0 && have >= PLAN_ORDER.indexOf(FEATURE_MIN_PLAN[feature])
+}
+
+/** Name des kleinsten Plans mit der Funktion, für Hinweise ("ab Growth"). */
+export function featureFrom(feature: Feature): string {
+  return PLANS[FEATURE_MIN_PLAN[feature]].label
 }

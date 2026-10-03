@@ -10,6 +10,7 @@ import { TopCandidates, type TopCandidate } from "@/components/dashboard/top-can
 import { KpiPanel, type KpiData } from "@/components/dashboard/kpi-panel"
 import { MatchQuality } from "@/components/dashboard/match-quality"
 import { RevealGroup } from "@/components/app/reveal-group"
+import { hasFeature } from "@/lib/plans"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
@@ -48,6 +49,8 @@ export default async function DashboardPage() {
   }
   let recentJobs: RecentJob[] = []
   let firstName: string | null = null
+  // Recruiting-Kennzahlen ab Starter (FEATURE_MIN_PLAN.analytics_basic).
+  let kpisLocked = false
   // "lifetime" = Probestelle (Migration 028), sonst Monatskontingent.
   let quotaPeriod: "lifetime" | "monthly" = "monthly"
   let priorities: PriorityItem[] = []
@@ -102,7 +105,7 @@ export default async function DashboardPage() {
       supabase.from("jobs").select("id, title, company, is_active, created_at")
         .eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
       // Read-only signals for the greeting + Prioritäten card.
-      supabase.from("user_profiles").select("first_name").eq("id", user.id).single(),
+      supabase.from("user_profiles").select("first_name, plan").eq("id", user.id).single(),
       supabase.from("job_candidates").select("id", { count: "exact", head: true })
         .eq("user_id", user.id).in("status", ["new", "analyzing"]),
       supabase.from("job_candidates").select("id", { count: "exact", head: true })
@@ -150,6 +153,7 @@ export default async function DashboardPage() {
     }
 
     firstName = (profileRes.data?.first_name as string | null) ?? null
+    kpisLocked = !hasFeature(profileRes.data?.plan as string | null, "analytics_basic")
 
     // Pipeline distribution for the hero meter (status → bucket) + KPI inputs
     // (weekly intake, source mix) from the same rows.
@@ -363,7 +367,7 @@ export default async function DashboardPage() {
         <div className="reveal grid gap-4 lg:grid-cols-3">
           <RecentApplications items={recentApplications} />
           <TopCandidates items={topCandidates} />
-          <KpiPanel data={kpis} />
+          <KpiPanel data={kpis} locked={kpisLocked} />
         </div>
 
         {/* How well the matching predicted this tenant's own decisions.

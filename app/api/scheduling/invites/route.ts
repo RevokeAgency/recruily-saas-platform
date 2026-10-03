@@ -4,7 +4,7 @@ import { createClient as createServer } from "@/lib/supabase/server"
 import { createBookingToken } from "@/lib/scheduling/crypto"
 import { adminClient, ensureDefaultMeetingType, loadMeetingTypes, loadProfile } from "@/lib/scheduling/store"
 import { sendBookingInvite } from "@/lib/email/scheduling"
-import { AUTOMATION_FROM, getPlan, hasAutomation } from "@/lib/quota"
+import { requireFeature } from "@/lib/quota"
 import { absoluteUrl } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
@@ -60,12 +60,8 @@ export async function POST(req: NextRequest) {
 
   // Selbstbuchung ab Growth. Der feste Termin (/api/send-interview-invite)
   // bleibt in jedem Plan.
-  if (!hasAutomation(await getPlan(adminClient(), user.id))) {
-    return Response.json(
-      { error: `Terminbuchung durch den Bewerber gibt es ab dem Plan ${AUTOMATION_FROM}.`, upgrade: true },
-      { status: 403 },
-    )
-  }
+  const locked = await requireFeature(adminClient(), user.id, "self_booking", "Terminbuchung durch den Bewerber")
+  if (locked) return locked
 
   const body = (await req.json().catch(() => ({}))) as Body
   if (!body.jobCandidateId) {

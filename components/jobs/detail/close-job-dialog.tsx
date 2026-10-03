@@ -9,7 +9,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { OVERSIGHT_STATEMENT } from "@/lib/compliance/decision-log"
-import { AUTOMATION_FROM } from "@/lib/quota"
+import { featureFrom } from "@/lib/plans"
 import {
   Dialog,
   DialogContent,
@@ -138,7 +138,7 @@ export function CloseJobDialog({
                   <span className="mt-0.5 block text-xs text-muted-foreground">
                     {!planAllows ? (
                       <>
-                        Absagen per E-Mail gibt es ab dem Plan {AUTOMATION_FROM}. Die Bewerber werden
+                        Absagen per E-Mail gibt es ab dem Plan {featureFrom("rejection_email")}. Die Bewerber werden
                         ohne Mail abgesagt.{" "}
                         <Link href="/subscription" className="text-[var(--rv-green-deep)] hover:underline">
                           Pläne ansehen
