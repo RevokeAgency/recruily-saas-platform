@@ -545,6 +545,15 @@ html { scroll-behavior: smooth; }
   color: transparent;
   animation: rv-gradflow 7s ease-in-out infinite;
 }
+/* Einzelne Wörter als inline-block (Hero, Entscheidungs-Überschrift) sind nur
+   so hoch wie die Zeilenhöhe. background-clip: text malt den Verlauf nur in
+   dieser Box, Unterlängen wie beim "y" fielen sonst heraus. Das Polster
+   unten gibt ihnen Platz, der negative Rand hält den Zeilenabstand gleich. */
+.rv-hw.rv-gradient-text,
+.rv-w.rv-gradient-text {
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
 @keyframes rv-gradflow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 
 .rv-arrowbox {
