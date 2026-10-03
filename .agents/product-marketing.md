@@ -107,8 +107,9 @@ in `FEATURE_MIN_PLAN` in `lib/plans.ts` und wird in der App durchgesetzt:
 - Ab Growth: Absagen per E-Mail, Terminbuchung über den Kalender,
   Talent-Pool, Interviewleitfäden, Bestenvergleich, Statistiken pro Stelle,
   Freigabe-Link für Fachabteilungen (Fachbereich sagt ohne Login pro
-  Bewerber „Interessant“ oder „Ablehnen“). Keine Aussagen über eingesparte
-  Zeit, solange es keine gemessenen Zahlen gibt.
+  Bewerber „Interessant“ oder „Ablehnen“), Revetly Report (Profil oder
+  Shortlist als PDF mit eigenem Logo, auf Wunsch anonym). Keine Aussagen
+  über eingesparte Zeit, solange es keine gemessenen Zahlen gibt.
 
 Free und Starter sagen ohne Mail ab und geben feste Termine vor. Planlisten
 nennen jede Funktion nur beim kleinsten Plan, der sie hat; die größeren

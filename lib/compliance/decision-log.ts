@@ -17,6 +17,7 @@ export type DecisionEvent =
   | "absage_verschickt"
   | "an_fachbereich_gesendet"
   | "rueckmeldung_fachbereich"
+  | "report_erstellt"
 
 export interface DecisionEntry {
   userId: string

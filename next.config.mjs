@@ -10,7 +10,9 @@ const nextConfig = {
   // The pdfjs worker is pulled into the bundle via a require.resolve() literal in
   // lib/cv-photo.ts (outputFileTracingIncludes reproducibly crashes the Vercel
   // build here, so we can't use it).
-  serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist"],
+  // @react-pdf/renderer bringt eigene React-Reconciler und Schriftlogik mit und
+  // läuft zuverlässig nur ungebündelt (Revetly Report, lib/report).
+  serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist", "@react-pdf/renderer"],
 }
 
 export default nextConfig

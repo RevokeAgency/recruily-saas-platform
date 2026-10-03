@@ -26,6 +26,7 @@ const EVENT_LABEL: Record<string, string> = {
   stelle_abgeschlossen: "Stelle abgeschlossen",
   an_fachbereich_gesendet: "An Fachbereich gesendet",
   rueckmeldung_fachbereich: "Rückmeldung Fachbereich",
+  report_erstellt: "Report erstellt",
 }
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -160,7 +161,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
                       ? d.weg === "mail" ? "Freigabe-Link per E-Mail" : "Freigabe-Link"
                       : e.event === "rueckmeldung_fachbereich"
                         ? `${d.urteil === "interessant" ? "Interessant" : "Ablehnen"}${d.kommentar ? ", mit Kommentar" : ""}`
-                        : JSON.stringify(d)
+                        : e.event === "report_erstellt"
+                          ? `${d.anonym ? "anonym" : "mit Namen"}, ${d.kandidaten ?? 1} im Report`
+                          : JSON.stringify(d)
         const linkId = e.job_candidate_id as string | null
         lines.push(
           row([

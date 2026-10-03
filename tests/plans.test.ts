@@ -17,6 +17,7 @@ describe("Funktionen nach Plan", () => {
       interview_guide: [false, false, true, true, true],
       pool_rank: [false, false, true, true, true],
       review_link: [false, false, true, true, true],
+      report: [false, false, true, true, true],
     }
     for (const feature of Object.keys(FEATURE_MIN_PLAN) as Feature[]) {
       expect(ORDER.map((p) => hasFeature(p, feature)), feature).toEqual(expected[feature])
@@ -67,6 +68,7 @@ describe("Planlisten", () => {
       [/Interviewleitfäden/, "interview_guide"],
       [/Bestenvergleich/, "pool_rank"],
       [/Freigabe-Link/, "review_link"],
+      [/Revetly Report/, "report"],
     ]
     for (const [re, feature] of listed) {
       const where = ORDER.filter((p) => PLANS[p].features.some((f) => re.test(f)))

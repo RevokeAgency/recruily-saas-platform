@@ -40,6 +40,7 @@ import {
   Send,
   ThumbsUp,
   ThumbsDown,
+  FileDown,
 } from "lucide-react"
 import { DocumentFindingsBadge, DocumentFindingsPanel } from "@/components/candidates/document-findings"
 import type { DocumentCheck } from "@/lib/document-guard/types"
@@ -59,6 +60,7 @@ import { useRouter } from "next/navigation"
 import { CandidateMatchModal } from "./candidate-match-modal"
 import { PoolSuggestions } from "./pool-suggestions"
 import { ReviewLinkDialog, type ReviewLinkSummary } from "./review-link-dialog"
+import { ReportDialog } from "./report-dialog"
 import { RejectionModal } from "@/components/ui/rejection-modal"
 import { createClient } from "@/lib/supabase/client"
 import { useProfile } from "@/lib/hooks/useProfile"
@@ -327,6 +329,18 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
   const router = useRouter()
   const rankLocked = !!profile && !hasFeature(profile.plan, "pool_rank")
   const reviewLocked = !!profile && !hasFeature(profile.plan, "review_link")
+  const reportLocked = !!profile && !hasFeature(profile.plan, "report")
+  const [reportOpen, setReportOpen] = useState(false)
+  const openReport = () => {
+    if (reportLocked) {
+      toast(`Den Revetly Report gibt es ab dem Plan ${featureFrom("report")}`, {
+        description: "Profil oder Shortlist als PDF für deine Kunden, auf Wunsch anonym.",
+        action: { label: "Pläne ansehen", onClick: () => router.push("/subscription") },
+      })
+      return
+    }
+    setReportOpen(true)
+  }
   const openReview = () => {
     if (reviewLocked) {
       toast(`Freigabe-Links gibt es ab dem Plan ${featureFrom("review_link")}`, {
@@ -464,14 +478,15 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
   return (
     <div className="space-y-6">
       {/* Section Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-foreground">Kandidaten</h2>
           <p className="text-muted-foreground text-sm">
             {filteredCandidates.length} {filteredCandidates.length === 1 ? "Kandidat" : "Kandidaten"} für {jobTitle}
           </p>
         </div>
-        <div className="flex flex-shrink-0 items-center gap-2">
+        {/* Bis zu fünf Aktionen: auf schmalen Bildschirmen umbrechen statt überlaufen. */}
+        <div className="flex flex-wrap items-center gap-2">
           {candidates.some((c) => c.status !== "Abgesagt") && (
             <Button
               variant="outline"
@@ -483,6 +498,19 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
                 ? <Lock className="mr-2 h-4 w-4 text-muted-foreground" />
                 : <Send className="mr-2 h-4 w-4 text-[var(--rv-cyan-deep)]" />}
               Fachbereich fragen
+            </Button>
+          )}
+          {candidates.some((c) => c.match_score != null) && (
+            <Button
+              variant="outline"
+              className="h-10 rounded-full bg-white px-4"
+              onClick={openReport}
+              title="Profil oder Shortlist als PDF, mit deinem Logo, auf Wunsch anonym."
+            >
+              {reportLocked
+                ? <Lock className="mr-2 h-4 w-4 text-muted-foreground" />
+                : <FileDown className="mr-2 h-4 w-4 text-[var(--rv-cyan-deep)]" />}
+              Report
             </Button>
           )}
           {candidates.filter((c) => c.match_score != null && !c.knockout && c.status !== "Abgesagt").length >= 2 && (
@@ -1041,6 +1069,20 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
         }))}
         links={reviewLinks}
         onChanged={() => mutateReviews()}
+      />
+
+      <ReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        jobId={jobId}
+        candidates={candidates.filter((c) => c.match_score != null).map((c) => ({
+          linkId: c.linkId,
+          full_name: c.full_name,
+          job_title: c.job_title,
+          match_score: c.match_score,
+          knockout: c.knockout,
+          status: c.status,
+        }))}
       />
 
       {/* Rejection Modal */}

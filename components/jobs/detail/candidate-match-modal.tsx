@@ -22,9 +22,11 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { useProfile } from "@/lib/hooks/useProfile"
-import { featureFrom } from "@/lib/plans"
+import { featureFrom, hasFeature } from "@/lib/plans"
+import { ReportDialog } from "./report-dialog"
 import { hasFullScore } from "@/lib/quota"
 import { RejectionModal } from "@/components/ui/rejection-modal"
 import { CalendarConnectButtons } from "@/components/scheduling/calendar-connect"
@@ -52,6 +54,8 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  FileDown,
+  Lock,
 } from "lucide-react"
 import { toast } from "sonner"
 import { INTERVIEW_WEIGHT } from "@/lib/matching/screening"
@@ -347,6 +351,8 @@ export function CandidateMatchModal({
   const [inviteOpen, setInviteOpen] = useState(false)
   const [auditOpen, setAuditOpen] = useState(false)
   const [rejectionOpen, setRejectionOpen] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
+  const router = useRouter()
   const [rejected, setRejected] = useState(false)
   const [inviteDate, setInviteDate] = useState("")
   const [inviteTime, setInviteTime] = useState("")
@@ -959,6 +965,26 @@ export function CandidateMatchModal({
                     </Button>
                   )
                 )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (profile && !hasFeature(profile.plan, "report")) {
+                      toast(`Den Revetly Report gibt es ab dem Plan ${featureFrom("report")}`, {
+                        description: "Ein PDF-Profil für deine Kunden, auf Wunsch anonym.",
+                        action: { label: "Pläne ansehen", onClick: () => router.push("/subscription") },
+                      })
+                      return
+                    }
+                    setReportOpen(true)
+                  }}
+                  className="w-full rounded-full"
+                >
+                  {profile && !hasFeature(profile.plan, "report")
+                    ? <Lock className="mr-2 h-4 w-4 text-muted-foreground" />
+                    : <FileDown className="mr-2 h-4 w-4" />}
+                  Report als PDF
+                </Button>
                 {!rejected ? (
                   <Button
                     variant="ghost"
@@ -1211,6 +1237,21 @@ export function CandidateMatchModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <ReportDialog
+      open={reportOpen}
+      onOpenChange={setReportOpen}
+      jobId={job.id}
+      candidates={[{
+        linkId: candidate.linkId,
+        full_name: candidate.full_name,
+        job_title: candidate.job_title,
+        match_score: candidate.match_score,
+        knockout: candidate.knockout === true,
+        status: candidate.status,
+      }]}
+      preselected={[candidate.linkId]}
+    />
 
     <RejectionModal
       isOpen={rejectionOpen}

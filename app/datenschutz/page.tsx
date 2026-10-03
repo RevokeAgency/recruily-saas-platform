@@ -104,6 +104,11 @@ export default function DatenschutzPage() {
               Link gilt höchstens sieben Tage und lässt sich vorher zurückziehen. Rechtsgrundlage ist
               wie oben die Durchführung des Bewerbungsverfahrens.
             </p>
+            <p className="mt-2">
+              <strong>Profil für Auftraggeber.</strong> Personalberatungen können ein Profil als PDF an das
+              Unternehmen weitergeben, für das sie die Stelle besetzen. Auf Wunsch geschieht das anonym, ohne
+              Name, Kontaktdaten und Foto. Jedes erstellte Profil wird im Konto protokolliert.
+            </p>
           </section>
 
           <section>

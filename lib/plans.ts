@@ -91,6 +91,7 @@ export const PLANS = {
       'Strukturierte Interviewleitfäden',
       'Bestenvergleich innerhalb einer Stelle',
       'Freigabe-Link für Fachabteilungen',
+      'Revetly Report als PDF, auch anonym',
       'Ausführliche Statistiken pro Stelle',
     ],
   },
@@ -190,6 +191,8 @@ export const FEATURE_MIN_PLAN = {
   pool_rank: 'growth',
   /** Freigabe-Link: Fachabteilung beurteilt Bewerber ohne Login. */
   review_link: 'growth',
+  /** Revetly Report: PDF-Profil und Shortlist, anonym oder mit Namen. */
+  report: 'growth',
 } as const satisfies Record<string, PlanId>
 
 export type Feature = keyof typeof FEATURE_MIN_PLAN

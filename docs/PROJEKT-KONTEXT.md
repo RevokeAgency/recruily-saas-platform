@@ -528,6 +528,7 @@ zeigt an diesen Stellen ein Schloss und „Pläne ansehen“ statt eines Fehlers
 | Talent-Pool (`talent_pool`) | Growth | `/api/jobs/[id]/pool-suggestions` liefert nur Anzahlen (`locked`) |
 | Interviewleitfäden (`interview_guide`) | Growth | `/api/job-candidates/[linkId]/interview` POST und PUT 403, GET bleibt |
 | Bestenvergleich (`pool_rank`) | Growth | `/api/jobs/[id]/pool-rank` 403 |
+| Revetly Report (`report`) | Growth | `POST /api/reports` 403 |
 | Freigabe-Link (`review_link`) | Growth | `POST /api/review-links` 403; Lesen und offene Links bleiben |
 
 - In jedem Plan bleiben: Absagen ohne Mail, Stelle abschließen, fester Termin
@@ -568,4 +569,35 @@ Rückmeldung (kein Statuswechsel).
   `components/review/review-board.tsx`,
   `components/jobs/detail/review-link-dialog.tsx`. Tests in
   `tests/review.test.ts`.
+
+## Revetly Report (Oktober 2026)
+
+PDF-Profil eines Kandidaten oder Shortlist mit 2 bis 10 Kandidaten
+(Deckblatt mit Ranking, dann je Kandidat ein Profil). Entscheidungen des
+Inhabers: ab Growth, Logo des Kunden oben und „erstellt mit Revetly“ in der
+Fußzeile, Einzelprofil und Shortlist, alle vier Inhalte wählbar (Match mit
+neun Ebenen, Stärken und Skills, Interviewfragen, Interview-Ergebnis).
+
+- Erzeugung im Server mit `@react-pdf/renderer` (ungebündelt über
+  `serverExternalPackages`). Schriften: Plus Jakarta Sans als WOFF in
+  `lib/report/fonts` (OFL), eingebunden über `new URL(…, import.meta.url)`,
+  damit der Build sie als Dateien mitnimmt. `outputFileTracingIncludes`
+  bricht den Vercel-Build ab und wird deshalb nicht benutzt. Im
+  Produktions-Build geprüft.
+- Anonym: Name auch in den KI-Texten durch eine Profilnummer `K-XXXX`
+  ersetzt (ganz, in Teilen, mit Genitiv), E-Mail, Telefon und Links aus allen
+  Texten entfernt, kein Foto. Der Ort wird in beiden Varianten auf die Stadt
+  gekürzt. Frühere Arbeitgeber bleiben, darauf weist der Dialog hin.
+- Nie im Report: Lücken, Auffälligkeiten aus dem Dossier, Abgleich des
+  Anschreibens (interne Prüfhinweise).
+- Logo und Foto nur als PNG oder JPEG (react-pdf). Sonst steht der
+  Firmenname statt des Logos beziehungsweise die Initialen statt des Fotos.
+- Jeder Report landet im Entscheidungsprotokoll (`report_erstellt`, anonym
+  ja/nein, Anzahl). Mengenbremse 60 pro Stunde.
+- Code: `lib/report/model.ts` (Anfrage, Anonymisierung, Aufbereitung, rein
+  und getestet), `lib/report/load.ts` (Datenbank), `lib/report/document.tsx`
+  (Layout), `app/api/reports/route.ts`,
+  `components/jobs/detail/report-dialog.tsx`. Einstieg im Kandidaten-Tab
+  („Report“) und im Kandidatenfenster („Report als PDF“). Tests in
+  `tests/report.test.ts`.
 
