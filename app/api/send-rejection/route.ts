@@ -4,12 +4,14 @@ import { createClient as createAdmin } from "@supabase/supabase-js"
 import { mailProvider } from "@/lib/email/client"
 import { logDecisions } from "@/lib/compliance/decision-log"
 import { sendRejectionMail } from "@/lib/email/rejection"
+import { AUTOMATION_FROM, getPlan, hasAutomation } from "@/lib/quota"
 import { consumeRateLimit } from "@/lib/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
 /**
- * Absage-Mail an einen einzelnen Bewerber. Seit Positionierung v2 in allen
- * Plänen verfügbar ("Absagen mit einem Klick").
+ * Absage-Mail an einen einzelnen Bewerber. Ab Growth (hasAutomation). Das
+ * bloße Absagen ohne Mail geht in jedem Plan, das macht die Oberfläche direkt
+ * über den Status.
  *
  * Früher nahm der Endpunkt Empfänger, Name, Stelle und Text ungeprüft aus der
  * Anfrage und setzte den Text roh ins HTML. Solange nur Growth und Pro ihn
@@ -30,6 +32,13 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 })
+
+    if (!hasAutomation(await getPlan(supabase, user.id))) {
+      return NextResponse.json(
+        { error: `Absagen per E-Mail gibt es ab dem Plan ${AUTOMATION_FROM}.`, upgrade: true },
+        { status: 403 },
+      )
+    }
 
     const body = await req.json().catch(() => ({}))
     const linkId = typeof body.linkId === "string" ? body.linkId : null

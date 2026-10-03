@@ -68,7 +68,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: "Kann ich Kandidaten einladen oder absagen?",
-        a: "Ja. In der Kandidatenansicht eines Jobs kannst du eine Interview-Einladung (mit Kalender-Termin) oder eine Absage per E-Mail versenden. Der Versand ist je nach Plan verfügbar.",
+        a: "Ja. In der Kandidatenansicht eines Jobs kannst du eine Interview-Einladung (mit Kalender-Termin) oder eine Absage per E-Mail versenden. Einen festen Termin kannst du in jedem Plan vorgeben. Absagen per E-Mail und die Terminbuchung durch den Bewerber gibt es ab Growth.",
       },
     ],
   },

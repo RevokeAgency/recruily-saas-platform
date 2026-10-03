@@ -4,6 +4,7 @@ import { createClient as createAdmin } from "@supabase/supabase-js"
 import { logDecisions, OVERSIGHT_STATEMENT, type DecisionEntry } from "@/lib/compliance/decision-log"
 import { mailProvider } from "@/lib/email/client"
 import { sendRejectionMail } from "@/lib/email/rejection"
+import { AUTOMATION_FROM, getPlan, hasAutomation } from "@/lib/quota"
 import { consumeRateLimit } from "@/lib/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
@@ -72,12 +73,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const hired = all.filter((l) => l.status === "Eingestellt" || l.status === "hired").length
     const withEmail = open.filter((l) => !!l.candidate?.email)
 
+    // Absage-Mails ab Growth. Abschließen und Absagen ohne Mail geht immer.
+    const planAllowsEmail = hasAutomation(await getPlan(supabase, user.id))
+
     if (preview) {
       return Response.json({
         open: open.length,
         withEmail: withEmail.length,
         hired,
         canEmail: !!mailProvider(),
+        planAllowsEmail,
       })
     }
 
@@ -85,6 +90,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return Response.json(
         { error: "Bitte bestätige, dass du die offenen Bewerbungen geprüft hast." },
         { status: 400 },
+      )
+    }
+
+    if (notify && !planAllowsEmail) {
+      return Response.json(
+        { error: `Absagen per E-Mail gibt es ab dem Plan ${AUTOMATION_FROM}.`, upgrade: true },
+        { status: 403 },
       )
     }
 

@@ -1,8 +1,11 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { X, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { defaultRejectionText } from '@/lib/email/rejection-text'
+import { useProfile } from '@/lib/hooks/useProfile'
+import { AUTOMATION_FROM, hasAutomation } from '@/lib/quota'
 
 interface Props {
   isOpen: boolean
@@ -32,10 +35,14 @@ export function RejectionModal({
   const [sent, setSent] = useState(false)
   const [emailed, setEmailed] = useState(false)
 
-  // Absage-Mails gibt es seit Positionierung v2 in allen Plänen. Gesendet wird,
-  // wenn der Haken gesetzt ist und eine Adresse vorliegt; sonst wird der
-  // Kandidat nur auf "Abgesagt" gesetzt.
-  const willEmail = notify && !!candidateEmail
+  // Absage-Mails gibt es ab Growth, absagen ohne Mail in jedem Plan. Gesendet
+  // wird, wenn der Plan es erlaubt, der Haken gesetzt ist und eine Adresse
+  // vorliegt; sonst wird der Kandidat nur auf "Abgesagt" gesetzt. Solange das
+  // Profil lädt, gilt der Haken; der Server prüft den Plan ohnehin.
+  const { profile } = useProfile()
+  const planAllows = !profile || hasAutomation(profile.plan)
+  const canEmail = planAllows && !!candidateEmail
+  const willEmail = notify && canEmail
 
   if (!isOpen) return null
 
@@ -112,13 +119,13 @@ export function RejectionModal({
               {/* Notify toggle — rejecting always works; the e-mail is optional */}
               <label
                 className={`flex items-start gap-3 rounded-lg border px-4 py-3 mb-4 ${
-                  candidateEmail ? 'border-black/[0.06] cursor-pointer' : 'border-black/[0.05] bg-[var(--muted)]/60'
+                  canEmail ? 'border-black/[0.06] cursor-pointer' : 'border-black/[0.05] bg-[var(--muted)]/60'
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={willEmail}
-                  disabled={!candidateEmail}
+                  disabled={!canEmail}
                   onChange={(e) => setNotify(e.target.checked)}
                   className="mt-0.5 h-4 w-4 accent-[var(--rv-green)]"
                 />
@@ -126,7 +133,14 @@ export function RejectionModal({
                   <span className="text-sm font-medium text-foreground">
                     Bewerber per E-Mail benachrichtigen
                   </span>
-                  {candidateEmail ? (
+                  {!planAllows ? (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Absagen per E-Mail gibt es ab dem Plan {AUTOMATION_FROM}.{' '}
+                      <Link href="/subscription" className="text-[var(--rv-green-deep)] hover:underline">
+                        Pläne ansehen
+                      </Link>
+                    </p>
+                  ) : candidateEmail ? (
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Der Kandidat erhält eine persönliche Absage. Ohne Haken wird er nur
                       still auf „Abgesagt“ gesetzt.

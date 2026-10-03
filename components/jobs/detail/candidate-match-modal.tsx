@@ -24,7 +24,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { useProfile } from "@/lib/hooks/useProfile"
-import { hasFullScore } from "@/lib/quota"
+import { AUTOMATION_FROM, hasFullScore } from "@/lib/quota"
 import { RejectionModal } from "@/components/ui/rejection-modal"
 import { CalendarConnectButtons } from "@/components/scheduling/calendar-connect"
 import { InterviewGuidePanel } from "./interview-guide-panel"
@@ -1056,7 +1056,15 @@ export function CandidateMatchModal({
               vorher, ohne Hinweis worauf das zurückgeht. */}
           {!schedulingReady && schedulingReason && (
             <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
-              {schedulingReason === "migration_fehlt" ? (
+              {schedulingReason === "plan" ? (
+                <>
+                  Dass der Bewerber seinen Termin selbst aus deinem Kalender wählt, gibt es ab dem
+                  Plan {AUTOMATION_FROM}. Einen festen Termin kannst du jederzeit vorgeben.{" "}
+                  <Link href="/subscription" className="font-medium underline underline-offset-2">
+                    Pläne ansehen
+                  </Link>
+                </>
+              ) : schedulingReason === "migration_fehlt" ? (
                 <>
                   Die Terminplanung ist in der Datenbank noch nicht angelegt. Führe
                   <code className="mx-1 rounded bg-amber-100 px-1">scripts/025_scheduling.sql</code>

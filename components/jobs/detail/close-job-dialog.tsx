@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { mutate as globalMutate } from "swr"
 import { Loader2, Lock } from "lucide-react"
 import { toast } from "sonner"
@@ -8,6 +9,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { OVERSIGHT_STATEMENT } from "@/lib/compliance/decision-log"
+import { AUTOMATION_FROM } from "@/lib/quota"
 import {
   Dialog,
   DialogContent,
@@ -17,7 +19,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-type Preview = { open: number; withEmail: number; hired: number; canEmail: boolean }
+// planAllowsEmail fehlt bei älteren Antworten; dann wie bisher erlaubt.
+type Preview = { open: number; withEmail: number; hired: number; canEmail: boolean; planAllowsEmail?: boolean }
 
 /**
  * Stelle abschließen: schließt die Stelle, sagt allen noch offenen Bewerbern
@@ -57,7 +60,8 @@ export function CloseJobDialog({
       .catch(() => setPreview({ open: 0, withEmail: 0, hired: 0, canEmail: false }))
   }, [open, jobId])
 
-  const canNotify = !!preview && preview.canEmail && preview.withEmail > 0
+  const planAllows = preview?.planAllowsEmail !== false
+  const canNotify = !!preview && planAllows && preview.canEmail && preview.withEmail > 0
   const needsReview = !!preview && preview.open > 0
   const withoutEmail = preview ? preview.open - preview.withEmail : 0
 
@@ -132,7 +136,15 @@ export function CloseJobDialog({
                       : "Absage per E-Mail nicht möglich"}
                   </span>
                   <span className="mt-0.5 block text-xs text-muted-foreground">
-                    {!preview.canEmail
+                    {!planAllows ? (
+                      <>
+                        Absagen per E-Mail gibt es ab dem Plan {AUTOMATION_FROM}. Die Bewerber werden
+                        ohne Mail abgesagt.{" "}
+                        <Link href="/subscription" className="text-[var(--rv-green-deep)] hover:underline">
+                          Pläne ansehen
+                        </Link>
+                      </>
+                    ) : !preview.canEmail
                       ? "Der E-Mail-Versand ist nicht eingerichtet."
                       : withoutEmail > 0
                         ? `${withoutEmail} ohne E-Mail-Adresse ${withoutEmail === 1 ? "wird" : "werden"} nur abgesagt.`

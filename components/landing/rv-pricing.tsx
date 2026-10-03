@@ -10,7 +10,9 @@ import { RvModal, RvModalTrigger, RvModalContent } from "./rv-modal"
 import { PLANS } from "@/lib/plans"
 
 // Preise, Kontingente und Stellen kommen aus lib/plans.ts, derselben Quelle
-// wie die Abrechnung. Hart geschriebene Zahlen sind hier früher schon einmal
+// wie die Abrechnung. Jede Funktion steht nur beim kleinsten Plan, der sie
+// hat, die größeren erben sie über "Alles aus …, plus:". Absagen per E-Mail
+// und Terminbuchung gibt es ab Growth (PLANS.*.automation). Hart geschriebene Zahlen sind hier früher schon einmal
 // auseinandergelaufen ("5 Matches pro Monat", während die Datenbank anders
 // zählte). Hart stehen nur noch Funktionsbeschreibungen, keine Mengen.
 
@@ -46,7 +48,6 @@ const TIERS: Tier[] = [
       "Lebenslauf-Upload, auch gescannte PDFs",
       "Öffentliche Bewerbungsseite",
       "Revetly Match Analyse mit Gesamtscore",
-      "Absagen per E-Mail",
     ],
     cta: "Gratis starten",
   },
@@ -64,7 +65,6 @@ const TIERS: Tier[] = [
       "Alle neun Ebenen mit Begründung und Belegen",
       "K.O.-Kriterien pro Stelle",
       "Bewerbungen per E-Mail an die Stellenadresse",
-      "Terminbuchung mit Google- und Microsoft-Kalender",
     ],
     cta: "Starter wählen",
   },
@@ -79,6 +79,8 @@ const TIERS: Tier[] = [
     features: [
       `${PLANS.growth.active_jobs} aktive Stellen`,
       `${fmt(PLANS.growth.matches)} Matches pro Monat`,
+      "Absagen per E-Mail",
+      "Terminbuchung mit Google- und Microsoft-Kalender",
       "Talent-Pool: neue Stellen gegen alte Bewerber",
       "Strukturierte Interviewleitfäden",
       "Bestenvergleich innerhalb einer Stelle",
@@ -156,8 +158,8 @@ const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values:
       { label: "Lebenslauf-Upload & Auslesen", values: [true, true, true, true, true] },
       { label: "Öffentliche Bewerbungsseite", values: [true, true, true, true, true] },
       { label: "Revetly Match Analyse", values: ["Gesamtscore", true, true, true, true] },
-      { label: "Absagen per E-Mail", values: [true, true, true, true, true] },
-      { label: "Terminbuchung durch den Bewerber", values: [false, true, true, true, true] },
+      { label: "Absagen per E-Mail", values: [false, false, true, true, true] },
+      { label: "Terminbuchung durch den Bewerber", values: [false, false, true, true, true] },
       { label: "Bewerbung per E-Mail", values: [false, true, true, true, true] },
       { label: "Talent-Pool abgleichen", values: [false, false, true, true, true] },
       { label: "Strukturierte Interviews", values: [false, false, true, true, true] },
@@ -173,7 +175,7 @@ const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values:
     // mehrere Nutzer pro Konto möglich sind.
     group: "Daten & Support",
     rows: [
-      { label: "DSGVO-Export", values: [false, true, true, true, true] },
+      { label: "DSGVO-Export", values: [true, true, true, true, true] },
       { label: "Support", values: ["Community", "E-Mail", "Priorität", "Fest zugeordnet", "SLA"] },
     ],
   },

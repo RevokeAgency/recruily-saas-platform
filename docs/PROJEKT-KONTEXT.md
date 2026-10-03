@@ -432,7 +432,8 @@ Inhabers: Die v2-Texte sind der Standard. Umgesetzt wurde deshalb:
   „Abgesagt" und verschickt auf Wunsch die Absagen
   (`/api/jobs/[id]/close`, Dialog im Stellen-Detail, Angebot direkt nach
   „Eingestellt").
-- Absage-Mails in allen Plänen statt nur Growth und Pro. Der Endpunkt wurde
+- Absage-Mails in allen Plänen statt nur Growth und Pro (seit Oktober 2026
+  wieder ab Growth, siehe unten „Planpakete“). Der Endpunkt wurde
   dabei gehärtet: Empfänger nur aus der eigenen Kandidatenliste, Text für HTML
   maskiert, Mengenbremse. Vorher nahm er Adresse und Text ungeprüft an und
   setzte den Text roh ins HTML.
@@ -508,3 +509,22 @@ Claude-Umgebung nicht sinnvoll durchführbar.
   `playwright install` ist nicht nötig.
 - SQL-Migrationen sind additiv und idempotent, die Reihenfolge ist egal. Zu
   jeder nennenswerten Migration liegt eine `.md` mit Erläuterung daneben.
+
+## Planpakete (Oktober 2026)
+
+Growth (249 €) soll der Standard werden. Deshalb gibt es Absagen per E-Mail
+und Terminbuchung über Google- oder Microsoft-Kalender erst ab Growth
+(`PLANS.*.automation`, Prüfung über `hasAutomation` in `lib/quota.ts`).
+
+- Gesperrt wird serverseitig: `/api/send-rejection` und
+  `/api/scheduling/invites` antworten mit 403, `/api/jobs/[id]/close` lehnt
+  `notify` ab und meldet `planAllowsEmail` in der Vorschau,
+  `/api/scheduling/meeting-types` meldet `grund: "plan"`.
+- Absagen ohne Mail, Stelle abschließen und der feste Termin mit
+  Kalenderdatei (`/api/send-interview-invite`) bleiben in jedem Plan.
+- Kalender, Zeiten und Terminarten lassen sich auch in Free und Starter
+  einrichten, damit nach dem Upgrade alles bereitsteht. Bereits verschickte
+  Buchungslinks bleiben gültig.
+- Planlisten: jede Funktion nur beim kleinsten Plan, der sie hat, ab Starter
+  an dritter Stelle „Alles aus <Vorgänger>“. Gilt für `lib/plans.ts` (Abo-Seite,
+  Paywall) und `components/landing/rv-pricing.tsx`.

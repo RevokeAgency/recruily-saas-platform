@@ -12,7 +12,13 @@
 //
 // Die features-Arrays folgen der Wortwahl der Landing Page. Die ersten zwei
 // Einträge sind strukturell Kontingent und Stellen: Die Abo-Seite zeigt ab
-// Index 2, die Paywall zeigt die ersten fünf.
+// Index 2, die Paywall zeigt die ersten fünf. Ab Starter steht an Index 2
+// "Alles aus <Vorgänger>", danach nur, was dazukommt. So steht jede Funktion
+// genau einmal da, beim kleinsten Plan, der sie hat.
+//
+// automation: Absagen per E-Mail und Terminbuchung über den Kalender. Ab
+// Growth, damit der Plan für 249 € der klare Standard ist. Durchgesetzt in
+// den Schnittstellen über hasAutomation (lib/quota.ts), nicht nur hier.
 
 export type QuotaPeriod = 'lifetime' | 'monthly'
 
@@ -31,14 +37,13 @@ export const PLANS = {
     basic_score: true,
     custom: false,
     featured: false,
-    email_feature: true,
+    automation: false,
     features: [
       `${FREE_MATCHES} Matches einmalig`,
       '1 Probestelle',
       'Revetly Match Analyse mit Gesamtscore',
       'Lebenslauf-Upload, auch gescannte PDFs',
       'Öffentliche Bewerbungsseite',
-      'Absagen per E-Mail',
       'Keine Kreditkarte',
     ],
   },
@@ -54,15 +59,14 @@ export const PLANS = {
     basic_score: false,
     custom: false,
     featured: false,
-    email_feature: true,
+    automation: false,
     features: [
       '50 Matches pro Monat',
       '3 aktive Stellen',
+      'Alles aus Free',
       'Alle neun Ebenen mit Begründung und Belegen',
       'K.O.-Kriterien pro Stelle',
-      'Absagen per E-Mail',
       'Bewerbungen per E-Mail an die Stellenadresse',
-      'Terminbuchung mit Google- und Microsoft-Kalender',
       'Support per E-Mail',
     ],
   },
@@ -78,11 +82,13 @@ export const PLANS = {
     basic_score: false,
     custom: false,
     featured: true,
-    email_feature: true,
+    automation: true,
     features: [
       '300 Matches pro Monat',
       '10 aktive Stellen',
+      'Alles aus Starter',
       'Absagen per E-Mail',
+      'Terminbuchung mit Google- und Microsoft-Kalender',
       'Talent-Pool: neue Stellen gegen alte Bewerber',
       'Strukturierte Interviewleitfäden',
       'Bestenvergleich innerhalb einer Stelle',
@@ -101,14 +107,12 @@ export const PLANS = {
     basic_score: false,
     custom: false,
     featured: false,
-    email_feature: true,
+    automation: true,
     features: [
       '1.000 Matches pro Monat',
       'Unbegrenzt viele Stellen',
       'Alles aus Growth',
       'Gewichtung lernt aus deinen Einstellungen',
-      'Absagen per E-Mail',
-      'Strukturierte Interviewleitfäden',
       'Vorrangiger Support',
     ],
   },
@@ -124,12 +128,12 @@ export const PLANS = {
     basic_score: false,
     custom: true,
     featured: false,
-    email_feature: true,
+    automation: true,
     features: [
       'Match-Volumen nach Absprache',
       'Unbegrenzt viele Stellen',
-      'Verhandelbare Preise über dem Kontingent',
       'Alles aus Pro',
+      'Verhandelbare Preise über dem Kontingent',
       'Fester Ansprechpartner',
       'Einrichtung und Schulung',
     ],

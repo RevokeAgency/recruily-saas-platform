@@ -1,8 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { AlertTriangle, Loader2 } from "lucide-react"
+import { AlertTriangle, Loader2, Lock } from "lucide-react"
 import { toast } from "sonner"
 
 import { PageHero } from "@/components/app/page-hero"
@@ -17,6 +18,8 @@ import {
   UpcomingBookingsCard,
   type RecruiterBooking,
 } from "@/components/scheduling/upcoming-bookings-card"
+import { useProfile } from "@/lib/hooks/useProfile"
+import { AUTOMATION_FROM, hasAutomation } from "@/lib/quota"
 import type { MeetingType, SchedulingProfile } from "@/lib/scheduling/types"
 
 const CONNECT_ERRORS: Record<string, string> = {
@@ -38,6 +41,10 @@ export default function TerminePage() {
   const [bookings, setBookings] = useState<RecruiterBooking[]>([])
   const [loading, setLoading] = useState(true)
   const [migrationMissing, setMigrationMissing] = useState(false)
+  // Einrichten geht in jedem Plan, Buchungslinks verschicken erst ab Growth.
+  // So ist nach einem Upgrade schon alles vorbereitet.
+  const { profile: account } = useProfile()
+  const bookingLocked = !!account && !hasAutomation(account.plan)
 
   const load = useCallback(async () => {
     try {
@@ -127,6 +134,22 @@ export default function TerminePage() {
           title="Kalender & Buchungen"
           subtitle="Lege fest, wann du Zeit hast. Bewerber wählen selbst einen Termin, du bekommst ihn in den Kalender."
         />
+
+        {bookingLocked && (
+          <div className="flex gap-3 rounded-2xl border border-black/[0.06] bg-[var(--muted)]/60 px-5 py-4 text-sm">
+            <Lock className="mt-0.5 h-4 w-4 flex-none text-muted-foreground" />
+            <div>
+              <p className="font-medium text-foreground">Terminbuchung ab dem Plan {AUTOMATION_FROM}</p>
+              <p className="mt-0.5 text-muted-foreground">
+                Du kannst Kalender, Zeiten und Terminarten schon einrichten. Buchungslinks an Bewerber
+                verschickst du nach dem Wechsel auf {AUTOMATION_FROM}.{" "}
+                <Link href="/subscription" className="font-medium text-[var(--rv-green-deep)] hover:underline">
+                  Pläne ansehen
+                </Link>
+              </p>
+            </div>
+          </div>
+        )}
 
         <UpcomingBookingsCard
           bookings={bookings}

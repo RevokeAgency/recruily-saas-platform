@@ -64,8 +64,8 @@ in den Match ein (40 Prozent Gespräch, 60 Prozent Analyse). Die
 Qualifikationssperre und K.O.-Kriterien lassen sich durch ein gutes Gespräch
 nicht wegrechnen.
 
-**Der Rest läuft nebenher.** Absagen persönlich formuliert auf Knopfdruck, in
-allen Plänen. Terminbuchung durch den Bewerber. Talent-Pool: neue Stellen
+**Der Rest läuft nebenher.** Absagen persönlich formuliert auf Knopfdruck und
+Terminbuchung durch den Bewerber, beides ab Growth. Talent-Pool: neue Stellen
 gegen frühere Bewerber.
 
 **Datenschutz.** Verarbeitung ausschließlich in der EU. Löschung nach 180
@@ -98,6 +98,11 @@ kündbar, jährlich zwei Monate gratis.
 
 Kontingentzahlen **nie** hart in die Copy schreiben, immer aus `PLANS` in
 `lib/plans.ts` ableiten.
+
+**Growth ist der Plan, auf den alles zielt.** Absagen per E-Mail und
+Terminbuchung über den Kalender gibt es erst ab Growth, Free und Starter sagen
+ohne Mail ab und geben feste Termine vor. Planlisten nennen jede Funktion nur
+beim kleinsten Plan, der sie hat; die größeren beginnen mit „Alles aus …“.
 
 Primäre Conversion: „Erste Stelle kostenlos testen" → `/auth/register`.
 Mikrotext darunter: `{PLANS.free.matches} Matches gratis · keine Kreditkarte`.

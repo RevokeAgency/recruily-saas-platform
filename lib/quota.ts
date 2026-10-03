@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
-import type { PlanId } from "@/lib/plans"
+import { PLANS, type PlanId } from "@/lib/plans"
 
 /**
  * Match-quota helpers. Single source of truth for spending / reading a
@@ -97,4 +97,24 @@ export async function getMatchUsage(
  */
 export function hasFullScore(plan: PlanId | string | null | undefined): boolean {
   return plan != null && plan !== "free"
+}
+
+/**
+ * Absagen per E-Mail und Terminbuchung über den Kalender: ab Growth
+ * (PLANS[plan].automation). Unbekannte oder fehlende Pläne bekommen nichts.
+ */
+export function hasAutomation(plan: PlanId | string | null | undefined): boolean {
+  return plan != null && plan in PLANS && PLANS[plan as PlanId].automation
+}
+
+/** Ab diesem Plan gibt es hasAutomation. Für Hinweise in der Oberfläche. */
+export const AUTOMATION_FROM = PLANS.growth.label
+
+/**
+ * Plan eines Kontos, serverseitig. Die Spalte ist gegen Änderungen aus dem
+ * Browser geschützt (protect_profile_columns, Migration 028).
+ */
+export async function getPlan(supabase: SupabaseClient, userId: string): Promise<PlanId | null> {
+  const { data } = await supabase.from("user_profiles").select("plan").eq("id", userId).single()
+  return (data?.plan as PlanId | undefined) ?? null
 }
