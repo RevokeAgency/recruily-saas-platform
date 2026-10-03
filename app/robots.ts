@@ -9,7 +9,8 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       // Anwendungsbereich und Bewerbungsformulare gehören nicht in den Index.
       // Persönliche Buchungslinks (/termin/...) gehören ebenfalls nicht in den Index.
-      disallow: ["/api/", "/auth/", "/onboarding/", "/apply/", "/termin/"],
+      // Freigabe-Links für Fachabteilungen (/freigabe/...) ebenso.
+      disallow: ["/api/", "/auth/", "/onboarding/", "/apply/", "/termin/", "/freigabe/"],
     },
     sitemap: absoluteUrl("/sitemap.xml"),
   }

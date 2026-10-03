@@ -25,6 +25,8 @@ export const ACCOUNT_TABLES = [
   "candidates",
   "job_candidates",
   "decision_events",
+  "review_links",
+  "review_link_items",
   "inbound_emails",
   "scheduling_profiles",
   "meeting_types",

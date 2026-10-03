@@ -96,6 +96,14 @@ export default function DatenschutzPage() {
               Bewerbung nur für die Stelle genutzt, auf die du dich beworben hast. In beiden Fällen
               gilt die Speicherdauer aus Abschnitt 8.
             </p>
+            <p className="mt-2">
+              <strong>Einschätzung durch die Fachabteilung.</strong> Das Unternehmen kann ausgewählte
+              Bewerbungen über einen persönlichen Link an Personen im eigenen Haus weitergeben, die an
+              der Auswahl beteiligt sind, etwa an die künftige Führungskraft. Diese sehen Zusammenfassung,
+              Match und Lebenslauf, aber keine Kontaktdaten, und geben eine kurze Einschätzung ab. Der
+              Link gilt höchstens sieben Tage und lässt sich vorher zurückziehen. Rechtsgrundlage ist
+              wie oben die Durchführung des Bewerbungsverfahrens.
+            </p>
           </section>
 
           <section>

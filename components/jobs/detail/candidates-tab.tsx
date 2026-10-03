@@ -37,6 +37,9 @@ import {
   ClipboardList,
   Trophy,
   Lock,
+  Send,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react"
 import { DocumentFindingsBadge, DocumentFindingsPanel } from "@/components/candidates/document-findings"
 import type { DocumentCheck } from "@/lib/document-guard/types"
@@ -52,8 +55,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { CandidateMatchModal } from "./candidate-match-modal"
 import { PoolSuggestions } from "./pool-suggestions"
+import { ReviewLinkDialog, type ReviewLinkSummary } from "./review-link-dialog"
 import { RejectionModal } from "@/components/ui/rejection-modal"
 import { createClient } from "@/lib/supabase/client"
 import { useProfile } from "@/lib/hooks/useProfile"
@@ -158,6 +163,24 @@ function statusMeta(status: Candidate["status"]): { label: string; className: st
 
 const MAX_VISIBLE_SKILLS = 8
 
+/** Kleines Zeichen in der Liste: Rückmeldung aus dem Fachbereich, Kommentar als Tooltip. */
+function FeedbackPill({ feedback }: { feedback?: { verdict: "interessant" | "ablehnen"; comment: string | null; reviewer: string } }) {
+  if (!feedback) return null
+  const good = feedback.verdict === "interessant"
+  const Icon = good ? ThumbsUp : ThumbsDown
+  return (
+    <span
+      title={`${feedback.reviewer}: ${good ? "Interessant" : "Ablehnen"}${feedback.comment ? `. ${feedback.comment}` : ""}`}
+      className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${
+        good ? "border-[rgba(22,199,124,.4)] bg-[var(--app-green-wash)] text-[var(--rv-green-deep)]" : "border-red-200 bg-red-50 text-red-600"
+      }`}
+    >
+      <Icon className="h-2.5 w-2.5" />
+      FB
+    </span>
+  )
+}
+
 export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: JobCandidatesTabProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
@@ -193,6 +216,29 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
   )
 
   const candidates = data?.candidates || []
+
+  // Freigabe-Links an den Fachbereich und die Rückmeldungen dazu. Pro
+  // Bewerbung zählt das jüngste Urteil.
+  const [reviewOpen, setReviewOpen] = useState(false)
+  const { data: reviewData, mutate: mutateReviews } = useSWR<{ links: ReviewLinkSummary[]; available: boolean }>(
+    `/api/review-links?jobId=${jobId}`,
+    fetcher,
+  )
+  const reviewLinks = reviewData?.links ?? []
+  const feedbackByLink = new Map<string, { verdict: "interessant" | "ablehnen"; comment: string | null; reviewer: string; decidedAt: string }>()
+  for (const l of reviewLinks) {
+    for (const i of l.items) {
+      if (i.verdict !== "interessant" && i.verdict !== "ablehnen") continue
+      const prev = feedbackByLink.get(i.jobCandidateId)
+      if (prev && prev.decidedAt >= (i.decidedAt ?? "")) continue
+      feedbackByLink.set(i.jobCandidateId, {
+        verdict: i.verdict,
+        comment: i.comment,
+        reviewer: l.reviewerName || l.reviewerEmail || "Fachbereich",
+        decidedAt: i.decidedAt ?? "",
+      })
+    }
+  }
 
   const filteredCandidates = candidates
     .filter((c) =>
@@ -278,13 +324,25 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
   // kleinere Pläne sehen den Knopf mit Schloss und einen Hinweis statt des
   // Aufrufs. Der Server prüft den Plan ebenfalls.
   const { profile } = useProfile()
+  const router = useRouter()
   const rankLocked = !!profile && !hasFeature(profile.plan, "pool_rank")
+  const reviewLocked = !!profile && !hasFeature(profile.plan, "review_link")
+  const openReview = () => {
+    if (reviewLocked) {
+      toast(`Freigabe-Links gibt es ab dem Plan ${featureFrom("review_link")}`, {
+        description: "Damit sagt dein Fachbereich ohne Login mit einem Klick, wen er kennenlernen will.",
+        action: { label: "Pläne ansehen", onClick: () => router.push("/subscription") },
+      })
+      return
+    }
+    setReviewOpen(true)
+  }
   const [ranking, setRanking] = useState(false)
   const rankPool = async () => {
     if (rankLocked) {
       toast(`Den Bestenvergleich gibt es ab dem Plan ${featureFrom("pool_rank")}`, {
         description: "Er stellt die Kandidaten einer Stelle direkt nebeneinander und reiht sie.",
-        action: { label: "Pläne ansehen", onClick: () => { window.location.href = "/subscription" } },
+        action: { label: "Pläne ansehen", onClick: () => router.push("/subscription") },
       })
       return
     }
@@ -414,6 +472,19 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
           </p>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
+          {candidates.some((c) => c.status !== "Abgesagt") && (
+            <Button
+              variant="outline"
+              className="h-10 rounded-full bg-white px-4"
+              onClick={openReview}
+              title="Bewerbungen per Link an jemanden aus dem Fachbereich schicken. Ohne Login, ein Klick pro Person."
+            >
+              {reviewLocked
+                ? <Lock className="mr-2 h-4 w-4 text-muted-foreground" />
+                : <Send className="mr-2 h-4 w-4 text-[var(--rv-cyan-deep)]" />}
+              Fachbereich fragen
+            </Button>
+          )}
           {candidates.filter((c) => c.match_score != null && !c.knockout && c.status !== "Abgesagt").length >= 2 && (
             <Button
               variant="outline"
@@ -595,6 +666,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
                         </span>
                       )}
                       <DocumentFindingsBadge check={candidate.document_findings} />
+                      <FeedbackPill feedback={feedbackByLink.get(candidate.linkId)} />
                     </p>
                     <p className="hidden truncate text-sm text-muted-foreground lg:block">{candidate.email || "–"}</p>
                     <p className="hidden truncate text-sm text-muted-foreground lg:block">{candidate.location || "–"}</p>
@@ -723,6 +795,26 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
                       )}
                     </div>
                   )}
+
+                  {/* Rückmeldung aus dem Fachbereich (Freigabe-Link) */}
+                  {(() => {
+                    const fb = feedbackByLink.get(candidate.linkId)
+                    if (!fb) return null
+                    const good = fb.verdict === "interessant"
+                    return (
+                      <div className={`mb-4 rounded-2xl border p-4 ${good ? "border-[rgba(22,199,124,.3)] bg-[var(--app-green-wash)]" : "border-red-200 bg-red-50"}`}>
+                        <div className="flex items-center gap-2">
+                          {good
+                            ? <ThumbsUp className="h-4 w-4 text-[var(--rv-green-deep)]" />
+                            : <ThumbsDown className="h-4 w-4 text-red-600" />}
+                          <span className={`text-sm font-semibold ${good ? "text-[var(--rv-green-deep)]" : "text-red-700"}`}>
+                            {fb.reviewer}: {good ? "Interessant" : "Ablehnen"}
+                          </span>
+                        </div>
+                        {fb.comment && <p className="mt-1.5 whitespace-pre-line text-sm text-foreground">{fb.comment}</p>}
+                      </div>
+                    )
+                  })()}
 
                   {/* KO-Kriterien verletzt */}
                   {candidate.knockout && candidate.knockout_reasons.length > 0 && (
@@ -933,6 +1025,23 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
         ))}
       </div>
       )}
+
+      <ReviewLinkDialog
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        jobId={jobId}
+        jobTitle={jobTitle}
+        candidates={candidates.map((c) => ({
+          linkId: c.linkId,
+          full_name: c.full_name,
+          job_title: c.job_title,
+          match_score: c.match_score,
+          knockout: c.knockout,
+          status: c.status,
+        }))}
+        links={reviewLinks}
+        onChanged={() => mutateReviews()}
+      />
 
       {/* Rejection Modal */}
       {rejectionCandidate && (

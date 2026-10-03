@@ -166,6 +166,10 @@ Reihenfolge egal, alle additiv:
       `consume_rate_limit()` und `purge_rate_limits()`. Ohne diese Migration
       zählt nichts und alle Zugriffe werden durchgelassen (bewusst
       fail-open), die Datei- und Doppelbewerbungsprüfungen greifen trotzdem.
+- [ ] `scripts/033_review_links.sql`: **Freigabe-Link für Fachabteilungen.**
+      Zwei neue Tabellen, Schreibzugriff nur über die App. Ohne diese
+      Migration meldet „Fachbereich fragen“ die fehlende Migration. Lokal
+      getestet, Details in `scripts/033_review_links.md`.
 - [ ] `scripts/032_salary_and_private_photos.sql`: **Gehalt auf der
       Stellenseite und Bewerberfotos privat.** Der Fotospeicher war
       öffentlich, ab jetzt liefert die App Fotos nur an das eigene Konto aus.

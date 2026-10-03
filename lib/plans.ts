@@ -90,6 +90,7 @@ export const PLANS = {
       'Talent-Pool: neue Stellen gegen alte Bewerber',
       'Strukturierte Interviewleitfäden',
       'Bestenvergleich innerhalb einer Stelle',
+      'Freigabe-Link für Fachabteilungen',
       'Ausführliche Statistiken pro Stelle',
     ],
   },
@@ -187,6 +188,8 @@ export const FEATURE_MIN_PLAN = {
   interview_guide: 'growth',
   /** Bestenvergleich innerhalb einer Stelle. */
   pool_rank: 'growth',
+  /** Freigabe-Link: Fachabteilung beurteilt Bewerber ohne Login. */
+  review_link: 'growth',
 } as const satisfies Record<string, PlanId>
 
 export type Feature = keyof typeof FEATURE_MIN_PLAN

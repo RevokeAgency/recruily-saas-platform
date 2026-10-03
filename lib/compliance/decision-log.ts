@@ -15,6 +15,8 @@ export type DecisionEvent =
   | "stelle_abgeschlossen"
   | "pruefung_bestaetigt"
   | "absage_verschickt"
+  | "an_fachbereich_gesendet"
+  | "rueckmeldung_fachbereich"
 
 export interface DecisionEntry {
   userId: string

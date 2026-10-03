@@ -24,6 +24,8 @@ const EVENT_LABEL: Record<string, string> = {
   absage_verschickt: "Absage verschickt",
   pruefung_bestaetigt: "Menschliche Prüfung bestätigt",
   stelle_abgeschlossen: "Stelle abgeschlossen",
+  an_fachbereich_gesendet: "An Fachbereich gesendet",
+  rueckmeldung_fachbereich: "Rückmeldung Fachbereich",
 }
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -154,7 +156,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
                   ? `${d.abgesagt ?? 0} abgesagt, ${d.mails_verschickt ?? 0} Absagen verschickt`
                   : e.event === "absage_verschickt"
                     ? d.weg === "einzeln" ? "einzeln verschickt" : "beim Abschließen der Stelle"
-                    : JSON.stringify(d)
+                    : e.event === "an_fachbereich_gesendet"
+                      ? d.weg === "mail" ? "Freigabe-Link per E-Mail" : "Freigabe-Link"
+                      : e.event === "rueckmeldung_fachbereich"
+                        ? `${d.urteil === "interessant" ? "Interessant" : "Ablehnen"}${d.kommentar ? ", mit Kommentar" : ""}`
+                        : JSON.stringify(d)
         const linkId = e.job_candidate_id as string | null
         lines.push(
           row([
@@ -162,7 +168,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
             EVENT_LABEL[e.event] ?? e.event,
             linkId ? linkId.slice(0, 8) : "",
             linkId ? nameOf.get(linkId) || "(gelöscht)" : "",
-            actor(e.actor_id as string | null),
+            e.event === "rueckmeldung_fachbereich" ? "Fachbereich (Freigabe-Link)" : actor(e.actor_id as string | null),
             details,
           ]),
         )

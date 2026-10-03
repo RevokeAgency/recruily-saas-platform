@@ -528,6 +528,7 @@ zeigt an diesen Stellen ein Schloss und „Pläne ansehen“ statt eines Fehlers
 | Talent-Pool (`talent_pool`) | Growth | `/api/jobs/[id]/pool-suggestions` liefert nur Anzahlen (`locked`) |
 | Interviewleitfäden (`interview_guide`) | Growth | `/api/job-candidates/[linkId]/interview` POST und PUT 403, GET bleibt |
 | Bestenvergleich (`pool_rank`) | Growth | `/api/jobs/[id]/pool-rank` 403 |
+| Freigabe-Link (`review_link`) | Growth | `POST /api/review-links` 403; Lesen und offene Links bleiben |
 
 - In jedem Plan bleiben: Absagen ohne Mail, Stelle abschließen, fester Termin
   mit Kalenderdatei, Dashboard-Übersicht, öffentliche Bewerbungsseite.
@@ -538,3 +539,33 @@ zeigt an diesen Stellen ein Schloss und „Pläne ansehen“ statt eines Fehlers
   an dritter Stelle „Alles aus <Vorgänger>“. Gilt für `lib/plans.ts` (Abo-Seite,
   Paywall) und `components/landing/rv-pricing.tsx`. `tests/plans.test.ts`
   prüft, dass Listen und Sperren zusammenpassen.
+
+## Freigabe-Link für Fachabteilungen (Oktober 2026, Migration 033)
+
+HR schickt aus dem Kandidaten-Tab („Fachbereich fragen“) bis zu zehn
+Bewerber einer Stelle per Link an jemanden im eigenen Unternehmen, per Mail
+oder selbst geteilt (Kopieren, WhatsApp-Teilen über `wa.me`, kein
+WhatsApp-Business-Konto). Entscheidungen des Inhabers: ab Growth, Auswahl
+statt Einzelbewerber, Zusammenfassung plus Lebenslauf, Urteil nur als
+Rückmeldung (kein Statuswechsel).
+
+- Öffentliche Seite `/freigabe/[token]`, ohne Login, `noindex`, in
+  `robots.ts` gesperrt. Zeigt Name, Rolle, Ort, Erfahrung, Match, K.O.,
+  „Was passt“ (`ai_summary`), Kurzprofil, Skills und den Lebenslauf über
+  `/api/public/review/[token]/cv/[itemId]` (signierter Link, 5 Minuten).
+  Keine E-Mail, kein Telefon, kein Foto.
+- Urteil über `POST /api/public/review/[token]`: „interessant“ oder
+  „ablehnen“ plus Kommentar, änderbar bis zum Ablauf, Mengenbremse pro
+  Absender. Sind alle beurteilt, geht einmal eine Mail an HR
+  (`completed_at`, bedingtes Update gegen Doppelversand).
+- Token: 32 Zufallsbytes, gespeichert nur der SHA-256-Abdruck. 7 Tage
+  gültig, widerrufbar (`DELETE /api/review-links/[id]`).
+- Rückmeldungen erscheinen im Kandidaten-Tab (Kennzeichen „FB“ in der
+  Liste, Kasten in der Karte) und im Entscheidungsprotokoll
+  (`an_fachbereich_gesendet`, `rueckmeldung_fachbereich`, ohne Kommentar).
+- Code: `lib/review/shared.ts` (Typen, Prüfung, Ansicht),
+  `lib/review/store.ts` (Datenbank, Token), `lib/email/review.ts`,
+  `components/review/review-board.tsx`,
+  `components/jobs/detail/review-link-dialog.tsx`. Tests in
+  `tests/review.test.ts`.
+
