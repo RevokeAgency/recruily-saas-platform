@@ -589,7 +589,16 @@ neun Ebenen, Stärken und Skills, Interviewfragen, Interview-Ergebnis).
   Texten entfernt, kein Foto. Der Ort wird in beiden Varianten auf die Stadt
   gekürzt. Frühere Arbeitgeber bleiben, darauf weist der Dialog hin.
 - Nie im Report: Lücken, Auffälligkeiten aus dem Dossier, Abgleich des
-  Anschreibens (interne Prüfhinweise).
+  Anschreibens und die Begründung der Leitfaden-Fragen (interne
+  Prüfhinweise).
+- Profilnummer `K-XXXXXX` (die ersten sechs Zeichen der Bewerbungs-ID) ist
+  fest. Die App zeigt sie im Kandidatenfenster, der Export-Dialog zeigt die
+  Zuordnung Name zu Nummer, die Suche im Kandidaten-Tab findet sie (mit oder
+  ohne „K-“), und das Entscheidungsprotokoll hält sie beim Report fest.
+- Ist das Gespräch noch nicht bewertet, wird aus den Interviewfragen eine
+  Vorlage zum Ausfüllen: pro Frage „Worauf achten“, Anker für schwach und
+  stark, fünf Kreise zum Ankreuzen und Notizlinien, am Ende
+  „Gesamteindruck“.
 - Logo und Foto nur als PNG oder JPEG (react-pdf). Sonst steht der
   Firmenname statt des Logos beziehungsweise die Initialen statt des Fotos.
 - Jeder Report landet im Entscheidungsprotokoll (`report_erstellt`, anonym

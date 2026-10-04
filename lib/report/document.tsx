@@ -122,6 +122,11 @@ function GradientRule({ width = 507, height = 1.6 }: { width?: number; height?: 
   )
 }
 
+// Ziffern haben keine Unterlänge, die Textbox der Schrift aber schon. Damit
+// Zahl oder Initialen optisch mittig im Kreis sitzen, wird sie um diesen Anteil der
+// Schriftgröße verschoben (am gerenderten PDF nachgemessen).
+const NUM_SHIFT = 0.115
+
 /** Ring mit dem Match in der Mitte. Der Bogen wächst mit dem Wert. */
 function ScoreRing({ score, size = 70 }: { score: number | null; size?: number }) {
   const stroke = 6
@@ -144,7 +149,7 @@ function ScoreRing({ score, size = 70 }: { score: number | null; size?: number }
           : <Circle cx={cx} cy={cx} r={r} stroke={C.green} strokeWidth={stroke} fill="none" />)}
       </Svg>
       <View style={{ position: "absolute", top: 0, left: 0, width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ fontSize: size * 0.32, fontWeight: 800, color: C.ink, letterSpacing: -0.8 }}>{score ?? "–"}</Text>
+        <Text style={{ fontSize: size * 0.32, fontWeight: 800, color: C.ink, letterSpacing: -0.8, lineHeight: 1, marginTop: size * 0.32 * NUM_SHIFT }}>{score ?? "–"}</Text>
       </View>
     </View>
   )
@@ -184,6 +189,48 @@ function Dots({ value }: { value: number | null }) {
   )
 }
 
+function Hint({ label, text }: { label: string; text: string }) {
+  return (
+    <Text style={{ fontSize: 7.8, color: C.muted, marginTop: 1.5 }}>
+      <Text style={{ fontWeight: 700, color: C.text }}>{label}: </Text>
+      {text}
+    </Text>
+  )
+}
+
+/** Fünf leere Kreise mit Ziffern zum Ankreuzen, dazu Linien für Notizen. */
+function AnswerFields() {
+  return (
+    <View style={{ marginTop: 6 }}>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Text style={{ fontSize: 7.5, fontWeight: 700, color: C.muted, width: 58 }}>Bewertung</Text>
+        {[1, 2, 3, 4, 5].map((n) => (
+          <View key={n} style={{ flexDirection: "row", alignItems: "center", marginRight: 12 }}>
+            <View style={{ width: 10, height: 10, borderRadius: 5, borderWidth: 0.9, borderColor: C.faint }} />
+            <Text style={{ fontSize: 7.5, color: C.muted, marginLeft: 3, lineHeight: 1 }}>{n}</Text>
+          </View>
+        ))}
+      </View>
+      <View style={{ flexDirection: "row", marginTop: 4 }}>
+        <Text style={{ fontSize: 7.5, fontWeight: 700, color: C.muted, width: 58, paddingTop: 9 }}>Notizen</Text>
+        <View style={{ flex: 1 }}>
+          <WriteLines count={2} />
+        </View>
+      </View>
+    </View>
+  )
+}
+
+function WriteLines({ count }: { count: number }) {
+  return (
+    <View>
+      {Array.from({ length: count }, (_, i) => (
+        <View key={i} style={{ height: 17, borderBottomWidth: 0.6, borderBottomColor: C.line }} />
+      ))}
+    </View>
+  )
+}
+
 function Avatar({ c, size = 58 }: { c: ReportCandidate; size?: number }) {
   if (c.photo) {
     // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image hat kein alt
@@ -204,7 +251,7 @@ function Avatar({ c, size = 58 }: { c: ReportCandidate; size?: number }) {
         <Circle cx={size / 2} cy={size / 2} r={size / 2} fill="url(#av)" />
       </Svg>
       <View style={{ position: "absolute", top: 0, left: 0, width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ fontSize: size * 0.32, fontWeight: 800, color: C.ink }}>{initials || "?"}</Text>
+        <Text style={{ fontSize: size * 0.32, fontWeight: 800, color: C.ink, lineHeight: 1, marginTop: size * 0.32 * NUM_SHIFT }}>{initials || "?"}</Text>
       </View>
     </View>
   )
@@ -415,16 +462,37 @@ function Profile({ data, c }: { data: ReportData; c: ReportCandidate }) {
 
       {sec.questions && c.questions.length > 0 && (
         <View style={s.section}>
-          <Text style={s.h2}>Interviewfragen</Text>
+          <Text style={s.h2}>{c.interview ? "Interviewfragen" : "Interviewleitfaden"}</Text>
+          {!c.interview && (
+            <Text style={[s.small, { marginTop: -3, marginBottom: 8 }]}>
+              Zum Ausfüllen im Gespräch. Bewertung pro Frage: 1 = schwach, 5 = stark.
+            </Text>
+          )}
           {c.questions.map((q, i) => (
-            <View key={i} wrap={false} style={{ flexDirection: "row", marginBottom: 6 }}>
+            <View key={i} wrap={false} style={{ flexDirection: "row", marginBottom: c.interview ? 6 : 12 }}>
               <Text style={{ width: 18, fontWeight: 800, color: C.greenDeep }}>{i + 1}</Text>
               <View style={{ flex: 1 }}>
                 {q.competency ? <Text style={{ fontSize: 7.5, fontWeight: 700, color: C.faint, textTransform: "uppercase", letterSpacing: 0.8 }}>{q.competency}</Text> : null}
                 <Text style={{ color: C.ink }}>{q.question}</Text>
+                {/* Noch kein Gespräch: Felder für Bewertung und Notizen, damit
+                    der Report als Vorlage im Vorstellungsgespräch taugt. */}
+                {!c.interview && (q.lookFor || q.weak || q.strong) && (
+                  <View style={{ marginTop: 4 }}>
+                    {q.lookFor && <Hint label="Worauf achten" text={q.lookFor} />}
+                    {q.weak && <Hint label="Schwach, 1 bis 2" text={q.weak} />}
+                    {q.strong && <Hint label="Stark, 4 bis 5" text={q.strong} />}
+                  </View>
+                )}
+                {!c.interview && <AnswerFields />}
               </View>
             </View>
           ))}
+          {!c.interview && (
+            <View wrap={false} style={{ marginTop: 4 }}>
+              <Text style={{ fontSize: 8.5, fontWeight: 700, color: C.ink }}>Gesamteindruck</Text>
+              <WriteLines count={4} />
+            </View>
+          )}
         </View>
       )}
 

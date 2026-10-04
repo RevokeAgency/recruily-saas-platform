@@ -27,6 +27,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useProfile } from "@/lib/hooks/useProfile"
 import { featureFrom, hasFeature } from "@/lib/plans"
 import { ReportDialog } from "./report-dialog"
+import { profileCode } from "@/lib/report/model"
 import { hasFullScore } from "@/lib/quota"
 import { RejectionModal } from "@/components/ui/rejection-modal"
 import { CalendarConnectButtons } from "@/components/scheduling/calendar-connect"
@@ -600,7 +601,16 @@ export function CandidateMatchModal({
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-lg text-foreground">{candidate.full_name}</h3>
+              <h3 className="flex flex-wrap items-center gap-2 font-bold text-lg text-foreground">
+                {candidate.full_name}
+                {/* Unter dieser Nummer erscheint der Kandidat in anonymen Reports. */}
+                <span
+                  title="Profilnummer in anonymen Reports. Die Suche im Kandidaten-Tab findet sie."
+                  className="rounded-full bg-[var(--muted)] px-2 py-0.5 font-mono text-[11px] font-medium text-muted-foreground"
+                >
+                  {profileCode(candidate.linkId)}
+                </span>
+              </h3>
               <p className="text-sm text-muted-foreground">{candidate.job_title || "Kandidat"}</p>
               <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground/70">
                 {candidate.email && (

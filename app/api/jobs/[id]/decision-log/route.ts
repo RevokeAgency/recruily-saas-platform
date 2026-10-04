@@ -162,7 +162,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
                       : e.event === "rueckmeldung_fachbereich"
                         ? `${d.urteil === "interessant" ? "Interessant" : "Ablehnen"}${d.kommentar ? ", mit Kommentar" : ""}`
                         : e.event === "report_erstellt"
-                          ? `${d.anonym ? "anonym" : "mit Namen"}, ${d.kandidaten ?? 1} im Report`
+                          ? `${d.anonym ? `anonym als ${d.profilnummer ?? "Profilnummer"}` : "mit Namen"}, ${d.kandidaten ?? 1} im Report`
                           : JSON.stringify(d)
         const linkId = e.job_candidate_id as string | null
         lines.push(

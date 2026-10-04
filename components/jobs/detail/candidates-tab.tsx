@@ -61,6 +61,7 @@ import { CandidateMatchModal } from "./candidate-match-modal"
 import { PoolSuggestions } from "./pool-suggestions"
 import { ReviewLinkDialog, type ReviewLinkSummary } from "./review-link-dialog"
 import { ReportDialog } from "./report-dialog"
+import { profileCode } from "@/lib/report/model"
 import { RejectionModal } from "@/components/ui/rejection-modal"
 import { createClient } from "@/lib/supabase/client"
 import { useProfile } from "@/lib/hooks/useProfile"
@@ -165,6 +166,15 @@ function statusMeta(status: Candidate["status"]): { label: string; className: st
 
 const MAX_VISIBLE_SKILLS = 8
 
+/**
+ * Profilnummer aus anonymen Reports ("K-4F2A9C"), mit oder ohne "K-",
+ * ab drei Zeichen. So findet der Recruiter zur Nummer den Kandidaten.
+ */
+function matchesProfileCode(linkId: string, query: string): boolean {
+  const q = query.trim().toLowerCase().replace(/^k-?/, "")
+  return q.length >= 3 && /^[0-9a-f]+$/.test(q) && profileCode(linkId).slice(2).toLowerCase().startsWith(q)
+}
+
 /** Kleines Zeichen in der Liste: Rückmeldung aus dem Fachbereich, Kommentar als Tooltip. */
 function FeedbackPill({ feedback }: { feedback?: { verdict: "interessant" | "ablehnen"; comment: string | null; reviewer: string } }) {
   if (!feedback) return null
@@ -246,7 +256,8 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
     .filter((c) =>
       c.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.skills?.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
+      c.skills?.some(s => s.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      matchesProfileCode(c.linkId, searchQuery)
     )
     .filter((c) => {
       if (filterStatus === "all") return true
@@ -562,7 +573,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Nach Name, E-Mail oder Skills suchen…"
+                placeholder="Nach Name, E-Mail, Skills oder Profilnummer suchen…"
                 className="pl-9 rounded-full"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

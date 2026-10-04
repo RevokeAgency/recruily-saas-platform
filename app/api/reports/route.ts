@@ -5,7 +5,7 @@ import { requireFeature } from "@/lib/quota"
 import { consumeRateLimit } from "@/lib/rate-limit"
 import { renderReport } from "@/lib/report/document"
 import { loadReport } from "@/lib/report/load"
-import { parseReportRequest, reportFileName } from "@/lib/report/model"
+import { parseReportRequest, profileCode, reportFileName } from "@/lib/report/model"
 import { reviewDb } from "@/lib/review/store"
 import { createClient } from "@/lib/supabase/server"
 
@@ -52,7 +52,11 @@ export async function POST(req: NextRequest) {
   await logDecisions(supabase, parsed.value.jobCandidateIds.map((id) => ({
     userId: user.id, actorId: user.id, jobId: parsed.value.jobId, jobCandidateId: id,
     event: "report_erstellt",
-    detail: { anonym: parsed.value.anonymous, kandidaten: parsed.value.jobCandidateIds.length },
+    detail: {
+      anonym: parsed.value.anonymous,
+      kandidaten: parsed.value.jobCandidateIds.length,
+      ...(parsed.value.anonymous ? { profilnummer: profileCode(id) } : {}),
+    },
   })))
 
   const name = reportFileName(loaded.data.jobTitle, loaded.data.createdAt, parsed.value.anonymous)

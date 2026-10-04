@@ -134,3 +134,19 @@ describe("Inhalt", () => {
       .toBe("Revetly-Report-Kfz-Mechatroniker-in-m-w-d-Grosse-anonym-2026-10-03.pdf")
   })
 })
+
+describe("Profilnummer und Interviewvorlage", () => {
+  it("ist sechsstellig und bleibt für dieselbe Bewerbung gleich", () => {
+    expect(profileCode(LINK)).toBe("K-4F2A9C")
+    expect(profileCode(LINK)).toBe(profileCode(LINK))
+  })
+
+  it("übernimmt Worauf achten und Anker aus dem Leitfaden, nicht die interne Begründung", () => {
+    const c = buildReportCandidate({
+      ...row,
+      interview_guide: { questions: [{ competency: "Führung", question: "Wie führen Sie?", lookFor: "Beispiel", weakAnchor: "vage", strongAnchor: "konkret", rationale: "Lücke 2019 unklar" }] },
+    }, true)
+    expect(c.questions[0]).toEqual({ competency: "Führung", question: "Wie führen Sie?", lookFor: "Beispiel", weak: "vage", strong: "konkret" })
+    expect(JSON.stringify(c)).not.toContain("Lücke 2019")
+  })
+})

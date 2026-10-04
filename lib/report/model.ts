@@ -62,7 +62,8 @@ export interface ReportCandidate {
   education: string[]
   certifications: string[]
   languages: Array<{ language: string; level: string }>
-  questions: Array<{ competency: string; question: string }>
+  /** lookFor und Anker aus dem Leitfaden; die Begründung (rationale) bleibt intern. */
+  questions: Array<{ competency: string; question: string; lookFor: string | null; weak: string | null; strong: string | null }>
   interview: {
     score: number | null
     ratings: Array<{ question: string; rating: number | null; notes: string | null }>
@@ -111,9 +112,14 @@ export function parseReportRequest(body: unknown): { ok: true; value: ReportRequ
 
 // ── Anonymisierung ───────────────────────────────────────────────────────────
 
-/** Feste Profilnummer aus der Bewerbung, damit derselbe Kandidat immer gleich heißt. */
+/**
+ * Feste Profilnummer aus der Bewerbung: derselbe Kandidat heißt in jedem
+ * Report gleich, und die App zeigt die Nummer beim Kandidaten an und findet
+ * ihn über die Suche. Sechs Zeichen, damit sich zwei Bewerbungen einer
+ * Stelle praktisch nie eine Nummer teilen.
+ */
 export function profileCode(jobCandidateId: string): string {
-  return `K-${jobCandidateId.replace(/[^0-9a-f]/gi, "").slice(0, 4).toUpperCase()}`
+  return `K-${jobCandidateId.replace(/[^0-9a-f]/gi, "").slice(0, 6).toUpperCase()}`
 }
 
 function escapeRegExp(s: string): string {
@@ -192,7 +198,9 @@ export function buildReportCandidate(row: Row, anonymous: boolean): ReportCandid
   const cand = one(row.candidate as Row | Row[] | null) ?? {}
   const detail = (row.match_detail ?? {}) as { categories?: Record<string, { begruendung?: unknown }> }
   const dossier = (cand.dossier ?? {}) as Row
-  const guide = (row.interview_guide ?? null) as { questions?: Array<{ competency?: unknown; question?: unknown }> } | null
+  const guide = (row.interview_guide ?? null) as {
+    questions?: Array<{ competency?: unknown; question?: unknown; lookFor?: unknown; weakAnchor?: unknown; strongAnchor?: unknown }>
+  } | null
   const ratings = Array.isArray(row.interview_ratings) ? (row.interview_ratings as Row[]) : []
 
   const fullName = str(cand.full_name)
@@ -247,7 +255,13 @@ export function buildReportCandidate(row: Row, anonymous: boolean): ReportCandid
       .map((l) => ({ language: str(l.language) ?? "", level: LEVEL[String(l.level)] ?? "" }))
       .filter((l) => l.language),
     questions: (guide?.questions ?? [])
-      .map((q) => ({ competency: clean(str(q.competency)) ?? "", question: clean(str(q.question)) ?? "" }))
+      .map((q) => ({
+        competency: clean(str(q.competency)) ?? "",
+        question: clean(str(q.question)) ?? "",
+        lookFor: clean(str(q.lookFor)),
+        weak: clean(str(q.weakAnchor)),
+        strong: clean(str(q.strongAnchor)),
+      }))
       .filter((q) => q.question),
     interview: interviewScore != null || hasRatings
       ? {

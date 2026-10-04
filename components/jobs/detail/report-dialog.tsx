@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { REPORT_MAX_CANDIDATES, REPORT_SECTIONS, type ReportSection } from "@/lib/report/model"
+import { REPORT_MAX_CANDIDATES, REPORT_SECTIONS, profileCode, type ReportSection } from "@/lib/report/model"
 
 export interface ReportCandidateOption {
   linkId: string
@@ -190,6 +190,22 @@ export function ReportDialog({
                 )
               })}
             </div>
+            {anonymous && count > 0 && (
+              <div className="mt-3 rounded-xl bg-[var(--muted)]/60 px-3 py-2.5">
+                <p className="text-xs font-medium text-foreground">So heißen sie im Report</p>
+                <ul className="mt-1.5 space-y-1">
+                  {options.filter((c) => selected.has(c.linkId)).map((c) => (
+                    <li key={c.linkId} className="flex items-center justify-between gap-3 text-xs">
+                      <span className="truncate text-muted-foreground">{c.full_name}</span>
+                      <span className="flex-none font-mono font-medium text-foreground">{profileCode(c.linkId)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-1.5 text-[11px] text-muted-foreground">
+                  Die Nummer bleibt immer gleich. Du findest sie beim Kandidaten und über die Suche.
+                </p>
+              </div>
+            )}
             {anonymous && (
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 Der Name wird auch in den Texten durch eine Profilnummer ersetzt, der Wohnort auf die Stadt gekürzt.
