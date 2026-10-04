@@ -29,7 +29,7 @@ export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle, jobSlug }: 
     ? `${origin}/jobs/${profile.slug}/${jobSlug || slugify(jobTitle || "job")}`
     : null
   const emailAddress = profile?.slug
-    ? buildJobEmailAddress(profile.slug, jobTitle || "job", jobId)
+    ? buildJobEmailAddress(profile.slug, jobSlug, jobId, jobTitle || "job")
     : null
   // Bewerbungen per E-Mail ab Starter. Die Probestelle bekommt keine Adresse
   // angezeigt, Mails an sie würden nicht ausgewertet.

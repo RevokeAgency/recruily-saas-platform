@@ -610,3 +610,20 @@ neun Ebenen, Stärken und Skills, Interviewfragen, Interview-Ergebnis).
   („Report“) und im Kandidatenfenster („Report als PDF“). Tests in
   `tests/report.test.ts`.
 
+## Bewerbungsadressen (Oktober 2026, Migration 034)
+
+Format `kfz-mechatroniker-in@autohaus-berger.revetly.ai` (Entscheidung des
+Inhabers). Vor dem @ `addressLocalPart(jobs.public_slug)`: ohne
+Geschlechterzusatz, höchstens 40 Zeichen, Laufnummer bleibt
+(`…-in-2`). Subdomain = `user_profiles.slug`. Kein Pluszeichen, keine ID.
+
+- Zuordnung in `/api/inbound/email`: Kunde über die Subdomain, Stelle über
+  `matchJobByKey` (gleicher Kurzname; bei Doppelung die einzige offene
+  Stelle, sonst unzugeordnet im Posteingang). Alte Formate mit
+  `+<jobId>` werden weiter erkannt.
+- Kurznamen: reserviert (`RESERVED_SUBDOMAINS` in `lib/email/routing.ts`,
+  gleiche Liste in Migration 034, Test vergleicht beide) und höchstens 40
+  Zeichen. Onboarding zeigt die Beispieladresse.
+- DNS: Wildcard-MX `*.revetly.ai` auf EmailConnect, siehe GO-LIVE.
+- Tests in `tests/routing.test.ts`.
+

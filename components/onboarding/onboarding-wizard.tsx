@@ -139,15 +139,18 @@ export function OnboardingWizard({ initial }: Props) {
                 <Label htmlFor="slug">Deine Subdomain</Label>
                 <div className="flex items-center gap-2">
                   <Input id="slug" value={effectiveSlug}
-                    onChange={(e) => { setSlugTouched(true); setSlug(slugify(e.target.value)); setSlugStatus("idle") }}
+                    maxLength={40}
+                    onChange={(e) => { setSlugTouched(true); setSlug(slugify(e.target.value).slice(0, 40)); setSlugStatus("idle") }}
                     onBlur={() => checkSlug(effectiveSlug)} className="font-mono" />
                   <span className="whitespace-nowrap text-sm text-muted-foreground">.{INBOUND_DOMAIN}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {slugStatus === "checking" && "Prüfe Verfügbarkeit…"}
                   {slugStatus === "free" && <span className="inline-flex items-center gap-1 text-[var(--rv-green-deep)]"><Check className="h-3.5 w-3.5" /> verfügbar</span>}
-                  {slugStatus === "taken" && <span className="text-amber-600">Bereits vergeben, Vorschlag übernommen</span>}
-                  {slugStatus === "idle" && "Wird für E-Mail-Adressen und Job-Page-Links verwendet."}
+                  {slugStatus === "taken" && <span className="text-amber-600">Bereits vergeben oder reserviert, Vorschlag übernommen</span>}
+                  {slugStatus === "idle" && (effectiveSlug
+                    ? <>Für Stellenseiten und Bewerbungsadressen, etwa <span className="font-mono">stelle@{effectiveSlug}.{INBOUND_DOMAIN}</span></>
+                    : "Wird für E-Mail-Adressen und Job-Page-Links verwendet.")}
                 </p>
               </div>
 

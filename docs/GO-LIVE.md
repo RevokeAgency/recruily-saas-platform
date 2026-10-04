@@ -84,7 +84,14 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
 - [ ] **Supabase Auth → URL Configuration**: Site URL + Redirect URLs auf
       `https://revetly.ai` (Confirm-/Reset-Mail-Links).
 - [ ] **Supabase Auth E-Mail-Templates**: absolute Links prüfen.
-- [ ] **EmailConnect / Inbound**: Inbound-Adressen/DNS auf die Live-Domain.
+- [ ] **EmailConnect / Inbound**: Bewerbungsadressen haben das Format
+      `stelle@kunde.revetly.ai`. Dafür im DNS einen **Wildcard-MX**
+      `*.revetly.ai` auf EmailConnect setzen und bei EmailConnect klären, dass
+      Mails an **beliebige Subdomains** angenommen und an
+      `/api/inbound/email` weitergeleitet werden. Der MX von `revetly.ai`
+      selbst bleibt davon unberührt (eigene Postfächer wie hallo@).
+      Subdomains mit eigenen Einträgen (www, app …) sind als Kurznamen
+      gesperrt, siehe Migration 034.
 - [ ] **Lettermint**: Absenderdomain `revetly.ai` verifizieren (SPF/DKIM), damit
       Auto-Reply / Interview / Absage / Terminmails nicht im Spam landen.
 - [ ] **`NEXT_PUBLIC_SITE_URL`** auf `https://revetly.ai` setzen. Daraus bauen
@@ -166,6 +173,10 @@ Reihenfolge egal, alle additiv:
       `consume_rate_limit()` und `purge_rate_limits()`. Ohne diese Migration
       zählt nichts und alle Zugriffe werden durchgelassen (bewusst
       fail-open), die Datei- und Doppelbewerbungsprüfungen greifen trotzdem.
+- [ ] `scripts/034_inbound_addresses.sql`: **Neues Format der
+      Bewerbungsadressen.** Sperrt reservierte Kurznamen und begrenzt die
+      Länge. Die Abfrage am Ende muss leer sein. Lokal getestet, Details in
+      `scripts/034_inbound_addresses.md`.
 - [ ] `scripts/033_review_links.sql`: **Freigabe-Link für Fachabteilungen.**
       Zwei neue Tabellen, Schreibzugriff nur über die App. Ohne diese
       Migration meldet „Fachbereich fragen“ die fehlende Migration. Lokal

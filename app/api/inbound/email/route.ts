@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { NextRequest, after } from "next/server"
 import { parseEmailConnectPayload, verifyEmailConnectSignature } from "@/lib/email/emailconnect"
-import { parseInboundRecipient } from "@/lib/email/routing"
+import { matchJobByKey, parseInboundRecipient } from "@/lib/email/routing"
 import { parseCvBuffer, isSupportedCvType, isUsableCandidate, isPdfFile } from "@/lib/cv-parse"
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const email = parseEmailConnectPayload(raw)
-    const { customerSlug, jobId } = parseInboundRecipient(email.to)
+    const { customerSlug, jobId, jobKey } = parseInboundRecipient(email.to)
 
     // Resolve the customer (by slug) and the job (by UUID) independently.
     let ownerId: string | null = null
@@ -75,6 +75,14 @@ export async function POST(req: NextRequest) {
         job = { id: j.id, user_id: j.user_id, title: j.title ?? null, company: j.company ?? null }
         ownerId = ownerId ?? j.user_id
       }
+    }
+
+    // Neues Format: Stelle über den Kurznamen vor dem @ (lib/email/routing.ts).
+    if (!job && jobKey && ownerId) {
+      const { data: ownerJobs } = await supabase
+        .from("jobs").select("id, user_id, is_active, title, company, public_slug").eq("user_id", ownerId)
+      const hit = matchJobByKey((ownerJobs ?? []) as Array<{ id: string; user_id: string; is_active: boolean | null; title: string | null; company: string | null; public_slug: string | null }>, jobKey)
+      if (hit) job = { id: hit.id, user_id: hit.user_id, title: hit.title ?? null, company: hit.company ?? null }
     }
 
     // Log the email up front so nothing is ever lost, scoped to the customer
@@ -107,7 +115,7 @@ export async function POST(req: NextRequest) {
 
     // No matching active job → "Nicht zugeordnet".
     if (!job) {
-      await finalize("unassigned", jobId ? "Job nicht gefunden" : "Keine Job-ID in Adresse")
+      await finalize("unassigned", jobId || jobKey ? "Keine Stelle zu dieser Adresse gefunden" : "Keine Stelle in der Adresse")
       return Response.json({ success: true, status: "unassigned" })
     }
 
