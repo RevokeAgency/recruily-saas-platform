@@ -1,14 +1,18 @@
 /**
  * Bewerbungsadressen pro Stelle.
  *
- * Format (seit Oktober 2026):   kfz-mechatroniker@autohaus-berger.revetly.ai
- *   - vor dem @ der Kurzname der Stelle aus der Stellenseite (jobs.public_slug,
- *     beim Anlegen vergeben und danach unverändert), ohne "(m/w/d)" und auf
- *     40 Zeichen gekürzt,
- *   - die Subdomain ist der Kurzname des Kunden (user_profiles.slug).
+ * Format (seit Oktober 2026):   stelle@firma.revetly.ai
+ *   z. B.  kfz-mechatroniker@autohaus-berger.revetly.ai
+ *   - vor dem @ der Adressname der Stelle (jobs.inbound_alias, Migration
+ *     034): die ersten zwei aussagekräftigen Wörter des Titels, ohne
+ *     Geschlechterzusatz, Seniorität und Füllwörter, höchstens 28 Zeichen,
+ *     pro Kunde eindeutig (sonst mit Laufnummer). Beim Anlegen vergeben und
+ *     danach fest.
+ *   - die Subdomain ist der Kurzname des Kunden (user_profiles.slug); der
+ *     Vorschlag dafür lässt die Rechtsform weg.
  * Kein Pluszeichen (das lehnen viele Jobportale ab), keine lange ID.
  *
- * Zugeordnet wird über Kunde + Kurzname der Stelle. Die alten Formate mit der
+ * Zugeordnet wird über Kunde + Adressname. Die alten Formate mit der
  * Stellen-ID hinter "+" werden weiter erkannt, damit bereits veröffentlichte
  * Adressen nicht ins Leere laufen:
  *   jobslug+<jobId>@<kunde>.revetly.ai
@@ -46,6 +50,65 @@ export function slugify(text: string): string {
     .replace(/ß/g, "ss").replace(/[éèêë]/g, "e").replace(/ç/g, "c").replace(/ñ/g, "n")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
+}
+
+/**
+ * Wörter, die im Adressnamen einer Stelle nichts beitragen. Gleiche Liste in
+ * scripts/034_inbound_addresses.sql (job_alias_base); ein Test vergleicht.
+ */
+export const ALIAS_STOPWORDS = [
+  "m", "w", "d", "x", "f", "in", "innen", "all", "alle", "gender", "genders", "geschlechter",
+  "und", "oder", "fur", "fuer", "mit", "im", "am", "an", "der", "die", "das", "den", "zur", "zum", "bei", "als",
+  "senior", "junior", "lead", "head", "chief", "praktikum", "werkstudent", "trainee",
+  "vollzeit", "teilzeit", "ab", "sofort", "befristet", "unbefristet",
+] as const
+
+/** Rechtsformen, die im Kurznamen einer Firma wegfallen. Gleiche Liste in Migration 034. */
+export const LEGAL_FORMS = [
+  "gmbh", "gesmbh", "mbh", "ag", "kg", "og", "ohg", "ug", "se", "gbr", "co", "eu", "ev",
+  "e", "u", "v", "ltd", "limited", "inc", "haftungsbeschrankt",
+] as const
+
+const ALIAS_MAX = 28
+
+/** Umlaute ausschreiben (ä → ae, ß → ss), wie man sie in einer Adresse erwartet. */
+function germanize(text: string): string {
+  return text
+    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue")
+    .replace(/Ä/g, "Ae").replace(/Ö/g, "Oe").replace(/Ü/g, "Ue")
+    .replace(/ß/g, "ss")
+}
+
+/**
+ * Adressname einer Stelle aus dem Titel (Grundform, ohne Laufnummer). Die
+ * verbindliche Vergabe macht die Datenbank (job_alias_base plus Laufnummer);
+ * diese Fassung dient Vorschau und Rückfall, solange Migration 034 fehlt.
+ *   "Kfz-Mechatroniker:in (m/w/d)"              → kfz-mechatroniker
+ *   "Senior Fachkraft für Lagerlogistik (m/w/d)" → fachkraft-lagerlogistik
+ */
+export function jobAliasBase(title: string): string {
+  const words = slugify(germanize(title)).split("-").filter((w) => w && !(ALIAS_STOPWORDS as readonly string[]).includes(w))
+  let out = ""
+  for (const w of words.slice(0, 2)) {
+    const next = out ? `${out}-${w}` : w
+    if (next.length > ALIAS_MAX) break
+    out = next
+  }
+  if (!out && words[0]) out = words[0].slice(0, ALIAS_MAX)
+  return out || "bewerbung"
+}
+
+/** Vorschlag für den Kurznamen einer Firma: ohne Rechtsform, höchstens 40 Zeichen. */
+export function customerSlugSuggestion(companyName: string): string {
+  const words = slugify(germanize(companyName)).split("-").filter(Boolean)
+  const kept = words.filter((w) => !(LEGAL_FORMS as readonly string[]).includes(w))
+  let s = (kept.length ? kept : words).join("-")
+  if (s.length > 40) {
+    const cut = s.slice(0, 41)
+    const at = cut.lastIndexOf("-")
+    s = at >= 20 ? cut.slice(0, at) : s.slice(0, 40)
+  }
+  return s.replace(/-+$/g, "") || "kunde"
 }
 
 // Geschlechterzusatz am Ende, vor einer eventuellen Laufnummer ("-2").
@@ -111,23 +174,34 @@ export function parseInboundRecipient(address: string): ParsedRecipient {
 }
 
 /**
- * Welche Stelle eines Kunden zu einem jobKey gehört. Eindeutig oder gar
- * nicht: Passen mehrere, gewinnt die einzige offene; sonst bleibt die Mail
- * unzugeordnet im Posteingang, statt bei der falschen Stelle zu landen.
+ * Welche Stelle eines Kunden zu einem jobKey gehört. Zuerst über den
+ * gespeicherten Adressnamen (eindeutig pro Kunde). Fehlt der (Migration 034
+ * noch nicht eingespielt), über den Kurznamen der Stellenseite; passen dann
+ * mehrere, gewinnt die einzige offene, sonst bleibt die Mail unzugeordnet im
+ * Posteingang, statt bei der falschen Stelle zu landen.
  */
-export function matchJobByKey<T extends { public_slug: string | null; is_active: boolean | null }>(
+export function matchJobByKey<T extends { public_slug: string | null; is_active: boolean | null; inbound_alias?: string | null }>(
   jobs: T[],
   jobKey: string,
 ): T | null {
-  const hits = jobs.filter((j) => j.public_slug && addressLocalPart(j.public_slug) === jobKey)
+  const byAlias = jobs.filter((j) => j.inbound_alias === jobKey)
+  if (byAlias.length === 1) return byAlias[0]
+  const hits = jobs.filter((j) => !j.inbound_alias && j.public_slug && addressLocalPart(j.public_slug) === jobKey)
   if (hits.length === 1) return hits[0]
   const open = hits.filter((j) => j.is_active)
   return open.length === 1 ? open[0] : null
 }
 
-/** Bewerbungsadresse einer Stelle. Ohne Kurznamen der Stelle das alte Format mit ID. */
-export function buildJobEmailAddress(customerSlug: string, publicSlug: string | null | undefined, jobId: string, jobTitle = ""): string {
-  if (publicSlug) return `${addressLocalPart(publicSlug)}@${customerSlug}.${INBOUND_DOMAIN}`
-  const jobSlug = (slugify(jobTitle) || "job").slice(0, 24).replace(/-+$/g, "")
-  return `${jobSlug}+${jobId}@${customerSlug}.${INBOUND_DOMAIN}`
+/**
+ * Bewerbungsadresse einer Stelle. Bevorzugt den gespeicherten Adressnamen;
+ * ohne ihn den Kurznamen der Stellenseite; ohne beides das alte Format mit ID.
+ */
+export function buildJobEmailAddress(
+  customerSlug: string,
+  job: { inboundAlias?: string | null; publicSlug?: string | null; id: string; title?: string | null },
+): string {
+  if (job.inboundAlias) return `${job.inboundAlias}@${customerSlug}.${INBOUND_DOMAIN}`
+  if (job.publicSlug) return `${addressLocalPart(job.publicSlug)}@${customerSlug}.${INBOUND_DOMAIN}`
+  const jobSlug = (slugify(job.title ?? "") || "job").slice(0, 24).replace(/-+$/g, "")
+  return `${jobSlug}+${job.id}@${customerSlug}.${INBOUND_DOMAIN}`
 }

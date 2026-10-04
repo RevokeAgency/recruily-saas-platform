@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Building2, Upload, Check, Loader2, ArrowRight, PartyPopper } from "lucide-react"
 import Image from "next/image"
-import { slugify, INBOUND_DOMAIN } from "@/lib/email/routing"
+import { customerSlugSuggestion, slugify, INBOUND_DOMAIN } from "@/lib/email/routing"
 import { saveCompany, checkSlugAvailable, completeOnboarding } from "@/app/actions/onboarding"
 
 interface Props {
@@ -31,11 +31,12 @@ export function OnboardingWizard({ initial }: Props) {
 
   const [pending, startTransition] = useTransition()
 
-  const effectiveSlug = slugTouched ? slug : slugify(companyName)
+  // Vorschlag ohne Rechtsform: "Autohaus Berger GmbH" → autohaus-berger.
+  const effectiveSlug = slugTouched ? slug : (companyName.trim() ? customerSlugSuggestion(companyName) : "")
 
   const onCompanyName = (v: string) => {
     setCompanyName(v)
-    if (!slugTouched) setSlug(slugify(v))
+    if (!slugTouched) setSlug(v.trim() ? customerSlugSuggestion(v) : "")
   }
 
   const checkSlug = useCallback((value: string) => {

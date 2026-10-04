@@ -6,8 +6,10 @@
 -- Voraussetzungen: 007 (slugify, user_profiles.slug), 011 (company_slug_status,
 -- save_company).
 --
--- Neues Adressformat: kfz-mechatroniker@autohaus-berger.revetly.ai. Der
--- Kurzname des Kunden wird damit zur Subdomain. Zwei Regeln kommen dazu:
+-- Adressformat: stelle@firma.revetly.ai, z. B.
+--   kfz-mechatroniker@autohaus-berger.revetly.ai
+-- Vor dem @ ein kurzer, fester Adressname pro Stelle (jobs.inbound_alias,
+-- Abschnitt 5), die Subdomain ist der Kurzname des Kunden. Dafür gelten:
 --   1. Belegte oder vorgesehene Subdomains (www, mail, app, …) sind keine
 --      Kurznamen. Sonst gingen Bewerbungen an diese Adressen verloren, weil
 --      dort andere DNS-Einträge gelten als der Wildcard-MX.
@@ -40,15 +42,42 @@ $$;
 
 
 -- ---------------------------------------------------------------------------
--- 2) Grundform eines Kurznamens: slugify, höchstens 40 Zeichen, nach
---    Möglichkeit an einem Bindestrich gekürzt statt mitten im Wort, Ersatz
---    "kunde", wenn nichts übrig bleibt.
+-- 1b) Umlaute ausschreiben (ä → ae, ß → ss), wie man sie in einer Adresse
+--     erwartet. slugify aus 007 macht aus ä nur a und aus ß nur s.
+-- ---------------------------------------------------------------------------
+create or replace function public.germanize(p_value text)
+returns text
+language sql
+immutable
+as $$
+  select replace(replace(replace(replace(replace(replace(replace(coalesce(p_value, ''),
+    'ä', 'ae'), 'ö', 'oe'), 'ü', 'ue'), 'Ä', 'Ae'), 'Ö', 'Oe'), 'Ü', 'Ue'), 'ß', 'ss');
+$$;
+
+
+-- ---------------------------------------------------------------------------
+-- 2) Grundform eines Kurznamens: slugify ohne Rechtsform (GmbH, KG, e.U. …),
+--    höchstens 40 Zeichen, nach Möglichkeit an einem Bindestrich gekürzt,
+--    Ersatz "kunde", wenn nichts übrig bleibt. Gleiche Regeln wie
+--    customerSlugSuggestion in lib/email/routing.ts.
 -- ---------------------------------------------------------------------------
 create or replace function public.customer_slug_base(p_value text)
 returns text
 language sql
 immutable
 as $$
+  with w as (
+    select array_remove(string_to_array(public.slugify(public.germanize(p_value)), '-'), '') as all_words
+  ), k as (
+    select all_words,
+           array(select x from unnest(all_words) x where not (x = any (array[
+    'gmbh', 'gesmbh', 'mbh', 'ag', 'kg', 'og', 'ohg', 'ug', 'se', 'gbr',
+    'co', 'eu', 'ev', 'e', 'u', 'v', 'ltd', 'limited', 'inc', 'haftungsbeschrankt'
+           ]))) as kept
+      from w
+  ), j as (
+    select array_to_string(case when cardinality(kept) > 0 then kept else all_words end, '-') as s from k
+  )
   select coalesce(
     nullif(trim(both '-' from
       case
@@ -56,7 +85,7 @@ as $$
         else coalesce(substring(left(s, 41) from '^(.{20,40})-'), left(s, 40))
       end), ''),
     'kunde')
-  from (select public.slugify(p_value) as s) x;
+  from j;
 $$;
 
 
@@ -159,14 +188,145 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------------------
+-- 5) Adressname pro Stelle: jobs.inbound_alias
+--    Die ersten zwei aussagekräftigen Wörter des Titels, ohne
+--    Geschlechterzusatz, Seniorität und Füllwörter, höchstens 28 Zeichen,
+--    Umlaute ausgeschrieben (ä → ae, ß → ss).
+--    Pro Kunde eindeutig, bei Gleichstand mit Laufnummer (-2, -3 …). Beim
+--    Anlegen vergeben und danach fest, damit eine veröffentlichte Adresse
+--    gültig bleibt, auch wenn der Titel geändert wird.
+--      "Kfz-Mechatroniker:in (m/w/d)"               → kfz-mechatroniker
+--      "Senior Fachkraft für Lagerlogistik (m/w/d)" → fachkraft-lagerlogistik
+--    Gleiche Regeln wie jobAliasBase in lib/email/routing.ts.
+-- ---------------------------------------------------------------------------
+create or replace function public.job_alias_base(p_title text)
+returns text
+language plpgsql
+immutable
+as $$
+declare
+  v_words text[];
+  v_out   text := '';
+  v_next  text;
+  v_n     int := 0;
+  w       text;
+begin
+  v_words := array(
+    select x from unnest(string_to_array(public.slugify(public.germanize(p_title)), '-')) with ordinality as t(x, i)
+     where x <> '' and not (x = any (array[
+    'm', 'w', 'd', 'x', 'f', 'in', 'innen', 'all', 'alle', 'gender',
+    'genders', 'geschlechter', 'und', 'oder', 'fur', 'fuer', 'mit', 'im', 'am', 'an',
+    'der', 'die', 'das', 'den', 'zur', 'zum', 'bei', 'als', 'senior', 'junior',
+    'lead', 'head', 'chief', 'praktikum', 'werkstudent', 'trainee', 'vollzeit', 'teilzeit', 'ab', 'sofort',
+    'befristet', 'unbefristet'
+     ]))
+     order by i
+  );
+  foreach w in array v_words loop
+    exit when v_n >= 2;
+    v_next := case when v_out = '' then w else v_out || '-' || w end;
+    exit when char_length(v_next) > 28;
+    v_out := v_next;
+    v_n := v_n + 1;
+  end loop;
+  if v_out = '' and cardinality(v_words) > 0 then
+    v_out := left(v_words[1], 28);
+  end if;
+  return coalesce(nullif(v_out, ''), 'bewerbung');
+end;
+$$;
+
+alter table public.jobs add column if not exists inbound_alias text;
+
+create unique index if not exists jobs_user_inbound_alias_idx
+  on public.jobs (user_id, inbound_alias)
+  where inbound_alias is not null;
+
+-- Freien Adressnamen für eine Stelle finden: Grundform, sonst mit Laufnummer.
+create or replace function public.next_job_alias(p_user uuid, p_title text, p_job uuid)
+returns text
+language plpgsql
+as $$
+declare
+  v_base text := public.job_alias_base(p_title);
+  v_try  text := v_base;
+  v_n    int  := 1;
+begin
+  while exists (
+    select 1 from public.jobs
+     where user_id = p_user and inbound_alias = v_try and id is distinct from p_job
+  ) loop
+    v_n := v_n + 1;
+    v_try := v_base || '-' || v_n;
+  end loop;
+  return v_try;
+end;
+$$;
+
+create or replace function public.set_job_inbound_alias()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.inbound_alias is null and new.user_id is not null then
+    new.inbound_alias := public.next_job_alias(new.user_id, new.title, new.id);
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists set_job_inbound_alias on public.jobs;
+create trigger set_job_inbound_alias
+  before insert on public.jobs
+  for each row execute function public.set_job_inbound_alias();
+
+-- Bestehende Stellen nachziehen, älteste zuerst (die bekommt die Grundform).
+do $$
+declare r record;
+begin
+  for r in select id, user_id, title from public.jobs
+            where inbound_alias is null and user_id is not null
+            order by created_at, id
+  loop
+    update public.jobs
+       set inbound_alias = public.next_job_alias(r.user_id, r.title, r.id)
+     where id = r.id;
+  end loop;
+end $$;
+
+-- Der Adressname gehört zur Adresse, nicht zum Formular: Konten dürfen ihn
+-- nicht direkt ändern. Die App schreibt ihn nie, nur der Trigger oben.
+create or replace function public.protect_job_inbound_alias()
+returns trigger
+language plpgsql
+as $$
+begin
+  if current_user in ('authenticated', 'anon')
+     and new.inbound_alias is distinct from old.inbound_alias then
+    raise exception 'inbound_alias ist fest'
+      using errcode = '42501', hint = 'Der Adressname einer Stelle wird beim Anlegen vergeben.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_job_inbound_alias on public.jobs;
+create trigger protect_job_inbound_alias
+  before update on public.jobs
+  for each row execute function public.protect_job_inbound_alias();
+
+
 grant execute on function public.slug_reserved(text)          to authenticated, service_role;
 grant execute on function public.customer_slug_base(text)     to authenticated, service_role;
+grant execute on function public.job_alias_base(text)         to authenticated, service_role;
+grant execute on function public.germanize(text)              to authenticated, service_role;
 grant execute on function public.company_slug_status(text)    to authenticated;
 grant execute on function public.save_company(text, text)     to authenticated;
 
 
 -- ---------------------------------------------------------------------------
--- 5) Bestehende Konten prüfen (ändert nichts). Liefert Kunden, deren
+-- 6) Bestehende Konten prüfen (ändert nichts). Liefert Kunden, deren
 --    Kurzname reserviert oder zu lang ist. Vor dem Start sollte das leer sein;
 --    sonst den Kurznamen dieser Konten von Hand ändern.
 -- ---------------------------------------------------------------------------

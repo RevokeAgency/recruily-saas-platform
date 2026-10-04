@@ -79,9 +79,17 @@ export async function POST(req: NextRequest) {
 
     // Neues Format: Stelle über den Kurznamen vor dem @ (lib/email/routing.ts).
     if (!job && jobKey && ownerId) {
-      const { data: ownerJobs } = await supabase
-        .from("jobs").select("id, user_id, is_active, title, company, public_slug").eq("user_id", ownerId)
-      const hit = matchJobByKey((ownerJobs ?? []) as Array<{ id: string; user_id: string; is_active: boolean | null; title: string | null; company: string | null; public_slug: string | null }>, jobKey)
+      type OwnerJob = { id: string; user_id: string; is_active: boolean | null; title: string | null; company: string | null; public_slug: string | null; inbound_alias?: string | null }
+      const first = await supabase
+        .from("jobs").select("id, user_id, is_active, title, company, public_slug, inbound_alias").eq("user_id", ownerId)
+      let ownerJobs = (first.data ?? []) as OwnerJob[]
+      // Ohne Migration 034 gibt es inbound_alias noch nicht.
+      if (first.error && /inbound_alias/.test(first.error.message)) {
+        const fallback = await supabase
+          .from("jobs").select("id, user_id, is_active, title, company, public_slug").eq("user_id", ownerId)
+        ownerJobs = (fallback.data ?? []) as OwnerJob[]
+      }
+      const hit = matchJobByKey(ownerJobs, jobKey)
       if (hit) job = { id: hit.id, user_id: hit.user_id, title: hit.title ?? null, company: hit.company ?? null }
     }
 

@@ -20,16 +20,18 @@ interface JobChannelsModalProps {
   jobId: string
   jobTitle?: string
   jobSlug?: string
+  /** Adressname der Stelle (jobs.inbound_alias, Migration 034). */
+  inboundAlias?: string
 }
 
-export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle, jobSlug }: JobChannelsModalProps) {
+export function JobChannelsModal({ isOpen, onClose, jobId, jobTitle, jobSlug, inboundAlias }: JobChannelsModalProps) {
   const { profile } = useProfile()
   const origin = typeof window !== "undefined" ? window.location.origin : ""
   const jobPageUrl = profile?.slug
     ? `${origin}/jobs/${profile.slug}/${jobSlug || slugify(jobTitle || "job")}`
     : null
   const emailAddress = profile?.slug
-    ? buildJobEmailAddress(profile.slug, jobSlug, jobId, jobTitle || "job")
+    ? buildJobEmailAddress(profile.slug, { inboundAlias, publicSlug: jobSlug, id: jobId, title: jobTitle })
     : null
   // Bewerbungen per E-Mail ab Starter. Die Probestelle bekommt keine Adresse
   // angezeigt, Mails an sie würden nicht ausgewertet.

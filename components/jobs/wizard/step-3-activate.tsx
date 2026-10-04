@@ -37,6 +37,7 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
   const [channelsJobId, setChannelsJobId] = useState<string | null>(null)
   // Kurzname der neuen Stelle (vom Datenbank-Trigger vergeben) für Adresse und Link.
   const [channelsJobSlug, setChannelsJobSlug] = useState<string | undefined>(undefined)
+  const [channelsAlias, setChannelsAlias] = useState<string | undefined>(undefined)
   const { profile } = useProfile()
 
   const handleSubmit = async (asDraft: boolean = false) => {
@@ -105,6 +106,7 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
       } else {
         // Show the channels modal before navigating away
         setChannelsJobSlug(result.job.public_slug ?? undefined)
+        setChannelsAlias(result.job.inbound_alias ?? undefined)
         setChannelsJobId(result.job.id)
       }
     } catch (error) {
@@ -129,6 +131,7 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
         jobId={channelsJobId}
         jobTitle={formData.title}
         jobSlug={channelsJobSlug}
+        inboundAlias={channelsAlias}
       />
     )}
     <div className="space-y-6">

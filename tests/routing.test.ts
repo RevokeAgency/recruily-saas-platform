@@ -2,8 +2,12 @@ import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 
 import {
+  ALIAS_STOPWORDS,
+  LEGAL_FORMS,
   RESERVED_SUBDOMAINS,
   addressLocalPart,
+  customerSlugSuggestion,
+  jobAliasBase,
   buildJobEmailAddress,
   matchJobByKey,
   parseInboundRecipient,
@@ -12,8 +16,13 @@ import {
 const JOB_ID = "4f2a9c00-0000-4000-8000-000000000001"
 
 describe("Bewerbungsadresse bauen", () => {
-  it("nutzt den Kurznamen der Stelle, ohne (m/w/d) und ohne Pluszeichen", () => {
-    expect(buildJobEmailAddress("autohaus-berger", "kfz-mechatroniker-in-m-w-d", JOB_ID)).toBe("kfz-mechatroniker-in@autohaus-berger.revetly.ai")
+  it("hat das Format stelle@firma.revetly.ai mit dem gespeicherten Adressnamen", () => {
+    expect(buildJobEmailAddress("autohaus-berger", { inboundAlias: "kfz-mechatroniker", publicSlug: "kfz-mechatroniker-in-m-w-d", id: JOB_ID }))
+      .toBe("kfz-mechatroniker@autohaus-berger.revetly.ai")
+  })
+
+  it("nimmt ohne Adressnamen den Kurznamen der Stellenseite", () => {
+    expect(buildJobEmailAddress("autohaus-berger", { publicSlug: "kfz-mechatroniker-in-m-w-d", id: JOB_ID })).toBe("kfz-mechatroniker-in@autohaus-berger.revetly.ai")
   })
 
   it("behält die Laufnummer bei gleichnamigen Stellen", () => {
@@ -29,7 +38,31 @@ describe("Bewerbungsadresse bauen", () => {
   })
 
   it("fällt ohne Kurznamen auf das alte Format zurück", () => {
-    expect(buildJobEmailAddress("autohaus-berger", null, JOB_ID, "Kfz-Mechatroniker")).toBe(`kfz-mechatroniker+${JOB_ID}@autohaus-berger.revetly.ai`)
+    expect(buildJobEmailAddress("autohaus-berger", { id: JOB_ID, title: "Kfz-Mechatroniker" })).toBe(`kfz-mechatroniker+${JOB_ID}@autohaus-berger.revetly.ai`)
+  })
+})
+
+describe("Kurze Namen", () => {
+  it("macht aus dem Titel einen kurzen Adressnamen", () => {
+    expect(jobAliasBase("Kfz-Mechatroniker:in (m/w/d)")).toBe("kfz-mechatroniker")
+    expect(jobAliasBase("Senior Fachkraft für Lagerlogistik (m/w/d)")).toBe("fachkraft-lagerlogistik")
+    expect(jobAliasBase("Mitarbeiter:in Kundenservice")).toBe("mitarbeiter-kundenservice")
+    expect(jobAliasBase("Geschäftsführer für Österreich")).toBe("geschaeftsfuehrer")
+    expect(jobAliasBase("Bäcker:in Groß")).toBe("baecker-gross")
+    expect(jobAliasBase("(m/w/d)")).toBe("bewerbung")
+  })
+
+  it("bleibt kurz, auch bei langen Titeln", () => {
+    for (const t of ["Außendienstmitarbeiterin Medizintechnikprodukte Region Süd", "Projektleiter Hochbau und Tiefbau mit Schwerpunkt Brückenbau"]) {
+      expect(jobAliasBase(t).length).toBeLessThanOrEqual(28)
+    }
+  })
+
+  it("schlägt für die Firma einen Namen ohne Rechtsform vor", () => {
+    expect(customerSlugSuggestion("Autohaus Berger GmbH")).toBe("autohaus-berger")
+    expect(customerSlugSuggestion("Huber Transporte e.U.")).toBe("huber-transporte")
+    expect(customerSlugSuggestion("Bäckerei Groß OG")).toBe("baeckerei-gross")
+    expect(customerSlugSuggestion("GmbH")).toBe("gmbh")
   })
 })
 
@@ -64,6 +97,11 @@ describe("Stelle zur Adresse finden", () => {
     { id: "f", public_slug: "lager-w-m-d", is_active: false },
   ]
 
+  it("nimmt zuerst den gespeicherten Adressnamen", () => {
+    const withAlias = [...jobs, { id: "g", public_slug: "kfz-mechatroniker-in-m-w-d-3", is_active: true, inbound_alias: "kfz-mechatroniker" }]
+    expect(matchJobByKey(withAlias, "kfz-mechatroniker")?.id).toBe("g")
+  })
+
   it("findet die Stelle eindeutig, auch bei gleichnamigen", () => {
     expect(matchJobByKey(jobs, "kfz-mechatroniker-in")?.id).toBe("a")
     expect(matchJobByKey(jobs, "kfz-mechatroniker-in-2")?.id).toBe("b")
@@ -79,11 +117,18 @@ describe("Stelle zur Adresse finden", () => {
   })
 })
 
-describe("Reservierte Subdomains", () => {
-  it("stimmen in App und Migration überein", () => {
-    const sql = readFileSync("scripts/034_inbound_addresses.sql", "utf8")
-    const block = sql.slice(sql.indexOf("any (array["), sql.indexOf("]);", sql.indexOf("any (array[")))
-    const inSql = [...block.matchAll(/'([a-z0-9-]+)'/g)].map((m) => m[1]).sort()
-    expect(inSql).toEqual([...RESERVED_SUBDOMAINS].sort())
+describe("Listen in App und Migration", () => {
+  const sql = readFileSync("scripts/034_inbound_addresses.sql", "utf8")
+  // n-te Liste "any (array[ … ])" in der Migration.
+  const arrays = [...sql.matchAll(/any \(array\[([\s\S]*?)\]\)/g)].map((m) => [...m[1].matchAll(/'([a-z0-9-]+)'/g)].map((x) => x[1]).sort())
+
+  it("reservierte Subdomains stimmen überein", () => {
+    expect(arrays[0]).toEqual([...RESERVED_SUBDOMAINS].sort())
+  })
+  it("Rechtsformen stimmen überein", () => {
+    expect(arrays[1]).toEqual([...LEGAL_FORMS].sort())
+  })
+  it("Füllwörter stimmen überein", () => {
+    expect(arrays[2]).toEqual([...ALIAS_STOPWORDS].sort())
   })
 })

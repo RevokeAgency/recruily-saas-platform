@@ -35,6 +35,7 @@ interface Job {
   employment_type: string | null
   is_active: boolean
   public_slug: string | null
+  inbound_alias?: string | null
   created_at: string
   salary_range: string | null
   years_experience: string | null
@@ -283,6 +284,7 @@ export default function JobDetailPage() {
         jobId={jobId}
         jobTitle={job.title}
         jobSlug={job.public_slug ?? undefined}
+        inboundAlias={job.inbound_alias ?? undefined}
       />
 
       <CloseJobDialog jobId={jobId} open={closeOpen} onOpenChange={setCloseOpen} onClosed={() => mutate()} />

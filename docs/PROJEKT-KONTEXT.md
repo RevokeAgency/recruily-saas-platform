@@ -612,18 +612,25 @@ neun Ebenen, Stärken und Skills, Interviewfragen, Interview-Ergebnis).
 
 ## Bewerbungsadressen (Oktober 2026, Migration 034)
 
-Format `kfz-mechatroniker-in@autohaus-berger.revetly.ai` (Entscheidung des
-Inhabers). Vor dem @ `addressLocalPart(jobs.public_slug)`: ohne
-Geschlechterzusatz, höchstens 40 Zeichen, Laufnummer bleibt
-(`…-in-2`). Subdomain = `user_profiles.slug`. Kein Pluszeichen, keine ID.
+Format `stelle@firma.revetly.ai`, z. B.
+`kfz-mechatroniker@autohaus-berger.revetly.ai` (Entscheidung des Inhabers,
+ausdrücklich kurz).
 
+- Stelle: `jobs.inbound_alias`, beim Anlegen per Trigger vergeben
+  (`job_alias_base` plus Laufnummer), pro Kunde eindeutig, danach fest und
+  für Konten nicht änderbar. Zwei aussagekräftige Wörter, höchstens 28
+  Zeichen, ohne Geschlechterzusatz, Seniorität, Arbeitszeit und Füllwörter,
+  Umlaute ausgeschrieben. TS-Spiegel `jobAliasBase` für Vorschau und
+  Rückfall.
+- Firma: `user_profiles.slug`; Vorschlag ohne Rechtsform
+  (`customerSlugSuggestion` / `customer_slug_base`), reservierte
+  Subdomains gesperrt, höchstens 40 Zeichen. Bestehende Kurznamen bleiben.
 - Zuordnung in `/api/inbound/email`: Kunde über die Subdomain, Stelle über
-  `matchJobByKey` (gleicher Kurzname; bei Doppelung die einzige offene
-  Stelle, sonst unzugeordnet im Posteingang). Alte Formate mit
-  `+<jobId>` werden weiter erkannt.
-- Kurznamen: reserviert (`RESERVED_SUBDOMAINS` in `lib/email/routing.ts`,
-  gleiche Liste in Migration 034, Test vergleicht beide) und höchstens 40
-  Zeichen. Onboarding zeigt die Beispieladresse.
+  `matchJobByKey` (zuerst `inbound_alias`, sonst Kurzname der Stellenseite,
+  sonst unzugeordnet). Alte Formate mit `+<jobId>` werden weiter erkannt.
+- Wortlisten in `lib/email/routing.ts` und Migration 034 müssen gleich sein,
+  `tests/routing.test.ts` prüft das.
+- Rennbedingung: Legt dasselbe Konto im selben Augenblick zwei Stellen mit
+  gleichem Adressnamen an, schlägt die zweite am eindeutigen Index fehl und
+  muss erneut gespeichert werden. In der Praxis nicht zu erwarten.
 - DNS: Wildcard-MX `*.revetly.ai` auf EmailConnect, siehe GO-LIVE.
-- Tests in `tests/routing.test.ts`.
-
