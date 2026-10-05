@@ -84,6 +84,13 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
 - [ ] **Supabase Auth → URL Configuration**: Site URL + Redirect URLs auf
       `https://revetly.ai` (Confirm-/Reset-Mail-Links).
 - [ ] **Supabase Auth E-Mail-Templates**: absolute Links prüfen.
+- [ ] **Supabase Auth → SMTP Settings: eigenen SMTP-Zugang eintragen.**
+      Registrierungs- und Passwort-Mails verschickt Supabase selbst, nicht
+      Revetly. Ohne eigenen SMTP-Server stellt Supabase sie nur stark
+      begrenzt zu (bei neueren Projekten nur an Adressen des eigenen Teams,
+      wenige pro Stunde). Echte Kunden könnten sich dann nicht registrieren.
+      Prüfen, ob Lettermint SMTP-Zugangsdaten anbietet, und die Domain
+      `revetly.ai` verwenden.
 - [ ] **EmailConnect / Inbound**: Bewerbungsadressen haben das Format
       `stelle@kunde.revetly.ai`. Dafür im DNS einen **Wildcard-MX**
       `*.revetly.ai` auf EmailConnect setzen und bei EmailConnect klären, dass
@@ -306,6 +313,10 @@ Reihenfolge egal, alle additiv:
       Bestätigen → Datensatz + Storage weg.
 - [ ] **AVV mit Lettermint abschließen** und in die Auftragsverarbeiter-Liste
       aufnehmen. Damit liegt auch der Mailkanal in der EU.
+- [ ] **AVV mit Vercel, Supabase und EmailConnect abschließen** und in die
+      Auftragsverarbeiter-Liste aufnehmen. Für Vercel (USA) prüfen, ob die
+      Zertifizierung nach dem EU-US Data Privacy Framework aktuell ist
+      (dataprivacyframework.gov); darauf stützt sich die Datenschutzerklärung.
 - [ ] **AVV mit Mistral AI abschließen** (Data Processing Agreement) und in die
       Auftragsverarbeiter-Liste aufnehmen. Ebenso prüfen: eigener AVV mit den
       Kunden (Revetly ist bezüglich Bewerberdaten Auftragsverarbeiter).
