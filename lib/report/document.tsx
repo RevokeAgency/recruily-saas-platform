@@ -89,12 +89,14 @@ function registerFonts() {
 const FONT = ["Jakarta", "JakartaExt"]
 
 const s = StyleSheet.create({
-  page: { fontFamily: FONT, fontSize: 9.5, color: C.text, paddingTop: 74, paddingBottom: 62, paddingHorizontal: 44, lineHeight: 1.45 },
-  header: { position: "absolute", top: 26, left: 44, right: 44, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  page: { fontFamily: FONT, fontSize: 9.5, color: C.text, paddingTop: 84, paddingBottom: 62, paddingHorizontal: 44, lineHeight: 1.45 },
+  header: { position: "absolute", top: 24, left: 44, right: 44, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   headerRight: { fontSize: 7.5, color: C.faint, letterSpacing: 1.2, textTransform: "uppercase", fontWeight: 700 },
   issuerName: { fontSize: 11, fontWeight: 800, color: C.ink, letterSpacing: -0.2 },
-  logo: { height: 22, maxWidth: 140, objectFit: "contain" },
-  rule: { position: "absolute", top: 56, left: 44, right: 44 },
+  // Feste Höhe, Breite folgt dem Seitenverhältnis bis höchstens 190 pt. Der
+  // Rand des Logos ist vorher abgeschnitten (lib/report/image.ts).
+  logo: { height: 32, maxWidth: 190, objectFit: "contain", objectPosition: "left" },
+  rule: { position: "absolute", top: 66, left: 44, right: 44 },
   footer: { position: "absolute", top: 841.89 - 46, left: 44, right: 44, flexDirection: "row", justifyContent: "space-between", fontSize: 7.5, color: C.faint, borderTopWidth: 0.6, borderTopColor: C.line, paddingTop: 8 },
   eyebrow: { fontSize: 7.5, fontWeight: 800, color: C.greenDeep, letterSpacing: 1.6, textTransform: "uppercase" },
   h1: { fontSize: 24, fontWeight: 800, color: C.ink, letterSpacing: -0.6, lineHeight: 1.15, marginTop: 6 },
@@ -125,7 +127,7 @@ function GradientRule({ width = 507, height = 1.6 }: { width?: number; height?: 
 // Ziffern haben keine Unterlänge, die Textbox der Schrift aber schon. Damit
 // Zahl oder Initialen optisch mittig im Kreis sitzen, wird sie um diesen Anteil der
 // Schriftgröße verschoben (am gerenderten PDF nachgemessen).
-const NUM_SHIFT = 0.115
+const NUM_SHIFT = -0.355
 
 /** Ring mit dem Match in der Mitte. Der Bogen wächst mit dem Wert. */
 function ScoreRing({ score, size = 70 }: { score: number | null; size?: number }) {

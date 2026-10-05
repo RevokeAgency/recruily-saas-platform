@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { PHOTO_BUCKET, candidatePhotoPath } from "@/lib/candidate-photo"
+import { isPdfImage, prepareLogo } from "./image"
 import { buildReportCandidate, rankCandidates, type ReportData, type ReportRequest } from "./model"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -19,19 +20,13 @@ const ROW_SELECT =
   "interview_guide, interview_ratings, interview_score, interview_notes, " +
   "candidate:candidates(id, full_name, email, phone, job_title, location, years_of_experience, experience_level, skills, education, summary_ai, dossier, photo_url)"
 
-/** react-pdf kann nur PNG und JPEG. Alles andere wird weggelassen. */
-function isPdfImage(buf: Buffer): boolean {
-  const png = buf.length > 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47
-  const jpg = buf.length > 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff
-  return png || jpg
-}
-
-async function fetchImage(url: string): Promise<Buffer | null> {
+/** Logo des Kunden laden, Rand abschneiden, als PNG (lib/report/image.ts). */
+async function fetchLogo(url: string): Promise<Buffer | null> {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
     if (!res.ok) return null
     const buf = Buffer.from(await res.arrayBuffer())
-    return buf.length < 3_000_000 && isPdfImage(buf) ? buf : null
+    return buf.length < 5_000_000 ? await prepareLogo(buf) : null
   } catch {
     return null
   }
@@ -71,7 +66,7 @@ export async function loadReport(
   const { data: profile } = await supabase.from("user_profiles").select("*").eq("id", userId).maybeSingle()
   const p = (profile ?? {}) as Record<string, unknown>
   const issuer = (typeof p.company_name === "string" && p.company_name.trim()) || (job.company as string) || ""
-  const logo = typeof p.logo_url === "string" && p.logo_url ? await fetchImage(p.logo_url) : null
+  const logo = typeof p.logo_url === "string" && p.logo_url ? await fetchLogo(p.logo_url) : null
 
   const candidates = await Promise.all(
     (rows as unknown as Record<string, unknown>[]).map(async (row) => {

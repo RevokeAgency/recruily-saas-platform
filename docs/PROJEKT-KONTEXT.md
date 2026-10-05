@@ -599,8 +599,13 @@ neun Ebenen, Stärken und Skills, Interviewfragen, Interview-Ergebnis).
   Vorlage zum Ausfüllen: pro Frage „Worauf achten“, Anker für schwach und
   stark, fünf Kreise zum Ankreuzen und Notizlinien, am Ende
   „Gesamteindruck“.
-- Logo und Foto nur als PNG oder JPEG (react-pdf). Sonst steht der
-  Firmenname statt des Logos beziehungsweise die Initialen statt des Fotos.
+- Logo: wird über `@napi-rs/canvas` geladen (PNG, JPEG, WebP, SVG),
+  transparenter und weißer Rand abgeschnitten und als PNG eingebettet
+  (`lib/report/image.ts`), Kopfzeile 32 pt hoch. Fotos nur als PNG oder
+  JPEG, sonst Initialen.
+- Match-Zahl im Kreis: per `NUM_SHIFT` verschoben, am gerenderten PDF
+  nachgemessen (Kreismitte = breiteste Zeile des Rings, nicht die
+  Gesamthöhe, sonst zählt die Beschriftung darunter mit).
 - Jeder Report landet im Entscheidungsprotokoll (`report_erstellt`, anonym
   ja/nein, Anzahl). Mengenbremse 60 pro Stunde.
 - Code: `lib/report/model.ts` (Anfrage, Anonymisierung, Aufbereitung, rein

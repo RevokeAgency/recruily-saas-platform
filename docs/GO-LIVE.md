@@ -50,10 +50,9 @@ Stand der Durchsicht: 19.09.2026.
       laufende Abos und bricht ab, wenn Stripe nicht erreichbar ist.
       Scheinfunktionen (API-Schlüssel, Produkt-Updates, Marketing-Mails) sind
       aus den Einstellungen entfernt.
-- [ ] **Datenbank-Migrationen `015` bis `027`.** Welche davon in der
-      Supabase-Instanz schon gelaufen sind, lässt sich nur dort nachsehen.
-      `015_rls_hardening.sql` ist der wichtigste Einzelpunkt: ohne sie sind die
-      Daten nicht owner-scoped abgesichert.
+- [x] **Datenbank-Migrationen `015` bis `034`** *(alle eingespielt,
+      bestätigt am 05.10.2026)*. Neue Migrationen ab `035` werden unten
+      einzeln geführt.
 
 ---
 
@@ -141,23 +140,24 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
 
 ## Datenbank-Migrationen (in Supabase ausführen, idempotent)
 
-Reihenfolge egal, alle additiv:
+Stand 05.10.2026: alle Migrationen bis einschließlich `034` sind in
+Supabase eingespielt. Reihenfolge egal, alle additiv:
 
-- [ ] `scripts/015_rls_hardening.sql` — RLS owner-scoped (Sicherheits-Pflicht)
-- [ ] `scripts/016_invited_at.sql` — Time-to-Interview-Messung
-- [ ] `scripts/017_stripe_billing.sql` — Stripe-Billing-Spalten
-- [ ] `scripts/018_fix_plan_limits_trigger.sql` — korrigiert den alten
+- [x] `scripts/015_rls_hardening.sql` *(eingespielt 05.10.2026)* — RLS owner-scoped (Sicherheits-Pflicht)
+- [x] `scripts/016_invited_at.sql` *(eingespielt 05.10.2026)* — Time-to-Interview-Messung
+- [x] `scripts/017_stripe_billing.sql` *(eingespielt 05.10.2026)* — Stripe-Billing-Spalten
+- [x] `scripts/018_fix_plan_limits_trigger.sql` *(eingespielt 05.10.2026)* — korrigiert den alten
       `on_plan_change`-Trigger, der `matches_limit` auf veraltete Werte klemmte
-- [ ] `scripts/019_ko_criteria.sql` — KO-Kriterien pro Job (`jobs.ko_criteria`)
+- [x] `scripts/019_ko_criteria.sql` *(eingespielt 05.10.2026)* — KO-Kriterien pro Job (`jobs.ko_criteria`)
       + KO-Ergebnis pro Kandidat (`job_candidates.knockout`, `knockout_reasons`)
-- [ ] `scripts/020_interview_guide.sql` — strukturierter Interviewleitfaden +
+- [x] `scripts/020_interview_guide.sql` *(eingespielt 05.10.2026)* — strukturierter Interviewleitfaden +
       Bewertung pro Kandidat (`job_candidates.interview_*`)
-- [ ] `scripts/021_matching_v2.sql` — IMLRS 2.0: CV-Volltext + Karriere-Dossier
+- [x] `scripts/021_matching_v2.sql` *(eingespielt 05.10.2026)* — IMLRS 2.0: CV-Volltext + Karriere-Dossier
       pro Kandidat (`candidates.resume_text/dossier`), Begründungs-Trail pro
       Match (`job_candidates.match_detail/match_engine`). Richter + Prüfinstanz
       laufen über die zentrale Provider-Schicht (Standard: Mistral Large, EU).
       Bestehende Scores bleiben, bis pro Job „Neu bewerten" geklickt wird.
-- [ ] `scripts/022_feedback_loop.sql` — Feedback-Loop + Bestenvergleich:
+- [x] `scripts/022_feedback_loop.sql` *(eingespielt 05.10.2026)* — Feedback-Loop + Bestenvergleich:
       Outcome (`job_candidates.hired_at`, Status „Eingestellt"), Ranking
       (`pool_rank`, `pool_rank_reason`) und Kalibrierung pro Kunde
       (`user_profiles.match_calibration`, `imlrs_weights`). Danach läuft der
@@ -165,40 +165,40 @@ Reihenfolge egal, alle additiv:
 - [x] `scripts/023_ai_training_consent.sql` *(eingespielt 25.09.2026)* — Einwilligung (Opt-in) + Tabelle
       `ai_training_examples` für ein eigenes, feingetuntes Revetly-Modell.
       Enthält einen Trigger, der bei Widerruf die Trainingsdaten löscht.
-- [ ] `scripts/025_scheduling.sql` — Terminplanung: Verfügbarkeitsprofil,
+- [x] `scripts/025_scheduling.sql` *(eingespielt 05.10.2026)* — Terminplanung: Verfügbarkeitsprofil,
       Terminarten, Buchungen, persönliche Buchungslinks und verbundene
       Kalenderkonten. Einrichtung der OAuth-Apps siehe
       `scripts/025_scheduling.md`. Ohne diese Migration zeigt `/termine` einen
       Hinweis, der Rest der Anwendung läuft unverändert.
-- [ ] `scripts/027_error_monitoring.sql` — Fehler-Monitoring: Tabellen
+- [x] `scripts/027_error_monitoring.sql` *(eingespielt 05.10.2026)* — Fehler-Monitoring: Tabellen
       `error_events` und `error_groups` plus `record_error()`,
       `mark_error_notified()` und `purge_error_events()`. Ohne diese Migration
       bleibt es beim bisherigen Verhalten (nur console.error), die Anwendung
       läuft unverändert.
-- [ ] `scripts/026_rate_limits.sql` — Missbrauchsschutz für die öffentlichen
+- [x] `scripts/026_rate_limits.sql` *(eingespielt 05.10.2026)* — Missbrauchsschutz für die öffentlichen
       Endpunkte: Tabelle `rate_limits` plus die Funktionen
       `consume_rate_limit()` und `purge_rate_limits()`. Ohne diese Migration
       zählt nichts und alle Zugriffe werden durchgelassen (bewusst
       fail-open), die Datei- und Doppelbewerbungsprüfungen greifen trotzdem.
-- [ ] `scripts/034_inbound_addresses.sql`: **Neues Format der
+- [x] `scripts/034_inbound_addresses.sql` *(eingespielt 05.10.2026)*: **Neues Format der
       Bewerbungsadressen.** Sperrt reservierte Kurznamen und begrenzt die
       Länge. Die Abfrage am Ende muss leer sein. Lokal getestet, Details in
       `scripts/034_inbound_addresses.md`.
-- [ ] `scripts/033_review_links.sql`: **Freigabe-Link für Fachabteilungen.**
+- [x] `scripts/033_review_links.sql` *(eingespielt 05.10.2026)*: **Freigabe-Link für Fachabteilungen.**
       Zwei neue Tabellen, Schreibzugriff nur über die App. Ohne diese
       Migration meldet „Fachbereich fragen“ die fehlende Migration. Lokal
       getestet, Details in `scripts/033_review_links.md`.
-- [ ] `scripts/032_salary_and_private_photos.sql`: **Gehalt auf der
+- [x] `scripts/032_salary_and_private_photos.sql` *(eingespielt 05.10.2026)*: **Gehalt auf der
       Stellenseite und Bewerberfotos privat.** Der Fotospeicher war
       öffentlich, ab jetzt liefert die App Fotos nur an das eigene Konto aus.
       Unabhängig von 031. Lokal getestet, Details in
       `scripts/032_salary_and_private_photos.md`.
-- [ ] `scripts/031_launch_readiness.sql`: **Benachrichtigungen, Talent-Pool-
+- [x] `scripts/031_launch_readiness.sql` *(eingespielt 05.10.2026)*: **Benachrichtigungen, Talent-Pool-
       Einwilligung, Google for Jobs, Entscheidungsprotokoll.** Achtung:
       Danach erscheinen im Talent-Pool nur noch Kandidaten mit Einwilligung,
       bestehende also zunächst gar nicht. Lokal getestet, Details und
       Prüfliste in `scripts/031_launch_readiness.md`.
-- [ ] `scripts/030_document_findings.sql`: **Befunde der Dokumentprüfung.**
+- [x] `scripts/030_document_findings.sql` *(eingespielt 05.10.2026)*: **Befunde der Dokumentprüfung.**
       Eine neue Spalte `candidates.document_findings`. Versteckter Text in
       Lebenslauf und Anschreiben (weiße oder winzige Schrift, verdeckt, in
       Word ausgeblendet) wird seit `lib/document-guard` vor jeder Analyse
@@ -222,7 +222,7 @@ Reihenfolge egal, alle additiv:
       Browser selbst auf Pro setzen. Gegen eine lokale Postgres-Instanz mit
       40 Prüfungen getestet, Details und Prüfliste in
       `scripts/028_free_trial_lifetime.md`.
-- [ ] `scripts/024_product_feedback.sql` — Produktumfrage nach den ersten
+- [x] `scripts/024_product_feedback.sql` *(eingespielt 05.10.2026)* — Produktumfrage nach den ersten
       Matches: Lebenszeit-Zähler (`user_profiles.matches_lifetime`, wird von
       `consume_match()` mitgeführt), Zustand der Abfrage und die Tabelle
       `product_feedback`. Ohne diese Migration bleibt die Umfrage still aus,

@@ -150,3 +150,28 @@ describe("Profilnummer und Interviewvorlage", () => {
     expect(JSON.stringify(c)).not.toContain("Lücke 2019")
   })
 })
+
+describe("Logo aufbereiten", () => {
+  it("findet den Inhalt in einem Bild mit leerem Rand", async () => {
+    const { contentBounds } = await import("@/lib/report/image")
+    // 10 × 6 Pixel, transparent, mit einem roten Block von (3,2) bis (6,3).
+    const w = 10, h = 6
+    const data = new Uint8ClampedArray(w * h * 4)
+    for (let y = 2; y <= 3; y++) for (let x = 3; x <= 6; x++) {
+      const i = (y * w + x) * 4
+      data[i] = 200; data[i + 3] = 255
+    }
+    expect(contentBounds(data, w, h)).toEqual({ x: 3, y: 2, w: 4, h: 2 })
+  })
+
+  it("schneidet transparenten Rand ab", async () => {
+    const canvas = await import("@napi-rs/canvas")
+    const { prepareLogo } = await import("@/lib/report/image")
+    const c = canvas.createCanvas(400, 400)
+    const ctx = c.getContext("2d")
+    ctx.fillStyle = "#0E9F63"
+    ctx.fillRect(150, 180, 100, 40)
+    const out = await canvas.loadImage((await prepareLogo(c.toBuffer("image/png")))!)
+    expect([out.width, out.height]).toEqual([100, 40])
+  })
+})
