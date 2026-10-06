@@ -8,9 +8,9 @@ import { RvArrowIcon, RvButton } from "./rv-button"
 import { PLANS } from "@/lib/plans"
 
 // `break` setzt nach dem Wort einen erzwungenen Zeilenumbruch: ein leeres
-// Element mit basis-full in der flex-wrap-Zeile. Jeder Satz bricht vor dem
-// letzten Wort um, so steht die Überschrift auf vier kurzen Zeilen und
-// reicht nicht bis ins Gesicht im Foto. Kein <br> mit Breakpoint-Klassen,
+// Element mit basis-full in der flex-wrap-Zeile. Beide Sätze brechen in der
+// Mitte um, so steht die Überschrift auf vier kurzen Zeilen und reicht nicht
+// bis ins Gesicht im Foto. Kein <br> mit Breakpoint-Klassen,
 // die ihn irgendwo wieder aufheben könnten.
 //
 // Die Arbeitsteilung ist die These der Seite: Der Mensch führt die
@@ -21,8 +21,8 @@ const HEADLINE: Array<{ text: string; gradient?: boolean; break?: boolean }> = [
   { text: "die", break: true },
   { text: "Gespräche.", break: true },
   { text: "Revetly", gradient: true },
-  { text: "macht", gradient: true },
-  { text: "den", gradient: true, break: true },
+  { text: "macht", gradient: true, break: true },
+  { text: "den", gradient: true },
   { text: "Rest.", gradient: true },
 ]
 
@@ -98,9 +98,9 @@ export function RvHero() {
             "linear-gradient(90deg, rgba(16,44,41,.94) 0%, rgba(18,48,45,.82) 24%, rgba(22,56,52,.42) 46%, rgba(22,56,52,.06) 64%, transparent 78%), linear-gradient(180deg, rgba(16,44,41,.30) 0%, transparent 22%, transparent 72%, rgba(12,30,28,.46) 100%)",
         }}
       />
-      <div className="relative z-[3] mx-auto flex min-h-[clamp(620px,100dvh,960px)] max-w-[1200px] items-center px-4 pt-[clamp(120px,14dvh,168px)] pb-[clamp(64px,8dvh,104px)] sm:px-6 lg:px-8">
+      <div className="relative z-[3] mx-auto flex min-h-[clamp(620px,100dvh,960px)] max-w-[1200px] items-center px-4 pt-[clamp(112px,13dvh,160px)] pb-[clamp(108px,12dvh,132px)] sm:px-6 lg:px-8">
         <div className="max-w-[720px]">
-          <span className="mb-[30px] inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-[15px] py-[7px] text-[.78rem] font-semibold text-white/92 backdrop-blur-[10px]">
+          <span className="mb-[24px] inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-[15px] py-[7px] text-[.78rem] font-semibold text-white/92 backdrop-blur-[10px]">
             <span className="h-[7px] w-[7px] rounded-full bg-[var(--rv-green)]" />
             KI-Recruiting-Assistent für den DACH-Raum
           </span>
@@ -124,7 +124,7 @@ export function RvHero() {
               </Fragment>
             ))}
           </h1>
-          <p className="mb-[34px] max-w-[520px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-white/74">
+          <p className="mb-[28px] max-w-[520px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-white/74">
             Revetly liest jede Bewerbung, prüft die Passung mit Beleg, bucht die
             Termine und schreibt die Absagen. Die Entscheidung, wen du einstellst,
             bleibt immer deine.
@@ -140,7 +140,7 @@ export function RvHero() {
               {`${PLANS.free.matches} Matches gratis · keine Kreditkarte`}
             </p>
           </div>
-          <div className="mt-[30px] flex flex-wrap items-center gap-[22px]">
+          <div className="mt-[24px] flex flex-wrap items-center gap-[22px]">
             {TRUST_ITEMS.map((item) => (
               <div key={item} className="flex items-center gap-1.5 text-[.75rem] font-semibold text-white/52">
                 <Check className="h-[13px] w-[13px] flex-none text-[var(--rv-green)]" strokeWidth={2.5} />
