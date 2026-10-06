@@ -197,14 +197,18 @@ export function RvPricing() {
     <section id="preise" ref={ref} className="relative overflow-hidden bg-white py-[clamp(72px,9vw,130px)]">
       <div className="rv-patternbg" data-pattern="cross" />
       <div className="relative z-[1] mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="reveal mx-auto max-w-[660px] text-center">
+        {/* Die Überschrift darf breiter sein als der Text darunter, damit
+            „Wachse mit deinen Anforderungen.“ auf dem Desktop auf einer Zeile steht. */}
+        <div className="reveal mx-auto max-w-[820px] text-center">
           <span className="rv-eyebrow inline-flex items-center gap-2 rounded-full border border-[rgba(12,26,22,.10)] bg-white px-3.5 py-[7px] text-[var(--rv-ink-soft)] shadow-[var(--rv-shadow-sm)] before:h-[7px] before:w-[7px] before:rounded-full before:bg-[image:var(--rv-gradient)]">
             Preise
           </span>
           <h2 className="mt-[22px] text-[clamp(1.9rem,3.6vw,2.7rem)] leading-[1.12] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
-            Starte mit einer Stelle. <span className="rv-gradient-text">Wachse mit deinem Stapel.</span>
+            Starte mit einer Stelle.
+            <br />
+            <span className="rv-gradient-text">Wachse mit deinen Anforderungen.</span>
           </h2>
-          <p className="mt-[18px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
+          <p className="mx-auto mt-[18px] max-w-[660px] text-[clamp(1rem,1.25vw,1.12rem)] leading-[1.65] text-[var(--rv-muted)]">
             Du startest gratis und wechselst erst, wenn dein Volumen wächst.
             Monatlich kündbar, ohne Mindestlaufzeit und ohne Einrichtungsgebühr.
             Alle Preise zuzüglich Umsatzsteuer.
