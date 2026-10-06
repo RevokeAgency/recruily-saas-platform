@@ -8,22 +8,21 @@ import { RvArrowIcon, RvButton } from "./rv-button"
 import { PLANS } from "@/lib/plans"
 
 // `break` setzt nach dem Wort einen erzwungenen Zeilenumbruch: ein leeres
-// Element mit basis-full in der flex-wrap-Zeile. Die beiden Sätze stehen so
-// auf jeder Bildschirmbreite auf eigenen Zeilen, nie nebeneinander. Bricht
-// ein Satz auf sehr schmalen Bildschirmen zusätzlich in sich um, bleibt der
-// Umbruch zwischen den Sätzen trotzdem bestehen. Kein <br> mit
-// Breakpoint-Klassen, die ihn irgendwo wieder aufheben könnten.
+// Element mit basis-full in der flex-wrap-Zeile. Jeder Satz bricht vor dem
+// letzten Wort um, so steht die Überschrift auf vier kurzen Zeilen und
+// reicht nicht bis ins Gesicht im Foto. Kein <br> mit Breakpoint-Klassen,
+// die ihn irgendwo wieder aufheben könnten.
 //
 // Die Arbeitsteilung ist die These der Seite: Der Mensch führt die
 // Gespräche (Tinte), Revetly erledigt den Rest (Verlauf).
 const HEADLINE: Array<{ text: string; gradient?: boolean; break?: boolean }> = [
   { text: "Du" },
   { text: "führst" },
-  { text: "die" },
+  { text: "die", break: true },
   { text: "Gespräche.", break: true },
   { text: "Revetly", gradient: true },
   { text: "macht", gradient: true },
-  { text: "den", gradient: true },
+  { text: "den", gradient: true, break: true },
   { text: "Rest.", gradient: true },
 ]
 
