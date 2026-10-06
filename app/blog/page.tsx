@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { ArrowUpRight, Clock3 } from "lucide-react"
 
-import { getAllPosts, formatBlogDate } from "@/lib/blog/posts"
+import { getAllPosts, formatBlogDate, readingMinutes } from "@/lib/blog/posts"
 import { BlogHeader, BlogFooter } from "@/components/blog/blog-chrome"
 import { absoluteUrl } from "@/lib/site"
 
@@ -92,7 +92,7 @@ export default function BlogIndexPage() {
                   <span className="text-[.79rem] text-[var(--rv-muted)]">{formatBlogDate(post.publishedAt)}</span>
                   <span className="inline-flex items-center gap-1 text-[.79rem] text-[var(--rv-muted)]">
                     <Clock3 className="h-3.5 w-3.5" strokeWidth={2.2} />
-                    {post.readingMinutes} Min.
+                    {readingMinutes(post)} Min.
                   </span>
                 </div>
                 <h2 className="mt-4 text-[clamp(1.15rem,2vw,1.4rem)] leading-[1.3] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">

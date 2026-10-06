@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowUpRight, Clock3 } from "lucide-react"
 
 import { useReveal } from "@/lib/hooks/useReveal"
-import { getAllPosts, formatBlogDate } from "@/lib/blog/posts"
+import { getAllPosts, formatBlogDate, readingMinutes } from "@/lib/blog/posts"
 import { RvButton } from "./rv-button"
 import { RvCard } from "./rv-card"
 
@@ -65,13 +65,13 @@ export function RvBlog() {
                 <span className="text-[.78rem] text-[var(--rv-muted)]">{formatBlogDate(lead.publishedAt)}</span>
                 <span className="inline-flex items-center gap-1 text-[.78rem] text-[var(--rv-muted)]">
                   <Clock3 className="h-3.5 w-3.5" strokeWidth={2.2} />
-                  {lead.readingMinutes} Min.
+                  {readingMinutes(lead)} Min.
                 </span>
               </div>
               <h3 className="mt-[18px] text-[clamp(1.35rem,2.2vw,1.75rem)] leading-[1.25] font-bold tracking-[-0.025em] text-[var(--rv-ink)]">
                 {lead.title}
               </h3>
-              <p className="mt-3.5 text-[.95rem] leading-[1.66] text-[var(--rv-muted)]">{lead.teaser ?? lead.excerpt}</p>
+              <p className="mt-3.5 text-[.95rem] leading-[1.66] text-[var(--rv-muted)]">{lead.excerpt}</p>
             </div>
             <div>
               <RvButton variant="primary" size="sm" asChild>
@@ -96,12 +96,12 @@ export function RvBlog() {
                   <span className="text-[.71rem] font-bold tracking-[.08em] text-[var(--rv-green-deep)] uppercase">
                     {post.category}
                   </span>
-                  <span className="text-[.75rem] text-[var(--rv-muted)]">{post.readingMinutes} Min.</span>
+                  <span className="text-[.75rem] text-[var(--rv-muted)]">{readingMinutes(post)} Min.</span>
                 </div>
                 <h3 className="text-[1.05rem] leading-[1.35] font-bold tracking-[-0.02em] text-[var(--rv-ink)]">
                   {post.cardTitle ?? post.title}
                 </h3>
-                <p className="line-clamp-3 text-[.87rem] leading-[1.58] text-[var(--rv-muted)]">{post.teaser ?? post.excerpt}</p>
+                <p className="line-clamp-3 text-[.87rem] leading-[1.58] text-[var(--rv-muted)]">{post.excerpt}</p>
                 <Link
                   href={`/blog/${post.slug}`}
                   target="_blank"
@@ -133,13 +133,13 @@ export function RvBlog() {
                   <span className="text-[.75rem] text-[var(--rv-muted)]">{formatBlogDate(post.publishedAt)}</span>
                   <span className="inline-flex items-center gap-1 text-[.75rem] text-[var(--rv-muted)]">
                     <Clock3 className="h-3.5 w-3.5" strokeWidth={2.2} />
-                    {post.readingMinutes} Min.
+                    {readingMinutes(post)} Min.
                   </span>
                 </div>
                 <h3 className="text-[1.12rem] leading-[1.35] font-bold tracking-[-0.02em] text-[var(--rv-ink)]">
                   {post.cardTitle ?? post.title}
                 </h3>
-                <p className="text-[.88rem] leading-[1.6] text-[var(--rv-muted)]">{post.teaser ?? post.excerpt}</p>
+                <p className="text-[.88rem] leading-[1.6] text-[var(--rv-muted)]">{post.excerpt}</p>
                 <Link
                   href={`/blog/${post.slug}`}
                   target="_blank"

@@ -3,7 +3,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowUpRight, Clock3 } from "lucide-react"
 
-import { BLOG_POSTS, getAllPosts, getPost, formatBlogDate, type BlogBlock } from "@/lib/blog/posts"
+import { BLOG_POSTS, getAllPosts, getPost, formatBlogDate, readingMinutes, type BlogBlock } from "@/lib/blog/posts"
 import { BlogHeader, BlogFooter } from "@/components/blog/blog-chrome"
 import { absoluteUrl } from "@/lib/site"
 
@@ -16,10 +16,10 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params
   const post = getPost(slug)
-  if (!post) return { title: "Beitrag nicht gefunden — Revetly" }
+  if (!post) return { title: "Beitrag nicht gefunden | Revetly" }
 
   return {
-    title: `${post.title} — Revetly`,
+    title: `${post.title} | Revetly`,
     description: post.metaDescription,
     keywords: post.keywords,
     alternates: { canonical: `/blog/${post.slug}` },
@@ -28,6 +28,8 @@ export async function generateMetadata(
       title: post.title,
       description: post.metaDescription,
       publishedTime: post.publishedAt,
+      modifiedTime: post.updatedAt ?? post.publishedAt,
+      authors: [post.author],
       siteName: "Revetly",
       locale: "de_DE",
       url: `/blog/${post.slug}`,
@@ -40,6 +42,32 @@ export async function generateMetadata(
       images: ["/revetly/og-image.jpg"],
     },
   }
+}
+
+/** Quellenverweise wie [1] oder [2, 3] als hochgestellte Links zur Quellenliste. */
+function WithRefs({ text }: { text: string }) {
+  const parts = text.split(/(\s?\[\d+(?:,\s?\d+)*\])/)
+  return (
+    <>
+      {parts.map((part, i) => {
+        const m = part.match(/^\s?\[([\d,\s]+)\]$/)
+        if (!m) return part
+        const nums = m[1].split(",").map((n) => n.trim())
+        return (
+          <sup key={i} className="ml-0.5 text-[.7em] font-semibold">
+            {nums.map((n, j) => (
+              <span key={n}>
+                {j > 0 && ","}
+                <a href={`#quelle-${n}`} className="text-[var(--rv-green-deep)] hover:underline">
+                  {n}
+                </a>
+              </span>
+            ))}
+          </sup>
+        )
+      })}
+    </>
+  )
 }
 
 function Block({ block }: { block: BlogBlock }) {
@@ -62,7 +90,7 @@ function Block({ block }: { block: BlogBlock }) {
           {(block.items ?? []).map((item) => (
             <li key={item} className="flex gap-3 text-[1.02rem] leading-[1.7] text-[var(--rv-ink-soft)]">
               <span className="mt-[.62em] h-1.5 w-1.5 flex-none rounded-full bg-[image:var(--rv-gradient)]" />
-              <span>{item}</span>
+              <span><WithRefs text={item} /></span>
             </li>
           ))}
         </ul>
@@ -70,12 +98,12 @@ function Block({ block }: { block: BlogBlock }) {
     case "quote":
       return (
         <blockquote className="my-7 rounded-[var(--rv-radius-lg)] border border-[rgba(12,26,22,.10)] bg-[var(--rv-mist)] p-[22px_24px] text-[1.05rem] leading-[1.6] font-semibold tracking-[-0.01em] text-[var(--rv-ink)]">
-          {block.text}
+          <WithRefs text={block.text ?? ""} />
         </blockquote>
       )
     default:
       return (
-        <p className="my-4 text-[1.02rem] leading-[1.75] text-[var(--rv-ink-soft)]">{block.text}</p>
+        <p className="my-4 text-[1.02rem] leading-[1.75] text-[var(--rv-ink-soft)]"><WithRefs text={block.text ?? ""} /></p>
       )
   }
 }
@@ -97,12 +125,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     headline: post.title,
     description: post.metaDescription,
     datePublished: post.publishedAt,
-    dateModified: post.publishedAt,
+    dateModified: post.updatedAt ?? post.publishedAt,
     inLanguage: "de-AT",
     keywords: post.keywords.join(", "),
     articleSection: post.category,
-    author: { "@type": "Organization", name: "Revetly" },
+    author: { "@type": "Person", name: post.author },
     publisher: { "@type": "Organization", name: "Revetly" },
+    citation: post.sources.map((s) => (s.url ? { "@type": "CreativeWork", name: s.label, url: s.url } : s.label)),
     mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl(`/blog/${post.slug}`) },
   }
 
@@ -125,7 +154,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               <span className="text-[.82rem] text-[var(--rv-muted)]">{formatBlogDate(post.publishedAt)}</span>
               <span className="inline-flex items-center gap-1 text-[.82rem] text-[var(--rv-muted)]">
                 <Clock3 className="h-3.5 w-3.5" strokeWidth={2.2} />
-                {post.readingMinutes} Min. Lesezeit
+                {readingMinutes(post)} Min. Lesezeit
               </span>
             </div>
             <h1 className="mt-5 text-[clamp(1.9rem,4vw,2.6rem)] leading-[1.15] font-bold tracking-[-0.03em] text-[var(--rv-ink)]">
@@ -134,6 +163,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <p className="mt-4 text-[clamp(1rem,1.3vw,1.14rem)] leading-[1.65] text-[var(--rv-muted)]">
               {post.excerpt}
             </p>
+            <p className="mt-6 text-[.88rem] text-[var(--rv-muted)]">
+              Von <span className="font-semibold text-[var(--rv-ink)]">{post.author}</span>
+              {post.updatedAt && post.updatedAt !== post.publishedAt && (
+                <> · Aktualisiert am {formatBlogDate(post.updatedAt)}</>
+              )}
+            </p>
           </div>
         </div>
 
@@ -141,6 +176,42 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {post.blocks.map((block, i) => (
             <Block key={i} block={block} />
           ))}
+
+          {post.sources.length > 0 && (
+            <section className="mt-14 border-t border-[rgba(12,26,22,.10)] pt-8" aria-labelledby="quellen">
+              <h2 id="quellen" className="text-[.78rem] font-bold tracking-[.1em] text-[var(--rv-ink)] uppercase">
+                Quellen
+              </h2>
+              <ol className="mt-4 flex flex-col gap-2.5">
+                {post.sources.map((s, i) => (
+                  <li
+                    key={i}
+                    id={`quelle-${i + 1}`}
+                    className="flex scroll-mt-24 gap-3 text-[.87rem] leading-[1.6] text-[var(--rv-muted)]"
+                  >
+                    <span className="w-5 flex-none text-right font-semibold text-[var(--rv-ink)]">{i + 1}.</span>
+                    <span className="min-w-0 break-words">
+                      {s.url ? (
+                        <a
+                          href={s.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline decoration-[rgba(12,26,22,.25)] underline-offset-2 transition-colors hover:text-[var(--rv-green-deep)]"
+                        >
+                          {s.label}
+                        </a>
+                      ) : (
+                        s.label
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-6 text-[.82rem] leading-[1.6] text-[var(--rv-muted)]">
+                Dieser Beitrag gibt einen allgemeinen Überblick und ersetzt keine Rechtsberatung im Einzelfall.
+              </p>
+            </section>
+          )}
         </article>
 
         <section className="border-t border-[rgba(12,26,22,.10)] bg-[var(--rv-mist)]">
