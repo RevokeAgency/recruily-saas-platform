@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import type Stripe from "stripe"
 import { describe, expect, it } from "vitest"
 
-import { PLANS, PLAN_ORDER, canBuyExtraSeats, seatLimit } from "@/lib/plans"
+import { PLANS, PLAN_ORDER, canBuyExtraSeats, maxExtraSeats, seatLimit } from "@/lib/plans"
 import { planItem, seatItem, subLookupKey, subSeatQuantity } from "@/lib/stripe/server"
 import { profileUpdateFor } from "@/lib/stripe/sync"
 import {
@@ -40,6 +40,17 @@ describe("Plätze pro Plan", () => {
       const seats = PLANS[plan].seats
       if (seats === null) expect(m, plan).toBeNull()
       else expect(Number(m?.[1]), plan).toBe(seats)
+    }
+  })
+
+  it("Starter höchstens 2 Zusatzplätze, wie plan_extra_seat_max in Migration 035", () => {
+    expect(maxExtraSeats("starter")).toBe(2)
+    expect(seatLimit("starter", 5)).toBe(4)
+    expect(maxExtraSeats("pro")).toBe(0)
+    const fn = SQL_035.slice(SQL_035.indexOf("function public.plan_extra_seat_max"))
+    for (const plan of PLAN_ORDER) {
+      const m = fn.match(new RegExp(`when '${plan}'\\s+then (\\d+)`))
+      expect(m ? Number(m[1]) : 0, plan).toBe(maxExtraSeats(plan))
     }
   })
 
@@ -179,6 +190,7 @@ describe("Zusatzplätze in Stripe", () => {
     const state = { customerId: "cus", subscriptionId: "sub", status: "active", periodEnd: null }
     expect(profileUpdateFor({ ...state, lookupKey: "revetly_growth_monthly", extraSeats: 3 }).extra_seats).toBe(3)
     expect(profileUpdateFor({ ...state, lookupKey: "revetly_pro_monthly", extraSeats: 3 }).extra_seats).toBe(0)
+    expect(profileUpdateFor({ ...state, lookupKey: "revetly_starter_monthly", extraSeats: 5 }).extra_seats).toBe(2)
     expect(profileUpdateFor({ ...state, status: "canceled", lookupKey: "revetly_growth_monthly", extraSeats: 3 }).extra_seats).toBe(0)
   })
 })

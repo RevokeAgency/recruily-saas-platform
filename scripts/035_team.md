@@ -19,8 +19,8 @@ ist sein eigener Arbeitsbereich.
 | Plan | Nutzer inklusive | Weitere Nutzer |
 | --- | --- | --- |
 | Free | 1 | nicht möglich |
-| Starter | 2 | 14,99 € pro Monat |
-| Growth | 5 | 14,99 € pro Monat |
+| Starter | 2 | höchstens 2, je 14,99 € pro Monat |
+| Growth | 5 | je 14,99 € pro Monat (Schutzgrenze 50) |
 | Pro, Enterprise | unbegrenzt | inklusive |
 
 Rollen: **Inhaber** (Abo, Plätze, Team, Firma, Einwilligung zum Lernen) und
@@ -36,7 +36,8 @@ Buchungsseiten und Benachrichtigungen bleiben pro Person.
 2. `user_profiles.extra_seats`, geschützt wie Plan und Kontingent: nur der
    Stripe-Webhook und die Platzbuchung setzen den Wert.
 3. `current_workspace()` und `my_workspace()`.
-4. `plan_seat_limit()`, `workspace_seat_limit()` und `enforce_seat_limit()`
+4. `plan_seat_limit()`, `plan_extra_seat_max()` (Starter 2, Growth 50),
+   `workspace_seat_limit()` und `enforce_seat_limit()`
    mit Triggern auf Profil und Mitgliedern. Sinkt das Limit (Downgrade,
    Kündigung), werden die zuletzt beigetretenen Mitglieder **gesperrt**
    statt gelöscht. Wird wieder ein Platz frei, sind sie in
@@ -63,6 +64,7 @@ Buchungsseiten und Benachrichtigungen bleiben pro Person.
 | Fremdes Konto verbraucht Match des Inhabers | `forbidden` |
 | Starter mit 2 Mitgliedern | 1 aktiv, 1 gesperrt |
 | + 1 Zusatzplatz | beide aktiv |
+| Starter mit 5 gebuchten Zusatzplätzen | Limit 4 (2 + höchstens 2) |
 | Downgrade auf Free | beide gesperrt, sehen nichts mehr |
 | Upgrade auf Pro | beide aktiv |
 | Inhaber löscht Konto | Mitgliedschaften entfallen |
@@ -75,7 +77,8 @@ Nichts einzurichten. Beim ersten Zubuchen legt die App das Produkt
 Plätze sind eine zweite Position im bestehenden Abo, im selben Intervall.
 Mehr Plätze werden sofort anteilig berechnet, weniger als Gutschrift auf
 die nächste Rechnung. Beim Wechsel auf Pro fallen sie weg, beim Wechsel
-zwischen Starter und Growth gehen sie mit.
+zwischen Starter und Growth gehen sie mit (zu Starter höchstens 2; wer
+dabei Platz verliert, wird gesperrt, nicht gelöscht).
 
 Im Kundenportal von Stripe lässt sich ein Abo mit zwei Positionen nicht
 mehr umstellen, nur kündigen. Planwechsel laufen ohnehin über

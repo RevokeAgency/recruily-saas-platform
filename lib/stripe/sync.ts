@@ -1,4 +1,4 @@
-import { PLANS, canBuyExtraSeats, type PlanId } from "@/lib/plans"
+import { PLANS, maxExtraSeats, type PlanId } from "@/lib/plans"
 import { planFromLookupKey } from "@/lib/stripe/server"
 
 /**
@@ -48,8 +48,9 @@ export function profileUpdateFor(state: SubscriptionState): Record<string, unkno
       : null,
     stripe_customer_id: state.customerId,
     stripe_subscription_id: isActive ? state.subscriptionId : null,
-    // Zusatzplätze nur bei Starter und Growth; bei Pro ist das Team unbegrenzt.
-    extra_seats: isActive && canBuyExtraSeats(plan) ? Math.max(0, Math.floor(state.extraSeats ?? 0)) : 0,
+    // Zusatzplätze nur bei Starter (höchstens 2) und Growth; bei Pro ist das
+    // Team unbegrenzt.
+    extra_seats: isActive ? Math.min(Math.max(0, Math.floor(state.extraSeats ?? 0)), maxExtraSeats(plan)) : 0,
   }
 }
 

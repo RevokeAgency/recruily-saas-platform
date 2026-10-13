@@ -27,13 +27,17 @@ const FREE_MATCHES = 25
 // Teamzugänge (Migration 035). seats zählt den Inhaber mit, null heißt
 // unbegrenzt. Muss zu plan_seat_limit in scripts/035_team.sql passen,
 // tests/team.test.ts prüft das. Zusatzplätze gibt es bei Starter und Growth,
-// abgerechnet als eigene Position im selben Stripe-Abo.
+// abgerechnet als eigene Position im selben Stripe-Abo. Starter ist auf zwei
+// Zusatzplätze begrenzt, damit größere Teams zu Growth greifen; bei Growth
+// ist die Grenze nur ein Schutz vor Tippfehlern. Muss zu
+// plan_extra_seat_max in Migration 035 passen.
 const SEATS = { free: 1, starter: 2, growth: 5 } as const
 
 export const EXTRA_SEAT = {
   price_monthly: 14.99,
   price_yearly: 149.9,
   plans: ['starter', 'growth'] as const,
+  max: { starter: 2, growth: 50 } as const,
 } as const
 
 const SEAT_PRICE = `${EXTRA_SEAT.price_monthly.toFixed(2).replace('.', ',')} €`
@@ -78,7 +82,7 @@ export const PLANS = {
       '50 Matches pro Monat',
       '3 aktive Stellen',
       'Alles aus Free',
-      `${SEATS.starter} Nutzer, weitere für ${SEAT_PRICE} im Monat`,
+      `${SEATS.starter} Nutzer, bis zu ${EXTRA_SEAT.max.starter} weitere für je ${SEAT_PRICE} im Monat`,
       'Alle neun Ebenen mit Begründung und Belegen',
       'K.O.-Kriterien pro Stelle',
       'Bewerbungen per E-Mail an die Stellenadresse',
@@ -103,7 +107,7 @@ export const PLANS = {
       '300 Matches pro Monat',
       '10 aktive Stellen',
       'Alles aus Starter',
-      `${SEATS.growth} Nutzer, weitere für ${SEAT_PRICE} im Monat`,
+      `${SEATS.growth} Nutzer, weitere für je ${SEAT_PRICE} im Monat`,
       'Absagen per E-Mail',
       'Terminbuchung mit Google- und Microsoft-Kalender',
       'Talent-Pool: neue Stellen gegen alte Bewerber',
@@ -234,7 +238,12 @@ export function featureFrom(feature: Feature): string {
 export function seatLimit(plan: PlanId | string | null | undefined, extraSeats = 0): number | null {
   const p = PLANS[plan as PlanId] ?? PLANS.free
   if (p.seats === null) return null
-  return p.seats + (canBuyExtraSeats(plan) ? Math.max(0, Math.floor(extraSeats)) : 0)
+  return p.seats + Math.min(Math.max(0, Math.floor(extraSeats)), maxExtraSeats(plan))
+}
+
+/** Wie viele Zusatzplätze der Plan höchstens erlaubt. 0 = keine. */
+export function maxExtraSeats(plan: PlanId | string | null | undefined): number {
+  return canBuyExtraSeats(plan) ? EXTRA_SEAT.max[plan as keyof typeof EXTRA_SEAT.max] : 0
 }
 
 /** Können zu diesem Plan Zusatzplätze gebucht werden? */

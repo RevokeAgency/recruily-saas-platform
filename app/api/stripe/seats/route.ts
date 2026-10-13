@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server"
 
 import { createClient as createServer } from "@/lib/supabase/server"
-import { canBuyExtraSeats, seatLimit, type PlanId } from "@/lib/plans"
+import { PLANS, canBuyExtraSeats, maxExtraSeats, seatLimit, type PlanId } from "@/lib/plans"
 import {
   bestActiveSubscription,
   ensureSeatPrice,
@@ -15,13 +15,11 @@ import { getWorkspace, requireOwner } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
-/** Obergrenze pro Abo, damit ein Tippfehler keine Rechnung über 500 Plätze erzeugt. */
-const MAX_EXTRA_SEATS = 50
-
 /**
  * Setzt die Zahl der Zusatzplätze (14,99 € pro Monat und Platz). Mehr Plätze
  * werden sofort anteilig berechnet, weniger als Gutschrift auf die nächste
- * Rechnung. Nur Starter und Growth, nur der Inhaber, nur mit laufendem Abo.
+ * Rechnung. Nur Starter (höchstens 2) und Growth, nur der Inhaber, nur mit
+ * laufendem Abo.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -33,8 +31,8 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}))
     const quantity = Number(body.quantity)
-    if (!Number.isInteger(quantity) || quantity < 0 || quantity > MAX_EXTRA_SEATS) {
-      return Response.json({ error: `Bitte eine Zahl zwischen 0 und ${MAX_EXTRA_SEATS} wählen.` }, { status: 400 })
+    if (!Number.isInteger(quantity) || quantity < 0) {
+      return Response.json({ error: "Bitte eine ganze Zahl ab 0 wählen." }, { status: 400 })
     }
 
     const db = teamDb()
@@ -46,6 +44,19 @@ export async function POST(req: NextRequest) {
     if (!canBuyExtraSeats(plan)) {
       return Response.json(
         { error: plan === "free" ? "Zusätzliche Nutzer gibt es ab dem Plan Starter." : "In deinem Plan sind unbegrenzt viele Nutzer enthalten." },
+        { status: 400 },
+      )
+    }
+
+    const max = maxExtraSeats(plan)
+    if (quantity > max) {
+      return Response.json(
+        {
+          error: plan === "starter"
+            ? `Bei Starter kannst du höchstens ${max} weitere Nutzer dazubuchen. Für größere Teams wechsle auf Growth mit ${PLANS.growth.seats} Nutzern inklusive.`
+            : `Bitte höchstens ${max} Zusatzplätze wählen.`,
+          upgrade: plan === "starter",
+        },
         { status: 400 },
       )
     }

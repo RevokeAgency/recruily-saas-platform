@@ -644,7 +644,10 @@ ausdrücklich kurz).
 
 Entscheidungen des Inhabers: Plätze 1 / 2 / 5 / unbegrenzt (Free, Starter,
 Growth, Pro und Enterprise), weitere Nutzer für 14,99 € pro Monat bei
-Starter und Growth (jährlich 149,90 €). Rollen Inhaber und Mitglied, alle
+Starter und Growth (jährlich 149,90 €). Starter höchstens 2 Zusatzplätze
+(13.10.2026), damit größere Teams zu Growth greifen; Grenze in
+`EXTRA_SEAT.max` und `plan_extra_seat_max` (035). Starter heißt auf der
+Preiskarte „Für Einzel-Recruiter und kleine Teams“. Rollen Inhaber und Mitglied, alle
 sehen alle Stellen, jede Person hat ihren eigenen Kalender.
 
 - Modell: Das zahlende Konto ist der Arbeitsbereich, `user_id` bleibt der

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server"
 import { createClient as createServer } from "@/lib/supabase/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
-import { canBuyExtraSeats } from "@/lib/plans"
+import { maxExtraSeats } from "@/lib/plans"
 import {
   getStripe,
   ensurePrice,
@@ -72,10 +72,11 @@ export async function POST(req: NextRequest) {
     const scheduleId = typeof sub.schedule === "string" ? sub.schedule : sub.schedule?.id
 
     // Zusatzplätze gehen mit: gleiches Intervall wie der neue Plan, bei Pro
-    // entfallen sie (dort ist das Team unbegrenzt).
+    // entfallen sie (dort ist das Team unbegrenzt), bei Starter höchstens 2.
+    // Wer dabei Platz verliert, wird von der Datenbank gesperrt, nicht gelöscht.
     const seats = seatItem(sub)
-    const seatQty = seats?.quantity ?? 0
-    const keepSeats = seatQty > 0 && canBuyExtraSeats(plan)
+    const seatQty = Math.min(seats?.quantity ?? 0, maxExtraSeats(plan))
+    const keepSeats = seatQty > 0
     const newSeatPriceId = keepSeats ? await ensureSeatPrice(stripe, interval) : null
 
     if (targetRank > currentRank) {
@@ -105,7 +106,7 @@ export async function POST(req: NextRequest) {
     const cur = schedule.phases[0]
     const currentPriceId = subPriceId(sub)!
     // Plan immer an erster Stelle, die Zusatzplätze danach (pendingChangeOf).
-    const currentSeats = seats ? [{ price: seats.price.id, quantity: seatQty }] : []
+    const currentSeats = seats ? [{ price: seats.price.id, quantity: seats.quantity ?? 0 }] : []
     const nextSeats = keepSeats ? [{ price: newSeatPriceId!, quantity: seatQty }] : []
     await stripe.subscriptionSchedules.update(schedId, {
       end_behavior: "release",

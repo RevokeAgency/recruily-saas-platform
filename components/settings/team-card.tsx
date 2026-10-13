@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { PLANS, extraSeatPriceLabel, type PlanId } from "@/lib/plans"
+import { PLANS, extraSeatPriceLabel, maxExtraSeats, type PlanId } from "@/lib/plans"
 
 interface Person { id: string; name: string; email: string | null }
 interface TeamData {
@@ -192,6 +192,7 @@ export function TeamCard() {
   const plan = PLANS[data.owner.plan] ?? PLANS.free
   const seatPrice = extraSeatPriceLabel("monthly")
   const seatsChanged = seatTarget !== data.owner.extraSeats
+  const seatMax = maxExtraSeats(data.owner.plan)
 
   return (
     <Card className="reveal border border-border shadow-card">
@@ -316,7 +317,8 @@ export function TeamCard() {
               <div className="space-y-0.5">
                 <p className="text-sm font-semibold text-foreground">Zusätzliche Nutzer</p>
                 <p className="text-sm text-muted-foreground">
-                  {plan.seats} Nutzer sind im Plan {plan.label} enthalten, jeder weitere kostet {seatPrice} im Monat.
+                  {plan.seats} Nutzer sind im Plan {plan.label} enthalten, jeder weitere kostet {seatPrice} im Monat
+                  {data.owner.plan === "starter" ? `, höchstens ${seatMax} weitere.` : "."}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -335,8 +337,8 @@ export function TeamCard() {
                   variant="outline"
                   size="icon"
                   className="h-9 w-9 rounded-full"
-                  disabled={busy !== null || seatTarget >= 50}
-                  onClick={() => setSeatTarget((n) => Math.min(50, (n ?? 0) + 1))}
+                  disabled={busy !== null || seatTarget >= seatMax}
+                  onClick={() => setSeatTarget((n) => Math.min(seatMax, (n ?? 0) + 1))}
                   aria-label="Einen Platz mehr"
                 >
                   <Plus className="h-4 w-4" />
@@ -351,6 +353,15 @@ export function TeamCard() {
                 </Button>
               </div>
             </div>
+            {data.owner.plan === "starter" && seatTarget >= seatMax && (
+              <p className="text-sm text-muted-foreground">
+                Für ein größeres Team{" "}
+                <Link href="/subscription" className="font-semibold text-[var(--rv-green-deep)] hover:underline">
+                  wechsle auf Growth
+                </Link>
+                , dort sind {PLANS.growth.seats} Nutzer inklusive.
+              </p>
+            )}
             {seatsChanged && (
               <p className="text-xs text-muted-foreground">
                 Die Änderung wird anteilig für den laufenden Zeitraum abgerechnet, über dieselbe Zahlungsart wie dein Abo.

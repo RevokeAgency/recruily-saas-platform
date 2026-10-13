@@ -55,7 +55,7 @@ const TIERS: Tier[] = [
   },
   {
     name: "Starter",
-    desc: "Für Einzel-Recruiter",
+    desc: "Für Einzel-Recruiter und kleine Teams",
     monthly: euro(PLANS.starter.price_monthly),
     yearly: euro(PLANS.starter.price_yearly),
     per: PER,
@@ -64,7 +64,7 @@ const TIERS: Tier[] = [
     features: [
       `${PLANS.starter.active_jobs} aktive Stellen`,
       `${fmt(PLANS.starter.matches)} Matches pro Monat`,
-      `${PLANS.starter.seats} Nutzer, weitere für ${SEAT_PRICE} im Monat`,
+      `${PLANS.starter.seats} Nutzer, bis zu ${EXTRA_SEAT.max.starter} weitere für je ${SEAT_PRICE} im Monat`,
       "Alle neun Ebenen mit Begründung und Belegen",
       "K.O.-Kriterien pro Stelle",
       "Bewerbungen per E-Mail an die Stellenadresse",
@@ -83,7 +83,7 @@ const TIERS: Tier[] = [
     features: [
       `${PLANS.growth.active_jobs} aktive Stellen`,
       `${fmt(PLANS.growth.matches)} Matches pro Monat`,
-      `${PLANS.growth.seats} Nutzer, weitere für ${SEAT_PRICE} im Monat`,
+      `${PLANS.growth.seats} Nutzer, weitere für je ${SEAT_PRICE} im Monat`,
       "Absagen per E-Mail",
       "Terminbuchung mit Google- und Microsoft-Kalender",
       "Talent-Pool: neue Stellen gegen alte Bewerber",
@@ -195,7 +195,10 @@ const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values:
           seats(PLANS.enterprise.seats),
         ],
       },
-      { label: "Weitere Nutzer", values: [false, `${SEAT_PRICE} / Monat`, `${SEAT_PRICE} / Monat`, "inklusive", "inklusive"] },
+      {
+        label: "Weitere Nutzer",
+        values: [false, `bis zu ${EXTRA_SEAT.max.starter}, je ${SEAT_PRICE} / Monat`, `je ${SEAT_PRICE} / Monat`, "inklusive", "inklusive"],
+      },
     ],
   },
   {

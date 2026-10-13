@@ -12,8 +12,8 @@
 -- sich nicht: Wer kein Mitglied ist, ist sein eigener Arbeitsbereich.
 --
 -- Plätze (inklusive Inhaber): Free 1, Starter 2, Growth 5, Pro und Enterprise
--- unbegrenzt. Starter und Growth können Zusatzplätze buchen (extra_seats,
--- gesetzt vom Stripe-Webhook). Sinkt das Limit, werden die zuletzt
+-- unbegrenzt. Starter (höchstens 2) und Growth können Zusatzplätze buchen
+-- (extra_seats, gesetzt vom Stripe-Webhook). Sinkt das Limit, werden die zuletzt
 -- beigetretenen Mitglieder gesperrt statt gelöscht und beim nächsten freien
 -- Platz in Beitrittsreihenfolge wieder freigeschaltet.
 --
@@ -167,7 +167,22 @@ as $$
   end;
 $$;
 
--- Zusatzplätze zählen nur bei Starter und Growth.
+-- Höchstzahl der Zusatzplätze pro Plan. Muss zu EXTRA_SEAT.max in
+-- lib/plans.ts passen. Starter ist bewusst auf 2 begrenzt, damit größere
+-- Teams zu Growth greifen; bei Growth ist 50 nur ein Schutz vor Tippfehlern.
+create or replace function public.plan_extra_seat_max(p_plan text)
+returns integer
+language sql
+immutable
+as $$
+  select case p_plan
+    when 'starter' then 2
+    when 'growth'  then 50
+    else 0
+  end;
+$$;
+
+-- Zusatzplätze zählen nur bei Starter und Growth, höchstens bis zur Grenze.
 create or replace function public.workspace_seat_limit(p_owner uuid)
 returns integer
 language sql
@@ -177,8 +192,8 @@ set search_path = public
 as $$
   select case
     when public.plan_seat_limit(p.plan) is null then null
-    when p.plan in ('starter', 'growth') then public.plan_seat_limit(p.plan) + coalesce(p.extra_seats, 0)
     else public.plan_seat_limit(p.plan)
+         + least(greatest(coalesce(p.extra_seats, 0), 0), public.plan_extra_seat_max(p.plan))
   end
   from public.user_profiles p
   where p.id = p_owner;
@@ -490,6 +505,7 @@ $$;
 grant execute on function public.current_workspace()          to authenticated, service_role;
 grant execute on function public.my_workspace()               to authenticated, service_role;
 grant execute on function public.plan_seat_limit(text)        to authenticated, service_role;
+grant execute on function public.plan_extra_seat_max(text)    to authenticated, service_role;
 grant execute on function public.workspace_seat_limit(uuid)   to service_role;
 grant execute on function public.enforce_seat_limit(uuid)     to service_role;
 revoke execute on function public.workspace_seat_limit(uuid)  from anon, authenticated, public;
