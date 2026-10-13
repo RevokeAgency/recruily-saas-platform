@@ -3,6 +3,7 @@ import { createClient as createAdmin } from "@supabase/supabase-js"
 import { NextRequest } from "next/server"
 import { containsLikelyPii } from "@/lib/training/anonymize"
 import { SHARED_TRAINING_ENABLED } from "@/lib/training/consent"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 120
@@ -34,6 +35,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     const url = new URL(req.url)
     const task = url.searchParams.get("task") || "dossier"
@@ -48,7 +50,7 @@ export async function GET(req: NextRequest) {
     const { data: profile, error: profErr } = await supabase
       .from("user_profiles")
       .select("ai_training_consent")
-      .eq("id", user.id)
+      .eq("id", ownerId)
       .single()
     if (profErr) {
       return Response.json(
@@ -72,7 +74,7 @@ export async function GET(req: NextRequest) {
     const { data: rows, error } = await admin
       .from("ai_training_examples")
       .select("messages, label_source, label_strength, created_at")
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .eq("task", task)
       .order("created_at", { ascending: true })
       .limit(limit)

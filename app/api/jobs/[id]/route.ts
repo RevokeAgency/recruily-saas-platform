@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest } from "next/server"
 import { checkJobQuota } from "@/lib/quota"
+import { getWorkspace } from "@/lib/workspace"
 
 // Close / reopen a job. Closing frees the active-job slot; reopening re-checks
 // the plan's active-job limit. Existing candidates are always preserved.
@@ -15,19 +16,20 @@ export async function PATCH(
     if (authError || !user) {
       return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
     }
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     const body = await request.json()
     const isActive = body.isActive === true
 
     const { data: job } = await supabase
-      .from("jobs").select("id, is_active").eq("id", id).eq("user_id", user.id).single()
+      .from("jobs").select("id, is_active").eq("id", id).eq("user_id", ownerId).single()
     if (!job) return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
 
     // Reopening consumes a slot → enforce the active-job limit. Die Regel
     // steht in job_quota (028); Reaktivieren legt nichts Neues an, deshalb
     // zählen hier für alle Pläne die aktiven Stellen.
     if (isActive && !job.is_active) {
-      const quota = await checkJobQuota(supabase, user.id, false)
+      const quota = await checkJobQuota(supabase, ownerId, false)
       if (quota) {
         if (!quota.allowed) {
           return Response.json({ error: "job_limit_reached", limit: quota.limit }, { status: 403 })
@@ -35,11 +37,11 @@ export async function PATCH(
       } else {
         // Rückfall, solange 028 nicht eingespielt ist.
         const { data: profile } = await supabase
-          .from("user_profiles").select("active_jobs_limit").eq("id", user.id).single()
+          .from("user_profiles").select("active_jobs_limit").eq("id", ownerId).single()
         const limit = profile?.active_jobs_limit ?? 1
         const { count } = await supabase
           .from("jobs").select("id", { count: "exact", head: true })
-          .eq("is_active", true).eq("user_id", user.id)
+          .eq("is_active", true).eq("user_id", ownerId)
         if ((count ?? 0) >= limit) {
           return Response.json({ error: "job_limit_reached", limit }, { status: 403 })
         }
@@ -47,7 +49,7 @@ export async function PATCH(
     }
 
     const { error } = await supabase
-      .from("jobs").update({ is_active: isActive }).eq("id", id).eq("user_id", user.id)
+      .from("jobs").update({ is_active: isActive }).eq("id", id).eq("user_id", ownerId)
     if (error) return Response.json({ error: error.message }, { status: 500 })
 
     return Response.json({ success: true, isActive })
@@ -70,6 +72,7 @@ export async function PUT(
     if (authError || !user) {
       return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
     }
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     const body = await request.json()
     if (!body.title?.trim() || !body.company?.trim()) {
@@ -78,7 +81,7 @@ export async function PUT(
 
     // Ownership check (RLS also enforces this, but 404 is clearer than a no-op).
     const { data: existing } = await supabase
-      .from("jobs").select("id").eq("id", id).eq("user_id", user.id).single()
+      .from("jobs").select("id").eq("id", id).eq("user_id", ownerId).single()
     if (!existing) return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
 
     const jobData = {
@@ -97,14 +100,14 @@ export async function PUT(
     }
 
     let { data: job, error } = await supabase
-      .from("jobs").update(jobData).eq("id", id).eq("user_id", user.id).select().single()
+      .from("jobs").update(jobData).eq("id", id).eq("user_id", ownerId).select().single()
 
     // KO criteria need migration 019 — don't fail the whole save if it's pending.
     if (error && /ko_criteria/i.test(error.message || "")) {
       console.warn("[jobs] KO-Spalte fehlt — Migration 019 noch nicht ausgeführt. Job wird ohne KO-Kriterien gespeichert.")
       const { ko_criteria: _omit, ...withoutKo } = jobData
       ;({ data: job, error } = await supabase
-        .from("jobs").update(withoutKo).eq("id", id).eq("user_id", user.id).select().single())
+        .from("jobs").update(withoutKo).eq("id", id).eq("user_id", ownerId).select().single())
     }
 
     if (error) return Response.json({ error: error.message }, { status: 500 })
@@ -129,16 +132,17 @@ export async function DELETE(
     if (authError || !user) {
       return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
     }
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     const { data: job } = await supabase
-      .from("jobs").select("id").eq("id", id).eq("user_id", user.id).single()
+      .from("jobs").select("id").eq("id", id).eq("user_id", ownerId).single()
     if (!job) return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
 
     // Remove links first (no guaranteed ON DELETE CASCADE); candidates persist.
-    await supabase.from("job_candidates").delete().eq("job_id", id).eq("user_id", user.id)
+    await supabase.from("job_candidates").delete().eq("job_id", id).eq("user_id", ownerId)
 
     const { error } = await supabase
-      .from("jobs").delete().eq("id", id).eq("user_id", user.id)
+      .from("jobs").delete().eq("id", id).eq("user_id", ownerId)
     if (error) return Response.json({ error: error.message }, { status: 500 })
 
     return Response.json({ success: true })

@@ -1,6 +1,7 @@
 import { createClient as createServer } from "@/lib/supabase/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
 import { NextRequest } from "next/server"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -18,12 +19,13 @@ export async function GET(
     const server = await createServer()
     const { data: { user } } = await server.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(server, user.id)
 
     const { data: candidate } = await server
       .from("candidates")
       .select("resume_path, cover_letter_path, user_id")
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .single()
     if (!candidate) return Response.json({ error: "Nicht gefunden" }, { status: 404 })
 

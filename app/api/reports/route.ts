@@ -8,6 +8,7 @@ import { loadReport } from "@/lib/report/load"
 import { parseReportRequest, profileCode, reportFileName } from "@/lib/report/model"
 import { reviewDb } from "@/lib/review/store"
 import { createClient } from "@/lib/supabase/server"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -23,8 +24,9 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+  const { ownerId } = await getWorkspace(supabase, user.id)
 
-  const locked = await requireFeature(supabase, user.id, "report", "Den Revetly Report")
+  const locked = await requireFeature(supabase, ownerId, "report", "Den Revetly Report")
   if (locked) return locked
 
   const parsed = parseReportRequest(await req.json().catch(() => ({})))
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const loaded = await loadReport(supabase, admin, user.id, parsed.value)
+  const loaded = await loadReport(supabase, admin, ownerId, parsed.value)
   if (!loaded.ok) return Response.json({ error: loaded.error }, { status: loaded.status })
 
   let pdf: Buffer
@@ -50,7 +52,7 @@ export async function POST(req: NextRequest) {
   }
 
   await logDecisions(supabase, parsed.value.jobCandidateIds.map((id) => ({
-    userId: user.id, actorId: user.id, jobId: parsed.value.jobId, jobCandidateId: id,
+    userId: ownerId, actorId: user.id, jobId: parsed.value.jobId, jobCandidateId: id,
     event: "report_erstellt",
     detail: {
       anonym: parsed.value.anonymous,

@@ -8,6 +8,7 @@ import { featureFrom, hasFeature } from "@/lib/plans"
 import { getPlan } from "@/lib/quota"
 import { consumeRateLimit } from "@/lib/rate-limit"
 import { createClient } from "@/lib/supabase/server"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 // Viele Absagen hintereinander brauchen Zeit; siehe PARALLEL unten.
@@ -52,6 +53,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     const body = await req.json().catch(() => ({}))
     const preview = body.preview === true
@@ -59,14 +61,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const oversight = body.oversight === true
 
     const { data: job } = await supabase
-      .from("jobs").select("id, title, company, is_active").eq("id", jobId).eq("user_id", user.id).single()
+      .from("jobs").select("id, title, company, is_active").eq("id", jobId).eq("user_id", ownerId).single()
     if (!job) return Response.json({ error: "Stelle nicht gefunden" }, { status: 404 })
 
     const { data: links, error: linksErr } = await supabase
       .from("job_candidates")
       .select("id, status, candidate:candidates(full_name, email)")
       .eq("job_id", jobId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
     if (linksErr) return Response.json({ error: linksErr.message }, { status: 500 })
 
     const all = (links ?? []) as unknown as (OpenLink & { status: string | null })[]
@@ -75,7 +77,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const withEmail = open.filter((l) => !!l.candidate?.email)
 
     // Absage-Mails ab Growth. Abschließen und Absagen ohne Mail geht immer.
-    const planAllowsEmail = hasFeature(await getPlan(supabase, user.id), "rejection_email")
+    const planAllowsEmail = hasFeature(await getPlan(supabase, ownerId), "rejection_email")
 
     if (preview) {
       return Response.json({
@@ -121,7 +123,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     // 1. Stelle schließen.
     const { error: closeErr } = await supabase
-      .from("jobs").update({ is_active: false }).eq("id", jobId).eq("user_id", user.id)
+      .from("jobs").update({ is_active: false }).eq("id", jobId).eq("user_id", ownerId)
     if (closeErr) return Response.json({ error: closeErr.message }, { status: 500 })
 
     // 2. Offene Bewerber absagen. Der Status wird vor dem Versand gesetzt:
@@ -132,7 +134,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         .from("job_candidates")
         .update({ status: "Abgesagt" })
         .in("id", open.map((l) => l.id))
-        .eq("user_id", user.id)
+        .eq("user_id", ownerId)
       if (rejErr) return Response.json({ error: rejErr.message }, { status: 500 })
     }
 
@@ -164,16 +166,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const entries: DecisionEntry[] = []
     if (open.length > 0) {
       entries.push({
-        userId: user.id, actorId: user.id, jobId, event: "pruefung_bestaetigt",
+        userId: ownerId, actorId: user.id, jobId, event: "pruefung_bestaetigt",
         detail: { bestaetigung: OVERSIGHT_STATEMENT, offene_bewerbungen: open.length, stelle: job.title },
       })
     }
     entries.push({
-      userId: user.id, actorId: user.id, jobId, event: "stelle_abgeschlossen",
+      userId: ownerId, actorId: user.id, jobId, event: "stelle_abgeschlossen",
       detail: { stelle: job.title, abgesagt: open.length, mails_verschickt: emailed, mails_fehlgeschlagen: failed },
     })
     for (const linkId of sentTo) {
-      entries.push({ userId: user.id, actorId: user.id, jobId, jobCandidateId: linkId, event: "absage_verschickt", detail: { weg: "stelle_abgeschlossen" } })
+      entries.push({ userId: ownerId, actorId: user.id, jobId, jobCandidateId: linkId, event: "absage_verschickt", detail: { weg: "stelle_abgeschlossen" } })
     }
     await logDecisions(supabase, entries)
 

@@ -1,5 +1,6 @@
 import { requireFeature } from "@/lib/quota"
 import { createClient } from "@/lib/supabase/server"
+import { getWorkspace } from "@/lib/workspace"
 
 export async function GET(
   req: Request,
@@ -10,9 +11,10 @@ export async function GET(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     // Statistiken pro Stelle ab Growth (analytics_full).
-    const locked = await requireFeature(supabase, user.id, "analytics_full", "Statistiken pro Stelle")
+    const locked = await requireFeature(supabase, ownerId, "analytics_full", "Statistiken pro Stelle")
     if (locked) return locked
 
     // Get all candidates for this job with their scores and status.
@@ -21,13 +23,13 @@ export async function GET(
       .from("job_candidates")
       .select("id, status, match_score, interview_score, created_at")
       .eq("job_id", jobId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
     if (error && /interview_/i.test(error.message || "")) {
       const fallback = await supabase
         .from("job_candidates")
         .select("id, status, match_score, created_at")
         .eq("job_id", jobId)
-        .eq("user_id", user.id)
+        .eq("user_id", ownerId)
       jobCandidates = (fallback.data ?? null) as typeof jobCandidates
       error = fallback.error
     }

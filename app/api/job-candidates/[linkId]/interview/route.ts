@@ -6,6 +6,7 @@ import { screenCandidateDocuments } from "@/lib/document-guard/store"
 import { recordTrainingExample, buildJudgeExample } from "@/lib/training/collect"
 import { renderDossier } from "@/lib/matching/dossier"
 import { requireFeature } from "@/lib/quota"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 // Dokumentprüfung, Abgleich Anschreiben und Leitfaden laufen nacheinander.
@@ -51,8 +52,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ lin
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
-    const { data, error } = await loadLink(supabase, linkId, user.id)
+    const { data, error } = await loadLink(supabase, linkId, ownerId)
     if (error && isMissingColumn(error.message)) {
       return Response.json({ guide: null, ratings: null, score: null, notes: null, completedAt: null, needsMigration: true })
     }
@@ -78,13 +80,14 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ li
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     // Leitfäden ab Growth. Lesen (GET) bleibt offen, damit ein vorhandener
     // Leitfaden nach einem Wechsel auf einen kleineren Plan sichtbar bleibt.
-    const locked = await requireFeature(supabase, user.id, "interview_guide", "Interviewleitfäden")
+    const locked = await requireFeature(supabase, ownerId, "interview_guide", "Interviewleitfäden")
     if (locked) return locked
 
-    const { data: link, error: linkErr } = await loadLink(supabase, linkId, user.id)
+    const { data: link, error: linkErr } = await loadLink(supabase, linkId, ownerId)
     if (linkErr && isMissingColumn(linkErr.message)) {
       return Response.json({ error: MISSING_COL }, { status: 400 })
     }
@@ -114,7 +117,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ li
       .from("job_candidates")
       .update({ interview_guide: guide })
       .eq("id", linkId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
     if (upErr) {
       if (isMissingColumn(upErr.message)) return Response.json({ error: MISSING_COL }, { status: 400 })
       return Response.json({ error: upErr.message }, { status: 500 })
@@ -134,8 +137,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ link
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
-    const locked = await requireFeature(supabase, user.id, "interview_guide", "Strukturierte Interviews")
+    const locked = await requireFeature(supabase, ownerId, "interview_guide", "Strukturierte Interviews")
     if (locked) return locked
 
     const body = await req.json()
@@ -151,7 +155,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ link
 
     // Ownership check.
     const { data: owns } = await supabase
-      .from("job_candidates").select("id").eq("id", linkId).eq("user_id", user.id).single()
+      .from("job_candidates").select("id").eq("id", linkId).eq("user_id", ownerId).single()
     if (!owns) return Response.json({ error: "Nicht gefunden" }, { status: 404 })
 
     const { error } = await supabase
@@ -163,7 +167,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ link
         interview_completed_at: valid.length ? new Date().toISOString() : null,
       })
       .eq("id", linkId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
     if (error) {
       if (isMissingColumn(error.message)) return Response.json({ error: MISSING_COL }, { status: 400 })
       return Response.json({ error: error.message }, { status: 500 })
@@ -175,7 +179,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ link
     if (interviewScore != null) {
       after(async () => {
         try {
-          await collectInterviewExample(linkId, user.id, interviewScore, notes)
+          await collectInterviewExample(linkId, ownerId, interviewScore, notes)
         } catch (err) {
           console.error("[interview] Trainingsbeispiel übersprungen:", err)
         }

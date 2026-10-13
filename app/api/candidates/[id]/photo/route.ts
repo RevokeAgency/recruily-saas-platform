@@ -3,6 +3,7 @@ import { createClient as createAdmin } from "@supabase/supabase-js"
 import { NextRequest } from "next/server"
 import { extractCandidatePhotoDetailed } from "@/lib/cv-photo"
 import { PHOTO_BUCKET, candidatePhotoPath, candidatePhotoUrl } from "@/lib/candidate-photo"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -21,9 +22,10 @@ export async function GET(
   const server = await createServer()
   const { data: { user } } = await server.auth.getUser()
   if (!user) return new Response(null, { status: 401 })
+  const { ownerId } = await getWorkspace(server, user.id)
 
   const { data: candidate } = await server
-    .from("candidates").select("id").eq("id", id).eq("user_id", user.id).single()
+    .from("candidates").select("id").eq("id", id).eq("user_id", ownerId).single()
   if (!candidate) return new Response(null, { status: 404 })
 
   const admin = createAdmin(
@@ -33,7 +35,7 @@ export async function GET(
   )
   const { data, error } = await admin.storage
     .from(PHOTO_BUCKET)
-    .createSignedUrl(candidatePhotoPath(user.id, id), SIGNED_SECONDS)
+    .createSignedUrl(candidatePhotoPath(ownerId, id), SIGNED_SECONDS)
   if (error || !data?.signedUrl) return new Response(null, { status: 404 })
 
   return new Response(null, {
@@ -56,9 +58,10 @@ export async function POST(
     const server = await createServer()
     const { data: { user } } = await server.auth.getUser()
     if (!user) return Response.json({ ok: false, error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(server, user.id)
 
     const { data: candidate } = await server
-      .from("candidates").select("id, resume_path").eq("id", id).eq("user_id", user.id).single()
+      .from("candidates").select("id, resume_path").eq("id", id).eq("user_id", ownerId).single()
     if (!candidate) return Response.json({ ok: false, error: "Kandidat nicht gefunden" }, { status: 404 })
     if (!candidate.resume_path) {
       return Response.json({ ok: false, error: "Kein Lebenslauf gespeichert" }, { status: 400 })
@@ -85,7 +88,7 @@ export async function POST(
       return Response.json({ ok: false, reason: diag.reason, diag })
     }
 
-    const photoPath = `${user.id}/${id}.png`
+    const photoPath = `${ownerId}/${id}.png`
     const { error: upErr } = await admin.storage.from("candidate-photos").upload(photoPath, photo, {
       contentType: "image/png", upsert: true,
     })

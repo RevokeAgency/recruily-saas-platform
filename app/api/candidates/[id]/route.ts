@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
+import { getWorkspace } from "@/lib/workspace"
 
 export async function GET(
   req: Request,
@@ -10,12 +11,13 @@ export async function GET(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     const { data: candidate, error } = await supabase
       .from("candidates")
       .select("*")
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .single()
 
     if (error) {
@@ -41,13 +43,14 @@ export async function DELETE(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     // Confirm ownership (RLS also enforces this) and read the storage paths.
     const { data: candidate } = await supabase
       .from("candidates")
       .select("id, resume_path, cover_letter_path")
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .single()
     if (!candidate) return Response.json({ error: "Kandidat nicht gefunden" }, { status: 404 })
 
@@ -60,9 +63,9 @@ export async function DELETE(
         { auth: { persistSession: false } },
       )
 
-      // Documents live under `${user.id}/${candidateId}/…` in the private bucket.
+      // Documents live under `${ownerId}/${candidateId}/…` in the private bucket.
       // List the folder so nothing is missed (cv + cover + any variants).
-      const folder = `${user.id}/${id}`
+      const folder = `${ownerId}/${id}`
       const { data: files } = await admin.storage.from("resumes").list(folder)
       const paths = (files ?? []).map((f) => `${folder}/${f.name}`)
       // Fall back to the known columns if the listing came back empty.
@@ -70,8 +73,8 @@ export async function DELETE(
       if (candidate.cover_letter_path) paths.push(candidate.cover_letter_path)
       if (paths.length) await admin.storage.from("resumes").remove([...new Set(paths)])
 
-      // Public avatar: `${user.id}/${candidateId}.png`.
-      await admin.storage.from("candidate-photos").remove([`${user.id}/${id}.png`])
+      // Public avatar: `${ownerId}/${candidateId}.png`.
+      await admin.storage.from("candidate-photos").remove([`${ownerId}/${id}.png`])
     } catch (storageErr) {
       console.error("[candidate delete] storage cleanup failed:", storageErr)
     }
@@ -80,7 +83,7 @@ export async function DELETE(
       .from("candidates")
       .delete()
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
 
     if (error) {
       return Response.json({ error: error.message }, { status: 500 })

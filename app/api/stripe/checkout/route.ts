@@ -11,6 +11,7 @@ import {
   type PaidPlanId,
   type BillingInterval,
 } from "@/lib/stripe/server"
+import { getWorkspace, requireOwner } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -25,6 +26,8 @@ export async function POST(req: NextRequest) {
     const supabase = await createServer()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const ownerOnly = requireOwner(await getWorkspace(supabase, user.id), "Das Abo abschließen")
+    if (ownerOnly) return ownerOnly
 
     const body = await req.json().catch(() => ({}))
     const plan = body.plan as PaidPlanId

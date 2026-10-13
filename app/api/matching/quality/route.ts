@@ -3,6 +3,7 @@ import { computeCalibration, type CalibRow } from "@/lib/matching/calibration"
 import { fetchCalibrationRows } from "@/lib/matching/screening"
 import { hasFeature } from "@/lib/plans"
 import { getPlan } from "@/lib/quota"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -16,10 +17,11 @@ export async function GET() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     // Match-Qualität gehört zu den ausführlichen Auswertungen (ab Growth).
     // Ohne Bericht zeigt das Dashboard die Karte einfach nicht.
-    if (!hasFeature(await getPlan(supabase, user.id), "analytics_full")) {
+    if (!hasFeature(await getPlan(supabase, ownerId), "analytics_full")) {
       return Response.json({ report: null, source: "plan" })
     }
 
@@ -27,7 +29,7 @@ export async function GET() {
     const { data: profile, error: profErr } = await supabase
       .from("user_profiles")
       .select("match_calibration")
-      .eq("id", user.id)
+      .eq("id", ownerId)
       .single()
 
     if (!profErr && profile?.match_calibration) {
@@ -35,7 +37,7 @@ export async function GET() {
     }
 
     // Fallback: compute on the fly from the tenant's rows.
-    const { rows, error } = await fetchCalibrationRows(supabase, user.id)
+    const { rows, error } = await fetchCalibrationRows(supabase, ownerId)
 
     if (error) return Response.json({ report: null, source: "unavailable" })
     return Response.json({ report: computeCalibration((rows || []) as unknown as CalibRow[]), source: "live" })

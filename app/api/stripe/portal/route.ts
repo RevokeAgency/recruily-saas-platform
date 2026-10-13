@@ -2,6 +2,7 @@ import { NextRequest } from "next/server"
 import { createClient as createServer } from "@/lib/supabase/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
 import { getStripe, ensurePortalConfiguration } from "@/lib/stripe/server"
+import { getWorkspace, requireOwner } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -12,6 +13,8 @@ export async function POST(req: NextRequest) {
     const supabase = await createServer()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const ownerOnly = requireOwner(await getWorkspace(supabase, user.id), "Das Abo verwalten")
+    if (ownerOnly) return ownerOnly
 
     const admin = createAdmin(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

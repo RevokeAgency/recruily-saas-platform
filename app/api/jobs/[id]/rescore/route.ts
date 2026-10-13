@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest } from "next/server"
 import { scoreJobCandidateLink } from "@/lib/scoring"
+import { getWorkspace } from "@/lib/workspace"
 
 // Re-scoring an existing job can take a few seconds per candidate.
 export const maxDuration = 300
@@ -32,10 +33,11 @@ export async function POST(
     if (authError || !user) {
       return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
     }
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     // Ownership check.
     const { data: job } = await supabase
-      .from("jobs").select("id").eq("id", jobId).eq("user_id", user.id).single()
+      .from("jobs").select("id").eq("id", jobId).eq("user_id", ownerId).single()
     if (!job) return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
 
     // Optional: retry a single candidate (used by "Erneut versuchen" on errors).
@@ -47,7 +49,7 @@ export async function POST(
       .from("job_candidates")
       .select("id")
       .eq("job_id", jobId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
     query = singleLinkId
       ? query.eq("id", singleLinkId)
       : query.in("status", ["scored", "error"]).order("created_at", { ascending: true }).limit(BATCH + 1)

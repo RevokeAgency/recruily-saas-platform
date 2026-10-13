@@ -1,6 +1,6 @@
 import Stripe from "stripe"
 
-import { PLANS, type PlanId } from "@/lib/plans"
+import { EXTRA_SEAT, PLANS, type PlanId } from "@/lib/plans"
 
 /**
  * Stripe server helpers. The product catalog is bootstrapped lazily and
@@ -30,16 +30,51 @@ export function lookupKeyFor(plan: PaidPlanId, interval: BillingInterval): strin
   return `revetly_${plan}_${interval}`
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Zusatzplätze (Migration 035): eine zweite Position im selben Abo, Menge =
+// Anzahl der Zusatzplätze, gleiches Intervall wie der Plan. Deshalb wird die
+// Planposition nicht mehr als items[0] angenommen, sondern am lookup_key
+// erkannt.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function seatLookupKey(interval: BillingInterval): string {
+  return `revetly_seat_${interval}`
+}
+
+export function isSeatLookupKey(key: string | null | undefined): boolean {
+  return !!key && /^revetly_seat_(monthly|yearly)$/.test(key)
+}
+
+/** Die Position des Plans. Fällt auf die erste Position zurück, die kein Zusatzplatz ist. */
+export function planItem(sub: Stripe.Subscription): Stripe.SubscriptionItem | null {
+  const items = sub.items?.data ?? []
+  return (
+    items.find((i) => planFromLookupKey(i.price?.lookup_key)) ??
+    items.find((i) => !isSeatLookupKey(i.price?.lookup_key)) ??
+    null
+  )
+}
+
+/** Die Position der Zusatzplätze, falls gebucht. */
+export function seatItem(sub: Stripe.Subscription): Stripe.SubscriptionItem | null {
+  return (sub.items?.data ?? []).find((i) => isSeatLookupKey(i.price?.lookup_key)) ?? null
+}
+
+/** Gebuchte Zusatzplätze im Abo. */
+export function subSeatQuantity(sub: Stripe.Subscription): number {
+  return seatItem(sub)?.quantity ?? 0
+}
+
 export function subLookupKey(sub: Stripe.Subscription): string | null {
-  return sub.items?.data?.[0]?.price?.lookup_key ?? null
+  return planItem(sub)?.price?.lookup_key ?? null
 }
 
 export function subPriceId(sub: Stripe.Subscription): string | null {
-  return sub.items?.data?.[0]?.price?.id ?? null
+  return planItem(sub)?.price?.id ?? null
 }
 
 export function subItemId(sub: Stripe.Subscription): string | null {
-  return sub.items?.data?.[0]?.id ?? null
+  return planItem(sub)?.id ?? null
 }
 
 // current_period_end lives on the subscription in older API versions and on the
@@ -47,7 +82,7 @@ export function subItemId(sub: Stripe.Subscription): string | null {
 export function subCurrentPeriodEnd(sub: Stripe.Subscription): number | null {
   const direct = (sub as unknown as { current_period_end?: number }).current_period_end
   if (typeof direct === "number") return direct
-  const item = sub.items?.data?.[0] as unknown as { current_period_end?: number } | undefined
+  const item = planItem(sub) as unknown as { current_period_end?: number } | null
   return typeof item?.current_period_end === "number" ? item.current_period_end : null
 }
 
@@ -102,13 +137,16 @@ export async function pendingChangeOf(
   const schedule = await stripe.subscriptionSchedules.retrieve(scheduleId)
   const currentLookup = subLookupKey(sub)
   for (const phase of schedule.phases) {
-    const priceRef = phase.items?.[0]?.price
-    const priceId = typeof priceRef === "string" ? priceRef : priceRef?.id
-    if (!priceId) continue
-    const price = await stripe.prices.retrieve(priceId)
-    if (price.lookup_key && price.lookup_key !== currentLookup) {
+    // Phasen können neben dem Plan auch Zusatzplätze enthalten; zählt nur der Plan.
+    for (const item of phase.items ?? []) {
+      const priceRef = item.price
+      const priceId = typeof priceRef === "string" ? priceRef : priceRef?.id
+      if (!priceId) continue
+      const price = await stripe.prices.retrieve(priceId)
       const mapped = planFromLookupKey(price.lookup_key)
-      if (mapped) return { plan: mapped.plan, interval: mapped.interval, at: phase.start_date }
+      if (!mapped) continue
+      if (price.lookup_key !== currentLookup) return { plan: mapped.plan, interval: mapped.interval, at: phase.start_date }
+      break
     }
   }
   return null
@@ -214,6 +252,40 @@ export async function ensurePrice(
     // If a deactivated price still holds the key, take it over instead of failing.
     transfer_lookup_key: true,
     metadata: { revetly_plan: plan, revetly_interval: interval },
+  })
+  return price.id
+}
+
+/**
+ * Preis für einen Zusatzplatz im gewünschten Intervall, bei Bedarf angelegt.
+ * Eigenes Produkt "Revetly Zusatznutzer" (metadata.revetly_plan = "seat").
+ */
+export async function ensureSeatPrice(stripe: Stripe, interval: BillingInterval): Promise<string> {
+  const lookupKey = seatLookupKey(interval)
+  const existing = await stripe.prices.list({ lookup_keys: [lookupKey], active: true, limit: 1 })
+  if (existing.data[0]) return existing.data[0].id
+
+  const products = await stripe.products.list({ active: true, limit: 100 })
+  let product = products.data.find((p) => p.metadata?.revetly_plan === "seat")
+  if (!product) {
+    product = await stripe.products.create({
+      name: "Revetly Zusatznutzer",
+      description: "Ein weiterer Platz im Team",
+      tax_code: SAAS_TAX_CODE,
+      metadata: { revetly_plan: "seat" },
+    })
+  }
+
+  const amount = interval === "yearly" ? EXTRA_SEAT.price_yearly : EXTRA_SEAT.price_monthly
+  const price = await stripe.prices.create({
+    product: product.id,
+    currency: "eur",
+    unit_amount: Math.round(amount * 100),
+    recurring: { interval: interval === "yearly" ? "year" : "month" },
+    tax_behavior: "exclusive",
+    lookup_key: lookupKey,
+    transfer_lookup_key: true,
+    metadata: { revetly_plan: "seat", revetly_interval: interval },
   })
   return price.id
 }

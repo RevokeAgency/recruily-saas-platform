@@ -7,6 +7,7 @@ import { sendRejectionMail } from "@/lib/email/rejection"
 import { requireFeature } from "@/lib/quota"
 import { consumeRateLimit } from "@/lib/rate-limit"
 import { createClient } from "@/lib/supabase/server"
+import { getWorkspace } from "@/lib/workspace"
 
 /**
  * Absage-Mail an einen einzelnen Bewerber. Ab Growth (rejection_email). Das
@@ -32,8 +33,9 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
-    const locked = await requireFeature(supabase, user.id, "rejection_email", "Absagen per E-Mail")
+    const locked = await requireFeature(supabase, ownerId, "rejection_email", "Absagen per E-Mail")
     if (locked) return locked
 
     const body = await req.json().catch(() => ({}))
@@ -58,7 +60,7 @@ export async function POST(req: Request) {
       .from("job_candidates")
       .select("id, job_id, candidate:candidates(full_name, email), job:jobs(title, company)")
       .eq("id", linkId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .single()
 
     const candidate = (link?.candidate ?? null) as { full_name?: string | null; email?: string | null } | null
@@ -80,7 +82,7 @@ export async function POST(req: Request) {
     if (!sent) return NextResponse.json({ error: "Versand fehlgeschlagen" }, { status: 502 })
 
     await logDecisions(supabase, [{
-      userId: user.id, actorId: user.id, jobId: (link.job_id as string) ?? null, jobCandidateId: linkId,
+      userId: ownerId, actorId: user.id, jobId: (link.job_id as string) ?? null, jobCandidateId: linkId,
       event: "absage_verschickt", detail: { weg: "einzeln", eigener_text: !!customText },
     }])
 

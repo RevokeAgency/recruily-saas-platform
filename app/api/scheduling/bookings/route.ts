@@ -4,6 +4,7 @@ import { createClient as createServer } from "@/lib/supabase/server"
 import { cancelBooking, refreshNextInterview, type BookingRow } from "@/lib/scheduling/booking"
 import { sendBookingCancellation } from "@/lib/email/scheduling"
 import { adminClient, loadMeetingTypes, loadProfile } from "@/lib/scheduling/store"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -65,6 +66,23 @@ export async function GET(req: NextRequest) {
   })
 }
 
+/**
+ * Eigene Termine, und im Team auch die der Kollegen zu Bewerbungen des
+ * Arbeitsbereichs. Abgesagt wird im Kalender der Person, die gebucht wurde.
+ */
+async function visibleBooking(
+  db: ReturnType<typeof adminClient>,
+  booking: BookingRow | null,
+  userId: string,
+): Promise<BookingRow | null> {
+  if (!booking || booking.user_id === userId) return booking
+  if (!booking.job_candidate_id) return null
+  const { ownerId } = await getWorkspace(await createServer(), userId)
+  const { data: link } = await db
+    .from("job_candidates").select("id").eq("id", booking.job_candidate_id).eq("user_id", ownerId).maybeSingle()
+  return link ? booking : null
+}
+
 /** Termin absagen. Der Bewerber bekommt eine Mail samt Absage fürs Kalenderprogramm. */
 export async function DELETE(req: NextRequest) {
   const user = await requireUser()
@@ -80,10 +98,9 @@ export async function DELETE(req: NextRequest) {
     .from("bookings")
     .select("*")
     .eq("id", id)
-    .eq("user_id", user.id)
     .maybeSingle()
 
-  const booking = data as BookingRow | null
+  const booking = await visibleBooking(db, data as BookingRow | null, user.id)
   if (!booking) return Response.json({ error: "Termin nicht gefunden." }, { status: 404 })
   if (booking.status === "cancelled") return Response.json({ ok: true })
 

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { consumeMatch, getMatchUsage } from '@/lib/quota'
 import { scoreJobCandidateLink } from '@/lib/scoring'
+import { getWorkspace } from "@/lib/workspace"
 
 export type MatchResult =
   | { allowed: true; remaining: number }
@@ -17,8 +18,9 @@ export async function checkAndIncrementMatch(): Promise<MatchResult> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
+  const { ownerId } = await getWorkspace(supabase, user.id)
 
-  const res = await consumeMatch(supabase, user.id)
+  const res = await consumeMatch(supabase, ownerId)
 
   if (!res.allowed) {
     return {
@@ -39,7 +41,8 @@ export async function getMatchStatus() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  return getMatchUsage(supabase, user.id)
+  const { ownerId } = await getWorkspace(supabase, user.id)
+  return getMatchUsage(supabase, ownerId)
 }
 
 // Score at most this many queued applications per backfill run, to bound
@@ -56,18 +59,19 @@ export async function rescoreQueuedMatches(): Promise<{ scored: number }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { scored: 0 }
+  const { ownerId } = await getWorkspace(supabase, user.id)
 
   const { data: queued } = await supabase
     .from('job_candidates')
     .select('id')
-    .eq('user_id', user.id)
+    .eq('user_id', ownerId)
     .eq('status', 'queued')
     .order('created_at', { ascending: true })
     .limit(BACKFILL_BATCH)
 
   let scored = 0
   for (const link of queued || []) {
-    const res = await consumeMatch(supabase, user.id)
+    const res = await consumeMatch(supabase, ownerId)
     if (!res.allowed) break
     await supabase.from('job_candidates').update({ status: 'analyzing' }).eq('id', link.id)
     await scoreJobCandidateLink(supabase, link.id)

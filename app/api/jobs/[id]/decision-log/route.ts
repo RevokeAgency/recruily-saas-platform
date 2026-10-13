@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server"
 
 import { createClient } from "@/lib/supabase/server"
+import { teamDb, teamDirectory } from "@/lib/team/store"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -61,12 +63,13 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     const { data: job } = await supabase
       .from("jobs")
       .select("id, title, company, created_at, is_active")
       .eq("id", jobId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .single()
     if (!job) return Response.json({ error: "Stelle nicht gefunden" }, { status: 404 })
 
@@ -74,7 +77,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       .from("job_candidates")
       .select("*, candidate:candidates(*)")
       .eq("job_id", jobId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .order("created_at", { ascending: true })
 
     // Ohne Migration 031 gibt es keine Ereignisse, der Export bleibt nutzbar.
@@ -82,7 +85,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       .from("decision_events")
       .select("created_at, actor_id, job_candidate_id, event, detail")
       .eq("job_id", jobId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .order("created_at", { ascending: true })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,7 +93,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const nameOf = new Map<string, string>(
       list.map((l) => [l.id as string, (one(l.candidate) as { full_name?: string } | null)?.full_name || ""]),
     )
-    const actor = (id: string | null) => (!id ? "System" : id === user.id ? user.email || "du" : `Nutzer ${id.slice(0, 8)}`)
+    // Im Team steht im Protokoll, welche Person gehandelt hat.
+    const db = teamDb()
+    const people = db ? await teamDirectory(db, ownerId) : new Map<string, string>()
+    const actor = (id: string | null) =>
+      !id ? "System" : people.get(id) ?? (id === user.id ? user.email || "du" : `Nutzer ${id.slice(0, 8)}`)
 
     const lines: string[] = []
     lines.push(row(["Entscheidungsprotokoll", `${job.title} · ${job.company}`]))

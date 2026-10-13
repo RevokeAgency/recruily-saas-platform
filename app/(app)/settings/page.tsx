@@ -23,7 +23,6 @@ import {
   User,
   Bell,
   Shield,
-  Users,
   Upload,
   Download,
   Trash2,
@@ -39,9 +38,11 @@ import { DELETE_CONFIRMATION } from "@/lib/account/constants"
 import { updateCompanyName } from "@/app/actions/onboarding"
 import { AiTrainingConsent } from "@/components/settings/ai-training-consent"
 import { FeedbackCard } from "@/components/settings/feedback-card"
+import { TeamCard } from "@/components/settings/team-card"
 
 export default function SettingsPage() {
   const { profile: account } = useProfile()
+  const isMember = account?.role === "member"
   const [profile, setProfile] = useState({
     name: "Max Mustermann",
     email: "max@revetly.de",
@@ -205,6 +206,7 @@ export default function SettingsPage() {
                   id="company"
                   value={profile.company}
                   onChange={(e) => setProfile({ ...profile, company: e.target.value })}
+                  disabled={isMember}
                 />
               </div>
               <div className="space-y-2">
@@ -214,7 +216,7 @@ export default function SettingsPage() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={logoUrl} alt="Logo" className="h-9 w-9 rounded-lg object-contain" />
                   )}
-                  <Button variant="outline" size="sm" disabled={logoUploading}
+                  <Button variant="outline" size="sm" disabled={logoUploading || isMember}
                     onClick={() => logoInputRef.current?.click()}>
                     {logoUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
                     {logoUrl ? "Ändern" : "Logo hochladen"}
@@ -224,8 +226,11 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
+            {isMember && (
+              <p className="text-sm text-muted-foreground">Unternehmen und Logo verwaltet der Inhaber des Teams.</p>
+            )}
             <div className="flex justify-end">
-              <Button onClick={handleSaveProfile} disabled={savingProfile} className="h-10 rounded-full px-5">
+              <Button onClick={handleSaveProfile} disabled={savingProfile || isMember} className="h-10 rounded-full px-5">
                 {savingProfile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Speichern
               </Button>
@@ -364,34 +369,10 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Team Section (Placeholder) */}
-        <Card className="reveal border border-border shadow-card">
-          <CardHeader>
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--muted)]">
-                <Users className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
-              </span>
-              <CardTitle className="text-lg">Team</CardTitle>
-              <Badge variant="secondary" className="ml-2 rounded-full">Bald verfügbar</Badge>
-            </div>
-            <CardDescription>
-              Lade Teammitglieder ein und verwalte Berechtigungen
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-              <p className="text-muted-foreground">
-                Team-Funktionen kommen in Version 2.0
-              </p>
-              <Button variant="outline" className="mt-4" disabled>
-                Teammitglied einladen
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <TeamCard />
 
-        <AiTrainingConsent />
+        {/* Die Einwilligung gilt für die Daten des Arbeitsbereichs, also entscheidet der Inhaber. */}
+        {!isMember && <AiTrainingConsent />}
 
         <FeedbackCard />
       </RevealGroup>

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { checkJobQuota } from "@/lib/quota"
+import { getWorkspace } from "@/lib/workspace"
 
 export async function GET() {
   try {
@@ -60,6 +61,7 @@ export async function POST(req: Request) {
     if (authError || !user) {
       return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 })
     }
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     // Stellenlimit. Die Regel steht in der Datenbank (job_quota, Migration
     // 028): Für die Probestelle zählt jede je angelegte Stelle, auch
@@ -67,7 +69,7 @@ export async function POST(req: Request) {
     // deaktivieren umgehen. Bezahlte Pläne begrenzen nur aktive Stellen,
     // Entwürfe bleiben dort frei.
     const willBeActive = body.isActive ?? true
-    const quota = await checkJobQuota(supabase, user.id, true)
+    const quota = await checkJobQuota(supabase, ownerId, true)
 
     if (quota) {
       const mustCheck = willBeActive || quota.plan === "free"
@@ -83,7 +85,7 @@ export async function POST(req: Request) {
       const { data: profile, error: profileError } = await supabase
         .from("user_profiles")
         .select("active_jobs_limit")
-        .eq("id", user.id)
+        .eq("id", ownerId)
         .single()
 
       if (profileError || !profile) {
@@ -96,7 +98,7 @@ export async function POST(req: Request) {
         .from("jobs")
         .select("id", { count: "exact", head: true })
         .eq("is_active", true)
-        .eq("user_id", user.id)
+        .eq("user_id", ownerId)
 
       if (countError) {
         console.error("[v0] Error counting active jobs:", countError)
@@ -126,7 +128,7 @@ export async function POST(req: Request) {
       languages: body.languages || [],
       ko_criteria: body.koCriteria || [],
       is_active: body.isActive ?? true,
-      user_id: user.id,
+      user_id: ownerId,
     }
 
     let { data: job, error } = await supabase

@@ -91,13 +91,20 @@ export function AppTopbar() {
         .select("first_name, last_name, matches_used, matches_limit, plan")
         .eq("id", authUser.id)
         .single()
+      // Im Team zeigen Kontingent und Plan den Arbeitsbereich des Inhabers.
+      const { data: ws } = await supabase.rpc("my_workspace")
+      const w = ws as { owner_id?: string; role?: string; active?: boolean } | null
+      const owner = w?.role === "member" && w.active !== false && w.owner_id
+        ? (await supabase.from("user_profiles").select("matches_used, matches_limit, plan").eq("id", w.owner_id).single()).data
+        : null
+      const quota = owner ?? profile
       setUser({
         first_name: profile?.first_name ?? authUser.user_metadata?.first_name ?? null,
         last_name: profile?.last_name ?? null,
         email: authUser.email || "",
-        matches_used: profile?.matches_used ?? 0,
-        matches_limit: profile?.matches_limit ?? 0,
-        plan: profile?.plan ?? "free",
+        matches_used: quota?.matches_used ?? 0,
+        matches_limit: quota?.matches_limit ?? 0,
+        plan: quota?.plan ?? "free",
       })
     }
     loadUser()

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { consumeMatch } from "@/lib/quota"
 import { runIMLRSMatch } from "@/lib/matching/imlrs"
+import { getWorkspace } from "@/lib/workspace"
 
 export async function POST(request: Request) {
   try {
@@ -21,8 +22,9 @@ export async function POST(request: Request) {
     if (authError || !user) {
       return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 })
     }
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
-    const quota = await consumeMatch(supabase, user.id)
+    const quota = await consumeMatch(supabase, ownerId)
     if (!quota.allowed) {
       return NextResponse.json(
         { error: "match_limit_reached", used: quota.used, limit: quota.limit },

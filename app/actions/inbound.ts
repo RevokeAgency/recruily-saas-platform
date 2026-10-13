@@ -6,6 +6,7 @@ import { loadInboundAttachment } from '@/lib/email/attachments'
 import { parseCvBuffer, isSupportedCvType, isUsableCandidate } from '@/lib/cv-parse'
 import { consumeMatch } from '@/lib/quota'
 import { scoreJobCandidateLink } from '@/lib/scoring'
+import { getWorkspace } from "@/lib/workspace"
 
 /**
  * Manually assign a stored inbound email to a job. Re-parses the CV from the
@@ -20,13 +21,14 @@ export async function assignInboundEmail(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Nicht authentifiziert' }
+  const { ownerId } = await getWorkspace(supabase, user.id)
 
   const { data: row } = await supabase
     .from('inbound_emails').select('id, raw').eq('id', emailId).single()
   if (!row) return { ok: false, error: 'E-Mail nicht gefunden' }
 
   const { data: job } = await supabase
-    .from('jobs').select('id').eq('id', jobId).eq('user_id', user.id).single()
+    .from('jobs').select('id').eq('id', jobId).eq('user_id', ownerId).single()
   if (!job) return { ok: false, error: 'Job nicht gefunden' }
 
   const email = parseEmailConnectPayload((row.raw as Record<string, unknown>) || {})
@@ -54,17 +56,17 @@ export async function assignInboundEmail(
       education: parsed.education,
       summary_ai: parsed.summary_ai,
       location: parsed.location,
-      user_id: user.id,
+      user_id: ownerId,
     })
     .select('id')
     .single()
   if (candErr || !candidate) return { ok: false, error: 'Kandidat konnte nicht angelegt werden' }
 
-  const quota = await consumeMatch(supabase, user.id)
+  const quota = await consumeMatch(supabase, ownerId)
   const status = quota.allowed ? 'analyzing' : 'queued'
   const { data: link } = await supabase
     .from('job_candidates')
-    .insert({ job_id: jobId, candidate_id: candidate.id, status, user_id: user.id })
+    .insert({ job_id: jobId, candidate_id: candidate.id, status, user_id: ownerId })
     .select('id')
     .single()
   if (link && quota.allowed) await scoreJobCandidateLink(supabase, link.id)

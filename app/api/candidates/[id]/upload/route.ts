@@ -5,6 +5,7 @@ import { extractDocumentText, isPdfFile } from "@/lib/cv-parse"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { screenCandidateDocuments } from "@/lib/document-guard/store"
 import { candidatePhotoUrl } from "@/lib/candidate-photo"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
@@ -27,9 +28,10 @@ export async function POST(
     const server = await createServer()
     const { data: { user } } = await server.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(server, user.id)
 
     const { data: candidate } = await server
-      .from("candidates").select("id").eq("id", id).eq("user_id", user.id).single()
+      .from("candidates").select("id").eq("id", id).eq("user_id", ownerId).single()
     if (!candidate) return Response.json({ error: "Kandidat nicht gefunden" }, { status: 404 })
 
     const form = await req.formData()
@@ -47,7 +49,7 @@ export async function POST(
 
     if (cvFile) {
       const buf = Buffer.from(await cvFile.arrayBuffer())
-      const path = `${user.id}/${id}/cv.${fileExt(cvFile.name, "pdf")}`
+      const path = `${ownerId}/${id}/cv.${fileExt(cvFile.name, "pdf")}`
       await admin.storage.from("resumes").upload(path, buf, {
         contentType: cvFile.type || "application/pdf", upsert: true,
       })
@@ -56,7 +58,7 @@ export async function POST(
       if (isPdfFile(cvFile.type, cvFile.name)) {
         const photo = await extractCandidatePhoto(buf)
         if (photo) {
-          const pp = `${user.id}/${id}.png`
+          const pp = `${ownerId}/${id}.png`
           const { error } = await admin.storage.from("candidate-photos").upload(pp, photo, {
             contentType: "image/png", upsert: true,
           })
@@ -67,7 +69,7 @@ export async function POST(
 
     if (coverFile) {
       const buf = Buffer.from(await coverFile.arrayBuffer())
-      const path = `${user.id}/${id}/cover.${fileExt(coverFile.name, "pdf")}`
+      const path = `${ownerId}/${id}/cover.${fileExt(coverFile.name, "pdf")}`
       await admin.storage.from("resumes").upload(path, buf, {
         contentType: coverFile.type || "application/pdf", upsert: true,
       })

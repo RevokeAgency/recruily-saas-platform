@@ -2,6 +2,7 @@ import { NextRequest } from "next/server"
 
 import { reviewDb } from "@/lib/review/store"
 import { createClient } from "@/lib/supabase/server"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -11,6 +12,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+  const { ownerId } = await getWorkspace(supabase, user.id)
 
   const db = reviewDb()
   if (!db) return Response.json({ error: "Gerade nicht verfügbar." }, { status: 503 })
@@ -19,7 +21,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .from("review_links")
     .update({ revoked_at: new Date().toISOString() })
     .eq("id", id)
-    .eq("user_id", user.id)
+    .eq("user_id", ownerId)
     .is("revoked_at", null)
     .select("id")
     .maybeSingle()

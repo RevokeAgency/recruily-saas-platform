@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { PlanId } from '@/lib/plans'
+import type { WorkspaceRole } from '@/lib/workspace'
 
 export interface Profile {
   id: string
@@ -23,7 +24,25 @@ export interface Profile {
   notify_applications_instant: boolean
   /** Tägliche Zusammenfassung neuer Bewerbungen (Migration 031, Standard aus). */
   notify_applications_daily: boolean
+  /** Inhaber oder Mitglied im Team (Migration 035). */
+  role: WorkspaceRole
+  /** Wem die Daten gehören. Beim Inhaber gleich id. */
+  workspace_owner_id: string
+  /** false: Mitglied über dem Platzlimit gesperrt. */
+  seat_active: boolean
+  /** Gebuchte Zusatzplätze des Arbeitsbereichs. */
+  extra_seats: number
 }
+
+// Plan, Kontingent, Abrechnung und Firma gehören dem Arbeitsbereich. Für
+// Mitglieder kommen sie aus dem Profil des Inhabers (lesbar über die
+// Policy user_profiles_select_workspace aus 035), Name und Login bleiben die
+// eigenen.
+const WORKSPACE_FIELDS = [
+  'plan', 'billing_interval', 'matches_used', 'matches_limit', 'active_jobs_limit',
+  'stripe_customer_id', 'subscription_status', 'billing_period_end', 'slug',
+  'company_name', 'logo_url', 'extra_seats',
+] as const
 
 export function useProfile() {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -37,12 +56,25 @@ export function useProfile() {
       return 
     }
     
-    const { data } = await supabase
+    const { data: own } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('id', user.id)
       .single()
-    
+
+    // Ohne Migration 035 fehlt die Funktion, dann ist jeder Inhaber.
+    const { data: ws } = await supabase.rpc('my_workspace')
+    const w = ws as { owner_id?: string; role?: WorkspaceRole; active?: boolean } | null
+    const role: WorkspaceRole = w?.role === 'member' ? 'member' : 'owner'
+    const seatActive = w?.active !== false
+    const ownerId = role === 'member' && seatActive && w?.owner_id ? w.owner_id : user.id
+
+    let data = own
+    if (own && ownerId !== user.id) {
+      const { data: owner } = await supabase.from('user_profiles').select('*').eq('id', ownerId).single()
+      if (owner) data = { ...own, ...Object.fromEntries(WORKSPACE_FIELDS.map((k) => [k, owner[k]])) }
+    }
+
     if (data) {
       setProfile({
         id: data.id,
@@ -63,6 +95,10 @@ export function useProfile() {
         logo_url: data.logo_url || null,
         notify_applications_instant: data.notify_applications_instant ?? true,
         notify_applications_daily: data.notify_applications_daily ?? false,
+        role,
+        workspace_owner_id: ownerId,
+        seat_active: seatActive,
+        extra_seats: data.extra_seats ?? 0,
       })
     }
     setLoading(false)

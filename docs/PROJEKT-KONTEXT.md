@@ -639,3 +639,38 @@ ausdrücklich kurz).
   gleichem Adressnamen an, schlägt die zweite am eindeutigen Index fehl und
   muss erneut gespeichert werden. In der Praxis nicht zu erwarten.
 - DNS: Wildcard-MX `*.revetly.ai` auf EmailConnect, siehe GO-LIVE.
+
+## Teamzugänge (Oktober 2026, Migration 035)
+
+Entscheidungen des Inhabers: Plätze 1 / 2 / 5 / unbegrenzt (Free, Starter,
+Growth, Pro und Enterprise), weitere Nutzer für 14,99 € pro Monat bei
+Starter und Growth (jährlich 149,90 €). Rollen Inhaber und Mitglied, alle
+sehen alle Stellen, jede Person hat ihren eigenen Kalender.
+
+- Modell: Das zahlende Konto ist der Arbeitsbereich, `user_id` bleibt der
+  Inhaber. Server-Code filtert nach `ownerId` aus `getWorkspace()`
+  (`lib/workspace.ts`), nie nach der angemeldeten Person. Pro Person bleiben:
+  Kalender, Terminarten, Buchungen, Ratenbegrenzung, Benachrichtigungen,
+  Akteur im Entscheidungsprotokoll (`actor_id`).
+- Nur der Inhaber: Abo (`/api/stripe/*`), Plätze, Team verwalten,
+  Firmenname und Logo, Einwilligung zum Lernen. `requireOwner()` antwortet
+  sonst mit 403 und `owner_only: true`.
+- Browser: `useProfile()` liefert Plan, Kontingent, Firma und Abrechnung des
+  Inhabers, Name und Login der Person, dazu `role`, `workspace_owner_id`,
+  `seat_active`.
+- Einladen: `/api/team/invites` (Mail mit Link, 14 Tage gültig, nur
+  Abdruck gespeichert), Annehmen auf `/team/einladung/[token]` mit Login
+  oder Registrierung. Die angemeldete Adresse muss die eingeladene sein.
+  Wer ein eigenes Abo, eigene Mitglieder oder schon ein anderes Team hat,
+  kann nicht beitreten (`acceptBlock` in `lib/team/model.ts`).
+- Plätze: belegt sind Inhaber, Mitglieder und offene Einladungen. Sinkt das
+  Limit, sperrt die Datenbank die zuletzt Beigetretenen, statt sie zu
+  löschen. Weniger Zusatzplätze buchen geht nur, wenn alle weiter Platz
+  haben.
+- Stripe: Zusatzplätze sind eine zweite Position im Abo
+  (`revetly_seat_monthly` / `_yearly`). Die Planposition wird am
+  `lookup_key` erkannt (`planItem` in `lib/stripe/server.ts`), nicht mehr
+  als erste Position. Planwechsel nehmen die Plätze mit, bei Pro fallen sie
+  weg.
+- Tests: `tests/team.test.ts` (Plätze, Einladungen, Arbeitsbereich,
+  Stripe-Positionen, Gleichlauf mit Migration 035 und 028).

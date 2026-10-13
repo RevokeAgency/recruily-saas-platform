@@ -4,6 +4,7 @@ import { RevealGroup } from "@/components/app/reveal-group"
 import { EmptyState } from "@/components/empty-state"
 import { InboxItem, type InboxEmail } from "@/components/inbox/inbox-item"
 import { Inbox } from "lucide-react"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -15,18 +16,19 @@ export default async function InboxPage() {
   let jobs: { id: string; title: string }[] = []
 
   if (user) {
+    const { ownerId } = await getWorkspace(supabase, user.id)
     const [emailsRes, jobsRes] = await Promise.all([
       supabase
         .from("inbound_emails")
         .select("id, from_address, to_address, subject, status, reason, created_at")
-        .eq("user_id", user.id)
+        .eq("user_id", ownerId)
         .in("status", ["unassigned", "no_cv", "error"])
         .order("created_at", { ascending: false })
         .limit(100),
       supabase
         .from("jobs")
         .select("id, title")
-        .eq("user_id", user.id)
+        .eq("user_id", ownerId)
         .eq("is_active", true)
         .order("created_at", { ascending: false }),
     ])

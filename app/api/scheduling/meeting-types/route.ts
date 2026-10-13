@@ -10,6 +10,7 @@ import {
 import type { LocationKind } from "@/lib/scheduling/types"
 import { hasFeature } from "@/lib/plans"
 import { getPlan } from "@/lib/quota"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -99,7 +100,9 @@ export async function GET() {
 
   // Selbstbuchung ab Growth. Die Terminarten bleiben sichtbar und
   // bearbeitbar, damit nach einem Upgrade alles schon eingerichtet ist.
-  if (!hasFeature(await getPlan(db, user.id), "self_booking")) {
+  // Der Plan gehört dem Arbeitsbereich, im Team also dem Inhaber.
+  const { ownerId } = await getWorkspace(await createServer(), user.id)
+  if (!hasFeature(await getPlan(db, ownerId), "self_booking")) {
     return Response.json({ meetingTypes, verfuegbar: false, grund: "plan" })
   }
 

@@ -1,4 +1,4 @@
-import { PLANS, type PlanId } from "@/lib/plans"
+import { PLANS, canBuyExtraSeats, type PlanId } from "@/lib/plans"
 import { planFromLookupKey } from "@/lib/stripe/server"
 
 /**
@@ -26,6 +26,8 @@ export interface SubscriptionState {
   lookupKey: string | null
   /** Unix seconds of current_period_end (null on deletion). */
   periodEnd: number | null
+  /** Gebuchte Zusatzplätze (Menge der Position revetly_seat_*). */
+  extraSeats?: number
 }
 
 const ACTIVE_STATUSES = new Set(["active", "trialing", "past_due"])
@@ -46,6 +48,8 @@ export function profileUpdateFor(state: SubscriptionState): Record<string, unkno
       : null,
     stripe_customer_id: state.customerId,
     stripe_subscription_id: isActive ? state.subscriptionId : null,
+    // Zusatzplätze nur bei Starter und Growth; bei Pro ist das Team unbegrenzt.
+    extra_seats: isActive && canBuyExtraSeats(plan) ? Math.max(0, Math.floor(state.extraSeats ?? 0)) : 0,
   }
 }
 
@@ -57,10 +61,19 @@ export async function syncSubscriptionToProfile(
   admin: SupabaseLike,
   state: SubscriptionState,
 ): Promise<string | null> {
+  const write = async (values: Record<string, unknown>) => {
+    const query = admin.from("user_profiles").update(values)
+    return state.userId
+      ? await query.eq("id", state.userId)
+      : await query.eq("stripe_customer_id", state.customerId)
+  }
   const update = profileUpdateFor(state)
-  const query = admin.from("user_profiles").update(update)
-  const { error } = state.userId
-    ? await query.eq("id", state.userId)
-    : await query.eq("stripe_customer_id", state.customerId)
+  let { error } = await write(update)
+  // Ohne Migration 035 fehlt extra_seats; der Plan muss trotzdem stimmen.
+  if (error && /extra_seats/.test(error.message)) {
+    const { extra_seats: _ignored, ...rest } = update
+    void _ignored
+    ;({ error } = await write(rest))
+  }
   return error ? error.message : null
 }

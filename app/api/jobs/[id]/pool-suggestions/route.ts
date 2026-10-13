@@ -3,6 +3,7 @@ import { NextRequest } from "next/server"
 import { hasFeature } from "@/lib/plans"
 import { poolMatchScore } from "@/lib/pool-match"
 import { getPlan } from "@/lib/quota"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -36,12 +37,13 @@ export async function GET(
     if (authError || !user) {
       return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
     }
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     const { data: job } = await supabase
       .from("jobs")
       .select("id, required_skills, nice_to_have_skills, years_experience, education, location")
       .eq("id", jobId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .single()
     if (!job) return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
 
@@ -60,7 +62,7 @@ export async function GET(
     const { data: pool, error: poolError } = await supabase
       .from("candidates")
       .select("id, full_name, job_title, photo_url, skills, years_of_experience, experience_level, education, location")
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .eq("talent_pool_consent", true)
       .limit(POOL_SCAN_LIMIT)
     if (poolError) {
@@ -89,7 +91,7 @@ export async function GET(
       .filter((c) => c.score >= SUGGEST_THRESHOLD)
       .sort((a, b) => b.score - a.score)
 
-    if (!hasFeature(await getPlan(supabase, user.id), "talent_pool")) {
+    if (!hasFeature(await getPlan(supabase, ownerId), "talent_pool")) {
       return Response.json({
         suggestions: [],
         strongCount,

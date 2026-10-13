@@ -1,5 +1,6 @@
 import { createClient as createServer } from "@/lib/supabase/server"
 import { NextRequest } from "next/server"
+import { getWorkspace, requireOwner } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -15,6 +16,8 @@ export async function POST(req: NextRequest) {
     const supabase = await createServer()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const ownerOnly = requireOwner(await getWorkspace(supabase, user.id), "Das Firmenlogo ändern")
+    if (ownerOnly) return ownerOnly
 
     const form = await req.formData()
     const file = form.get("file") as File | null

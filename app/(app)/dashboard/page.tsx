@@ -12,6 +12,7 @@ import { MatchQuality } from "@/components/dashboard/match-quality"
 import { RevealGroup } from "@/components/app/reveal-group"
 import { hasFeature } from "@/lib/plans"
 import { createClient } from "@/lib/supabase/server"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -67,6 +68,7 @@ export default async function DashboardPage() {
   }
 
   if (user) {
+    const { ownerId } = await getWorkspace(supabase, user.id)
     const now = new Date()
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
@@ -81,6 +83,7 @@ export default async function DashboardPage() {
       matchScoresRes,
       jobsListRes,
       profileRes,
+      ownProfileRes,
       reviewCountRes,
       queuedCountRes,
       unassignedCountRes,
@@ -90,41 +93,42 @@ export default async function DashboardPage() {
       invitedTimesRes,
     ] = await Promise.all([
       supabase.from("jobs").select("id", { count: "exact", head: true })
-        .eq("is_active", true).eq("user_id", user.id),
+        .eq("is_active", true).eq("user_id", ownerId),
       supabase.from("jobs").select("id", { count: "exact", head: true })
-        .eq("user_id", user.id).gte("created_at", weekAgo),
+        .eq("user_id", ownerId).gte("created_at", weekAgo),
       supabase.from("candidates").select("id", { count: "exact", head: true })
-        .eq("user_id", user.id),
+        .eq("user_id", ownerId),
       supabase.from("candidates").select("id", { count: "exact", head: true })
-        .eq("user_id", user.id).gte("created_at", monthStart),
+        .eq("user_id", ownerId).gte("created_at", monthStart),
       // match_usage applies the monthly reset virtually, so the numbers are
       // correct even at the start of a new month before the next match.
-      supabase.rpc("match_usage", { p_user: user.id }),
+      supabase.rpc("match_usage", { p_user: ownerId }),
       supabase.from("job_candidates").select("match_score")
-        .eq("user_id", user.id).not("match_score", "is", null),
+        .eq("user_id", ownerId).not("match_score", "is", null),
       supabase.from("jobs").select("id, title, company, is_active, created_at")
-        .eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
+        .eq("user_id", ownerId).order("created_at", { ascending: false }).limit(5),
       // Read-only signals for the greeting + Prioritäten card.
-      supabase.from("user_profiles").select("first_name, plan").eq("id", user.id).single(),
+      supabase.from("user_profiles").select("plan").eq("id", ownerId).single(),
+      supabase.from("user_profiles").select("first_name").eq("id", user.id).single(),
       supabase.from("job_candidates").select("id", { count: "exact", head: true })
-        .eq("user_id", user.id).in("status", ["new", "analyzing"]),
+        .eq("user_id", ownerId).in("status", ["new", "analyzing"]),
       supabase.from("job_candidates").select("id", { count: "exact", head: true })
-        .eq("user_id", user.id).eq("status", "queued"),
+        .eq("user_id", ownerId).eq("status", "queued"),
       supabase.from("inbound_emails").select("id", { count: "exact", head: true })
-        .eq("user_id", user.id).eq("status", "unassigned"),
-      supabase.from("job_candidates").select("status, source, created_at").eq("user_id", user.id),
+        .eq("user_id", ownerId).eq("status", "unassigned"),
+      supabase.from("job_candidates").select("status, source, created_at").eq("user_id", ownerId),
       // Newest applications (same events as the activity bell) + strongest matches.
       supabase.from("job_candidates")
         .select("id, source, match_score, created_at, job:jobs(id, title), candidate:candidates(full_name, photo_url)")
-        .eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
+        .eq("user_id", ownerId).order("created_at", { ascending: false }).limit(5),
       supabase.from("job_candidates")
         .select("id, match_score, job:jobs(id, title), candidate:candidates(full_name, photo_url)")
-        .eq("user_id", user.id).not("match_score", "is", null)
+        .eq("user_id", ownerId).not("match_score", "is", null)
         .order("match_score", { ascending: false }).limit(3),
       // Time-to-interview (migration 016) — fails harmlessly until applied.
       supabase.from("job_candidates")
         .select("created_at, invited_at")
-        .eq("user_id", user.id).not("invited_at", "is", null).limit(200),
+        .eq("user_id", ownerId).not("invited_at", "is", null).limit(200),
     ])
 
     const usage = (usageRes.data ?? null) as
@@ -152,7 +156,7 @@ export default async function DashboardPage() {
       scoredCount: scores.length,
     }
 
-    firstName = (profileRes.data?.first_name as string | null) ?? null
+    firstName = (ownProfileRes.data?.first_name as string | null) ?? null
     kpisLocked = !hasFeature(profileRes.data?.plan as string | null, "analytics_basic")
 
     // Pipeline distribution for the hero meter (status → bucket) + KPI inputs
@@ -232,7 +236,7 @@ export default async function DashboardPage() {
     const interviewPendingRes = await supabase
       .from("job_candidates")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .in("status", ["Eingeladen", "interviewed"])
       .is("interview_score", null)
     const interviewPending = interviewPendingRes.error ? 0 : interviewPendingRes.count ?? 0
@@ -317,7 +321,7 @@ export default async function DashboardPage() {
       const { data: links } = await supabase
         .from("job_candidates")
         .select("job_id, match_score")
-        .eq("user_id", user.id)
+        .eq("user_id", ownerId)
         .in("job_id", jobIds)
 
       linksByJob = (links || []).reduce((acc, link) => {

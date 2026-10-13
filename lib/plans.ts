@@ -24,6 +24,20 @@ export type QuotaPeriod = 'lifetime' | 'monthly'
 
 const FREE_MATCHES = 25
 
+// Teamzugänge (Migration 035). seats zählt den Inhaber mit, null heißt
+// unbegrenzt. Muss zu plan_seat_limit in scripts/035_team.sql passen,
+// tests/team.test.ts prüft das. Zusatzplätze gibt es bei Starter und Growth,
+// abgerechnet als eigene Position im selben Stripe-Abo.
+const SEATS = { free: 1, starter: 2, growth: 5 } as const
+
+export const EXTRA_SEAT = {
+  price_monthly: 14.99,
+  price_yearly: 149.9,
+  plans: ['starter', 'growth'] as const,
+} as const
+
+const SEAT_PRICE = `${EXTRA_SEAT.price_monthly.toFixed(2).replace('.', ',')} €`
+
 export const PLANS = {
   free: {
     label: 'Free',
@@ -33,6 +47,7 @@ export const PLANS = {
     matches_label: `${FREE_MATCHES} Matches einmalig`,
     active_jobs: 1,
     jobs_label: '1 Probestelle',
+    seats: SEATS.free as number | null,
     quotaPeriod: 'lifetime' as QuotaPeriod,
     basic_score: true,
     custom: false,
@@ -54,6 +69,7 @@ export const PLANS = {
     matches_label: '50 Matches pro Monat',
     active_jobs: 3,
     jobs_label: '3 aktive Stellen',
+    seats: SEATS.starter as number | null,
     quotaPeriod: 'monthly' as QuotaPeriod,
     basic_score: false,
     custom: false,
@@ -62,6 +78,7 @@ export const PLANS = {
       '50 Matches pro Monat',
       '3 aktive Stellen',
       'Alles aus Free',
+      `${SEATS.starter} Nutzer, weitere für ${SEAT_PRICE} im Monat`,
       'Alle neun Ebenen mit Begründung und Belegen',
       'K.O.-Kriterien pro Stelle',
       'Bewerbungen per E-Mail an die Stellenadresse',
@@ -77,6 +94,7 @@ export const PLANS = {
     matches_label: '300 Matches pro Monat',
     active_jobs: 10,
     jobs_label: '10 aktive Stellen',
+    seats: SEATS.growth as number | null,
     quotaPeriod: 'monthly' as QuotaPeriod,
     basic_score: false,
     custom: false,
@@ -85,6 +103,7 @@ export const PLANS = {
       '300 Matches pro Monat',
       '10 aktive Stellen',
       'Alles aus Starter',
+      `${SEATS.growth} Nutzer, weitere für ${SEAT_PRICE} im Monat`,
       'Absagen per E-Mail',
       'Terminbuchung mit Google- und Microsoft-Kalender',
       'Talent-Pool: neue Stellen gegen alte Bewerber',
@@ -103,6 +122,7 @@ export const PLANS = {
     matches_label: '1.000 Matches pro Monat',
     active_jobs: 999,
     jobs_label: 'Unbegrenzt viele Stellen',
+    seats: null as number | null,
     quotaPeriod: 'monthly' as QuotaPeriod,
     basic_score: false,
     custom: false,
@@ -111,6 +131,7 @@ export const PLANS = {
       '1.000 Matches pro Monat',
       'Unbegrenzt viele Stellen',
       'Alles aus Growth',
+      'Unbegrenzt viele Nutzer',
       'Gewichtung lernt aus deinen Einstellungen',
       'Vorrangiger Support',
     ],
@@ -123,6 +144,7 @@ export const PLANS = {
     matches_label: 'Match-Volumen nach Absprache',
     active_jobs: 999,
     jobs_label: 'Unbegrenzt viele Stellen',
+    seats: null as number | null,
     quotaPeriod: 'monthly' as QuotaPeriod,
     basic_score: false,
     custom: true,
@@ -206,4 +228,28 @@ export function hasFeature(plan: PlanId | string | null | undefined, feature: Fe
 /** Name des kleinsten Plans mit der Funktion, für Hinweise ("ab Growth"). */
 export function featureFrom(feature: Feature): string {
   return PLANS[FEATURE_MIN_PLAN[feature]].label
+}
+
+/** Plätze im Team inklusive Inhaber, mit Zusatzplätzen. null = unbegrenzt. */
+export function seatLimit(plan: PlanId | string | null | undefined, extraSeats = 0): number | null {
+  const p = PLANS[plan as PlanId] ?? PLANS.free
+  if (p.seats === null) return null
+  return p.seats + (canBuyExtraSeats(plan) ? Math.max(0, Math.floor(extraSeats)) : 0)
+}
+
+/** Können zu diesem Plan Zusatzplätze gebucht werden? */
+export function canBuyExtraSeats(plan: PlanId | string | null | undefined): boolean {
+  return (EXTRA_SEAT.plans as readonly string[]).includes(plan as string)
+}
+
+/** "2 Nutzer", "1 Nutzer", "Unbegrenzt viele Nutzer". */
+export function seatsLabel(plan: PlanId): string {
+  const seats = PLANS[plan].seats
+  return seats === null ? 'Unbegrenzt viele Nutzer' : `${seats} Nutzer`
+}
+
+/** Preis eines Zusatzplatzes für die Anzeige, z. B. "14,99 €". */
+export function extraSeatPriceLabel(interval: 'monthly' | 'yearly' = 'monthly'): string {
+  const v = interval === 'yearly' ? EXTRA_SEAT.price_yearly : EXTRA_SEAT.price_monthly
+  return `${v.toLocaleString('de-AT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
 }

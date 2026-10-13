@@ -6,16 +6,30 @@ import { adminClient, ensureDefaultMeetingType, loadMeetingTypes, loadProfile } 
 import { sendBookingInvite } from "@/lib/email/scheduling"
 import { requireFeature } from "@/lib/quota"
 import { absoluteUrl } from "@/lib/site"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
 /** Wie lange ein Buchungslink gilt. Danach muss der Recruiter neu einladen. */
 const INVITE_VALID_DAYS = 21
 
+/**
+ * Angemeldete Person und ihr Arbeitsbereich. Einladungen und Termine laufen
+ * über den Kalender der Person, die einlädt (user_id = Person); die Bewerbung
+ * gehört dem Arbeitsbereich (ownerId).
+ */
 async function requireUser() {
   const supabase = await createServer()
   const { data: { user } } = await supabase.auth.getUser()
-  return user
+  if (!user) return null
+  const { ownerId } = await getWorkspace(supabase, user.id)
+  return { id: user.id, ownerId }
+}
+
+/** Gehört die Bewerbung zum Arbeitsbereich? */
+async function linkInWorkspace(db: ReturnType<typeof adminClient>, jobCandidateId: string, ownerId: string) {
+  const { data } = await db.from("job_candidates").select("id").eq("id", jobCandidateId).eq("user_id", ownerId).maybeSingle()
+  return !!data
 }
 
 interface Body {
@@ -33,15 +47,18 @@ export async function GET(req: NextRequest) {
   if (!jobCandidateId) return Response.json({ invites: [], bookings: [] })
 
   const db = adminClient()
+  // Das ganze Team sieht Einladungen und Termine zur Bewerbung, auch die von
+  // Kolleginnen und Kollegen.
+  if (!(await linkInWorkspace(db, jobCandidateId, user.ownerId))) {
+    return Response.json({ invites: [], bookings: [] })
+  }
   const [invites, bookings] = await Promise.all([
     db.from("booking_invites")
       .select("id, status, expires_at, created_at, booking_id")
-      .eq("user_id", user.id)
       .eq("job_candidate_id", jobCandidateId)
       .order("created_at", { ascending: false }),
     db.from("bookings")
       .select("id, starts_at, ends_at, status, timezone, meeting_url, location_kind, location_value")
-      .eq("user_id", user.id)
       .eq("job_candidate_id", jobCandidateId)
       .order("starts_at", { ascending: false }),
   ])
@@ -60,7 +77,7 @@ export async function POST(req: NextRequest) {
 
   // Selbstbuchung ab Growth. Der feste Termin (/api/send-interview-invite)
   // bleibt in jedem Plan.
-  const locked = await requireFeature(adminClient(), user.id, "self_booking", "Terminbuchung durch den Bewerber")
+  const locked = await requireFeature(adminClient(), user.ownerId, "self_booking", "Terminbuchung durch den Bewerber")
   if (locked) return locked
 
   const body = (await req.json().catch(() => ({}))) as Body
@@ -85,7 +102,7 @@ export async function POST(req: NextRequest) {
   const job = link.jobs as unknown as { id: string; title: string; company: string | null; user_id: string }
   const candidate = link.candidates as unknown as { id: string; full_name: string | null; email: string | null }
 
-  if (job.user_id !== user.id) {
+  if (job.user_id !== user.ownerId) {
     return Response.json({ error: "Kein Zugriff auf diese Bewerbung." }, { status: 403 })
   }
   if (!candidate.email) {
@@ -111,11 +128,10 @@ export async function POST(req: NextRequest) {
   const expiresAt = new Date(Date.now() + INVITE_VALID_DAYS * 24 * 60 * 60 * 1000)
 
   // Ältere offene Einladungen zur selben Bewerbung zurückziehen, damit nicht
-  // zwei Links parallel gültig sind.
+  // zwei Links parallel gültig sind. Auch die anderer Teammitglieder.
   await db
     .from("booking_invites")
     .update({ status: "revoked" })
-    .eq("user_id", user.id)
     .eq("job_candidate_id", link.id)
     .eq("status", "open")
 

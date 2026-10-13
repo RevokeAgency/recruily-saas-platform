@@ -7,7 +7,8 @@ import { absoluteUrl } from "@/lib/site"
 // ─────────────────────────────────────────────────────────────────────────────
 // Benachrichtigungen an Recruiter über neue Bewerbungen.
 //
-// Zwei Wege, einstellbar pro Konto (Migration 031):
+// Zwei Wege, einstellbar pro Person (Migration 031), im Team an jede Person
+// mit eingeschalteter Einstellung (Migration 035):
 //   sofort:   eine Mail je Bewerbung, verschickt nach der Analyse, damit der
 //             Match gleich mit drinsteht (Standard an)
 //   täglich:  eine Zusammenfassung pro Morgen (Standard aus), Cron
@@ -53,6 +54,25 @@ async function preferences(db: SupabaseClient, userId: string): Promise<{ instan
     instant: data?.notify_applications_instant ?? true,
     daily: data?.notify_applications_daily ?? false,
   }
+}
+
+/**
+ * Wer im Team diese Benachrichtigung will: der Inhaber und aktive Mitglieder
+ * (Migration 035), jeweils nach den eigenen Einstellungen. Ohne 035 nur der
+ * Inhaber.
+ */
+async function recipients(db: SupabaseClient, ownerId: string, kind: "instant" | "daily"): Promise<string[]> {
+  const { data: members, error } = await db
+    .from("workspace_members").select("member_id").eq("owner_id", ownerId).eq("active", true)
+  const ids = [ownerId, ...(error ? [] : (members ?? []).map((m) => m.member_id as string))]
+  const out: string[] = []
+  for (const id of ids) {
+    const prefs = await preferences(db, id)
+    if (!prefs[kind]) continue
+    const to = await recruiterEmail(db, id)
+    if (to && !out.includes(to)) out.push(to)
+  }
+  return out
 }
 
 function one<T>(v: T | T[] | null | undefined): T | null {
@@ -114,10 +134,8 @@ export async function notifyNewApplication(linkId: string): Promise<boolean> {
       .single()
     if (!link?.user_id) return false
 
-    const prefs = await preferences(db, link.user_id)
-    if (!prefs.instant) return false
-    const to = await recruiterEmail(db, link.user_id)
-    if (!to) return false
+    const to = await recipients(db, link.user_id, "instant")
+    if (to.length === 0) return false
 
     const job = one(link.job as { title?: string } | { title?: string }[] | null)?.title || "deine Stelle"
     const name = one(link.candidate as { full_name?: string } | { full_name?: string }[] | null)?.full_name || "Eine Person"
@@ -144,14 +162,20 @@ export async function notifyNewApplication(linkId: string): Promise<boolean> {
       ${paragraph(note, { muted: true, small: true, last: true })}
     `
     const preheader = score != null ? `Match ${score} · ${band(score).label} · ${job}` : `${job} · ${source || "neue Bewerbung"}`
-    return await sendMail(
-      {
-        to,
-        subject: `Neue Bewerbung: ${name} für ${job}`,
-        html: shell("Revetly", body, { preheader, footerNote: SETTINGS_NOTE }),
-      },
-      "Neue Bewerbung",
+    // Eine Mail pro Person, damit niemand die Adressen der anderen sieht.
+    const results = await Promise.all(
+      to.map((address) =>
+        sendMail(
+          {
+            to: address,
+            subject: `Neue Bewerbung: ${name} für ${job}`,
+            html: shell("Revetly", body, { preheader, footerNote: SETTINGS_NOTE }),
+          },
+          "Neue Bewerbung",
+        ),
+      ),
     )
+    return results.some(Boolean)
   } catch (err) {
     console.error("[notify] Mail zu neuer Bewerbung übersprungen:", err)
     return false
@@ -196,10 +220,8 @@ export async function sendApplicationDigests(): Promise<{ accounts: number; sent
   let sent = 0
   for (const [userId, rows] of byUser) {
     try {
-      const prefs = await preferences(db, userId)
-      if (!prefs.daily) continue
-      const to = await recruiterEmail(db, userId)
-      if (!to) continue
+      const to = await recipients(db, userId, "daily")
+      if (to.length === 0) continue
 
       // Nach Stelle gruppiert, innerhalb der Stelle nach Match absteigend.
       const byJob = new Map<string, DigestRow[]>()
@@ -246,18 +268,20 @@ export async function sendApplicationDigests(): Promise<{ accounts: number; sent
         ${sections}
         ${button(absoluteUrl("/dashboard"), "Zum Dashboard")}
       `
-      const ok = await sendMail(
-        {
-          to,
-          subject: count === 1 ? "1 neue Bewerbung seit gestern" : `${count} neue Bewerbungen seit gestern`,
-          html: shell("Revetly", body, {
-            preheader: best != null ? `Bester Match: ${best} · ${jobs === 1 ? "1 Stelle" : `${jobs} Stellen`}` : `${jobs === 1 ? "1 Stelle" : `${jobs} Stellen`}`,
-            footerNote: SETTINGS_NOTE,
-          }),
-        },
-        "Tägliche Zusammenfassung",
-      )
-      if (ok) sent++
+      for (const address of to) {
+        const ok = await sendMail(
+          {
+            to: address,
+            subject: count === 1 ? "1 neue Bewerbung seit gestern" : `${count} neue Bewerbungen seit gestern`,
+            html: shell("Revetly", body, {
+              preheader: best != null ? `Bester Match: ${best} · ${jobs === 1 ? "1 Stelle" : `${jobs} Stellen`}` : `${jobs === 1 ? "1 Stelle" : `${jobs} Stellen`}`,
+              footerNote: SETTINGS_NOTE,
+            }),
+          },
+          "Tägliche Zusammenfassung",
+        )
+        if (ok) sent++
+      }
     } catch (err) {
       console.error("[digest] Konto übersprungen:", err)
     }

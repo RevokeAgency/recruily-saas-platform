@@ -3,6 +3,7 @@ import { NextRequest } from "next/server"
 import { rankPool, type PoolRankCandidate } from "@/lib/matching/pool-rank"
 import { isMissingScreeningColumn, screeningOf } from "@/lib/matching/screening"
 import { requireFeature } from "@/lib/quota"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
@@ -30,15 +31,16 @@ export async function POST(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
-    const locked = await requireFeature(supabase, user.id, "pool_rank", "Den Bestenvergleich")
+    const locked = await requireFeature(supabase, ownerId, "pool_rank", "Den Bestenvergleich")
     if (locked) return locked
 
     const { data: job } = await supabase
       .from("jobs")
       .select("id, title, company, required_skills, description")
       .eq("id", jobId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .single()
     if (!job) return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
 
@@ -54,7 +56,7 @@ export async function POST(
             "ai_summary, knockout, match_detail, candidate:candidates(full_name, dossier)",
         )
         .eq("job_id", jobId)
-        .eq("user_id", user.id)
+        .eq("user_id", ownerId)
         .not("match_score", "is", null)
         .neq("status", "Abgesagt")
         .order("match_score", { ascending: false })
@@ -111,7 +113,7 @@ export async function POST(
       .from("job_candidates")
       .update({ pool_rank: null, pool_rank_reason: null, pool_ranked_at: null })
       .eq("job_id", jobId)
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
     if (resetErr && /pool_rank/i.test(resetErr.message || "")) {
       return Response.json(
         { error: "Bestenvergleich benötigt Migration 022_feedback_loop.sql — bitte in Supabase ausführen." },
@@ -123,7 +125,7 @@ export async function POST(
         .from("job_candidates")
         .update({ pool_rank: r.rank, pool_rank_reason: r.begruendung, pool_ranked_at: rankedAt })
         .eq("id", r.linkId)
-        .eq("user_id", user.id)
+        .eq("user_id", ownerId)
     }
 
     const topLink = result.rankings.find((r) => r.rank === 1)

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getWorkspace } from "@/lib/workspace"
 
 // Recent activity for the sidebar bell: the newest candidate/application
 // events for the signed-in user (who applied, to which job, how, and the
@@ -8,11 +9,12 @@ export async function GET() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ activities: [] }, { status: 401 })
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     const { data, error } = await supabase
       .from("job_candidates")
       .select("id, status, match_score, source, created_at, candidate:candidates(full_name), job:jobs(title)")
-      .eq("user_id", user.id)
+      .eq("user_id", ownerId)
       .order("created_at", { ascending: false })
       .limit(15)
 

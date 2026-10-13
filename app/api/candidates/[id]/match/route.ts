@@ -3,6 +3,7 @@ import { createClient as createAdmin } from "@supabase/supabase-js"
 import { after } from "next/server"
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
@@ -25,6 +26,7 @@ export async function POST(
     if (authError || !user) {
       return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
     }
+    const { ownerId } = await getWorkspace(supabase, user.id)
 
     // Validate candidate + job + no duplicate link BEFORE spending a match, so
     // a failed/duplicate request never consumes quota.
@@ -57,7 +59,7 @@ export async function POST(
     }
 
     // Atomically spend one match (row-locked, monthly-reset aware).
-    const quota = await consumeMatch(supabase, user.id)
+    const quota = await consumeMatch(supabase, ownerId)
     if (!quota.allowed) {
       return Response.json(
         { error: "match_limit_reached", used: quota.used, limit: quota.limit },
@@ -72,7 +74,7 @@ export async function POST(
         job_id: jobId,
         candidate_id: candidateId,
         status: "analyzing",
-        user_id: user.id,
+        user_id: ownerId,
       })
       .select("id")
       .single()

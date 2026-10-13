@@ -7,7 +7,7 @@ import { Check, Minus } from "lucide-react"
 import { useReveal } from "@/lib/hooks/useReveal"
 import { RvButton } from "./rv-button"
 import { RvModal, RvModalTrigger, RvModalContent } from "./rv-modal"
-import { PLANS } from "@/lib/plans"
+import { EXTRA_SEAT, PLANS } from "@/lib/plans"
 
 // Preise, Kontingente und Stellen kommen aus lib/plans.ts, derselben Quelle
 // wie die Abrechnung. Jede Funktion steht nur beim kleinsten Plan, der sie
@@ -33,6 +33,8 @@ const euro = (n: number) => `€${n.toLocaleString("de-DE")}`
 const PER = { m: "/Monat", y: "/Jahr" }
 const SAVE = "2 Monate gratis"
 const fmt = (n: number) => n.toLocaleString("de-DE")
+const seats = (n: number | null) => (n === null ? "Unbegrenzt" : fmt(n))
+const SEAT_PRICE = `€${EXTRA_SEAT.price_monthly.toLocaleString("de-DE", { minimumFractionDigits: 2 })}`
 
 const TIERS: Tier[] = [
   {
@@ -62,6 +64,7 @@ const TIERS: Tier[] = [
     features: [
       `${PLANS.starter.active_jobs} aktive Stellen`,
       `${fmt(PLANS.starter.matches)} Matches pro Monat`,
+      `${PLANS.starter.seats} Nutzer, weitere für ${SEAT_PRICE} im Monat`,
       "Alle neun Ebenen mit Begründung und Belegen",
       "K.O.-Kriterien pro Stelle",
       "Bewerbungen per E-Mail an die Stellenadresse",
@@ -80,6 +83,7 @@ const TIERS: Tier[] = [
     features: [
       `${PLANS.growth.active_jobs} aktive Stellen`,
       `${fmt(PLANS.growth.matches)} Matches pro Monat`,
+      `${PLANS.growth.seats} Nutzer, weitere für ${SEAT_PRICE} im Monat`,
       "Absagen per E-Mail",
       "Terminbuchung mit Google- und Microsoft-Kalender",
       "Talent-Pool: neue Stellen gegen alte Bewerber",
@@ -103,6 +107,7 @@ const TIERS: Tier[] = [
     features: [
       "Unbegrenzt viele Stellen",
       `${fmt(PLANS.pro.matches)} Matches pro Monat`,
+      "Unbegrenzt viele Nutzer",
       "Gewichtung lernt aus deinen Einstellungen",
       "Vorrangiger Support",
     ],
@@ -176,9 +181,24 @@ const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values:
     ],
   },
   {
-    // Keine Zeile "Teammitglieder": Teamzugänge gibt es noch nicht, und was
-    // die Tabelle verspricht, muss das Produkt können. Kommt zurück, sobald
-    // mehrere Nutzer pro Konto möglich sind.
+    // Plätze aus PLANS (seats), dieselbe Zahl wie in der Datenbank
+    // (plan_seat_limit, Migration 035).
+    group: "Team",
+    rows: [
+      {
+        label: "Nutzer inklusive",
+        values: [
+          seats(PLANS.free.seats),
+          seats(PLANS.starter.seats),
+          seats(PLANS.growth.seats),
+          seats(PLANS.pro.seats),
+          seats(PLANS.enterprise.seats),
+        ],
+      },
+      { label: "Weitere Nutzer", values: [false, `${SEAT_PRICE} / Monat`, `${SEAT_PRICE} / Monat`, "inklusive", "inklusive"] },
+    ],
+  },
+  {
     group: "Daten & Support",
     rows: [
       { label: "DSGVO-Export", values: [true, true, true, true, true] },

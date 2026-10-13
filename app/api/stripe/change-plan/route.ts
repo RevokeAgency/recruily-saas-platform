@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { createClient as createServer } from "@/lib/supabase/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
+import { canBuyExtraSeats } from "@/lib/plans"
 import {
   getStripe,
   ensurePrice,
@@ -10,11 +11,14 @@ import {
   subPriceId,
   subItemId,
   subCurrentPeriodEnd,
+  ensureSeatPrice,
+  seatItem,
   effectiveRank,
   PAID_PLANS,
   type PaidPlanId,
   type BillingInterval,
 } from "@/lib/stripe/server"
+import { getWorkspace, requireOwner } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -33,6 +37,8 @@ export async function POST(req: NextRequest) {
     const server = await createServer()
     const { data: { user } } = await server.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const ownerOnly = requireOwner(await getWorkspace(server, user.id), "Den Plan wechseln")
+    if (ownerOnly) return ownerOnly
 
     const body = await req.json().catch(() => ({}))
     const plan = body.plan as PaidPlanId
@@ -65,12 +71,24 @@ export async function POST(req: NextRequest) {
     const newPriceId = await ensurePrice(stripe, plan, interval)
     const scheduleId = typeof sub.schedule === "string" ? sub.schedule : sub.schedule?.id
 
+    // Zusatzplätze gehen mit: gleiches Intervall wie der neue Plan, bei Pro
+    // entfallen sie (dort ist das Team unbegrenzt).
+    const seats = seatItem(sub)
+    const seatQty = seats?.quantity ?? 0
+    const keepSeats = seatQty > 0 && canBuyExtraSeats(plan)
+    const newSeatPriceId = keepSeats ? await ensureSeatPrice(stripe, interval) : null
+
     if (targetRank > currentRank) {
       // Upgrade → immediate, invoice the prorated difference now.
       if (scheduleId) await stripe.subscriptionSchedules.release(scheduleId)
       const itemId = subItemId(sub)
+      const seatChange = seats
+        ? keepSeats
+          ? [{ id: seats.id, price: newSeatPriceId!, quantity: seatQty }]
+          : [{ id: seats.id, deleted: true }]
+        : []
       await stripe.subscriptions.update(sub.id, {
-        items: [{ id: itemId!, price: newPriceId }],
+        items: [{ id: itemId!, price: newPriceId }, ...seatChange],
         proration_behavior: "always_invoice",
         payment_behavior: "error_if_incomplete",
       })
@@ -86,12 +104,15 @@ export async function POST(req: NextRequest) {
     const schedule = await stripe.subscriptionSchedules.retrieve(schedId)
     const cur = schedule.phases[0]
     const currentPriceId = subPriceId(sub)!
+    // Plan immer an erster Stelle, die Zusatzplätze danach (pendingChangeOf).
+    const currentSeats = seats ? [{ price: seats.price.id, quantity: seatQty }] : []
+    const nextSeats = keepSeats ? [{ price: newSeatPriceId!, quantity: seatQty }] : []
     await stripe.subscriptionSchedules.update(schedId, {
       end_behavior: "release",
       proration_behavior: "none",
       phases: [
-        { items: [{ price: currentPriceId, quantity: 1 }], start_date: cur.start_date, end_date: cur.end_date },
-        { items: [{ price: newPriceId, quantity: 1 }] },
+        { items: [{ price: currentPriceId, quantity: 1 }, ...currentSeats], start_date: cur.start_date, end_date: cur.end_date },
+        { items: [{ price: newPriceId, quantity: 1 }, ...nextSeats] },
       ],
     })
     return Response.json({

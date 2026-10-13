@@ -9,6 +9,7 @@ import { REVIEW_VALID_DAYS, linkState, parseCreateReview, verdictCounts } from "
 import { createReviewToken, reviewDb, senderOf } from "@/lib/review/store"
 import { absoluteUrl } from "@/lib/site"
 import { createClient } from "@/lib/supabase/server"
+import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+  const { ownerId } = await getWorkspace(supabase, user.id)
 
   const jobId = req.nextUrl.searchParams.get("jobId")
   if (!jobId) return Response.json({ error: "Keine Stelle angegeben." }, { status: 400 })
@@ -29,7 +31,7 @@ export async function GET(req: NextRequest) {
     .from("review_links")
     .select("id, reviewer_name, reviewer_email, note, expires_at, revoked_at, first_opened_at, completed_at, created_at, items:review_link_items(id, job_candidate_id, verdict, comment, decided_at, position)")
     .eq("job_id", jobId)
-    .eq("user_id", user.id)
+    .eq("user_id", ownerId)
     .order("created_at", { ascending: false })
     .limit(50)
 
@@ -69,8 +71,9 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+  const { ownerId } = await getWorkspace(supabase, user.id)
 
-  const locked = await requireFeature(supabase, user.id, "review_link", "Freigabe-Links für Fachabteilungen")
+  const locked = await requireFeature(supabase, ownerId, "review_link", "Freigabe-Links für Fachabteilungen")
   if (locked) return locked
 
   const parsed = parseCreateReview(await req.json().catch(() => ({})))
@@ -87,14 +90,14 @@ export async function POST(req: NextRequest) {
 
   // Stelle und Bewerbungen müssen dem Konto gehören und zusammenpassen.
   const { data: job } = await supabase
-    .from("jobs").select("id, title, company").eq("id", input.jobId).eq("user_id", user.id).maybeSingle()
+    .from("jobs").select("id, title, company").eq("id", input.jobId).eq("user_id", ownerId).maybeSingle()
   if (!job) return Response.json({ error: "Stelle nicht gefunden." }, { status: 404 })
 
   const { data: links } = await supabase
     .from("job_candidates")
     .select("id")
     .eq("job_id", input.jobId)
-    .eq("user_id", user.id)
+    .eq("user_id", ownerId)
     .in("id", input.jobCandidateIds)
   const valid = new Set((links ?? []).map((l) => l.id as string))
   const ids = input.jobCandidateIds.filter((id) => valid.has(id))
@@ -108,7 +111,7 @@ export async function POST(req: NextRequest) {
   const { data: link, error: linkErr } = await db
     .from("review_links")
     .insert({
-      user_id: user.id,
+      user_id: ownerId,
       job_id: input.jobId,
       token_hash: hash,
       reviewer_name: input.reviewerName,
@@ -128,7 +131,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { error: itemsErr } = await db.from("review_link_items").insert(
-    ids.map((id, position) => ({ link_id: link.id, user_id: user.id, job_candidate_id: id, position })),
+    ids.map((id, position) => ({ link_id: link.id, user_id: ownerId, job_candidate_id: id, position })),
   )
   if (itemsErr) {
     await db.from("review_links").delete().eq("id", link.id)
@@ -140,7 +143,7 @@ export async function POST(req: NextRequest) {
 
   let mailed = false
   if (input.reviewerEmail && mailProvider()) {
-    const sender = await senderOf(db, user.id)
+    const sender = await senderOf(db, ownerId)
     mailed = await sendReviewRequest({
       to: input.reviewerEmail,
       reviewerName: input.reviewerName,
@@ -156,7 +159,7 @@ export async function POST(req: NextRequest) {
   }
 
   await logDecisions(supabase, ids.map((id) => ({
-    userId: user.id, actorId: user.id, jobId: input.jobId, jobCandidateId: id,
+    userId: ownerId, actorId: user.id, jobId: input.jobId, jobCandidateId: id,
     event: "an_fachbereich_gesendet", detail: { weg: input.reviewerEmail ? "mail" : "link" },
   })))
 

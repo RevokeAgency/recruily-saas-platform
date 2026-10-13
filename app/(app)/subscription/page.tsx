@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
-import { Loader2, ExternalLink, Clock } from "lucide-react"
+import { Loader2, ExternalLink, Clock, Users } from "lucide-react"
 import { startCheckout, openBillingPortal, consumeCheckoutIntent } from "@/lib/stripe/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -121,9 +121,10 @@ export default function SubscriptionPage() {
     // Self-heal: re-derive the plan from live Stripe state and refresh the
     // counter, so the account can never drift from what's active at Stripe
     // (e.g. after a webhook was temporarily unreachable).
+    // Mitglieder bekommen hier 403, das ist kein Fehler: Das Abo gehört dem Inhaber.
     fetch("/api/stripe/sync", { method: "POST" })
-      .then((r) => r.json())
-      .then((j) => { setPending(j?.pending ?? null); refreshProfile() })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (j) { setPending(j.pending ?? null); refreshProfile() } })
       .catch(() => {})
 
     const params = new URLSearchParams(window.location.search)
@@ -187,6 +188,15 @@ export default function SubscriptionPage() {
           title="Plan & Nutzung"
           subtitle="Verwalte dein Abo, behalte dein Kontingent im Blick und wechsle jederzeit den Plan."
         />
+
+        {profile?.role === "member" && (
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-[var(--muted)] px-5 py-3.5 text-sm">
+            <Users className="h-4 w-4 flex-none text-muted-foreground" strokeWidth={2} />
+            <span className="text-foreground">
+              Du nutzt den Plan deines Teams. Abo, Zahlung und Plätze verwaltet der Inhaber des Kontos.
+            </span>
+          </div>
+        )}
 
         {pending && (
           <div className="flex items-center gap-3 rounded-2xl border border-[rgba(34,193,238,.3)] bg-[rgba(34,193,238,.08)] px-5 py-3.5 text-sm">

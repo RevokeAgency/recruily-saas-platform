@@ -7,6 +7,7 @@ import {
   cancelExtraSubscriptions,
   subLookupKey,
   subCurrentPeriodEnd,
+  subSeatQuantity,
 } from "@/lib/stripe/server"
 import { syncSubscriptionToProfile, type SubscriptionState } from "@/lib/stripe/sync"
 import { captureAndNotify } from "@/lib/monitoring/capture"
@@ -53,6 +54,7 @@ async function syncCustomer(
         status: best.status,
         lookupKey: subLookupKey(best),
         periodEnd: subCurrentPeriodEnd(best),
+        extraSeats: subSeatQuantity(best),
       }
     : { userId, customerId, subscriptionId: null, status: "canceled", lookupKey: null, periodEnd: null }
 

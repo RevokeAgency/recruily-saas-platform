@@ -8,8 +8,10 @@ import {
   pendingChangeOf,
   subLookupKey,
   subCurrentPeriodEnd,
+  subSeatQuantity,
 } from "@/lib/stripe/server"
 import { syncSubscriptionToProfile, profileUpdateFor, type SubscriptionState } from "@/lib/stripe/sync"
+import { getWorkspace, requireOwner } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
@@ -24,7 +26,7 @@ function admin() {
 async function resolve(stripe: Stripe, customerId: string, userId: string): Promise<SubscriptionState> {
   const best = await bestActiveSubscription(stripe, customerId)
   return best
-    ? { userId, customerId, subscriptionId: best.id, status: best.status, lookupKey: subLookupKey(best), periodEnd: subCurrentPeriodEnd(best) }
+    ? { userId, customerId, subscriptionId: best.id, status: best.status, lookupKey: subLookupKey(best), periodEnd: subCurrentPeriodEnd(best), extraSeats: subSeatQuantity(best) }
     : { userId, customerId, subscriptionId: null, status: "canceled", lookupKey: null, periodEnd: null }
 }
 
@@ -39,6 +41,8 @@ export async function POST() {
     const server = await createServer()
     const { data: { user } } = await server.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const ownerOnly = requireOwner(await getWorkspace(server, user.id), "Das Abo abgleichen")
+    if (ownerOnly) return ownerOnly
 
     const db = admin()
     const { data: profile } = await db
@@ -49,7 +53,7 @@ export async function POST() {
     const stripe = getStripe()
     const best = await bestActiveSubscription(stripe, customerId)
     const state: SubscriptionState = best
-      ? { userId: user.id, customerId, subscriptionId: best.id, status: best.status, lookupKey: subLookupKey(best), periodEnd: subCurrentPeriodEnd(best) }
+      ? { userId: user.id, customerId, subscriptionId: best.id, status: best.status, lookupKey: subLookupKey(best), periodEnd: subCurrentPeriodEnd(best), extraSeats: subSeatQuantity(best) }
       : { userId: user.id, customerId, subscriptionId: null, status: "canceled", lookupKey: null, periodEnd: null }
 
     const error = await syncSubscriptionToProfile(db, state)
@@ -76,6 +80,8 @@ export async function GET(_req: NextRequest) {
     const server = await createServer()
     const { data: { user } } = await server.auth.getUser()
     if (!user) return Response.json({ error: "Nicht authentifiziert" }, { status: 401 })
+    const ownerOnly = requireOwner(await getWorkspace(server, user.id), "Das Abo abgleichen")
+    if (ownerOnly) return ownerOnly
 
     const db = admin()
     const { data: profile } = await db

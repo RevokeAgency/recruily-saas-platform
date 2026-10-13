@@ -143,6 +143,14 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
 Stand 05.10.2026: alle Migrationen bis einschließlich `034` sind in
 Supabase eingespielt. Reihenfolge egal, alle additiv:
 
+- [ ] `scripts/035_team.sql` *(neu 13.10.2026, noch einspielen)*: **Teamzugänge.**
+      Mitglieder, Einladungen, Platzlimits (1 / 2 / 5 / unbegrenzt) und
+      Zusatzplätze. Stellt die Zugriffsregeln von Stellen, Kandidaten,
+      Protokoll und Freigabe-Links auf den Arbeitsbereich um; für bestehende
+      Konten ändert sich nichts. Ohne diese Migration läuft die App wie
+      bisher, die Team-Karte zeigt „wird gerade eingerichtet“. Lokal
+      getestet, Details in `scripts/035_team.md`.
+
 - [x] `scripts/015_rls_hardening.sql` *(eingespielt 05.10.2026)* — RLS owner-scoped (Sicherheits-Pflicht)
 - [x] `scripts/016_invited_at.sql` *(eingespielt 05.10.2026)* — Time-to-Interview-Messung
 - [x] `scripts/017_stripe_billing.sql` *(eingespielt 05.10.2026)* — Stripe-Billing-Spalten
