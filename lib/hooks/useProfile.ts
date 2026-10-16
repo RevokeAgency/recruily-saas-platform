@@ -32,6 +32,8 @@ export interface Profile {
   seat_active: boolean
   /** Gebuchte Zusatzplätze des Arbeitsbereichs. */
   extra_seats: number
+  /** Mitglieder im Team ohne Inhaber (Migration 036). 0 = kein Team. */
+  team_members: number
 }
 
 // Plan, Kontingent, Abrechnung und Firma gehören dem Arbeitsbereich. Für
@@ -64,7 +66,7 @@ export function useProfile() {
 
     // Ohne Migration 035 fehlt die Funktion, dann ist jeder Inhaber.
     const { data: ws } = await supabase.rpc('my_workspace')
-    const w = ws as { owner_id?: string; role?: WorkspaceRole; active?: boolean } | null
+    const w = ws as { owner_id?: string; role?: WorkspaceRole; active?: boolean; members?: number } | null
     const role: WorkspaceRole = w?.role === 'member' ? 'member' : 'owner'
     const seatActive = w?.active !== false
     const ownerId = role === 'member' && seatActive && w?.owner_id ? w.owner_id : user.id
@@ -99,6 +101,7 @@ export function useProfile() {
         workspace_owner_id: ownerId,
         seat_active: seatActive,
         extra_seats: data.extra_seats ?? 0,
+        team_members: Number(w?.members ?? 0),
       })
     }
     setLoading(false)

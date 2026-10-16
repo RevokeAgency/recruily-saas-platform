@@ -23,6 +23,7 @@ import type { JobFormData } from "@/app/(app)/jobs/new/page"
 import { PaywallModal } from "@/components/ui/paywall-modal"
 import { useProfile } from "@/lib/hooks/useProfile"
 import { JobChannelsModal } from "@/components/jobs/job-channels-modal"
+import { VisibilityChoice } from "@/components/jobs/visibility-choice"
 
 interface Step3Props {
   formData: JobFormData
@@ -39,6 +40,8 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
   const [channelsJobSlug, setChannelsJobSlug] = useState<string | undefined>(undefined)
   const [channelsAlias, setChannelsAlias] = useState<string | undefined>(undefined)
   const { profile } = useProfile()
+  // Die Auswahl gibt es nur im Team. Allein gilt "privat", das ändert nichts.
+  const inTeam = !!profile && (profile.role === "member" || profile.team_members > 0)
 
   const handleSubmit = async (asDraft: boolean = false) => {
     setIsSubmitting(true)
@@ -240,6 +243,18 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
           )}
         </CardContent>
       </Card>
+
+      {inTeam && (
+        <Card className="border border-border">
+          <CardContent className="space-y-3 pt-6">
+            <div className="space-y-1">
+              <p className="text-base font-medium text-foreground">Wer sieht die Stelle?</p>
+              <p className="text-sm text-muted-foreground">Das kannst du später beim Bearbeiten der Stelle ändern.</p>
+            </div>
+            <VisibilityChoice value={formData.visibility} onChange={(visibility) => updateFormData({ visibility })} />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Activation Toggle */}
       <Card className="border border-border">

@@ -23,12 +23,15 @@ async function requireUser() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
   const { ownerId } = await getWorkspace(supabase, user.id)
-  return { id: user.id, ownerId }
+  return { id: user.id, ownerId, supabase }
 }
 
-/** Gehört die Bewerbung zum Arbeitsbereich? */
-async function linkInWorkspace(db: ReturnType<typeof adminClient>, jobCandidateId: string, ownerId: string) {
-  const { data } = await db.from("job_candidates").select("id").eq("id", jobCandidateId).eq("user_id", ownerId).maybeSingle()
+/**
+ * Darf die Person die Bewerbung sehen? Über den Client der Person, also mit
+ * RLS: Arbeitsbereich und Sichtbarkeit der Stelle (Migration 036).
+ */
+async function canSeeLink(supabase: Awaited<ReturnType<typeof createServer>>, jobCandidateId: string, ownerId: string) {
+  const { data } = await supabase.from("job_candidates").select("id").eq("id", jobCandidateId).eq("user_id", ownerId).maybeSingle()
   return !!data
 }
 
@@ -49,7 +52,7 @@ export async function GET(req: NextRequest) {
   const db = adminClient()
   // Das ganze Team sieht Einladungen und Termine zur Bewerbung, auch die von
   // Kolleginnen und Kollegen.
-  if (!(await linkInWorkspace(db, jobCandidateId, user.ownerId))) {
+  if (!(await canSeeLink(user.supabase, jobCandidateId, user.ownerId))) {
     return Response.json({ invites: [], bookings: [] })
   }
   const [invites, bookings] = await Promise.all([
@@ -102,7 +105,7 @@ export async function POST(req: NextRequest) {
   const job = link.jobs as unknown as { id: string; title: string; company: string | null; user_id: string }
   const candidate = link.candidates as unknown as { id: string; full_name: string | null; email: string | null }
 
-  if (job.user_id !== user.ownerId) {
+  if (job.user_id !== user.ownerId || !(await canSeeLink(user.supabase, link.id, user.ownerId))) {
     return Response.json({ error: "Kein Zugriff auf diese Bewerbung." }, { status: 403 })
   }
   if (!candidate.email) {

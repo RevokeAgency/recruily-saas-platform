@@ -11,9 +11,9 @@ fremdem Konto geprüft (siehe unten).
 
 Mehrere Personen arbeiten in einem Konto. Das zahlende Konto ist der
 **Arbeitsbereich**, alle Daten gehören wie bisher ihm (`user_id` = Inhaber).
-Mitglieder stehen in `workspace_members` und sehen über
-`current_workspace()` dieselben Stellen, Kandidaten, Protokolle und
-Freigabe-Links. Bestehende Konten ändern sich nicht: Wer kein Mitglied ist,
+Mitglieder stehen in `workspace_members` und arbeiten über
+`current_workspace()` in denselben Daten. Welche Stellen sie davon sehen,
+regelt Migration 036 (privat oder fürs Team freigegeben). Bestehende Konten ändern sich nicht: Wer kein Mitglied ist,
 ist sein eigener Arbeitsbereich.
 
 | Plan | Nutzer inklusive | Weitere Nutzer |

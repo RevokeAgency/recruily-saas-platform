@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { DEFAULT_VISIBILITY, type JobVisibility } from "@/lib/team/visibility"
 
 export type JobFormData = {
   inputMethod: "upload" | "url" | "manual" | null
@@ -27,6 +28,8 @@ export type JobFormData = {
   languages: string[]
   koCriteria: string[]
   isActive: boolean
+  /** Wer sieht die Stelle im Team (Migration 036). */
+  visibility: JobVisibility
 }
 
 const initialFormData: JobFormData = {
@@ -46,6 +49,7 @@ const initialFormData: JobFormData = {
   languages: [],
   koCriteria: [],
   isActive: true,
+  visibility: DEFAULT_VISIBILITY,
 }
 
 export default function NewJobPage() {

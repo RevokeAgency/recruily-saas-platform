@@ -24,7 +24,7 @@ export async function sendTeamInvite(opts: {
   const body = `
     ${eyebrow("Einladung ins Team")}
     ${heading(`Arbeite mit ${company} in Revetly`)}
-    ${paragraph(`${who} lädt dich ein, gemeinsam Bewerbungen zu sichten und Gespräche zu planen. Du siehst alle Stellen und Kandidaten des Teams, dein Kalender bleibt dein eigener.`)}
+    ${paragraph(`${who} lädt dich ein, gemeinsam Bewerbungen zu sichten und Gespräche zu planen. Du legst eigene Stellen an und siehst die, die fürs Team freigegeben sind. Dein Kalender bleibt dein eigener.`)}
     ${button(opts.url, "Einladung annehmen")}
     ${paragraph(`Melde dich mit dieser Adresse an oder lege ein Konto an. Der Link gilt bis ${escapeHtml(dateDe(opts.expiresAt))} und ist nur für dich bestimmt.`, { muted: true, small: true, last: true })}
   `

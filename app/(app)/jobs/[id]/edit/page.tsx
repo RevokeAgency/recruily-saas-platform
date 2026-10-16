@@ -6,6 +6,8 @@ import useSWR from "swr"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { JobEditForm, type JobEditInitial } from "@/components/jobs/job-edit-form"
+import { useProfile } from "@/lib/hooks/useProfile"
+import { canChangeVisibility, parseVisibility } from "@/lib/team/visibility"
 
 interface Job {
   id: string
@@ -21,6 +23,9 @@ interface Job {
   nice_to_have_skills: string[] | null
   languages: string[] | null
   ko_criteria: string[] | null
+  user_id?: string | null
+  created_by?: string | null
+  visibility?: string | null
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -29,6 +34,7 @@ export default function JobEditPage() {
   const params = useParams()
   const jobId = params.id as string
   const { data, error, isLoading } = useSWR<{ job: Job }>(jobId ? `/api/jobs/${jobId}` : null, fetcher)
+  const { profile } = useProfile()
 
   if (isLoading) {
     return (
@@ -66,7 +72,13 @@ export default function JobEditPage() {
     niceToHaveSkills: j.nice_to_have_skills || [],
     languages: j.languages || [],
     koCriteria: j.ko_criteria || [],
+    visibility: parseVisibility(j.visibility),
+  }
+  const inTeam = !!profile && (profile.role === "member" || profile.team_members > 0)
+  const visibilityAccess = {
+    show: inTeam && j.visibility !== undefined,
+    editable: !!profile && canChangeVisibility(j, profile.id),
   }
 
-  return <JobEditForm jobId={jobId} initial={initial} />
+  return <JobEditForm jobId={jobId} initial={initial} visibilityAccess={visibilityAccess} />
 }

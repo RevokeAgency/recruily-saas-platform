@@ -150,6 +150,12 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       Konten ändert sich nichts. Ohne diese Migration läuft die App wie
       bisher, die Team-Karte zeigt „wird gerade eingerichtet“. Lokal
       getestet, Details in `scripts/035_team.md`.
+- [ ] `scripts/036_job_visibility.sql` *(neu 16.10.2026, nach 035 einspielen)*:
+      **Sichtbarkeit von Stellen.** Stellen sind privat (nur Ersteller und
+      Inhaber) oder fürs Team freigegeben, neue Stellen privat. Bewerber
+      privater Stellen sieht nur, wer die Stelle sieht. Bestehende Stellen
+      werden privat, der Inhaber sieht weiter alles. Lokal getestet, Details
+      in `scripts/036_job_visibility.md`.
 
 - [x] `scripts/015_rls_hardening.sql` *(eingespielt 05.10.2026)* — RLS owner-scoped (Sicherheits-Pflicht)
 - [x] `scripts/016_invited_at.sql` *(eingespielt 05.10.2026)* — Time-to-Interview-Messung

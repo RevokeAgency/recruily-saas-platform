@@ -71,14 +71,15 @@ export async function GET(req: NextRequest) {
  * Arbeitsbereichs. Abgesagt wird im Kalender der Person, die gebucht wurde.
  */
 async function visibleBooking(
-  db: ReturnType<typeof adminClient>,
   booking: BookingRow | null,
   userId: string,
 ): Promise<BookingRow | null> {
   if (!booking || booking.user_id === userId) return booking
   if (!booking.job_candidate_id) return null
-  const { ownerId } = await getWorkspace(await createServer(), userId)
-  const { data: link } = await db
+  // Über den Client der Person (RLS): nur Bewerbungen zu Stellen, die sie sieht.
+  const supabase = await createServer()
+  const { ownerId } = await getWorkspace(supabase, userId)
+  const { data: link } = await supabase
     .from("job_candidates").select("id").eq("id", booking.job_candidate_id).eq("user_id", ownerId).maybeSingle()
   return link ? booking : null
 }
@@ -100,7 +101,7 @@ export async function DELETE(req: NextRequest) {
     .eq("id", id)
     .maybeSingle()
 
-  const booking = await visibleBooking(db, data as BookingRow | null, user.id)
+  const booking = await visibleBooking(data as BookingRow | null, user.id)
   if (!booking) return Response.json({ error: "Termin nicht gefunden." }, { status: 404 })
   if (booking.status === "cancelled") return Response.json({ ok: true })
 

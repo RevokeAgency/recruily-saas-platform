@@ -2,12 +2,16 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import { checkJobQuota } from "@/lib/quota"
 import { getWorkspace } from "@/lib/workspace"
+import { teamDb, teamDirectory } from "@/lib/team/store"
+import { parseVisibility, withoutVisibility } from "@/lib/team/visibility"
 
 export async function GET() {
   try {
     const supabase = await createClient()
-    
-    // Get all jobs
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // Alle Stellen, die die Person sehen darf (RLS, Migration 036): eigene,
+    // fürs Team freigegebene und als Inhaber alle.
     const { data: jobs, error } = await supabase
       .from("jobs")
       .select("*")
@@ -29,6 +33,11 @@ export async function GET() {
 
     const candidates = allJobCandidates || []
 
+    // Im Team: wer die Stelle angelegt hat, für die Kennzeichnung in der Liste.
+    const others = (jobs || []).some((j) => j.created_by && j.created_by !== user?.id)
+    const db = others && user ? teamDb() : null
+    const names = db && user ? await teamDirectory(db, (await getWorkspace(supabase, user.id)).ownerId) : new Map<string, string>()
+
     // Enrich jobs with candidate stats
     const enrichedJobs = (jobs || []).map(job => {
       const jobCandidates = candidates.filter(c => c.job_id === job.id)
@@ -41,6 +50,8 @@ export async function GET() {
         ...job,
         candidate_count: candidateCount,
         top_match_score: topMatchScore,
+        mine: !job.created_by || job.created_by === user?.id,
+        created_by_name: job.created_by ? (names.get(job.created_by)?.replace(/ \(.*\)$/, "") ?? null) : null,
       }
     })
 
@@ -129,6 +140,9 @@ export async function POST(req: Request) {
       ko_criteria: body.koCriteria || [],
       is_active: body.isActive ?? true,
       user_id: ownerId,
+      // Neue Stellen sind privat, außer die Person gibt sie fürs Team frei.
+      // created_by setzt die Datenbank (Trigger aus 036).
+      visibility: parseVisibility(body.visibility),
     }
 
     let { data: job, error } = await supabase
@@ -143,6 +157,11 @@ export async function POST(req: Request) {
       console.warn("[jobs] KO-Spalte fehlt — Migration 019 noch nicht ausgeführt. Job wird ohne KO-Kriterien angelegt.")
       const { ko_criteria: _omit, ...withoutKo } = jobData
       ;({ data: job, error } = await supabase.from("jobs").insert(withoutKo).select().single())
+    }
+
+    // Ohne Migration 036 gibt es die Spalte noch nicht.
+    if (error && /visibility/i.test(error.message || "")) {
+      ;({ data: job, error } = await supabase.from("jobs").insert(withoutVisibility(jobData)).select().single())
     }
 
     // Der Datenbank-Trigger aus 028 ist die letzte Schranke, falls zwei

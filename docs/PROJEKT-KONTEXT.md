@@ -648,7 +648,9 @@ Starter und Growth (jährlich 149,90 €). Starter höchstens 2 Zusatzplätze
 (13.10.2026), damit größere Teams zu Growth greifen; Grenze in
 `EXTRA_SEAT.max` und `plan_extra_seat_max` (035). Starter heißt auf der
 Preiskarte „Für Einzel-Recruiter und kleine Teams“. Rollen Inhaber und Mitglied, alle
-sehen alle Stellen, jede Person hat ihren eigenen Kalender.
+sehen alle Stellen, jede Person hat ihren eigenen Kalender. Seit 16.10.2026
+geändert: Stellen sind privat oder fürs Team freigegeben (Migration 036,
+siehe unten).
 
 - Modell: Das zahlende Konto ist der Arbeitsbereich, `user_id` bleibt der
   Inhaber. Server-Code filtert nach `ownerId` aus `getWorkspace()`
@@ -677,3 +679,22 @@ sehen alle Stellen, jede Person hat ihren eigenen Kalender.
   weg.
 - Tests: `tests/team.test.ts` (Plätze, Einladungen, Arbeitsbereich,
   Stripe-Positionen, Gleichlauf mit Migration 035 und 028).
+
+### Sichtbarkeit von Stellen (16.10.2026, Migration 036)
+
+Entscheidungen des Inhabers: Jede Person sieht und verwaltet ihre eigenen
+Stellen; beim Anlegen „Nur ich“ (vorausgewählt) oder „Ganzes Team“. Der
+Inhaber sieht alles. Bewerber privater Stellen sieht nur, wer die Stelle
+sieht, auch in Kandidatenliste und Talent-Pool.
+
+- Durchgesetzt in der Datenbank (`job_visible`, `candidate_visible`,
+  Policies aus 036). Server-Code mit dem Client der Person bekommt das
+  automatisch; wo mit service_role gelesen wird, gilt `jobVisibleTo()` aus
+  `lib/team/visibility.ts` (Benachrichtigungen) oder eine Prüfung über den
+  Client der Person (Termine).
+- Sichtbarkeit ändern nur Ersteller und Inhaber (Trigger), die Oberfläche
+  sperrt die Auswahl für alle anderen.
+- Jobliste zeigt im Team „Privat“ oder „Team“ und bei fremden Stellen, wer
+  sie angelegt hat.
+- Kontingent und Stellenlimit gelten weiter fürs ganze Konto.
+- Tests: `tests/visibility.test.ts`.

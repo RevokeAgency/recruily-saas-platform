@@ -167,7 +167,7 @@ export function TeamCard() {
       <CardDescription>
         {data?.role === "member"
           ? `Du arbeitest im Team von ${data.owner.company || data.owner.name}. Abo und Plätze verwaltet der Inhaber.`
-          : "Alle im Team sehen dieselben Stellen und Kandidaten. Kalender und Benachrichtigungen bleiben pro Person."}
+          : "Jede Person sieht ihre eigenen Stellen und die fürs Team freigegebenen, du als Inhaber alle. Kalender und Benachrichtigungen bleiben pro Person."}
       </CardDescription>
     </CardHeader>
   )

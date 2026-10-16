@@ -13,6 +13,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { ArrowLeft, Loader2, X, Plus } from "lucide-react"
+import { VisibilityChoice } from "@/components/jobs/visibility-choice"
+import type { JobVisibility } from "@/lib/team/visibility"
 
 export interface JobEditInitial {
   title: string
@@ -27,6 +29,13 @@ export interface JobEditInitial {
   niceToHaveSkills: string[]
   languages: string[]
   koCriteria: string[]
+  visibility: JobVisibility
+}
+
+/** Sichtbarkeit im Team: anzeigen (es gibt ein Team) und ändern (Ersteller oder Inhaber). */
+export interface VisibilityAccess {
+  show: boolean
+  editable: boolean
 }
 
 function ChipInput({
@@ -71,7 +80,15 @@ function ChipInput({
   )
 }
 
-export function JobEditForm({ jobId, initial }: { jobId: string; initial: JobEditInitial }) {
+export function JobEditForm({
+  jobId,
+  initial,
+  visibilityAccess = { show: false, editable: false },
+}: {
+  jobId: string
+  initial: JobEditInitial
+  visibilityAccess?: VisibilityAccess
+}) {
   const router = useRouter()
   const [form, setForm] = useState<JobEditInitial>(initial)
   const [saving, setSaving] = useState(false)
@@ -87,7 +104,9 @@ export function JobEditForm({ jobId, initial }: { jobId: string; initial: JobEdi
       const res = await fetch(`/api/jobs/${jobId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        // Sichtbarkeit nur mitschicken, wenn sie geändert wurde: Ändern dürfen
+        // es nur Ersteller und Inhaber, alle anderen speichern den Rest.
+        body: JSON.stringify(form.visibility === initial.visibility ? { ...form, visibility: undefined } : form),
       })
       const data = await res.json()
       if (!res.ok) { toast.error(data.error || "Speichern fehlgeschlagen"); return }
@@ -176,6 +195,26 @@ export function JobEditForm({ jobId, initial }: { jobId: string; initial: JobEdi
           <ChipInput label="KO-Kriterien" hint="(harte Muss-Anforderungen, optional)" values={form.koCriteria} onChange={(v) => set("koCriteria", v)} placeholder="z.B. Führerschein Klasse B" />
         </CardContent>
       </Card>
+
+      {visibilityAccess.show && (
+        <Card className="mt-6 border border-border">
+          <CardHeader>
+            <CardTitle className="text-lg">Wer sieht die Stelle?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <VisibilityChoice
+              value={form.visibility}
+              onChange={(v) => set("visibility", v)}
+              disabled={!visibilityAccess.editable}
+            />
+            {!visibilityAccess.editable && (
+              <p className="text-sm text-muted-foreground">
+                Das ändert nur, wer die Stelle angelegt hat, oder der Inhaber des Kontos.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="mt-6 flex justify-end gap-3">
         <Button variant="outline" asChild disabled={saving}>

@@ -35,7 +35,9 @@ import {
   Trash2,
   Users2,
   Loader2,
+  Lock,
 } from "lucide-react"
+import { useProfile } from "@/lib/hooks/useProfile"
 import { EmptyState } from "@/components/empty-state"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -53,6 +55,11 @@ interface Job {
   candidate_count: number
   top_match_score: number
   created_at: string
+  /** Migration 036: private oder team. */
+  visibility?: "private" | "team"
+  /** Von der angemeldeten Person angelegt. */
+  mine?: boolean
+  created_by_name?: string | null
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -62,6 +69,9 @@ export function JobsList() {
   const [deleteTarget, setDeleteTarget] = useState<Job | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const { profile } = useProfile()
+  // Kennzeichnung nur im Team; allein ist ohnehin alles "meins".
+  const inTeam = !!profile && (profile.role === "member" || profile.team_members > 0)
 
   const toggleArchive = async (job: Job) => {
     setBusyId(job.id)
@@ -181,6 +191,19 @@ export function JobsList() {
                 >
                   {job.is_active ? "Aktiv" : "Entwurf"}
                 </Badge>
+                {inTeam && job.visibility && (
+                  <Badge
+                    variant="outline"
+                    className="gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold text-muted-foreground"
+                    title={job.visibility === "team" ? "Das ganze Team sieht diese Stelle" : "Nur Ersteller und Inhaber sehen diese Stelle"}
+                  >
+                    {job.visibility === "team" ? <Users2 className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                    {job.visibility === "team" ? "Team" : "Privat"}
+                  </Badge>
+                )}
+                {inTeam && job.mine === false && job.created_by_name && (
+                  <span className="text-xs text-muted-foreground">von {job.created_by_name}</span>
+                )}
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

@@ -3,6 +3,7 @@ import { createClient as createAdmin, type SupabaseClient } from "@supabase/supa
 import { sendMail } from "@/lib/email/client"
 import { MAIL, avatar, button, escapeHtml, eyebrow, heading, panel, paragraph, shell } from "@/lib/email/layout"
 import { absoluteUrl } from "@/lib/site"
+import { jobVisibleTo as seesJob } from "@/lib/team/visibility"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Benachrichtigungen an Recruiter über neue Bewerbungen.
@@ -56,21 +57,37 @@ async function preferences(db: SupabaseClient, userId: string): Promise<{ instan
   }
 }
 
+type JobAccess = { visibility?: string | null; created_by?: string | null }
+
+/**
+ * Sichtbarkeit der Stellen (Migration 036). Fehlt die Migration, gilt jede
+ * Stelle als fürs Team sichtbar, wie vorher.
+ */
+async function jobAccess(db: SupabaseClient, jobIds: string[]): Promise<Map<string, JobAccess>> {
+  const map = new Map<string, JobAccess>()
+  if (jobIds.length === 0) return map
+  const { data, error } = await db.from("jobs").select("id, visibility, created_by").in("id", jobIds)
+  if (error) return map
+  for (const j of data ?? []) map.set(j.id as string, { visibility: j.visibility as string, created_by: j.created_by as string })
+  return map
+}
+
+
 /**
  * Wer im Team diese Benachrichtigung will: der Inhaber und aktive Mitglieder
  * (Migration 035), jeweils nach den eigenen Einstellungen. Ohne 035 nur der
  * Inhaber.
  */
-async function recipients(db: SupabaseClient, ownerId: string, kind: "instant" | "daily"): Promise<string[]> {
+async function recipients(db: SupabaseClient, ownerId: string, kind: "instant" | "daily"): Promise<Array<{ id: string; email: string }>> {
   const { data: members, error } = await db
     .from("workspace_members").select("member_id").eq("owner_id", ownerId).eq("active", true)
   const ids = [ownerId, ...(error ? [] : (members ?? []).map((m) => m.member_id as string))]
-  const out: string[] = []
+  const out: Array<{ id: string; email: string }> = []
   for (const id of ids) {
     const prefs = await preferences(db, id)
     if (!prefs[kind]) continue
-    const to = await recruiterEmail(db, id)
-    if (to && !out.includes(to)) out.push(to)
+    const email = await recruiterEmail(db, id)
+    if (email && !out.some((r) => r.email === email)) out.push({ id, email })
   }
   return out
 }
@@ -134,7 +151,11 @@ export async function notifyNewApplication(linkId: string): Promise<boolean> {
       .single()
     if (!link?.user_id) return false
 
-    const to = await recipients(db, link.user_id, "instant")
+    // Private Stellen: nur, wer sie sehen darf (Migration 036).
+    const access = await jobAccess(db, [link.job_id as string])
+    const to = (await recipients(db, link.user_id, "instant"))
+      .filter((r) => seesJob(r.id, link.user_id, access.get(link.job_id as string)))
+      .map((r) => r.email)
     if (to.length === 0) return false
 
     const job = one(link.job as { title?: string } | { title?: string }[] | null)?.title || "deine Stelle"
@@ -220,58 +241,63 @@ export async function sendApplicationDigests(): Promise<{ accounts: number; sent
   let sent = 0
   for (const [userId, rows] of byUser) {
     try {
-      const to = await recipients(db, userId, "daily")
-      if (to.length === 0) continue
+      const people = await recipients(db, userId, "daily")
+      if (people.length === 0) continue
+      const access = await jobAccess(db, [...new Set(rows.map((r) => r.job_id))])
 
-      // Nach Stelle gruppiert, innerhalb der Stelle nach Match absteigend.
-      const byJob = new Map<string, DigestRow[]>()
-      for (const r of rows) byJob.set(r.job_id, [...(byJob.get(r.job_id) ?? []), r])
+      // Jede Person bekommt nur die Stellen, die sie sehen darf.
+      for (const person of people) {
+        const mine = rows.filter((r) => seesJob(person.id, userId, access.get(r.job_id)))
+        if (mine.length === 0) continue
 
-      const sections = [...byJob.entries()]
-        .map(([jobId, list]) => {
-          const title = one(list[0].job)?.title || "Stelle"
-          const items = [...list]
-            .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1))
-            .map((r, i, all) => {
-              const name = one(r.candidate)?.full_name || "Eine Person"
-              const source = SOURCE_SHORT[r.source ?? ""] ?? ""
-              // Gleicher Abstand über und unter jeder Trennlinie.
-              const pad = `padding:${i ? 12 : 0}px 0 ${i < all.length - 1 ? 12 : 0}px;`
-              const rule = i < all.length - 1 ? `border-bottom:1px solid ${MAIL.line};` : ""
-              return `<tr>
-                <td width="34" valign="middle" style="${pad}${rule}">${avatar(name, 34)}</td>
-                <td valign="middle" style="${pad}padding-left:12px;padding-right:10px;${rule}">
-                  <div style="font-size:15px;font-weight:700;color:${MAIL.ink};">${escapeHtml(name)}</div>
-                  ${source ? `<div style="font-size:12px;color:${MAIL.faint};">${source}</div>` : ""}
-                </td>
-                <td valign="middle" align="right" style="${pad}white-space:nowrap;${rule}">${scoreCell(r.match_score, r.status, "sm")}</td>
-              </tr>`
-            })
-            .join("")
-          return `
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 10px;"><tr>
-              <td><a href="${absoluteUrl(`/jobs/${jobId}`)}" style="font-size:16px;font-weight:800;letter-spacing:-0.01em;color:${MAIL.ink};text-decoration:none;">${escapeHtml(title)}</a></td>
-              <td align="right"><span style="display:inline-block;padding:3px 10px;border-radius:999px;background:#DDF6EA;font-size:12px;font-weight:800;color:${MAIL.greenDeep};">${list.length} neu</span></td>
-            </tr></table>
-            ${panel(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${items}</table>`)}
-          `
-        })
-        .join("")
+        // Nach Stelle gruppiert, innerhalb der Stelle nach Match absteigend.
+        const byJob = new Map<string, DigestRow[]>()
+        for (const r of mine) byJob.set(r.job_id, [...(byJob.get(r.job_id) ?? []), r])
 
-      const count = rows.length
-      const jobs = byJob.size
-      const best = rows.reduce<number | null>((m, r) => (r.match_score != null && (m == null || r.match_score > m) ? r.match_score : m), null)
-      const body = `
-        ${eyebrow("Tägliche Zusammenfassung")}
-        ${heading(count === 1 ? "Eine neue Bewerbung seit gestern" : `${count} neue Bewerbungen seit gestern`)}
-        ${paragraph(`Verteilt auf ${jobs === 1 ? "eine Stelle" : `${jobs} Stellen`}, innerhalb jeder Stelle nach Match sortiert.`, { muted: true })}
-        ${sections}
-        ${button(absoluteUrl("/dashboard"), "Zum Dashboard")}
-      `
-      for (const address of to) {
+        const sections = [...byJob.entries()]
+          .map(([jobId, list]) => {
+            const title = one(list[0].job)?.title || "Stelle"
+            const items = [...list]
+              .sort((a, b) => (b.match_score ?? -1) - (a.match_score ?? -1))
+              .map((r, i, all) => {
+                const name = one(r.candidate)?.full_name || "Eine Person"
+                const source = SOURCE_SHORT[r.source ?? ""] ?? ""
+                // Gleicher Abstand über und unter jeder Trennlinie.
+                const pad = `padding:${i ? 12 : 0}px 0 ${i < all.length - 1 ? 12 : 0}px;`
+                const rule = i < all.length - 1 ? `border-bottom:1px solid ${MAIL.line};` : ""
+                return `<tr>
+                  <td width="34" valign="middle" style="${pad}${rule}">${avatar(name, 34)}</td>
+                  <td valign="middle" style="${pad}padding-left:12px;padding-right:10px;${rule}">
+                    <div style="font-size:15px;font-weight:700;color:${MAIL.ink};">${escapeHtml(name)}</div>
+                    ${source ? `<div style="font-size:12px;color:${MAIL.faint};">${source}</div>` : ""}
+                  </td>
+                  <td valign="middle" align="right" style="${pad}white-space:nowrap;${rule}">${scoreCell(r.match_score, r.status, "sm")}</td>
+                </tr>`
+              })
+              .join("")
+            return `
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 10px;"><tr>
+                <td><a href="${absoluteUrl(`/jobs/${jobId}`)}" style="font-size:16px;font-weight:800;letter-spacing:-0.01em;color:${MAIL.ink};text-decoration:none;">${escapeHtml(title)}</a></td>
+                <td align="right"><span style="display:inline-block;padding:3px 10px;border-radius:999px;background:#DDF6EA;font-size:12px;font-weight:800;color:${MAIL.greenDeep};">${list.length} neu</span></td>
+              </tr></table>
+              ${panel(`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${items}</table>`)}
+            `
+          })
+          .join("")
+
+        const count = mine.length
+        const jobs = byJob.size
+        const best = mine.reduce<number | null>((m, r) => (r.match_score != null && (m == null || r.match_score > m) ? r.match_score : m), null)
+        const body = `
+          ${eyebrow("Tägliche Zusammenfassung")}
+          ${heading(count === 1 ? "Eine neue Bewerbung seit gestern" : `${count} neue Bewerbungen seit gestern`)}
+          ${paragraph(`Verteilt auf ${jobs === 1 ? "eine Stelle" : `${jobs} Stellen`}, innerhalb jeder Stelle nach Match sortiert.`, { muted: true })}
+          ${sections}
+          ${button(absoluteUrl("/dashboard"), "Zum Dashboard")}
+        `
         const ok = await sendMail(
           {
-            to: address,
+            to: person.email,
             subject: count === 1 ? "1 neue Bewerbung seit gestern" : `${count} neue Bewerbungen seit gestern`,
             html: shell("Revetly", body, {
               preheader: best != null ? `Bester Match: ${best} · ${jobs === 1 ? "1 Stelle" : `${jobs} Stellen`}` : `${jobs === 1 ? "1 Stelle" : `${jobs} Stellen`}`,

@@ -70,7 +70,7 @@ export function InviteAccept({ token, state, company, inviter, inviteEmail, sign
       <h1 className="mb-1.5 text-center text-xl font-bold text-foreground">Einladung ins Team</h1>
       <p className="mb-8 text-center text-sm leading-relaxed text-muted-foreground">
         {inviter} lädt dich ein, bei <strong className="text-foreground">{company}</strong> mitzuarbeiten.
-        Du siehst alle Stellen und Kandidaten des Teams, dein Kalender bleibt dein eigener.
+        Du legst eigene Stellen an und siehst die, die fürs Team freigegeben sind. Dein Kalender bleibt dein eigener.
       </p>
     </>
   )

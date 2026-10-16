@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { NextRequest } from "next/server"
 import { checkJobQuota } from "@/lib/quota"
 import { getWorkspace } from "@/lib/workspace"
+import { parseVisibility, withoutVisibility } from "@/lib/team/visibility"
 
 // Close / reopen a job. Closing frees the active-job slot; reopening re-checks
 // the plan's active-job limit. Existing candidates are always preserved.
@@ -97,10 +98,24 @@ export async function PUT(
       education: body.education || null,
       languages: body.languages || [],
       ko_criteria: body.koCriteria || [],
+      // Nur mitschicken, wenn gewählt. Ändern dürfen es nur Ersteller und
+      // Inhaber, das prüft der Trigger aus 036.
+      ...(body.visibility !== undefined ? { visibility: parseVisibility(body.visibility) } : {}),
     }
 
     let { data: job, error } = await supabase
       .from("jobs").update(jobData).eq("id", id).eq("user_id", ownerId).select().single()
+
+    if (error && /job_visibility_forbidden/.test(error.message || "")) {
+      return Response.json(
+        { error: "Wer sieht die Stelle, legt nur fest, wer sie angelegt hat, oder der Inhaber." },
+        { status: 403 },
+      )
+    }
+    if (error && /visibility/i.test(error.message || "")) {
+      ;({ data: job, error } = await supabase
+        .from("jobs").update(withoutVisibility(jobData)).eq("id", id).eq("user_id", ownerId).select().single())
+    }
 
     // KO criteria need migration 019 — don't fail the whole save if it's pending.
     if (error && /ko_criteria/i.test(error.message || "")) {
