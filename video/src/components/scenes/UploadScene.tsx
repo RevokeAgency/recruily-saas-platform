@@ -72,7 +72,9 @@ export const UploadScene: React.FC = () => {
 
   const W = PATH.window
   return (
-    <AbsoluteFill style={{ opacity: 1 - out, transform: `translateX(${mix(out, 0, -380)}px)` }}>
+    // Whip-Pan nach links mit Bewegungsunschärfe; der Lichtschnitt aus dem
+    // HyperFrames-Overlay liegt genau darüber
+    <AbsoluteFill style={{ opacity: 1 - out, transform: `translateX(${mix(out, 0, -900)}px)`, filter: out > 0.01 ? `blur(${out * 14}px)` : undefined }}>
       {/* Captions */}
       <div style={{ position: "absolute", left: 120, top: 70 }}>
         <KineticText text={DEMO_COPY.upload1} start={at(C.caption1)} end={at(C.ergebnis - 0.1)} size={64} />

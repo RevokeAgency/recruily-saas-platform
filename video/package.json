@@ -10,7 +10,10 @@
     "check": "node --no-warnings scripts/check-timing.mjs",
     "stills": "pnpm audio && pnpm check && node --no-warnings scripts/stills.mjs",
     "render": "pnpm audio && pnpm check && remotion render RevetlyDemo out/revetly-demo-16x9.mp4",
-    "render:launch": "pnpm audio && pnpm check && remotion render Launch-16x9 out/revetly-launch-16x9.mp4 && remotion render Launch-1x1 out/revetly-launch-1x1.mp4"
+    "render:launch": "pnpm audio && pnpm check && remotion render Launch-16x9 out/revetly-launch-16x9.mp4 && remotion render Launch-1x1 out/revetly-launch-1x1.mp4",
+    "hf:build": "node --no-warnings scripts/hyperframes.mjs build",
+    "hf:render": "node --no-warnings scripts/hyperframes.mjs render",
+    "hf:preview": "cd hyperframes && npx hyperframes preview"
   },
   "dependencies": {
     "@remotion/cli": "4.0.534",
@@ -24,6 +27,8 @@
     "@remotion/renderer": "4.0.534",
     "@remotion/tailwind-v4": "4.0.534",
     "@types/react": "19.2.2",
+    "gsap": "3.14.2",
+    "hyperframes": "0.8.162",
     "tailwindcss": "4.2.0",
     "typescript": "5.7.3"
   },

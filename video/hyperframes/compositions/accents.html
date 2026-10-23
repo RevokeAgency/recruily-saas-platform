@@ -1,0 +1,161 @@
+<!doctype html>
+<!--
+  accents: zwei Akzente, die genau auf Elemente der Remotion-Szenen fallen.
+    1. Score-Puls: zwei Ringe und kurze Strahlen um den Match-Ring,
+       wenn der Score auf 94 % landet (Muster: spring-pop / badge-pop).
+    2. Logo-Glanz: eine Lichtkante läuft über das Outro-Logo, maskiert mit
+       der Logo-Form, sodass nur das Logo glänzt (Muster: gloss-sweep).
+  Positionen und Zeiten kommen als Variablen aus scripts/hyperframes.mjs.
+-->
+<html
+  lang="de"
+  data-composition-id="accents"
+  data-composition-variables='[
+    { "id": "pulse_at", "type": "number", "label": "Score-Puls (s)", "default": 11.6 },
+    { "id": "pulse_x", "type": "number", "label": "Score-Ring x", "default": 1424 },
+    { "id": "pulse_y", "type": "number", "label": "Score-Ring y", "default": 566 },
+    { "id": "gloss_at", "type": "number", "label": "Logo-Glanz (s)", "default": 28.2 },
+    { "id": "logo_x", "type": "number", "label": "Logo links", "default": 580 },
+    { "id": "logo_y", "type": "number", "label": "Logo oben", "default": 309 },
+    { "id": "logo_w", "type": "number", "label": "Logo-Breite", "default": 760 }
+  ]'
+>
+  <body>
+    <template>
+      <div id="root" data-composition-id="accents" data-width="1920" data-height="1080">
+        <style>
+          #root {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+          }
+          #accents-clip {
+            position: absolute;
+            inset: 0;
+          }
+          #accents-pulse {
+            position: absolute;
+            width: 0;
+            height: 0;
+          }
+          .accents-ring {
+            position: absolute;
+            left: -80px;
+            top: -80px;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 5px solid #22c1ee;
+            opacity: 0;
+          }
+          .accents-ring.second {
+            border-color: #16c77c;
+            border-width: 3px;
+          }
+          .accents-ray-wrap {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 0;
+          }
+          .accents-ray {
+            position: absolute;
+            left: -3px;
+            top: -3px;
+            width: 6px;
+            height: 26px;
+            border-radius: 3px;
+            background: linear-gradient(180deg, #22c1ee, #16c77c);
+            transform-origin: 3px 3px;
+            opacity: 0;
+          }
+          #accents-logo {
+            position: absolute;
+            overflow: hidden;
+            -webkit-mask-image: url("assets/logo-negativ.png");
+            mask-image: url("assets/logo-negativ.png");
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
+          }
+          #accents-gloss {
+            position: absolute;
+            top: -30%;
+            left: 0;
+            width: 34%;
+            height: 160%;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0) 100%);
+            transform: rotate(18deg);
+            opacity: 0;
+          }
+        </style>
+
+        <div id="accents-clip" class="clip" data-start="0" data-duration="30" data-track-index="0" data-layout-allow-overflow>
+          <div id="accents-pulse">
+            <div id="accents-ring-a" class="accents-ring"></div>
+            <div id="accents-ring-b" class="accents-ring second"></div>
+            <div class="accents-ray-wrap" style="transform: rotate(0deg)"><div id="accents-ray-0" class="accents-ray"></div></div>
+            <div class="accents-ray-wrap" style="transform: rotate(45deg)"><div id="accents-ray-1" class="accents-ray"></div></div>
+            <div class="accents-ray-wrap" style="transform: rotate(90deg)"><div id="accents-ray-2" class="accents-ray"></div></div>
+            <div class="accents-ray-wrap" style="transform: rotate(135deg)"><div id="accents-ray-3" class="accents-ray"></div></div>
+            <div class="accents-ray-wrap" style="transform: rotate(180deg)"><div id="accents-ray-4" class="accents-ray"></div></div>
+            <div class="accents-ray-wrap" style="transform: rotate(225deg)"><div id="accents-ray-5" class="accents-ray"></div></div>
+            <div class="accents-ray-wrap" style="transform: rotate(270deg)"><div id="accents-ray-6" class="accents-ray"></div></div>
+            <div class="accents-ray-wrap" style="transform: rotate(315deg)"><div id="accents-ray-7" class="accents-ray"></div></div>
+          </div>
+          <div id="accents-logo">
+            <div id="accents-gloss"></div>
+          </div>
+        </div>
+
+        <script src="assets/gsap.min.js"></script>
+        <script>
+          (function () {
+            var root = document.getElementById("root")
+            var v = window.__hyperframes && window.__hyperframes.getVariables ? window.__hyperframes.getVariables() : {}
+            var num = function (x, d) {
+              var n = Number(x)
+              return Number.isFinite(n) ? n : d
+            }
+            var pulseAt = num(v.pulse_at, 11.6)
+            var glossAt = num(v.gloss_at, 28.2)
+            var logoW = num(v.logo_w, 760)
+            var logoH = logoW * (348 / 1403)
+
+            var pulse = root.querySelector("#accents-pulse")
+            pulse.style.left = num(v.pulse_x, 1424) + "px"
+            pulse.style.top = num(v.pulse_y, 566) + "px"
+            var logo = root.querySelector("#accents-logo")
+            logo.style.left = num(v.logo_x, 580) + "px"
+            logo.style.top = num(v.logo_y, 309) + "px"
+            logo.style.width = logoW + "px"
+            logo.style.height = logoH + "px"
+
+            var tl = gsap.timeline({ paused: true })
+
+            // Score-Puls: zwei Ringe dehnen sich aus, Strahlen schießen nach außen
+            var ringA = root.querySelector("#accents-ring-a")
+            var ringB = root.querySelector("#accents-ring-b")
+            tl.fromTo(ringA, { scale: 0.6, opacity: 0.9 }, { scale: 1.9, opacity: 0, duration: 0.7, ease: "expo.out", immediateRender: false }, pulseAt)
+            tl.fromTo(ringB, { scale: 0.6, opacity: 0.7 }, { scale: 2.5, opacity: 0, duration: 0.9, ease: "expo.out", immediateRender: false }, pulseAt + 0.1)
+            for (var i = 0; i < 8; i++) {
+              var ray = root.querySelector("#accents-ray-" + i)
+              // Richtung kommt vom gedrehten Wrapper, hier nur nach außen schieben
+              tl.fromTo(ray, { y: 70, scaleY: 0.2, opacity: 1 }, { y: 120, scaleY: 1, opacity: 0, duration: 0.5, ease: "power3.out", immediateRender: false }, pulseAt + 0.05 + (i % 2) * 0.033)
+            }
+
+            // Logo-Glanz: Lichtkante von links nach rechts über das Logo
+            var gloss = root.querySelector("#accents-gloss")
+            tl.fromTo(gloss, { x: -0.5 * logoW, opacity: 0 }, { x: 1.3 * logoW, opacity: 1, duration: 0.9, ease: "power2.inOut", immediateRender: false }, glossAt)
+            tl.to(gloss, { opacity: 0, duration: 0.2, ease: "power1.in" }, glossAt + 0.7)
+
+            tl.seek(0)
+            window.__timelines = window.__timelines || {}
+            window.__timelines["accents"] = tl
+          })()
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

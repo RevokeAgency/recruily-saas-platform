@@ -9,8 +9,8 @@ import { RevetlyLogo } from "../brand/RevetlyLogo"
 import { KineticText } from "../motion/KineticText"
 
 /**
- * SZENE 1 — Intro. „Recruiting is time-consuming." kippt Wort für Wort ins
- * Bild und wieder hinaus, dann „Meet" und das Logo, das sich aufbaut und
+ * SZENE 1 — Intro. „Recruiting is time-consuming." schlägt als Headline-Slam
+ * ein (HyperFrames-Overlay), dann „Meet" und das Logo, das sich aufbaut und
  * leuchtet. Am Ende fliegt die Kamera hindurch in Szene 2.
  */
 export const IntroScene: React.FC = () => {
@@ -32,16 +32,8 @@ export const IntroScene: React.FC = () => {
         filter: out > 0.01 ? `blur(${out * 10}px)` : undefined,
       }}
     >
-      <div style={{ position: "absolute", width: 1500, display: "flex", justifyContent: "center" }}>
-        <KineticText
-          text={DEMO_COPY.intro1}
-          start={sat("intro", C.zeile1)}
-          end={sat("intro", C.zeile1Ab)}
-          size={112}
-          align="center"
-          wordStyle={(w) => (w.startsWith("time") ? { color: theme.color.textDim } : undefined)}
-        />
-      </div>
+      {/* „Recruiting is time-consuming." kommt als Headline-Slam aus dem
+          HyperFrames-Overlay (hyperframes/compositions/intro.html). */}
 
       <div style={{ position: "absolute", display: "flex", alignItems: "center", gap: 44 }}>
         <KineticText text={DEMO_COPY.intro2} start={sat("intro", C.meet)} size={120} />

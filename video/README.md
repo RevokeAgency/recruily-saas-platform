@@ -29,6 +29,29 @@ Kandidatenliste, StatCard mit IntersectionObserver), sind sie mit identischen
 Tailwind-Klassen nachgebaut und nutzen darin die echten `Card`, `Badge`, `Avatar`
 und `Button`. Bewegung kommt ausschließlich aus `interpolate`/`spring`.
 
+## HyperFrames-Overlay
+
+`hyperframes/` ist ein HyperFrames-Projekt (HTML + GSAP, gepinnt auf `hyperframes@0.8.162`).
+Es liefert die Hero-Momente der Demo als transparentes WebM (`public/hf/overlay.webm`),
+das Remotion über die Szenen legt:
+
+| Komposition | Inhalt |
+|---|---|
+| `compositions/intro.html` | „Recruiting is time-consuming." als Headline-Slam mit Aufprall |
+| `compositions/cuts.html` | Lichtschnitte im Markenverlauf über den drei Szenenwechseln |
+| `compositions/accents.html` | Puls um den 94-%-Ring, Glanz über dem Outro-Logo |
+
+`hyperframes/index.html` wird von `scripts/hyperframes.mjs` aus `src/config/demo-timing.ts`
+erzeugt, beide Welten laufen also auf denselben Sekunden. Nach einer Timing-Änderung:
+
+```bash
+pnpm hf:render      # index.html neu, Lint, Render nach public/hf/overlay.webm
+pnpm hf:preview     # HyperFrames-Vorschau im Browser
+```
+
+Ohne eigenes Chrome: `HYPERFRAMES_BROWSER_PATH=/pfad/zu/chrome pnpm hf:render`.
+Das Skript schaltet die Telemetrie von HyperFrames ab.
+
 ## Befehle
 
 ```bash

@@ -1,0 +1,73 @@
+<!doctype html>
+<!--
+  ERZEUGT von scripts/hyperframes.mjs aus src/config/demo-timing.ts.
+  Nicht von Hand ändern, sondern dort die Zeiten anpassen.
+
+  Transparenter Overlay für die Remotion-Composition "RevetlyDemo":
+  Headline-Slam im Intro, Lichtschnitte an den Szenenwechseln, Score-Puls
+  und Logo-Glanz. Remotion legt das gerenderte WebM über die Szenen.
+-->
+<html lang="de" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+      #root { position: relative; width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="30"
+      data-width="1920"
+      data-height="1080"
+      data-fps="30"
+    >
+      <div
+        id="intro"
+        data-composition-id="intro"
+        data-composition-src="compositions/intro.html"
+        data-start="0.25"
+        data-duration="1.85"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        data-variable-values='{"text":"Recruiting is time-consuming.","accent_from":2}'
+      ></div>
+      <div
+        id="cuts"
+        data-composition-id="cuts"
+        data-composition-src="compositions/cuts.html"
+        data-start="0"
+        data-duration="30"
+        data-track-index="2"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        data-variable-values='{"at":"5,15,25","span":0.8}'
+      ></div>
+      <div
+        id="accents"
+        data-composition-id="accents"
+        data-composition-src="compositions/accents.html"
+        data-start="0"
+        data-duration="30"
+        data-track-index="3"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        data-variable-values='{"pulse_at":11.65,"pulse_x":1424,"pulse_y":566,"gloss_at":28.25,"logo_x":580,"logo_y":309,"logo_w":760}'
+      ></div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {}
+      window.__timelines["main"] = gsap.timeline({ paused: true })
+    </script>
+  </body>
+</html>
