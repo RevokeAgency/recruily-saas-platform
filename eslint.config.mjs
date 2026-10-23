@@ -23,5 +23,7 @@ export default defineConfig([
     // Vom Bundler eingebundene Fremddatei (pdfjs-Worker), nicht unser Code.
     "lib/pdfjs-worker.mjs",
     "scripts/**",
+    // Launch-Video (Remotion), eigenes Paket mit eigenen Abhängigkeiten.
+    "video/**",
   ]),
 ])
