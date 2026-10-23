@@ -1,10 +1,33 @@
-# Revetly Launch-Video (v2)
+# Revetly Videos
 
-Remotion-Projekt, unabhängig von der App (eigene `package.json`, eigene Lockfile).
-30 Sekunden, 30 fps, zwei Formate mit denselben Szenen und eigenem Bildausschnitt:
+Remotion-Projekt mit eigener `package.json`. Zwei Videos, je 30 s bei 30 fps:
 
-- `Launch-16x9`: 1920 × 1080
-- `Launch-1x1`: 1080 × 1080
+- **`RevetlyDemo`** (Haupt-Composition, 1920 × 1080): Produkt-Demo mit 3D-UI.
+  Nutzt die echten UI-Komponenten der App (`components/ui/*`) und deren
+  Tailwind-Tokens aus `app/globals.css`.
+- **`Launch-16x9` / `Launch-1x1`** (Ordner „Launch-v2"): das abgenommene Launch-Video.
+
+**Voraussetzung:** Weil die Demo Komponenten der App importiert, muss auch im
+Repo-Root einmal `pnpm install` gelaufen sein (für clsx, tailwind-merge, Radix …).
+
+## Produkt-Demo
+
+| Datei | Inhalt |
+|---|---|
+| `src/Root.tsx` | Compositions |
+| `src/components/DemoVideo.tsx` | Ebenen: Mesh → Szenen → Grade → Korn → Vignette, Ton |
+| `src/components/scenes/` | Intro, Upload, Scoring, Outro |
+| `src/components/app/` | App-UI: Hülle mit Topbar, Dropzone, Ergebnis-Karte, Dashboard, Detail-Sheet |
+| `src/components/motion/` | `Tilt3D` (perspective/rotate), `KineticText`, `Cursor`, `countUp` |
+| `src/components/brand/RevetlyLogo.tsx` | Logo-Aufbau aus den Teilen in `public/logo/` |
+| `src/config/demo-timing.ts` | **Alle Zeiten der Demo**: Szenenstarts, Cues, SFX |
+| `src/styles/app.css` | Tailwind + `app/globals.css`; schaltet CSS-Transitions im Video ab |
+| `webpack-override.cjs` | Tailwind, Alias `@` → Repo-Root, ein React im Bundle |
+
+Wo die App-Komponenten Next, Supabase oder Browser-Ereignisse brauchen (Upload-Seite,
+Kandidatenliste, StatCard mit IntersectionObserver), sind sie mit identischen
+Tailwind-Klassen nachgebaut und nutzen darin die echten `Card`, `Badge`, `Avatar`
+und `Button`. Bewegung kommt ausschließlich aus `interpolate`/`spring`.
 
 ## Befehle
 
@@ -13,16 +36,18 @@ cd video
 pnpm install
 pnpm studio                       # Vorschau im Browser
 pnpm check                        # Timing prüfen (Marker, Lücken > 2 s, SFX)
-pnpm stills                       # Abnahme-Standbilder (1, 3, 5 … 28 s) → out/stills/
+pnpm stills                       # Abnahme-Standbilder aller Compositions → out/stills/
+pnpm stills Demo                  # nur die Produkt-Demo
 pnpm stills -- --at 12.5,13.2     # eigene Sekunden
-pnpm render                       # beide MP4s → out/
+pnpm render                       # Produkt-Demo → out/revetly-demo-16x9.mp4
+pnpm render:launch                # Launch-Video v2, beide Formate
 pnpm audio                        # SFX und Platzhalter-Musik neu erzeugen
 ```
 
 Ohne Chromium-Download: `BROWSER=/pfad/zu/chrome pnpm stills`, beim Rendern
 `--browser-executable=/pfad/zu/chrome`.
 
-## Aufbau
+## Launch-Video v2
 
 | Datei | Inhalt |
 |---|---|

@@ -14,3 +14,16 @@ export const COPY = {
   tagline: "Mehr Zeit für die wichtigen Dinge.",
   cta: { aktion: "Erste Stelle kostenlos testen", url: "www.revetly.ai" },
 } as const
+
+/** Texte der Produkt-Demo (Composition "RevetlyDemo"). */
+export const DEMO_COPY = {
+  intro1: "Recruiting is time-consuming.",
+  intro2: "Meet",
+  upload1: "Drop in a CV.",
+  upload2: "Skills and score in seconds.",
+  scoring1: "Every applicant, scored.",
+  scoring2: "AI summary at a glance.",
+  slogan: "AI-Powered Applicant Tracking",
+  cta: "revetly.ai",
+  features: ["Smart CV Upload", "Applicant Scoring", "AI Summary"],
+} as const

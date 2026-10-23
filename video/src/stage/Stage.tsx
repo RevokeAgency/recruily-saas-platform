@@ -9,10 +9,10 @@ import { progress, useClock } from "../lib/time"
  * Ebene 1: Near-Black mit weichem Mesh aus Mid-Teal, das langsam wandert.
  * Im Hook fast schwarz, ab dem Schnitt bei 4 s voll da.
  */
-export const Mesh: React.FC = () => {
+export const Mesh: React.FC<{ dimUntil?: number }> = ({ dimUntil = at("problem") }) => {
   const { t } = useClock()
-  // Im Hook bleibt die Bühne nahezu schwarz
-  const level = 0.18 + 0.82 * progress(t, at("problem"), at("problem", 0.6))
+  // Bis dimUntil bleibt die Bühne nahezu schwarz (im Launch-Video: der Hook)
+  const level = 0.18 + 0.82 * progress(t, dimUntil, dimUntil + 0.6)
 
   const blob = (cx: number, cy: number, r: number, alpha: number, key: string) => (
     <div

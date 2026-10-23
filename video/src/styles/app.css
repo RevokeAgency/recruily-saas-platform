@@ -1,0 +1,24 @@
+/*
+ * Tailwind und Design-Tokens der App für die Video-Szenen.
+ * Die Tokens (--rv-*, --primary, --card, Schatten …) kommen unverändert aus
+ * app/globals.css, damit das Video exakt die Farben des Produkts trifft.
+ */
+@import "../../../app/globals.css";
+
+/* Klassen aus den App-Komponenten und aus den Video-Szenen erzeugen */
+@source "../../../components/ui";
+@source "../components";
+
+:root {
+  /* in der App setzt next/font diese Variable */
+  --font-plus-jakarta-sans: "Plus Jakarta Sans";
+}
+
+/* Remotion rendert Bild für Bild: CSS-Transitions und -Animationen der
+   App-Klassen würden zwischen den Frames weiterlaufen und das Bild
+   verfälschen. Bewegung kommt im Video ausschließlich aus interpolate/spring. */
+.rv-video,
+.rv-video * {
+  transition: none !important;
+  animation: none !important;
+}

@@ -9,7 +9,8 @@
     "audio": "node scripts/audio.mjs",
     "check": "node --no-warnings scripts/check-timing.mjs",
     "stills": "pnpm audio && pnpm check && node --no-warnings scripts/stills.mjs",
-    "render": "pnpm audio && pnpm check && remotion render Launch-16x9 out/revetly-launch-16x9.mp4 && remotion render Launch-1x1 out/revetly-launch-1x1.mp4"
+    "render": "pnpm audio && pnpm check && remotion render RevetlyDemo out/revetly-demo-16x9.mp4",
+    "render:launch": "pnpm audio && pnpm check && remotion render Launch-16x9 out/revetly-launch-16x9.mp4 && remotion render Launch-1x1 out/revetly-launch-1x1.mp4"
   },
   "dependencies": {
     "@remotion/cli": "4.0.534",
@@ -21,7 +22,9 @@
   "devDependencies": {
     "@remotion/bundler": "4.0.534",
     "@remotion/renderer": "4.0.534",
+    "@remotion/tailwind-v4": "4.0.534",
     "@types/react": "19.2.2",
+    "tailwindcss": "4.2.0",
     "typescript": "5.7.3"
   },
   "type": "module"

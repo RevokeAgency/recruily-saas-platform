@@ -5,6 +5,7 @@
 //
 //   node scripts/check-timing.mjs
 import { DURATION, MARKERS, sfxCues, visualEvents } from "../src/config/timing.ts"
+import { DEMO_DURATION, demoEvents, demoSfx, SCENE } from "../src/config/demo-timing.ts"
 
 const MAX_GAP = 2
 let ok = true
@@ -31,7 +32,17 @@ for (const c of sfxCues()) {
   if (c.at < 0 || c.at > DURATION) fail(`SFX ${c.sound} bei ${c.at} s liegt außerhalb des Videos`)
 }
 
+// Produkt-Demo
+const dev = demoEvents()
+for (let i = 1; i < dev.length; i++) {
+  const gap = dev[i].at - dev[i - 1].at
+  if (gap > MAX_GAP + 1e-9) fail(`Demo: Loch von ${gap.toFixed(2)} s: ${dev[i - 1].at.toFixed(2)} s „${dev[i - 1].what}" → ${dev[i].at.toFixed(2)} s „${dev[i].what}"`)
+}
+for (const c of demoSfx()) if (c.at < 0 || c.at > DEMO_DURATION) fail(`Demo-SFX ${c.sound} bei ${c.at} s liegt außerhalb`)
+const demoGap = Math.max(...dev.slice(1).map((e, i) => e.at - dev[i].at))
+
 if (ok) {
+  console.log(`✓ Demo: ${Object.keys(SCENE).length} Szenenmarker, ${dev.length} Ereignisse, größte Lücke ${demoGap.toFixed(2)} s`)
   const maxGap = Math.max(...ev.slice(1).map((e, i) => e.at - ev[i].at))
   console.log(`✓ ${entries.length} Marker, ${ev.length} Ereignisse, größte Lücke ${maxGap.toFixed(2)} s, ${sfxCues().length} Soundeffekte`)
 } else {

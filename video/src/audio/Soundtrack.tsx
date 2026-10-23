@@ -1,10 +1,10 @@
 import React from "react"
 import { Audio, interpolate, Sequence, staticFile, useVideoConfig } from "remotion"
 
-import { DURATION, MUSIC, SFX_LEAD, sfxCues } from "../config/timing"
+import { DURATION, MUSIC, SFX_LEAD, sfxCues, type SfxCue } from "../config/timing"
 
 /** Musik (Slot) und alle Soundeffekte aus config/timing.ts. */
-export const Soundtrack: React.FC = () => {
+export const Soundtrack: React.FC<{ cues?: SfxCue[] }> = ({ cues }) => {
   const { fps } = useVideoConfig()
   const total = DURATION * fps
   const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const
@@ -22,7 +22,7 @@ export const Soundtrack: React.FC = () => {
           }
         />
       )}
-      {sfxCues().map((c, i) => (
+      {(cues ?? sfxCues()).map((c, i) => (
         <Sequence key={i} from={Math.max(0, Math.round((c.at - SFX_LEAD) * fps))} durationInFrames={Math.round(2 * fps)} layout="none">
           <Audio src={staticFile(`sfx/${c.sound}.wav`)} volume={c.volume} />
         </Sequence>

@@ -125,3 +125,44 @@ export const EVIDENCE: readonly Evidence[] = [
     zitat: "Ich habe ein Mentoring-Programm für neue Kolleginnen und Kollegen aufgebaut.",
   },
 ]
+
+// ---------------------------------------------------------------------------
+// Produkt-Demo (Composition "RevetlyDemo"). Ebenfalls erfunden.
+// Sarah Lindner wird in Szene 2 hochgeladen und steht in Szene 3 mit
+// demselben Score an der Spitze der Liste.
+// ---------------------------------------------------------------------------
+
+export const DEMO_UPLOAD = {
+  name: "Sarah Lindner",
+  initials: "SL",
+  role: "Customer Success Lead",
+  city: "Wien",
+  years: 7,
+  score: 94,
+  file: "Lebenslauf_Sarah_Lindner.pdf",
+  skills: ["Teamführung", "Zendesk", "KPI-Steuerung", "Coaching", "Eskalationsmanagement", "Englisch C1"],
+  /** KI-Zusammenfassung wie in der App (summary_ai) */
+  summary:
+    "Sieben Jahre Kundenservice, davon vier in Führungsverantwortung. Hat ein Team von zwölf Personen aufgebaut und die Erstlösungsquote nachweislich gesteigert. Stark in Coaching und Steuerung über Kennzahlen.",
+  /** Stellen in der Zusammenfassung, die der Marker hervorhebt (wörtlich aus summary) */
+  highlights: ["vier in Führungsverantwortung", "Erstlösungsquote nachweislich gesteigert", "Coaching und Steuerung über Kennzahlen"],
+  /** „Warum dieser Kandidat passt" (ai_summary, in der App mit " | " getrennt) */
+  pitch: [
+    "Führt seit 2021 ein Kundenservice-Team, laut Lebenslauf 12 Mitarbeitende",
+    "Erfahrung mit Zendesk und Steuerung über Kennzahlen",
+    "Anschreiben beschreibt konkret den Aufbau eines Onboardings",
+  ],
+} as const
+
+/** Kandidatenliste in Szene 3: die Hochgeladene oben, dann die Rangliste. */
+export const DEMO_LIST = [
+  { name: DEMO_UPLOAD.name, initials: DEMO_UPLOAD.initials, years: DEMO_UPLOAD.years, city: DEMO_UPLOAD.city, score: DEMO_UPLOAD.score, status: "Bewertet" },
+  ...RANKED.slice(0, 5).map((r) => ({ name: r.name, initials: r.initials, years: r.years, city: r.city, score: r.score, status: "Bewertet" })),
+] as const
+
+/** Kennzahlen über der Liste (passen zur Liste: alle sichtbaren ≥ 77 %). */
+export const DEMO_STATS = [
+  { label: "Bewerbungen", value: 80, suffix: "" },
+  { label: "Ø Match-Score", value: 74, suffix: " %" },
+  { label: "Top-Kandidaten (80 %+)", value: 9, suffix: "" },
+] as const
