@@ -6,3 +6,4 @@ public/music/platzhalter.wav
 assets/anim/
 # wird von scripts/showreel-audio.mjs erzeugt
 public/showreel/music.wav
+public/showreel/dashboard/music.wav

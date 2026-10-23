@@ -1,0 +1,210 @@
+{
+  "url": "https://raw.githack.com/RevokeAgency/recruily-saas-platform/preview/dashboard-html/dashboard-preview.html",
+  "capturedAt": "2026-10-23T18:50:59.151Z",
+  "viewport": {
+    "w": 1440,
+    "h": 900,
+    "scale": 2
+  },
+  "parts": {
+    "logo": {
+      "x": 36,
+      "y": 28,
+      "w": 112.5,
+      "h": 44
+    },
+    "nav": {
+      "x": 244,
+      "y": 28,
+      "w": 815,
+      "h": 44
+    },
+    "actions": {
+      "x": 1155,
+      "y": 28,
+      "w": 243,
+      "h": 44
+    },
+    "headline": {
+      "x": 44,
+      "y": 104,
+      "w": 452,
+      "h": 74.5
+    },
+    "kpis": {
+      "x": 1036.5,
+      "y": 104,
+      "w": 359.5,
+      "h": 61.5
+    },
+    "status": {
+      "x": 44,
+      "y": 206.5,
+      "w": 672,
+      "h": 59.5
+    },
+    "buttons": {
+      "x": 987.5,
+      "y": 226,
+      "w": 408.5,
+      "h": 40
+    }
+  },
+  "cards": {
+    "score": {
+      "x": 44,
+      "y": 290,
+      "w": 440,
+      "h": 289
+    },
+    "quota": {
+      "x": 500,
+      "y": 290,
+      "w": 440,
+      "h": 289
+    },
+    "prio": {
+      "x": 956,
+      "y": 290,
+      "w": 440,
+      "h": 289
+    },
+    "recent": {
+      "x": 44,
+      "y": 603,
+      "w": 440,
+      "h": 401.5
+    },
+    "top": {
+      "x": 500,
+      "y": 603,
+      "w": 440,
+      "h": 401.5
+    },
+    "kpi": {
+      "x": 956,
+      "y": 603,
+      "w": 440,
+      "h": 401.5
+    },
+    "quality": {
+      "x": 44,
+      "y": 1029,
+      "w": 440,
+      "h": 313
+    },
+    "activity": {
+      "x": 44,
+      "y": 1366,
+      "w": 1352,
+      "h": 357
+    }
+  },
+  "hovers": {
+    "top-1": {
+      "card": "top",
+      "target": {
+        "x": 517,
+        "y": 663.84375,
+        "w": 406,
+        "h": 60
+      }
+    },
+    "prio-1": {
+      "card": "prio",
+      "target": {
+        "x": 972,
+        "y": 349.96875,
+        "w": 408,
+        "h": 56
+      }
+    },
+    "activity-1": {
+      "card": "activity",
+      "target": {
+        "x": 61,
+        "y": 1429.640625,
+        "w": 1318,
+        "h": 64
+      }
+    },
+    "recent-5": {
+      "card": "recent",
+      "target": {
+        "x": 61,
+        "y": 887.84375,
+        "w": 406,
+        "h": 52
+      }
+    },
+    "btn-upload": {
+      "card": null,
+      "target": {
+        "x": 987.578125,
+        "y": 225.96875,
+        "w": 209.03125,
+        "h": 40
+      }
+    },
+    "btn-job": {
+      "card": null,
+      "target": {
+        "x": 1208.609375,
+        "y": 225.96875,
+        "w": 187.390625,
+        "h": 40
+      }
+    }
+  },
+  "title": "Dashboard-Vorschau | Revetly",
+  "vars": {
+    "--primary": "#16c77c",
+    "--background": "#f5f6f8",
+    "--foreground": "#0c1a16",
+    "--card": "#fff",
+    "--muted": "#f1f3f5",
+    "--accent": "#e7f6fc",
+    "--border": "#0c1a1614",
+    "--rv-cyan": "#22c1ee",
+    "--rv-green": "#16c77c",
+    "--rv-ink": "#0c1a16",
+    "--chart-1": "#22c1ee",
+    "--chart-2": "#16c77c",
+    "--radius": ".75rem"
+  },
+  "fonts": [
+    "plusJakartaSans, \"plusJakartaSans Fallback\", system-ui, sans-serif"
+  ],
+  "texts": [
+    "Dashboard",
+    "Stellenangebote",
+    "Kandidaten",
+    "Posteingang",
+    "Kalender",
+    "Abonnement",
+    "Einstellungen",
+    "184/300",
+    "LH",
+    "Willkommen zurück, Lisa",
+    "Kandidaten hochladen",
+    "Neuen Job erstellen",
+    "3 Interviews auszuwertenEingeladene Kandidaten strukturiert bewerten",
+    "5 Kandidaten in AnalyseAnalyse läuft oder wartet auf Start",
+    "2 nicht zugeordnetBewerbungen im Posteingang zuweisen",
+    "JLJonas LeitnerKfz-Mechatroniker:in · vor 12 Minuten91%Public Page",
+    "SPSarah PichlerPflegefachkraft (DGKP) · vor 1 Stunde84%E-Mail",
+    "MYMehmet YilmazProjektleiter:in Elektrotechnik · vor 3 Stunden77%Public Page",
+    "KWKatharina WolfBuchhalter:in Teilzeit · vor 5 Stunden63%Manuell",
+    "DBDavid BrunnerKfz-Mechatroniker:in · gerade ebenE-Mail",
+    "1JLJonas LeitnerKfz-Mechatroniker:in91%",
+    "2ENElena NovakPflegefachkraft (DGKP)88%",
+    "3SPSarah PichlerPflegefachkraft (DGKP)84%",
+    "4LMLukas MayrProjektleiter:in Elektrotechnik81%",
+    "5MYMehmet YilmazProjektleiter:in Elektrotechnik77%",
+    "Letzte Aktivitäten",
+    "Kfz-Mechatroniker:inAutohaus Steiner · vor 2 TagenAktiv46 KandidatenTop: 91%",
+    "Pflegefachkraft (DGKP)Seniorenresidenz Am Park · vor 5 TagenAktiv39 KandidatenTop: 88%",
+    "Projektleiter:in ElektrotechnikGruber Elektro · vor 1 WocheAktiv31 KandidatenTop: 81%",
+    "Buchhalter:in TeilzeitHuber & Partner · vor 2 WochenEntwurf"
+  ]
+}

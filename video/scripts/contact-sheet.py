@@ -1,8 +1,10 @@
-"""Kontaktabzug des Showreels: ein Bild pro Beat, je Format eine Zeile.
+"""Kontaktabzug eines Showreels: ein Bild pro Beat, je Format eine Zeile.
 
-    pnpm stills Showreel && python3 scripts/contact-sheet.py
-Ergebnis: out/showreel-contact-sheet.png
+    pnpm stills Showreel && python3 scripts/contact-sheet.py            → out/showreel-contact-sheet.png
+    pnpm stills Dashreel && python3 scripts/contact-sheet.py Dashreel   → out/dashreel-contact-sheet.png
 """
+
+import sys
 
 from pathlib import Path
 
@@ -10,16 +12,29 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 STILLS = ROOT / "out" / "stills"
-# Sekunden wie SHOWREEL in scripts/stills.mjs
-BEATS = [
-    (2.6, "1 Hook"),
-    (5.6, "2 UI baut sich auf"),
-    (9.1, "3 Feature: Ranking"),
-    (11.9, "4 Feature: Match-Analyse"),
-    (15.1, "5 Feature: Gespräch"),
-    (17.4, "6 Kennzahl"),
-    (19.6, "7 Logo + CTA"),
-]
+# Sekunden wie SHOWREEL / DASHREEL in scripts/stills.mjs
+SHEETS = {
+    "Showreel": [
+        (2.6, "1 Hook"),
+        (5.6, "2 UI baut sich auf"),
+        (9.1, "3 Feature: Ranking"),
+        (11.9, "4 Feature: Match-Analyse"),
+        (15.1, "5 Feature: Gespräch"),
+        (17.4, "6 Kennzahl"),
+        (19.6, "7 Logo + CTA"),
+    ],
+    "Dashreel": [
+        (2.4, "1 Hook"),
+        (5.7, "2 Dashboard baut sich auf"),
+        (9.2, "3 Feature: Top-Kandidaten"),
+        (12.2, "4 Feature: Prioritäten"),
+        (15.2, "5 Feature: Posteingang"),
+        (17.4, "6 Kennzahl"),
+        (19.6, "7 Logo + CTA"),
+    ],
+}
+NAME = sys.argv[1] if len(sys.argv) > 1 else "Showreel"
+BEATS = SHEETS[NAME]
 ROWS = [("9x16", 520), ("1x1", 300), ("16x9", 300)]  # Höhe der Kacheln je Format
 PAD, HEAD = 24, 54
 
@@ -29,7 +44,7 @@ small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18
 
 def still(fmt, sec):
     s = f"{sec:g}".replace(".", "-")
-    return Image.open(STILLS / f"Showreel-{fmt}_{s}s.png").convert("RGB")
+    return Image.open(STILLS / f"{NAME}-{fmt}_{s}s.png").convert("RGB")
 
 
 col_w = 0
@@ -59,6 +74,6 @@ for fmt, h in ROWS:
         d.text((x + 8, y + h - 26), f"{sec:g} s", font=small, fill="#ffffff")
     y += h + PAD
 
-out = ROOT / "out" / "showreel-contact-sheet.png"
+out = ROOT / "out" / f"{NAME.lower()}-contact-sheet.png"
 sheet.save(out)
 print(out.relative_to(ROOT), sheet.size)

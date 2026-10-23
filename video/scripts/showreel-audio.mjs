@@ -6,7 +6,10 @@
 //   Takt 8    Kennzahl  Einschlag, Halbzeit, Snare-Roll und Riser
 //   Takt 9    Logo      Einschlag, Schlussakkord, Glitzer auf dem CTA-Klick
 //
-//   node scripts/showreel-audio.mjs   →  public/showreel/music.wav (Stereo, 16 bit, 44,1 kHz)
+//   node scripts/showreel-audio.mjs             →  public/showreel/music.wav (Stereo, 16 bit, 44,1 kHz)
+//   node scripts/showreel-audio.mjs dashboard   →  public/showreel/dashboard/music.wav
+//      eigene Variante für das Dashboard-Showreel: d-Moll, andere Akkordfolge,
+//      anderes Arpeggio ab Takt 2, gleiches Raster
 import { mkdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
@@ -16,13 +19,35 @@ const BEAT = 60 / BPM
 const DUR = 20
 const N = Math.round(DUR * SR)
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..")
-const OUT = path.join(ROOT, "public/showreel/music.wav")
+const VARIANTS = {
+  showreel: {
+    out: "public/showreel/music.wav",
+    seed: 120120,
+    transpose: 0,
+    bars: ["Am", "Am", "Am", "F", "C", "G", "Am", "F", "G", "Am9"],
+    arp: [0, 2, 4, 1, 3, 5, 4, 2],
+    arpFrom: 4,
+    hook: [69, 76, 69, 69, 69],
+  },
+  dashboard: {
+    out: "public/showreel/dashboard/music.wav",
+    seed: 404040,
+    transpose: 5,
+    bars: ["Am", "Am", "F", "G", "Am", "C", "F", "G", "G", "Am9"],
+    arp: [0, 3, 1, 4, 2, 5, 3, 1],
+    arpFrom: 2,
+    hook: [64, 67, 69, 72, 76],
+  },
+}
+const V = VARIANTS[process.argv[2] ?? "showreel"]
+if (!V) throw new Error(`Unbekannte Variante: ${process.argv[2]}`)
+const OUT = path.join(ROOT, V.out)
 
 const L = new Float32Array(N)
 const R = new Float32Array(N)
 const at = (beat) => beat * BEAT
 
-let seed = 120120
+let seed = V.seed
 function rand() {
   seed |= 0
   seed = (seed + 0x6d2b79f5) | 0
@@ -184,7 +209,7 @@ function sub(m, seconds) {
 }
 
 function shimmer() {
-  const notes = [81, 84, 88, 93, 96]
+  const notes = [81, 84, 88, 93, 96].map((m) => m + V.transpose)
   return render(2.5, (t) => {
     let v = 0
     notes.forEach((m, k) => {
@@ -203,7 +228,12 @@ const CH = {
   G: { pad: [55, 59, 62, 67], bass: 43 },
   Am9: { pad: [57, 60, 64, 71], bass: 45 },
 }
-const BARS = ["Am", "Am", "Am", "F", "C", "G", "Am", "F", "G", "Am9"]
+// Akkorde der Variante in ihre Tonart schieben
+for (const c of Object.values(CH)) {
+  c.pad = c.pad.map((m) => m + V.transpose)
+  c.bass += V.transpose
+}
+const BARS = V.bars
 
 // Bus für alles, was der Kick wegduckt
 const duckL = new Float32Array(N)
@@ -213,12 +243,12 @@ const kicks = []
 
 // Takt 0–1: Hook. Drohne, Schläge auf den fünf Wörtern
 placeDuck(pad(CH.Am.pad, at(8), (t) => 300 + 500 * (t / at(8))), 0, 0.3)
-placeDuck(sub(33, at(5.5)), 0, 0.35)
+placeDuck(sub(33 + V.transpose, at(5.5)), 0, 0.35)
 for (const beat of [0, 1, 2, 3, 4]) {
   place(kick(1.3), at(beat), 0.95)
   kicks.push(at(beat))
   place(snare(), at(beat) + 0.002, beat === 4 ? 0.35 : 0.18)
-  place(pluck(beat === 1 ? 76 : 69, 0.4, 7000), at(beat), 0.18, beat % 2 ? 0.4 : -0.4)
+  place(pluck(V.hook[beat] + V.transpose, 0.4, 7000), at(beat), 0.18, beat % 2 ? 0.4 : -0.4)
 }
 place(fall(0.55), at(5.5), 0.28)
 place(impact(), at(6), 0.75)
@@ -246,9 +276,9 @@ for (let bar = 2; bar <= 7; bar++) {
     if (bar >= 4) for (const s of [0.25, 0.75]) place(hat(false), tb + at(s), 0.06, -0.35)
   }
   // Arpeggio ab Takt 4, mit gepunkteter Achtel als Echo
-  if (bar >= 4) {
+  if (bar >= V.arpFrom) {
     const notes = [...ch.pad, ch.pad[1] + 12, ch.pad[2] + 12]
-    const seq = [0, 2, 4, 1, 3, 5, 4, 2]
+    const seq = V.arp
     for (let s = 0; s < 16; s++) {
       const n = notes[seq[s % seq.length]] + 12
       const ts = t0 + at(s * 0.25)
@@ -292,7 +322,7 @@ for (const beat of [36, 37, 38, 39]) {
 place(clap(), at(37), 0.35)
 place(clap(), at(39), 0.3)
 place(shimmer(), at(38.5), 0.22, 0.15)
-for (const [k, m] of [69, 72, 76, 81].entries()) place(pluck(m, 0.6, 6000), at(38.5) + k * 0.03, 0.1, (k - 1.5) * 0.3)
+for (const [k, m] of [69, 72, 76, 81].entries()) place(pluck(m + V.transpose, 0.6, 6000), at(38.5) + k * 0.03, 0.1, (k - 1.5) * 0.3)
 
 // Sidechain: der Pad-Bus duckt auf jedem Kick
 const duck = new Float32Array(N).fill(1)

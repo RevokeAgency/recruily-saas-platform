@@ -5,6 +5,7 @@ import { DemoVideo } from "./components/DemoVideo"
 import { DEMO_DURATION, DEMO_FPS } from "./config/demo-timing"
 import { DURATION, FPS } from "./config/timing"
 import { Launch } from "./Launch"
+import { Dashreel } from "./dashreel/Dashreel"
 import { Showreel } from "./showreel/Showreel"
 import { SR_DURATION, SR_FPS } from "./showreel/timing"
 import { loadFonts } from "./lib/fonts"
@@ -28,6 +29,13 @@ export const Root: React.FC = () => (
       <Composition id="Showreel-9x16" component={Showreel} durationInFrames={SR_DURATION * SR_FPS} fps={SR_FPS} width={1080} height={1920} />
       <Composition id="Showreel-1x1" component={Showreel} durationInFrames={SR_DURATION * SR_FPS} fps={SR_FPS} width={1080} height={1080} />
       <Composition id="Showreel-16x9" component={Showreel} durationInFrames={SR_DURATION * SR_FPS} fps={SR_FPS} width={1920} height={1080} />
+    </Folder>
+
+    {/* Dashboard-Showreel aus der Dashboard-Vorschau, gleiches Raster */}
+    <Folder name="Dashboard-Showreel">
+      <Composition id="Dashreel-9x16" component={Dashreel} durationInFrames={SR_DURATION * SR_FPS} fps={SR_FPS} width={1080} height={1920} />
+      <Composition id="Dashreel-1x1" component={Dashreel} durationInFrames={SR_DURATION * SR_FPS} fps={SR_FPS} width={1080} height={1080} />
+      <Composition id="Dashreel-16x9" component={Dashreel} durationInFrames={SR_DURATION * SR_FPS} fps={SR_FPS} width={1920} height={1080} />
     </Folder>
 
     {/* Launch-Video v2 (abgenommen) */}

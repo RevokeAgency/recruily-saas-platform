@@ -14,6 +14,7 @@ import override from "../webpack-override.cjs"
 const { webpackOverride } = override
 
 const SHOWREEL = [2.6, 5.6, 9.1, 11.9, 15.1, 17.4, 19.6]
+const DASHREEL = [2.4, 5.7, 9.2, 12.2, 15.2, 17.4, 19.6]
 
 /** Abnahme-Zeitpunkte je Composition. */
 const SECONDS = {
@@ -24,6 +25,9 @@ const SECONDS = {
   "Showreel-9x16": SHOWREEL,
   "Showreel-1x1": SHOWREEL,
   "Showreel-16x9": SHOWREEL,
+  "Dashreel-9x16": DASHREEL,
+  "Dashreel-1x1": DASHREEL,
+  "Dashreel-16x9": DASHREEL,
 }
 
 //   pnpm stills Demo              nur die Produkt-Demo

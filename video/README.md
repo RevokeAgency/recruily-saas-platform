@@ -35,6 +35,29 @@ pnpm showreel:sheet    # Musik, Standbilder, out/showreel-contact-sheet.png
 pnpm render:showreel   # alle drei Formate nach out/
 ```
 
+## Dashboard-Showreel (20 s, 120 BPM)
+
+`Dashreel-9x16`, `Dashreel-1x1`, `Dashreel-16x9`: dieselbe Struktur wie der Showreel, gebaut
+aus der Dashboard-Vorschau (Branch `preview/dashboard-html`, erfundene Beispieldaten).
+Bühne, Schnitte und Typo kommen aus `src/showreel/kit.tsx`.
+
+| Datei | Inhalt |
+|---|---|
+| `src/dashreel/timing.ts` | Zeiten im selben Raster, Texte, Kennzahl, SFX |
+| `src/dashreel/scenes/` | Hook, Assemble (Dashboard baut sich auf), Feature (Karte + echter Hover + Klick), Metric, Lockup |
+| `scripts/capture-dashboard.mjs` | Aufnahme: erster Bildschirm, Bauteile, Karten, Hover-Zustände → `assets/dashboard/` |
+| `scripts/dashreel_prep.py` | Zuschnitt, Zeilenstreifen, Masken → `public/showreel/dashboard/` |
+
+Die Seite ist ein Schnappschuss ohne JavaScript; echte Aktionen sind ihre CSS-Hover-Zustände
+(Zeilen, Button „Neuen Job erstellen"). Die Musik ist eine eigene Variante desselben
+Synthesizers (`node scripts/showreel-audio.mjs dashboard`, d-Moll).
+
+```bash
+pnpm dashreel:assets   # neu aufnehmen und zuschneiden
+pnpm dashreel:sheet    # Musik, Standbilder, out/dashreel-contact-sheet.png
+pnpm render:dashreel   # alle drei Formate nach out/
+```
+
 ## Produkt-Demo
 
 | Datei | Inhalt |

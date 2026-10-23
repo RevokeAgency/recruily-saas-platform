@@ -4,7 +4,7 @@
   "private": true,
   "description": "Revetly Launch-Video (Remotion). Eigenständig, unabhängig von der App.",
   "scripts": {
-    "studio": "pnpm audio && pnpm showreel:audio && remotion studio",
+    "studio": "pnpm audio && pnpm showreel:audio && pnpm dashreel:audio && remotion studio",
     "typecheck": "tsc --noEmit",
     "audio": "node scripts/audio.mjs",
     "check": "node --no-warnings scripts/check-timing.mjs",
@@ -15,6 +15,10 @@
     "showreel:audio": "node scripts/showreel-audio.mjs",
     "showreel:sheet": "pnpm showreel:audio && node --no-warnings scripts/stills.mjs Showreel && python3 scripts/contact-sheet.py",
     "render:showreel": "pnpm showreel:audio && remotion render Showreel-9x16 out/revetly-showreel-9x16.mp4 && remotion render Showreel-1x1 out/revetly-showreel-1x1.mp4 && remotion render Showreel-16x9 out/revetly-showreel-16x9.mp4",
+    "dashreel:assets": "NODE_PATH=$(npm root -g) node scripts/capture-dashboard.mjs && python3 scripts/dashreel_prep.py",
+    "dashreel:audio": "node scripts/showreel-audio.mjs dashboard",
+    "dashreel:sheet": "pnpm dashreel:audio && node --no-warnings scripts/stills.mjs Dashreel && python3 scripts/contact-sheet.py Dashreel",
+    "render:dashreel": "pnpm dashreel:audio && remotion render Dashreel-9x16 out/revetly-dashreel-9x16.mp4 && remotion render Dashreel-1x1 out/revetly-dashreel-1x1.mp4 && remotion render Dashreel-16x9 out/revetly-dashreel-16x9.mp4",
     "hf:build": "node --no-warnings scripts/hyperframes.mjs build",
     "hf:render": "node --no-warnings scripts/hyperframes.mjs render",
     "hf:preview": "cd hyperframes && npx hyperframes preview"
