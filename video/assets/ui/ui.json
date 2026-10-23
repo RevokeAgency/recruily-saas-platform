@@ -1,0 +1,344 @@
+{
+  "hero-nav": {
+    "w": 1216,
+    "h": 80,
+    "x": 112,
+    "y": 8
+  },
+  "hero-badge": {
+    "w": 330,
+    "h": 51,
+    "x": 144,
+    "y": 158
+  },
+  "hero-headline": {
+    "w": 736,
+    "h": 266,
+    "x": 144,
+    "y": 217
+  },
+  "hero-copy": {
+    "w": 536,
+    "h": 105,
+    "x": 144,
+    "y": 489
+  },
+  "hero-cta": {
+    "w": 302,
+    "h": 72,
+    "x": 144,
+    "y": 605
+  },
+  "hero-trust": {
+    "w": 146,
+    "h": 34,
+    "x": 397,
+    "y": 717
+  },
+  "hero-viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "steps": {
+    "w": 1156,
+    "h": 260
+  },
+  "compare-100": {
+    "w": 1140,
+    "h": 398
+  },
+  "compare-0": {
+    "w": 1140,
+    "h": 398
+  },
+  "compare-50": {
+    "w": 1140,
+    "h": 398
+  },
+  "compare": {
+    "rect": {
+      "x": 152,
+      "y": 1315.46875,
+      "w": 1136,
+      "h": 394.0625
+    }
+  },
+  "score-card": {
+    "w": 1117,
+    "h": 403
+  },
+  "score-seq": [
+    {
+      "file": "score-seq-00.png",
+      "ms": 542
+    },
+    {
+      "file": "score-seq-01.png",
+      "ms": 888
+    },
+    {
+      "file": "score-seq-02.png",
+      "ms": 1122
+    },
+    {
+      "file": "score-seq-03.png",
+      "ms": 1319
+    },
+    {
+      "file": "score-seq-04.png",
+      "ms": 1517
+    },
+    {
+      "file": "score-seq-05.png",
+      "ms": 1718
+    },
+    {
+      "file": "score-seq-06.png",
+      "ms": 1939
+    },
+    {
+      "file": "score-seq-07.png",
+      "ms": 2127
+    },
+    {
+      "file": "score-seq-08.png",
+      "ms": 2320
+    },
+    {
+      "file": "score-seq-09.png",
+      "ms": 2530
+    },
+    {
+      "file": "score-seq-10.png",
+      "ms": 2736
+    },
+    {
+      "file": "score-seq-11.png",
+      "ms": 2948
+    },
+    {
+      "file": "score-seq-12.png",
+      "ms": 3168
+    },
+    {
+      "file": "score-seq-13.png",
+      "ms": 3369
+    },
+    {
+      "file": "score-seq-14.png",
+      "ms": 3599
+    },
+    {
+      "file": "score-seq-15.png",
+      "ms": 3854
+    },
+    {
+      "file": "score-seq-16.png",
+      "ms": 4072
+    },
+    {
+      "file": "score-seq-17.png",
+      "ms": 4295
+    },
+    {
+      "file": "score-seq-18.png",
+      "ms": 4500
+    },
+    {
+      "file": "score-seq-19.png",
+      "ms": 4704
+    },
+    {
+      "file": "score-seq-20.png",
+      "ms": 4896
+    },
+    {
+      "file": "score-seq-21.png",
+      "ms": 5107
+    },
+    {
+      "file": "score-seq-22.png",
+      "ms": 5310
+    },
+    {
+      "file": "score-seq-23.png",
+      "ms": 5581
+    },
+    {
+      "file": "score-seq-24.png",
+      "ms": 5798
+    },
+    {
+      "file": "score-seq-25.png",
+      "ms": 5991
+    }
+  ],
+  "score-targets": {
+    "candidate": {
+      "x": 269.5103302001953,
+      "y": 2301.3258056640625,
+      "w": 395.81280517578125,
+      "h": 19.048583984375
+    },
+    "topMatch": {
+      "x": 514.4759521484375,
+      "y": 315.05859375,
+      "w": 78.328125,
+      "h": 24.5625
+    },
+    "score": {
+      "x": 141.9525146484375,
+      "y": 62.12890625,
+      "w": 40.5625,
+      "h": 26.390625
+    }
+  },
+  "interview-card": {
+    "w": 623,
+    "h": 610
+  },
+  "interview-seq": [
+    {
+      "file": "interview-seq-00.png",
+      "ms": 201
+    },
+    {
+      "file": "interview-seq-01.png",
+      "ms": 619
+    },
+    {
+      "file": "interview-seq-02.png",
+      "ms": 810
+    },
+    {
+      "file": "interview-seq-03.png",
+      "ms": 1015
+    },
+    {
+      "file": "interview-seq-04.png",
+      "ms": 1181
+    },
+    {
+      "file": "interview-seq-05.png",
+      "ms": 1313
+    },
+    {
+      "file": "interview-seq-06.png",
+      "ms": 1479
+    },
+    {
+      "file": "interview-seq-07.png",
+      "ms": 1636
+    },
+    {
+      "file": "interview-seq-08.png",
+      "ms": 1812
+    },
+    {
+      "file": "interview-seq-09.png",
+      "ms": 1979
+    },
+    {
+      "file": "interview-seq-10.png",
+      "ms": 2153
+    },
+    {
+      "file": "interview-seq-11.png",
+      "ms": 2349
+    },
+    {
+      "file": "interview-seq-12.png",
+      "ms": 2477
+    },
+    {
+      "file": "interview-seq-13.png",
+      "ms": 2647
+    },
+    {
+      "file": "interview-seq-14.png",
+      "ms": 2842
+    },
+    {
+      "file": "interview-seq-15.png",
+      "ms": 3009
+    },
+    {
+      "file": "interview-seq-16.png",
+      "ms": 3174
+    },
+    {
+      "file": "interview-seq-17.png",
+      "ms": 3305
+    },
+    {
+      "file": "interview-seq-18.png",
+      "ms": 3479
+    },
+    {
+      "file": "interview-seq-19.png",
+      "ms": 3642
+    },
+    {
+      "file": "interview-seq-20.png",
+      "ms": 3834
+    },
+    {
+      "file": "interview-seq-21.png",
+      "ms": 4041
+    },
+    {
+      "file": "interview-seq-22.png",
+      "ms": 4251
+    },
+    {
+      "file": "interview-seq-23.png",
+      "ms": 4433
+    },
+    {
+      "file": "interview-seq-24.png",
+      "ms": 4598
+    },
+    {
+      "file": "interview-seq-25.png",
+      "ms": 4790
+    },
+    {
+      "file": "interview-seq-26.png",
+      "ms": 4945
+    },
+    {
+      "file": "interview-seq-27.png",
+      "ms": 5162
+    },
+    {
+      "file": "interview-seq-28.png",
+      "ms": 5377
+    },
+    {
+      "file": "interview-seq-29.png",
+      "ms": 5565
+    }
+  ],
+  "interview-targets": {
+    "rating": {
+      "x": 37.8074951171875,
+      "y": 399.22802734375,
+      "w": 112.703125,
+      "h": 13
+    },
+    "match": {
+      "x": 30.8543701171875,
+      "y": 8768.36083984375,
+      "w": 293.328125,
+      "h": 22.078125
+    }
+  },
+  "automation-card": {
+    "w": 545,
+    "h": 220
+  },
+  "cta-card": {
+    "w": 559,
+    "h": 548
+  }
+}

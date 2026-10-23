@@ -1,0 +1,260 @@
+{
+  "url": "https://v0-recruily-saas-platform-i6m6ur52i.vercel.app/",
+  "capturedAt": "2026-10-23T15:21:07.172Z",
+  "sections": [
+    {
+      "file": "sections/01.png",
+      "id": "",
+      "heading": "DuführstdieGespräche.RevetlymachtdenRest.",
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "file": "sections/02.png",
+      "id": "",
+      "heading": "Die beste Bewerbung liegt selten oben.",
+      "w": 1440,
+      "h": 973
+    },
+    {
+      "file": "sections/03-ablauf.png",
+      "id": "ablauf",
+      "heading": "Von der Stellenanzeige bis zur Zusage in einem System.",
+      "w": 1440,
+      "h": 882
+    },
+    {
+      "file": "sections/04-match-analyse.png",
+      "id": "match-analyse",
+      "heading": "Lies die Shortlist,nicht den Stapel.",
+      "w": 1440,
+      "h": 981
+    },
+    {
+      "file": "sections/05-gespraech.png",
+      "id": "gespraech",
+      "heading": "Das Gespräch zählt mit.",
+      "w": 1440,
+      "h": 874
+    },
+    {
+      "file": "sections/06-entscheidung.png",
+      "id": "entscheidung",
+      "heading": "Revetly sortiert.Du entscheidest.",
+      "w": 1440,
+      "h": 553
+    },
+    {
+      "file": "sections/07-automatisch.png",
+      "id": "automatisch",
+      "heading": "Der Rest läuft nebenher.",
+      "w": 1440,
+      "h": 732
+    },
+    {
+      "file": "sections/08-zielgruppen.png",
+      "id": "zielgruppen",
+      "heading": "Für alle, die mehr Bewerbungen bekommen, als sie lesen können.",
+      "w": 1440,
+      "h": 877
+    },
+    {
+      "file": "sections/09-datenschutz.png",
+      "id": "datenschutz",
+      "heading": "Bewerberdaten bleiben in der EU.",
+      "w": 1440,
+      "h": 637
+    },
+    {
+      "file": "sections/10-preise.png",
+      "id": "preise",
+      "heading": "Starte mit einer Stelle.Wachse mit deinen Anforderungen.",
+      "w": 1440,
+      "h": 1658
+    },
+    {
+      "file": "sections/11-faq.png",
+      "id": "faq",
+      "heading": "Häufige Fragen.",
+      "w": 1440,
+      "h": 1067
+    },
+    {
+      "file": "sections/12-blog.png",
+      "id": "blog",
+      "heading": "Recruiting-Wissen,das im Alltag hilft.",
+      "w": 1440,
+      "h": 1487
+    },
+    {
+      "file": "sections/13.png",
+      "id": "",
+      "heading": "Teste Revetly mitdeiner nächsten Stelle.",
+      "w": 1440,
+      "h": 844
+    },
+    {
+      "file": "sections/14.png",
+      "id": "",
+      "heading": "",
+      "w": 1440,
+      "h": 470
+    }
+  ],
+  "images": [],
+  "vars": {
+    "--rv-cyan": "#22c1ee",
+    "--rv-green": "#16c77c",
+    "--rv-cyan-deep": "#0e96c4",
+    "--rv-green-deep": "#0e9f62",
+    "--rv-ink": "#0c1a16",
+    "--rv-mist": "#f1f6f4",
+    "--rv-gradient": "linear-gradient(130deg, #22c1ee 0%, #16c77c 100%)",
+    "--background": "#f5f6f8",
+    "--primary": "#16c77c"
+  },
+  "fonts": [
+    "plusJakartaSans, \"plusJakartaSans Fallback\", system-ui, sans-serif"
+  ],
+  "imgs": [
+    {
+      "src": "https://v0-recruily-saas-platform-i6m6ur52i.vercel.app/revetly/LogoEntwurf-trim.png",
+      "alt": "Revetly",
+      "w": 2500,
+      "h": 621
+    },
+    {
+      "src": "https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/Revetly/magnific_bewerbungen-sollen-herumf_jU6Imq8LD0.png",
+      "alt": "",
+      "w": 2048,
+      "h": 1152
+    },
+    {
+      "src": "https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/Revetly/Bild1.png",
+      "alt": "",
+      "w": 1248,
+      "h": 1140
+    },
+    {
+      "src": "https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/Revetly/magnific_generate-a-version-of-thi_ovqMfkn829.png",
+      "alt": "",
+      "w": 1328,
+      "h": 1760
+    },
+    {
+      "src": "https://v0-recruily-saas-platform-i6m6ur52i.vercel.app/revetly/LogoEntwurf.png",
+      "alt": "Revetly",
+      "w": 3508,
+      "h": 2480
+    }
+  ],
+  "texts": [
+    "DuführstdieGespräche.RevetlymachtdenRest.",
+    "Die beste Bewerbung liegt selten oben.",
+    "Ohne Revetly",
+    "Mit Revetly",
+    "Von der Stellenanzeige bis zur Zusage in einem System.",
+    "Stelle anlegen",
+    "Bewerbungen sammeln",
+    "Shortlist lesen",
+    "Gespräche führen",
+    "Entscheiden",
+    "Lies die Shortlist,nicht den Stapel.",
+    "Neun Ebenen statt Schlagwortsuche.",
+    "Zweite Prüfinstanz.",
+    "Qualifikationssperre.",
+    "Das Gespräch zählt mit.",
+    "Revetly sortiert.Du entscheidest.",
+    "Der Rest läuft nebenher.",
+    "Absagen.",
+    "Terminbuchung.",
+    "Talent-Pool.",
+    "Für alle, die mehr Bewerbungen bekommen, als sie lesen können.",
+    "Personaldienstleister und Recruiter.",
+    "Unternehmen mit vielen offenen Stellen.",
+    "Betriebe mit einer Stelle und vollem Posteingang.",
+    "Bewerberdaten bleiben in der EU.",
+    "Starte mit einer Stelle.Wachse mit deinen Anforderungen.",
+    "Häufige Fragen.",
+    "Recruiting-Wissen,das im Alltag hilft.",
+    "EU AI Act im Recruiting: Was Personalabteilungen jetzt wissen müssen",
+    "Strukturierte Interviews",
+    "Time-to-Hire senken",
+    "Talent-Pool aktivieren",
+    "KI-Matching vs. Stichwortsuche",
+    "Software-Auswahl für KMU",
+    "Teste Revetly mitdeiner nächsten Stelle."
+  ],
+  "buttons": [
+    "Ablauf",
+    "Match Analyse",
+    "Preise",
+    "FAQ",
+    "Blog",
+    "Anmelden",
+    "Gratis testen",
+    "Erste Stelle kostenlos testen",
+    "Monatlich",
+    "Jährlich",
+    "Gratis starten",
+    "Starter wählen",
+    "Growth wählen",
+    "Pro wählen",
+    "Kontakt",
+    "Alle Features im Detail vergleichen",
+    "Was zählt als Match?",
+    "Ersetzt Revetly mein HR-System?",
+    "Wer trifft die Entscheidung?",
+    "Wie kommt die Revetly Match Analyse zustande?",
+    "Wie viele Stellen kann ich parallel betreiben?",
+    "Was passiert, wenn mein Kontingent aufgebraucht ist?",
+    "Wo werden die Bewerberdaten verarbeitet?",
+    "Kann ich monatlich kündigen?",
+    "Alle Beiträge",
+    "Weiterlesen",
+    "Beispiel ansehen",
+    "Home",
+    "Für wen",
+    "hallo@revetly.ai",
+    "Datenschutz",
+    "Impressum",
+    "AGB"
+  ],
+  "numbers": [
+    "Erste Stelle kostenlos testen25 Matches gratis · keine Kreditkarte",
+    "192%",
+    "287%",
+    "374%",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "87",
+    "/100",
+    "Hard Skills92",
+    "Berufserfahrung78",
+    "Soft Skills85",
+    "Motivation & Kultur-Fit71",
+    "GesprächsleitfadenDas Gespräch zählt mit.Für jedes Gespräch erstellt Revetly einen Leitfaden, der dort nachfragt, wo der Lebenslauf Lücken oder offene Fragen lässt. Pro Antwort vergibst du 1 bis 5 Pun",
+    "123445",
+    "123455",
+    "72",
+    "87Ø 4,3 von 5",
+    "78",
+    "Analyse72Gespräch87Ø 4,3 von 5Match7860 % Analyse, 40 % Gespräch",
+    "Beispiel eines Aktivitätsverlaufs: eine verschickte Absage, ein gebuchter Termin und ein Treffer aus dem Talent-Pool, ohne dass jemand eingreifen musste.Im HintergrundHeuteBeispielAbsage an Jonas Berg",
+    "Bewerberdaten bleiben in der EU.Bewerbungsunterlagen gehören zu den sensibelsten Daten in deinem Unternehmen. Revetly speichert und wertet sie ausschließlich in der EU aus. Nach 180 Tagen werden sie a",
+    "MonatlichJährlich2 Monate gratis pro Jahr",
+    "€0",
+    "Alle Features im Detail vergleichen22 Features · 5 Pläne im direkten Vergleich",
+    "Ein Match ist die Analyse genau einer Bewerbung für genau eine Stelle. Zwanzig Bewerbungen auf eine Stelle ergeben zwanzig Matches. Zum Testen bekommst du eine Probestelle mit 25 Matches, danach wechs",
+    "Ausschließlich in der EU. Das gilt für die Speicherung, die KI-Auswertung und den Mailversand gleichermaßen. Aus deinen Entscheidungen lernt Revetly nur für dein Konto und nur mit deiner ausdrückliche",
+    "Recht & Compliance14. Juli 20265 Min.",
+    "Auswahlprozess4 Min.",
+    "Prozess & Kennzahlen4 Min.",
+    "Sourcing4 Min.",
+    "Technologie28. April 20264 Min.",
+    "Software-Auswahl7. April 20264 Min."
+  ]
+}
