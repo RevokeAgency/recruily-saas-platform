@@ -13,11 +13,17 @@ import override from "../webpack-override.cjs"
 
 const { webpackOverride } = override
 
+const SHOWREEL = [2.6, 5.6, 9.1, 11.9, 15.1, 17.4, 19.6]
+
 /** Abnahme-Zeitpunkte je Composition. */
 const SECONDS = {
   RevetlyDemo: [1, 2.6, 4, 5.8, 6.6, 8, 10.6, 12.5, 14.2, 16, 17.8, 19.6, 21, 22.6, 24.2, 25.6, 26.6, 28, 29.5],
   "Launch-16x9": [1, 3, 5, 7, 10, 12, 15, 18, 21, 25, 28],
   "Launch-1x1": [1, 3, 5, 7, 10, 12, 15, 18, 21, 25, 28],
+  // Showreel: ein Bild pro Beat (Kontaktabzug, scripts/contact-sheet.py)
+  "Showreel-9x16": SHOWREEL,
+  "Showreel-1x1": SHOWREEL,
+  "Showreel-16x9": SHOWREEL,
 }
 
 //   pnpm stills Demo              nur die Produkt-Demo

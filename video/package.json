@@ -4,13 +4,17 @@
   "private": true,
   "description": "Revetly Launch-Video (Remotion). Eigenständig, unabhängig von der App.",
   "scripts": {
-    "studio": "pnpm audio && remotion studio",
+    "studio": "pnpm audio && pnpm showreel:audio && remotion studio",
     "typecheck": "tsc --noEmit",
     "audio": "node scripts/audio.mjs",
     "check": "node --no-warnings scripts/check-timing.mjs",
     "stills": "pnpm audio && pnpm check && node --no-warnings scripts/stills.mjs",
     "render": "pnpm audio && pnpm check && remotion render RevetlyDemo out/revetly-demo-16x9.mp4",
     "render:launch": "pnpm audio && pnpm check && remotion render Launch-16x9 out/revetly-launch-16x9.mp4 && remotion render Launch-1x1 out/revetly-launch-1x1.mp4",
+    "showreel:assets": "NODE_PATH=$(npm root -g) node scripts/capture-anim.mjs && python3 scripts/showreel_prep.py",
+    "showreel:audio": "node scripts/showreel-audio.mjs",
+    "showreel:sheet": "pnpm showreel:audio && node --no-warnings scripts/stills.mjs Showreel && python3 scripts/contact-sheet.py",
+    "render:showreel": "pnpm showreel:audio && remotion render Showreel-9x16 out/revetly-showreel-9x16.mp4 && remotion render Showreel-1x1 out/revetly-showreel-1x1.mp4 && remotion render Showreel-16x9 out/revetly-showreel-16x9.mp4",
     "hf:build": "node --no-warnings scripts/hyperframes.mjs build",
     "hf:render": "node --no-warnings scripts/hyperframes.mjs render",
     "hf:preview": "cd hyperframes && npx hyperframes preview"

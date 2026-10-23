@@ -24,6 +24,11 @@ Quelle: https://v0-recruily-saas-platform-i6m6ur52i.vercel.app/ (aufgenommen mit
 | `automation-card.png` | „Im Hintergrund": Absage verschickt, Termin gebucht, Talent-Pool |
 | `cta-card.png` | Schluss-CTA „Teste Revetly mit deiner nächsten Stelle." |
 
+## Animationen (`anim/`, nicht eingecheckt)
+`scripts/capture-anim.mjs` nimmt die Zählung der Match-Analyse (0 → 87, Balken) und den
+Gesprächsleitfaden (Bewertungen, Match 72 → 78) mit 30 fps auf. Die im Video genutzten,
+zugeschnittenen Bilder liegen in `public/showreel/score/` und `public/showreel/interview/`.
+
 ## Bilder der Seite (`images/`)
 | Datei | Was |
 |---|---|

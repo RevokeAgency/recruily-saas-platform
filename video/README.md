@@ -10,6 +10,31 @@ Remotion-Projekt mit eigener `package.json`. Zwei Videos, je 30 s bei 30 fps:
 **Voraussetzung:** Weil die Demo Komponenten der App importiert, muss auch im
 Repo-Root einmal `pnpm install` gelaufen sein (für clsx, tailwind-merge, Radix …).
 
+## Showreel (20 s, 120 BPM)
+
+`Showreel-9x16` (1080 × 1920), `Showreel-1x1`, `Showreel-16x9`: eine Zeitachse, drei
+Layouts. Jede Szene wählt ihr Layout aus dem Seitenverhältnis (`src/showreel/kit.tsx`).
+
+| Datei | Inhalt |
+|---|---|
+| `src/showreel/timing.ts` | **Alle Zeiten** im 120-BPM-Raster (`b(n)` = Schlag n), Texte, Kennzahl, SFX |
+| `src/showreel/scenes/` | Hook, Assemble (Hero baut sich auf), Compare, Score, Interview, Metric, Lockup |
+| `scripts/capture-anim.mjs` | nimmt die echten Animationen der Website Bild für Bild auf (Playwright-Uhr + CDP) |
+| `scripts/showreel_prep.py` | schneidet die Aufnahmen aus `assets/` zu → `public/showreel/` |
+| `scripts/showreel-audio.mjs` | Originalmusik, komplett synthetisiert, auf dem Raster von `timing.ts` |
+| `scripts/contact-sheet.py` | Kontaktabzug: ein Bild pro Beat, alle drei Formate |
+
+Die UI ist nirgends nachgezeichnet: Hero, Regler, Match-Analyse und Gesprächsleitfaden sind
+Ausschnitte bzw. Bildfolgen der Website. Zähler, Balken und Bewertungen sind die echten
+Animationen der Seite; abgeschaltet ist bei der Aufnahme nur das Einblenden (`.reveal`),
+das übernimmt das Video.
+
+```bash
+pnpm showreel:assets   # neu aufnehmen und zuschneiden (braucht Zugriff auf die Website)
+pnpm showreel:sheet    # Musik, Standbilder, out/showreel-contact-sheet.png
+pnpm render:showreel   # alle drei Formate nach out/
+```
+
 ## Produkt-Demo
 
 | Datei | Inhalt |
