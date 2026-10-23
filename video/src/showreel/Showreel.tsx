@@ -42,7 +42,8 @@ export const Showreel: React.FC = () => {
       <Flash at={SCENE.lockup.from} strength={0.5} />
       <Finish />
 
-      <Audio src={staticFile("showreel/music.wav")} />
+      {/* Musik ist auf -1 dBFS normalisiert; Luft für die SFX darüber */}
+      <Audio src={staticFile("showreel/music.wav")} volume={0.85} />
       {srSfx().map((c, i) => (
         <Sequence key={i} from={Math.max(0, Math.round(c.at * SR_FPS))} durationInFrames={2 * SR_FPS} layout="none">
           <Audio src={staticFile(`sfx/${c.sound}.wav`)} volume={c.volume} />
