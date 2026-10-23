@@ -1,7 +1,8 @@
 import React from "react"
 
-import { scoreColor, scoreTextColor, theme } from "../config/theme"
+import { glow, scoreColor, scoreTextColor, theme } from "../config/theme"
 import type { Criterion, Evidence } from "../data/mock"
+import { mix } from "../lib/time"
 import { CriterionIcon } from "./CriterionIcon"
 
 /**
@@ -10,8 +11,10 @@ import { CriterionIcon } from "./CriterionIcon"
  * und dem Zitatblock aus document-findings.tsx (Quelle in Versalien, Zitat
  * mit Randlinie). Quelle ohne Seitenangabe, wie im Produkt.
  *
- * `bar` (0..1) füllt den Balken, `mark` (0..1) zieht die Markierung unter das
- * Zitat.
+ * `bar`      füllt den Balken
+ * `quoteIn`  Zitat fährt von links ein
+ * `mark`     Cyan-Marker zieht sich unter das Zitat
+ * `markGlow` Glow des Markers (nur der aktuelle Beleg leuchtet)
  */
 export const EvidenceItem: React.FC<{
   criterion: Criterion
@@ -19,9 +22,19 @@ export const EvidenceItem: React.FC<{
   w: number
   fs: number
   bar: number
+  quoteIn: number
   mark: number
-}> = ({ criterion, evidence, w, fs, bar, mark }) => {
-  const pad = fs * 1.05
+  markGlow: number
+}> = ({ criterion, evidence, w, fs, bar, quoteIn, mark, markGlow }) => {
+  const chip: React.CSSProperties = {
+    fontSize: fs * 0.7,
+    color: theme.color.mutedFg,
+    background: theme.color.muted,
+    borderRadius: 99,
+    padding: `${fs * 0.12}px ${fs * 0.45}px`,
+    fontWeight: 500,
+    whiteSpace: "nowrap",
+  }
   return (
     <div
       style={{
@@ -30,11 +43,10 @@ export const EvidenceItem: React.FC<{
         borderRadius: 18,
         border: `1px solid ${theme.color.border}`,
         background: theme.color.card,
-        padding: pad,
+        padding: `${fs * 0.85}px ${fs}px`,
         fontFamily: theme.font.display,
       }}
     >
-      {/* Kopf: Icon, Kriterium, Gewichtung, Score, Konfidenz */}
       <div style={{ display: "flex", alignItems: "center", gap: fs * 0.55 }}>
         <div
           style={{
@@ -45,39 +57,18 @@ export const EvidenceItem: React.FC<{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            flex: "none",
           }}
         >
           <CriterionIcon icon={criterion.icon} size={fs * 0.9} color={theme.color.mutedFg} />
         </div>
-        <span style={{ fontSize: fs * 1.02, fontWeight: 700, color: theme.color.ink }}>{criterion.label}</span>
-        <span
-          style={{
-            fontSize: fs * 0.7,
-            color: theme.color.mutedFg,
-            background: theme.color.muted,
-            borderRadius: 6,
-            padding: `${fs * 0.1}px ${fs * 0.35}px`,
-            fontWeight: 500,
-          }}
-        >
-          {criterion.weight}% Gewichtung
-        </span>
+        <span style={{ fontSize: fs * 1.05, fontWeight: 700, color: theme.color.ink }}>{criterion.label}</span>
+        <span style={chip}>{criterion.weight}% Gewichtung</span>
         <span style={{ flex: 1 }} />
+        <span style={chip}>Konfidenz hoch</span>
         <span
           style={{
-            fontSize: fs * 0.7,
-            color: theme.color.mutedFg,
-            background: theme.color.muted,
-            borderRadius: 99,
-            padding: `${fs * 0.1}px ${fs * 0.45}px`,
-            fontWeight: 500,
-          }}
-        >
-          Konfidenz hoch
-        </span>
-        <span
-          style={{
-            fontSize: fs * 1.15,
+            fontSize: fs * 1.2,
             fontWeight: 750,
             color: scoreTextColor(criterion.score),
             fontVariantNumeric: "tabular-nums",
@@ -89,24 +80,22 @@ export const EvidenceItem: React.FC<{
         </span>
       </div>
 
-      {/* Balken */}
-      <div style={{ marginTop: fs * 0.6, height: fs * 0.36, borderRadius: 99, background: theme.color.muted, overflow: "hidden" }}>
-        <div
-          style={{
-            width: `${criterion.score * bar}%`,
-            height: "100%",
-            borderRadius: 99,
-            background: scoreColor(criterion.score),
-          }}
-        />
+      <div style={{ marginTop: fs * 0.55, height: fs * 0.34, borderRadius: 99, background: theme.color.muted, overflow: "hidden" }}>
+        <div style={{ width: `${criterion.score * bar}%`, height: "100%", borderRadius: 99, background: scoreColor(criterion.score) }} />
       </div>
 
-      <div style={{ marginTop: fs * 0.65, fontSize: fs * 0.92, lineHeight: 1.42, color: "#475467", fontWeight: 500 }}>
+      <div style={{ marginTop: fs * 0.55, fontSize: fs * 0.92, lineHeight: 1.4, color: theme.color.body, fontWeight: 500 }}>
         {evidence.begruendung}
       </div>
 
-      {/* Beleg aus den Unterlagen */}
-      <div style={{ marginTop: fs * 0.6 }}>
+      {/* Beleg aus den Unterlagen, fährt von links ein */}
+      <div
+        style={{
+          marginTop: fs * 0.55,
+          opacity: Math.min(1, quoteIn * 1.4),
+          transform: `translateX(${mix(quoteIn, -60, 0)}px)`,
+        }}
+      >
         <div
           style={{
             fontFamily: theme.font.support,
@@ -121,27 +110,33 @@ export const EvidenceItem: React.FC<{
         </div>
         <div
           style={{
-            marginTop: fs * 0.3,
+            marginTop: fs * 0.25,
             borderLeft: `3px solid ${theme.color.greenDeep}`,
             paddingLeft: fs * 0.6,
-            fontSize: fs * 0.9,
+            fontSize: fs * 0.95,
             lineHeight: 1.45,
             color: theme.color.ink,
-            fontWeight: 500,
+            fontWeight: 550,
           }}
         >
-          <span
-            style={{
-              // Markierung wie ein Textmarker, läuft von links nach rechts.
-              backgroundImage: "linear-gradient(90deg, rgba(34,193,238,.20), rgba(22,199,124,.24))",
-              backgroundRepeat: "no-repeat",
-              backgroundSize: `${mark * 100}% 100%`,
-              boxDecorationBreak: "clone",
-              WebkitBoxDecorationBreak: "clone",
-              padding: "0 2px",
-            }}
-          >
+          <span style={{ position: "relative", display: "inline-block" }}>
             „{evidence.zitat}“
+            <span
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: -fs * 0.12,
+                height: fs * 0.16,
+                borderRadius: 99,
+                // nur der aktuelle Beleg trägt die volle Hero-Farbe, erledigte treten zurück
+                background: theme.color.cyan,
+                opacity: mark >= 1 && markGlow < 0.05 ? 0.3 : 1,
+                transformOrigin: "0 50%",
+                transform: `scaleX(${mark})`,
+                boxShadow: markGlow > 0.01 ? glow(theme.color.cyan, markGlow * 0.7) : undefined,
+              }}
+            />
           </span>
         </div>
       </div>

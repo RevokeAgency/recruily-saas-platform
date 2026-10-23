@@ -1,2 +1,4 @@
 node_modules/
 out/
+# wird von scripts/audio.mjs erzeugt
+public/music/platzhalter.wav

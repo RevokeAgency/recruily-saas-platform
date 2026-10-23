@@ -1,7 +1,7 @@
 import React from "react"
 import { Composition } from "remotion"
 
-import { DURATION, FPS } from "./config/timeline"
+import { DURATION, FPS } from "./config/timing"
 import { Launch } from "./Launch"
 import { loadFonts } from "./lib/fonts"
 

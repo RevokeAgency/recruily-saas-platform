@@ -1,58 +1,107 @@
 import { useVideoConfig } from "remotion"
 
 /**
- * Layout pro Format. Beide Compositions spielen dieselben Szenen, nur Text-
- * und Bühnenbereich sowie die UI-Größen unterscheiden sich.
- *
- * 16:9  Text links, Bühne (UI) rechts.
- * 1:1   Text oben, Bühne darunter.
+ * Bildausschnitte pro Format. Beide Compositions spielen dieselben Szenen,
+ * jede Szene hat aber ihren eigenen Ausschnitt (Vollbild, Nah, Totale, zentriert).
  */
-export interface Box {
-  x: number
-  y: number
-  w: number
-  h: number
-}
-
 export interface Layout {
   format: "landscape" | "square"
-  width: number
-  height: number
-  caption: Box & { align: "center" | "top"; size: number; eyebrow: number }
-  stage: Box
-  /** Bewerbungskarte im Stapel (Grundgröße, wird im Raster skaliert). */
+  W: number
+  H: number
+  /** seitlicher Sicherheitsabstand für Text */
+  margin: number
+
+  hook: { size: number; maxW: number }
+
   card: { w: number; h: number }
-  grid: { cols: number; rows: number; gap: number }
-  list: { rows: number; rowH: number; headerH: number; footerH: number; gap: number }
-  /** Detailansicht in Szene 6: Oberkante, Höhe, Grundschriftgröße. */
-  panel: { evidence: number; ring: number; top: number; h: number; fs: number }
-  outro: { logoW: number; tagline: number; cta: number }
+  problem: {
+    stack: { x: number; y: number }
+    counter: { x: number; y: number; size: number }
+    /** Zähler in der Rückfahrt: groß */
+    big: { x: number; y: number; size: number }
+    stackBack: { x: number; y: number; scale: number }
+    textY: number
+    textSize: number
+    textW: number
+    rest: { x: number; y: number }
+  }
+
+  grid: { cols: number; rows: number; gap: number; maxH: number }
+  scan: { zoom: number; textSize: number }
+
+  list: { w: number; rows: number; rowH: number; gap: number; captionSize: number }
+  detail: {
+    panel: { x: number; y: number; w: number; h: number }
+    evidence: number
+    fs: number
+    ring: number
+    text: { x: number; y: number; size: number; w: number }
+  }
+
+  payoff: { cardW: number; gap: number; y: number; textY: number; textSize: number }
+  logo: { w: number; y: number; tagline: number; cta: number }
 }
 
 const LANDSCAPE: Layout = {
   format: "landscape",
-  width: 1920,
-  height: 1080,
-  caption: { x: 150, y: 0, w: 700, h: 1080, align: "center", size: 80, eyebrow: 30 },
-  stage: { x: 910, y: 110, w: 860, h: 860 },
+  W: 1920,
+  H: 1080,
+  margin: 140,
+  hook: { size: 104, maxW: 1480 },
   card: { w: 300, h: 380 },
-  grid: { cols: 10, rows: 8, gap: 12 },
-  list: { rows: 7, rowH: 86, headerH: 74, footerH: 64, gap: 8 },
-  panel: { evidence: 3, ring: 132, top: 125, h: 830, fs: 17.5 },
-  outro: { logoW: 720, tagline: 54, cta: 28 },
+  problem: {
+    stack: { x: 1060, y: 500 },
+    counter: { x: 140, y: 930, size: 120 },
+    big: { x: 140, y: 600, size: 300 },
+    stackBack: { x: 1450, y: 560, scale: 0.62 },
+    textY: 140,
+    textSize: 84,
+    textW: 1500,
+    rest: { x: 960, y: 700 },
+  },
+  grid: { cols: 10, rows: 8, gap: 14, maxH: 960 },
+  scan: { zoom: 1.95, textSize: 112 },
+  list: { w: 1120, rows: 7, rowH: 92, gap: 12, captionSize: 34 },
+  detail: {
+    panel: { x: 780, y: 90, w: 1000, h: 900 },
+    evidence: 3,
+    fs: 19,
+    ring: 132,
+    text: { x: 140, y: 540, size: 92, w: 560 },
+  },
+  payoff: { cardW: 360, gap: 40, y: 660, textY: 190, textSize: 76 },
+  logo: { w: 880, y: 430, tagline: 56, cta: 28 },
 }
 
 const SQUARE: Layout = {
   format: "square",
-  width: 1080,
-  height: 1080,
-  caption: { x: 80, y: 70, w: 920, h: 230, align: "top", size: 64, eyebrow: 26 },
-  stage: { x: 80, y: 310, w: 920, h: 720 },
-  card: { w: 290, h: 366 },
-  grid: { cols: 10, rows: 8, gap: 10 },
-  list: { rows: 5, rowH: 94, headerH: 76, footerH: 60, gap: 10 },
-  panel: { evidence: 2, ring: 120, top: 325, h: 672, fs: 19.5 },
-  outro: { logoW: 620, tagline: 46, cta: 25 },
+  W: 1080,
+  H: 1080,
+  margin: 80,
+  hook: { size: 86, maxW: 900 },
+  card: { w: 300, h: 380 },
+  problem: {
+    stack: { x: 540, y: 560 },
+    counter: { x: 80, y: 990, size: 96 },
+    big: { x: 80, y: 340, size: 240 },
+    stackBack: { x: 760, y: 770, scale: 0.5 },
+    textY: 100,
+    textSize: 70,
+    textW: 920,
+    rest: { x: 540, y: 700 },
+  },
+  grid: { cols: 8, rows: 10, gap: 12, maxH: 980 },
+  scan: { zoom: 1.55, textSize: 92 },
+  list: { w: 920, rows: 5, rowH: 96, gap: 12, captionSize: 30 },
+  detail: {
+    panel: { x: 80, y: 250, w: 920, h: 760 },
+    evidence: 2,
+    fs: 20,
+    ring: 120,
+    text: { x: 80, y: 150, size: 68, w: 920 },
+  },
+  payoff: { cardW: 290, gap: 22, y: 700, textY: 150, textSize: 62 },
+  logo: { w: 760, y: 420, tagline: 48, cta: 25 },
 }
 
 export function getLayout(width: number, height: number): Layout {

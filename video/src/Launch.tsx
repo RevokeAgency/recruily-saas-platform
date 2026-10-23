@@ -1,27 +1,34 @@
 import React from "react"
 import { AbsoluteFill } from "remotion"
 
-import { Background } from "./scenes/Background"
-import { CardField } from "./scenes/CardField"
-import { Captions } from "./scenes/Captions"
-import { Outro } from "./scenes/Outro"
-import { Ranking } from "./scenes/Ranking"
-import { Soundtrack } from "./scenes/Soundtrack"
-import { Sweep } from "./scenes/Sweep"
+import { Act1Hook } from "./acts/Act1Hook"
+import { Act2Problem } from "./acts/Act2Problem"
+import { Act3Ranking } from "./acts/Act3Ranking"
+import { Act3Scan } from "./acts/Act3Scan"
+import { Act4Payoff } from "./acts/Act4Payoff"
+import { Soundtrack } from "./audio/Soundtrack"
+import { Grade, Grain, Mesh, Vignette } from "./stage/Stage"
 
 /**
- * Das ganze Video. Die Ebenen laufen durchgehend, jede blendet sich selbst
- * anhand von config/timeline.ts ein und aus. So können die Karten aus
- * Szene 1 ohne Schnitt bis in die Rangliste in Szene 5 wandern.
+ * Fünf Ebenen in jedem Bild, von unten nach oben:
+ *   1 Mesh-Hintergrund
+ *   2 Assets (Karten, Liste, Begründungskarte, Logo)
+ *   3 Typo und Grafik (stecken in den Akten, liegen dort über den Assets)
+ *   4 Color Grade
+ *   5 Korn und Vignette
+ * Jeder Akt blendet sich anhand von config/timing.ts selbst ein und aus.
  */
 export const Launch: React.FC = () => (
   <AbsoluteFill>
-    <Background />
-    <CardField />
-    <Ranking />
-    <Sweep />
-    <Captions />
-    <Outro />
+    <Mesh />
+    <Act1Hook />
+    <Act2Problem />
+    <Act3Scan />
+    <Act3Ranking />
+    <Act4Payoff />
+    <Grade />
+    <Grain />
+    <Vignette />
     <Soundtrack />
   </AbsoluteFill>
 )

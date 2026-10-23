@@ -4,10 +4,12 @@
   "private": true,
   "description": "Revetly Launch-Video (Remotion). Eigenständig, unabhängig von der App.",
   "scripts": {
-    "studio": "remotion studio",
+    "studio": "pnpm audio && remotion studio",
     "typecheck": "tsc --noEmit",
-    "stills": "node scripts/stills.mjs",
-    "render": "remotion render Launch-16x9 out/revetly-launch-16x9.mp4 && remotion render Launch-1x1 out/revetly-launch-1x1.mp4"
+    "audio": "node scripts/audio.mjs",
+    "check": "node --no-warnings scripts/check-timing.mjs",
+    "stills": "pnpm audio && pnpm check && node --no-warnings scripts/stills.mjs",
+    "render": "pnpm audio && pnpm check && remotion render Launch-16x9 out/revetly-launch-16x9.mp4 && remotion render Launch-1x1 out/revetly-launch-1x1.mp4"
   },
   "dependencies": {
     "@remotion/cli": "4.0.534",

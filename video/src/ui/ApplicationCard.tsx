@@ -1,21 +1,25 @@
 import React from "react"
 
-import { JOB, type Applicant } from "../data/mock"
 import { theme } from "../config/theme"
+import { JOB, type Applicant } from "../data/mock"
 import { mix } from "../lib/time"
 import { Avatar } from "./Avatar"
 
 /**
- * Abstrahierte Bewerbung: Kopf mit Person, darunter angedeutete Textzeilen.
- * `captured` (0..1) ist der Zustand nach dem Verlauf: Karte wird leicht grün
- * hinterlegt und bekommt oben eine Verlaufskante.
+ * Abstrahierte Bewerbung: Kopf mit Person, angedeutete Textzeilen, Dateien.
+ * Hell, liegt als Panel auf der dunklen Bühne.
+ *
+ * `scanned` (0..1): vom Scan erfasst, Karte bekommt oben eine Verlaufskante.
+ * `dim` (0..1): ungelesen, Karte tritt in die Bühne zurück.
  */
 export const ApplicationCard: React.FC<{
   applicant: Applicant
   w: number
   h: number
-  captured?: number
-}> = ({ applicant, w, h, captured = 0 }) => {
+  scanned?: number
+  dim?: number
+  shadow?: boolean
+}> = ({ applicant, w, h, scanned = 0, dim = 0, shadow = true }) => {
   const pad = w * 0.09
   const bar = (width: string, top: number, strong = false) => (
     <div
@@ -40,24 +44,20 @@ export const ApplicationCard: React.FC<{
         height: h,
         borderRadius: w * 0.07,
         background: theme.color.card,
-        border: `1px solid ${theme.color.border}`,
-        boxShadow: theme.shadow.card,
+        boxShadow: shadow ? theme.panel.shadowSmall : undefined,
         overflow: "hidden",
       }}
     >
-      {/* grüne Hinterlegung nach dem Erfassen */}
-      <div style={{ position: "absolute", inset: 0, background: theme.color.greenWash, opacity: captured * 0.8 }} />
-      {/* Verlaufskante oben */}
       <div
         style={{
           position: "absolute",
           left: 0,
           top: 0,
           right: 0,
-          height: h * 0.045,
+          height: h * 0.04,
           backgroundImage: theme.color.gradient,
           transformOrigin: "0 50%",
-          transform: `scaleX(${captured})`,
+          transform: `scaleX(${scanned})`,
         }}
       />
 
@@ -65,9 +65,7 @@ export const ApplicationCard: React.FC<{
         <Avatar initials={applicant.initials} size={w * 0.2} />
         <div style={{ fontFamily: theme.font.display, lineHeight: 1.2 }}>
           <div style={{ fontSize: w * 0.064, fontWeight: 700, color: theme.color.ink }}>{applicant.name}</div>
-          <div style={{ fontSize: w * 0.044, fontWeight: 500, color: theme.color.mutedFg, marginTop: w * 0.01 }}>
-            {JOB.short}
-          </div>
+          <div style={{ fontSize: w * 0.044, fontWeight: 500, color: theme.color.mutedFg, marginTop: w * 0.01 }}>{JOB.short}</div>
         </div>
       </div>
 
@@ -80,7 +78,6 @@ export const ApplicationCard: React.FC<{
       {bar("64%", line0 + h * 0.39)}
       {bar("70%", line0 + h * 0.44)}
 
-      {/* Dateiangaben unten */}
       <div
         style={{
           position: "absolute",
@@ -95,18 +92,16 @@ export const ApplicationCard: React.FC<{
         }}
       >
         {["Lebenslauf.pdf", "Anschreiben.pdf"].map((f) => (
-          <span
-            key={f}
-            style={{
-              padding: `${w * 0.012}px ${w * 0.03}px`,
-              borderRadius: 99,
-              background: `rgba(43,97,105,${mix(captured, 0.08, 0.12)})`,
-            }}
-          >
+          <span key={f} style={{ padding: `${w * 0.012}px ${w * 0.03}px`, borderRadius: 99, background: "rgba(43,97,105,.09)" }}>
             {f}
           </span>
         ))}
       </div>
+
+      {/* ungelesen: Karte sinkt in die Bühne */}
+      {dim > 0.001 && (
+        <div style={{ position: "absolute", inset: 0, background: theme.color.stage, opacity: mix(dim, 0, 0.62) }} />
+      )}
     </div>
   )
 }

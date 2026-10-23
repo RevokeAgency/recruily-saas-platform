@@ -1,57 +1,66 @@
+/**
+ * Einzige Quelle für Farben, Schriften, Bewegungskurven und Springs.
+ * Keine Hex-Werte, Easings oder Spring-Werte direkt in Komponenten.
+ */
 import { Easing } from "remotion"
 
-/**
- * Einzige Quelle für Farben, Schriften und Bewegungskurven.
- * Keine Hex-Werte oder Easings direkt in Komponenten.
- *
- * Brandfarben laut Briefing, App-Farben (Score-Ampel, Rahmen, Muted) aus
- * app/globals.css bzw. den Komponenten übernommen, damit die nachgebaute UI
- * aussieht wie das Produkt.
- */
 export const theme = {
   color: {
+    // Bühne
+    stage: "#081314",
+    teal: "#2B6169",
+    text: "#E8F2F2",
+    textDim: "rgba(232, 242, 242, 0.55)",
+    textFaint: "rgba(232, 242, 242, 0.32)",
+
+    // Akzente. Pro Bild leuchtet höchstens EIN Element (siehe glow()).
     cyan: "#22C1EE",
     green: "#16C77C",
     greenDeep: "#0E9F62",
     cyanDeep: "#0E96C4",
-    ink: "#081314",
-    teal: "#2B6169",
     gradient: "linear-gradient(130deg, #22C1EE 0%, #16C77C 100%)",
 
-    // Hintergrund: weiß mit einem Hauch Markenfarbe aus den oberen Ecken,
-    // wie die App-Fläche (--app-canvas).
-    paper: "#FBFCFC",
-    paperTint:
-      "radial-gradient(90% 70% at 100% 0%, rgba(22,199,124,0.07) 0%, rgba(251,252,252,0) 55%), " +
-      "radial-gradient(80% 60% at 0% 0%, rgba(34,193,238,0.06) 0%, rgba(251,252,252,0) 50%)",
-
-    // App-UI
+    // Helle Produkt-UI, liegt als Panel auf der Bühne
     card: "#FFFFFF",
+    ink: "#0C1A16",
     muted: "#F1F3F5",
     mutedFg: "#667085",
+    body: "#475467",
     border: "rgba(12, 26, 22, 0.08)",
     greenWash: "#EAFBF3",
     amber: "#F59E0B",
     red: "#EF4444",
     skeleton: "#E9EDF0",
   },
-  shadow: {
-    card: "0 1px 2px rgba(12,26,22,.04), 0 14px 32px -14px rgba(12,26,22,.16)",
-    lifted: "0 2px 4px rgba(12,26,22,.04), 0 40px 80px -36px rgba(12,26,22,.28)",
+  /** Panels auf dunkler Bühne: weicher Schatten, leichter heller Rand. */
+  panel: {
+    shadow: "0 40px 80px -24px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.10)",
+    shadowSmall: "0 18px 36px -14px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.10)",
   },
   font: {
     display: "'Plus Jakarta Sans', system-ui, sans-serif",
     support: "'Montserrat', system-ui, sans-serif",
   },
   ease: {
-    // Eintritte: schnell da, lange auslaufend.
-    out: Easing.bezier(0.16, 1, 0.3, 1),
-    // Bewegungen von A nach B.
-    inOut: Easing.bezier(0.65, 0, 0.35, 1),
-    // Nur für Abgänge.
-    in: Easing.bezier(0.55, 0, 0.75, 0.2),
+    out: Easing.bezier(0.16, 1, 0.3, 1), //   Auftritte
+    inOut: Easing.bezier(0.65, 0, 0.35, 1), // Bewegungen
+    in: Easing.bezier(0.7, 0, 0.84, 0), //     nur Abgänge
+    gravity: Easing.bezier(0.5, 0, 0.9, 0.6), // Fallen
+  },
+  spring: {
+    snappy: { damping: 16, stiffness: 170, mass: 0.6 }, // Wörter, kleine UI
+    smooth: { damping: 22, stiffness: 95, mass: 1 }, //   große Elemente, Kamera
+    swap: { damping: 15, stiffness: 120, mass: 0.9 }, //  Zeilentausch, leichtes Nachschwingen
+    soft: { damping: 26, stiffness: 70, mass: 1.1 }, //   ruhige Fahrten
+    logo: { damping: 12, stiffness: 140, mass: 0.8 }, //  Logo-Teile
   },
 } as const
+
+/** Glow für das eine Hero-Element im Bild. */
+export function glow(color: string = theme.color.cyan, strength = 1): string {
+  const a = (x: number) => Math.round(Math.max(0, Math.min(1, x * strength)) * 255).toString(16).padStart(2, "0")
+  return `0 0 28px ${color}${a(0.55)}, 0 0 80px ${color}${a(0.3)}`
+}
 
 /** Score-Farbe wie in der App: grün ab 80, amber ab 60, sonst rot. */
 export function scoreColor(score: number): string {
@@ -60,7 +69,6 @@ export function scoreColor(score: number): string {
   return theme.color.red
 }
 
-/** Textfarbe für Scores wie im Match-Modal (grün tief für gute Werte). */
 export function scoreTextColor(score: number): string {
   if (score >= 80) return theme.color.greenDeep
   if (score >= 60) return theme.color.amber

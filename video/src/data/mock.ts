@@ -1,10 +1,14 @@
 import { random } from "remotion"
 
 /**
- * NUR ERFUNDENE BEISPIELDATEN.
+ * DIE EINZIGE QUELLE FÜR BEISPIELDATEN. Alles erfunden.
  * Keine Daten aus der Datenbank, keine echten Personen oder Dokumente.
  * Namen werden aus Vor- und Nachnamenlisten zusammengewürfelt; Ähnlichkeiten
  * mit realen Personen sind zufällig.
+ *
+ * Scores sind pro Kandidat fix und werden im Video nie hochgezählt oder
+ * gerundet angezeigt, sondern immer genau so, wie sie hier stehen.
+ * Belegquellen: nur Lebenslauf und Anschreiben.
  */
 
 export const JOB = {
@@ -12,6 +16,37 @@ export const JOB = {
   short: "Teamleitung Kundenservice",
   total: 80,
 }
+
+export interface RankedCandidate {
+  /** Index der Bewerbungskarte, die zu dieser Zeile wird */
+  applicant: number
+  name: string
+  initials: string
+  years: number
+  city: string
+  score: number
+}
+
+/** Rangliste, absteigend nach Score. */
+export const RANKED: readonly RankedCandidate[] = [
+  { applicant: 34, name: "Lena Hofbauer", initials: "LH", years: 8, city: "Wien", score: 92 },
+  { applicant: 41, name: "Jonas Leitner", initials: "JL", years: 6, city: "Graz", score: 88 },
+  { applicant: 45, name: "Mara Steiner", initials: "MS", years: 7, city: "Linz", score: 85 },
+  { applicant: 33, name: "Elias Brandl", initials: "EB", years: 5, city: "Wien", score: 81 },
+  { applicant: 46, name: "Sophie Auer", initials: "SA", years: 4, city: "St. Pölten", score: 77 },
+  { applicant: 36, name: "Felix Moser", initials: "FM", years: 9, city: "Salzburg", score: 72 },
+  { applicant: 43, name: "Nina Pichler", initials: "NP", years: 3, city: "Graz", score: 68 },
+]
+
+/** Die drei Profile für den Payoff. */
+export const TOP3 = RANKED.slice(0, 3)
+
+/**
+ * Zwei Zwischenstände beim Sortieren: Rang-Indizes je Platz.
+ * unsortiert → teilweise sortiert → RANKED.
+ */
+export const ORDER_START = [3, 0, 5, 2, 6, 1, 4]
+export const ORDER_MID = [0, 3, 2, 1, 5, 4, 6]
 
 const FIRST = [
   "Lena", "Jonas", "Sophie", "Elias", "Mara", "David", "Nina", "Felix", "Hannah", "Lukas",
@@ -28,54 +63,17 @@ export interface Applicant {
   initials: string
 }
 
-function initials(name: string): string {
-  return name.split(" ").map((p) => p[0]).join("").toUpperCase().slice(0, 2)
-}
+const initials = (name: string) => name.split(" ").map((p) => p[0]).join("").toUpperCase().slice(0, 2)
 
-/** 80 erfundene Bewerbungen, deterministisch (gleicher Seed, gleiche Namen). */
-export const APPLICANTS: Applicant[] = Array.from({ length: JOB.total }, (_, i) => {
-  const f = FIRST[Math.floor(random(`first-${i}`) * FIRST.length)]
-  const l = LAST[Math.floor(random(`last-${i}`) * LAST.length)]
-  const name = `${f} ${l}`
+/** 80 erfundene Bewerbungen, deterministisch. Karten der Rangliste tragen deren Namen. */
+export const APPLICANTS: readonly Applicant[] = Array.from({ length: JOB.total }, (_, i) => {
+  const ranked = RANKED.find((r) => r.applicant === i)
+  if (ranked) return { id: i, name: ranked.name, initials: ranked.initials }
+  const name = `${FIRST[Math.floor(random(`first-${i}`) * FIRST.length)]} ${LAST[Math.floor(random(`last-${i}`) * LAST.length)]}`
   return { id: i, name, initials: initials(name) }
 })
 
-export interface RankedCandidate {
-  /** Index in APPLICANTS — diese Karte wird zur Listenzeile. */
-  applicant: number
-  name: string
-  initials: string
-  years: number
-  city: string
-  score: number
-}
-
-/**
- * Die sichtbaren Zeilen der Rangfolge, absteigend nach Score.
- * Die Namen überschreiben die gewürfelten Namen der zugehörigen Karten.
- */
-export const RANKED: RankedCandidate[] = [
-  { applicant: 79, name: "Lena Hofbauer", initials: "LH", years: 8, city: "Wien", score: 92 },
-  { applicant: 41, name: "Jonas Leitner", initials: "JL", years: 6, city: "Graz", score: 88 },
-  { applicant: 12, name: "Mara Steiner", initials: "MS", years: 7, city: "Linz", score: 85 },
-  { applicant: 63, name: "Elias Brandl", initials: "EB", years: 5, city: "Wien", score: 81 },
-  { applicant: 27, name: "Sophie Auer", initials: "SA", years: 4, city: "St. Pölten", score: 77 },
-  { applicant: 55, name: "Felix Moser", initials: "FM", years: 9, city: "Salzburg", score: 72 },
-  { applicant: 5, name: "Nina Pichler", initials: "NP", years: 3, city: "Graz", score: 68 },
-]
-
-/** Reihenfolge, in der die Zeilen zuerst (unsortiert) erscheinen: Indizes in RANKED. */
-export const UNSORTED_ORDER = [3, 0, 5, 2, 6, 1, 4]
-
-// Die ausgewählten Karten tragen die Namen der Rangfolge.
-for (const r of RANKED) {
-  APPLICANTS[r.applicant] = { id: r.applicant, name: r.name, initials: r.initials }
-}
-
-/**
- * Kriterien wie im Match-Modal der App (candidate-match-modal.tsx), mit
- * denselben Gewichtungen. Scores für Lena Hofbauer, gewichtet ergibt das 92.
- */
+/** Kriterien und Gewichtungen wie im Match-Modal der App. Gewichtet ergibt das 92. */
 export type CriterionIcon =
   | "target" | "briefcase" | "graduation" | "message" | "globe" | "pin" | "building" | "wallet" | "heart"
 
@@ -87,7 +85,7 @@ export interface Criterion {
   icon: CriterionIcon
 }
 
-export const CRITERIA: Criterion[] = [
+export const CRITERIA: readonly Criterion[] = [
   { key: "hardSkills", label: "Hard Skills", weight: 25, score: 94, icon: "target" },
   { key: "experience", label: "Berufserfahrung", weight: 20, score: 95, icon: "briefcase" },
   { key: "education", label: "Ausbildung", weight: 10, score: 85, icon: "graduation" },
@@ -107,7 +105,7 @@ export interface Evidence {
 }
 
 /** Begründung pro Kriterium mit wörtlichem Beleg (erfunden). */
-export const EVIDENCE: Evidence[] = [
+export const EVIDENCE: readonly Evidence[] = [
   {
     criterion: "experience",
     begruendung: "Sechs Jahre Führung eines Kundenservice-Teams, zuletzt mit 14 Mitarbeitenden.",
