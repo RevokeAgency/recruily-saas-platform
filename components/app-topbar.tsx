@@ -29,7 +29,7 @@ const navigation = [
   { name: "Einstellungen", href: "/settings" },
 ]
 
-interface UserProfile {
+export interface UserProfile {
   first_name: string | null
   last_name: string | null
   email: string
@@ -76,12 +76,18 @@ function NavPills({ pathname, className }: { pathname: string; className?: strin
  * avatar menu right. Replaces the sidebar; on mobile the nav wraps to a second
  * scrollable row.
  */
-export function AppTopbar() {
-  const pathname = usePathname()
+/**
+ * `preview`: feste Person und aktiver Menüpunkt, ohne Anmeldung und ohne
+ * Datenbank. Nur für die Entwicklungsvorschau (/dev/dashboard-preview).
+ */
+export function AppTopbar({ preview }: { preview?: { user: UserProfile; pathname: string } } = {}) {
+  const realPathname = usePathname()
+  const pathname = preview?.pathname ?? realPathname
   const router = useRouter()
-  const [user, setUser] = useState<UserProfile | null>(null)
+  const [user, setUser] = useState<UserProfile | null>(preview?.user ?? null)
 
   useEffect(() => {
+    if (preview) return
     async function loadUser() {
       const supabase = createClient()
       const { data: { user: authUser } } = await supabase.auth.getUser()
@@ -108,15 +114,15 @@ export function AppTopbar() {
       })
     }
     loadUser()
-  }, [])
+  }, [preview])
 
   // A plan chosen on the landing page before signup is fulfilled on the
   // subscription page (auto-checkout there consumes the stored intent).
   useEffect(() => {
-    if (pathname !== "/subscription" && hasCheckoutIntent()) {
+    if (!preview && pathname !== "/subscription" && hasCheckoutIntent()) {
       router.replace("/subscription")
     }
-  }, [pathname, router])
+  }, [pathname, router, preview])
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -182,7 +188,7 @@ export function AppTopbar() {
             >
               <HelpCircle className="h-4 w-4" strokeWidth={1.75} />
             </Link>
-            <ActivityBell />
+            <ActivityBell offline={!!preview} />
           </div>
 
           <DropdownMenu>

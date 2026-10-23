@@ -5,7 +5,7 @@ import { Target, TrendingUp, Info } from "lucide-react"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
-interface QualityReport {
+export interface QualityReport {
   decisions: number
   scored: number
   liftVsAvg: number | null
@@ -22,9 +22,10 @@ const pct = (r: number | null) => (r == null ? "–" : `${Math.round(r * 100)} %
  * decisions. Doubles as the visible proof that the feedback loop is working —
  * and as our own early warning for miscalibration.
  */
-export function MatchQuality() {
-  const { data } = useSWR<{ report: QualityReport | null }>("/api/matching/quality", fetcher)
-  const r = data?.report
+/** `report`: fester Bericht statt Abruf, für die Entwicklungsvorschau. */
+export function MatchQuality({ report }: { report?: QualityReport } = {}) {
+  const { data } = useSWR<{ report: QualityReport | null }>(report ? null : "/api/matching/quality", fetcher)
+  const r = report ?? data?.report
   if (!r || r.decisions < 5) return null // not enough signal to say anything honest
 
   const lift = r.liftVsLow ?? r.liftVsAvg

@@ -698,3 +698,19 @@ sieht, auch in Kandidatenliste und Talent-Pool.
   sie angelegt hat.
 - Kontingent und Stellenlimit gelten weiter fürs ganze Konto.
 - Tests: `tests/visibility.test.ts`.
+
+## Entwicklungsvorschau Dashboard (23.10.2026)
+
+`/dev/dashboard-preview` rendert das Dashboard mit erfundenen Beispieldaten,
+ohne Anmeldung und ohne Datenbank, etwa für Aufnahmen im Produktvideo
+(Remotion).
+
+- Darstellung: `components/dashboard/dashboard-view.tsx`, dieselbe
+  Komponente wie die echte Seite `app/(app)/dashboard/page.tsx`. Die Vorschau
+  sieht damit immer aus wie die App.
+- Beispieldaten: `lib/dev/dashboard-mock.ts` (Personen und Firmen erfunden,
+  Kontingent aus `PLANS.growth`).
+- Vorschau-Modus ohne Abrufe: `AppTopbar preview`, `ActivityBell offline`,
+  `MatchQuality report`.
+- Schutz: In Produktion 404, außer `ENABLE_DEV_PREVIEW=true` ist zur
+  Laufzeit gesetzt. `noindex`.

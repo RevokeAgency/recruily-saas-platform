@@ -1,15 +1,12 @@
-import { DashboardHero, type PipelineBreakdown } from "@/components/dashboard/dashboard-hero"
+import { type PipelineBreakdown } from "@/components/dashboard/dashboard-hero"
+import { DashboardView } from "@/components/dashboard/dashboard-view"
 import { MatchBackfillTrigger } from "@/components/dashboard/match-backfill-trigger"
 import { type DashboardMetricsData } from "@/components/dashboard/metrics"
-import { RecentActivity, type RecentJob } from "@/components/dashboard/recent-activity"
-import { QuotaProgress } from "@/components/dashboard/quota-progress"
-import { ScoreGauge } from "@/components/dashboard/score-gauge"
-import { Priorities, type PriorityItem } from "@/components/dashboard/priorities"
-import { RecentApplications, type RecentApplication } from "@/components/dashboard/recent-applications"
-import { TopCandidates, type TopCandidate } from "@/components/dashboard/top-candidates"
-import { KpiPanel, type KpiData } from "@/components/dashboard/kpi-panel"
-import { MatchQuality } from "@/components/dashboard/match-quality"
-import { RevealGroup } from "@/components/app/reveal-group"
+import { type RecentJob } from "@/components/dashboard/recent-activity"
+import { type PriorityItem } from "@/components/dashboard/priorities"
+import { type RecentApplication } from "@/components/dashboard/recent-applications"
+import { type TopCandidate } from "@/components/dashboard/top-candidates"
+import { type KpiData } from "@/components/dashboard/kpi-panel"
 import { hasFeature } from "@/lib/plans"
 import { createClient } from "@/lib/supabase/server"
 import { getWorkspace } from "@/lib/workspace"
@@ -349,40 +346,20 @@ export default async function DashboardPage() {
   return (
     <div className="relative min-h-full">
       <MatchBackfillTrigger />
-
-      <RevealGroup className="relative z-[1] space-y-6 p-6 lg:p-8">
-        {/* Greeting + bare big numbers + pipeline meter (reference hero) */}
-        <DashboardHero
-          firstName={firstName}
-          activeJobs={metricsData.activeJobs}
-          totalCandidates={metricsData.totalCandidates}
-          scoredCount={metricsData.scoredCount}
-          pipeline={pipeline}
-        />
-
-        {/* Score gauge · segmented quota · dark priorities focus card */}
-        <div className="reveal grid gap-4 lg:grid-cols-3">
-          <ScoreGauge score={metricsData.avgMatchScore} scoredCount={metricsData.scoredCount} />
-          <QuotaProgress used={metricsData.matchesUsed} total={metricsData.matchesLimit} period={quotaPeriod} />
-          <Priorities items={priorities} />
-        </div>
-
-        {/* Latest applications · strongest matches · recruiting KPIs */}
-        <div className="reveal grid gap-4 lg:grid-cols-3">
-          <RecentApplications items={recentApplications} />
-          <TopCandidates items={topCandidates} />
-          <KpiPanel data={kpis} locked={kpisLocked} />
-        </div>
-
-        {/* How well the matching predicted this tenant's own decisions.
-            Renders nothing until there are enough decisions to be honest. */}
-        <div className="reveal grid gap-4 lg:grid-cols-3">
-          <MatchQuality />
-        </div>
-
-        {/* Recent activity */}
-        <RecentActivity jobs={recentJobs} className="reveal" />
-      </RevealGroup>
+      <DashboardView
+        data={{
+          firstName,
+          metrics: metricsData,
+          pipeline,
+          quotaPeriod,
+          priorities,
+          recentApplications,
+          topCandidates,
+          kpis,
+          kpisLocked,
+          recentJobs,
+        }}
+      />
     </div>
   )
 }

@@ -40,12 +40,14 @@ function sourceMeta(source: string): { icon: typeof Globe; label: string } {
   }
 }
 
-export function ActivityBell() {
+/** `offline`: kein Abruf, für die Entwicklungsvorschau ohne Anmeldung. */
+export function ActivityBell({ offline = false }: { offline?: boolean } = {}) {
   const [items, setItems] = useState<Activity[]>([])
   const [open, setOpen] = useState(false)
   const [lastSeen, setLastSeen] = useState<number>(0)
 
   const load = useCallback(async () => {
+    if (offline) return
     try {
       const res = await fetch("/api/activities")
       const data = await res.json()
@@ -53,7 +55,7 @@ export function ActivityBell() {
     } catch {
       /* keep previous */
     }
-  }, [])
+  }, [offline])
 
   useEffect(() => {
     setLastSeen(Number(localStorage.getItem(LAST_SEEN_KEY) || 0))
