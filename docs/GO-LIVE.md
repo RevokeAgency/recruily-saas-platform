@@ -58,7 +58,15 @@ Stand der Durchsicht: 19.09.2026.
 
 ## ⚠️ Domain-Wechsel Vercel → revetly.ai
 
-**Zuerst registrieren.** Am 19.09.2026 hatte weder `revetly.ai` noch
+- [x] **Domain `revetly.ai` registriert** *(bestätigt 28.10.2026)*.
+- [x] **Favicon** *(28.10.2026)*: Revetly-Logo statt v0/Vercel-Icon,
+      `favicon.ico`, PNG-Größen, Apple-Icon und Web-App-Manifest.
+- [ ] **Hauptadresse festlegen: `www.revetly.ai` oder `revetly.ai`.** Die
+      andere leitet in Vercel per 301 dorthin um. `NEXT_PUBLIC_SITE_URL`,
+      Stripe-Webhook, Supabase-Redirects und OAuth-URIs müssen genau diese
+      Adresse verwenden. Der Code nimmt ohne Variable `https://revetly.ai`.
+
+Ursprünglicher Hinweis: Am 19.09.2026 hatte weder `revetly.ai` noch
 `.com`, `.at` oder `.de` Nameserver hinterlegt, was auf frei hindeutet, beim
 Registrar aber gegenzuprüfen ist. Die Registrierung früh zu erledigen lohnt
 sich aus einem Grund, der nichts mit der Website zu tun hat: Der Mailversand
