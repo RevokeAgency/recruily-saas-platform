@@ -22,7 +22,7 @@ export function RvFooter() {
         <div className="mb-[50px] grid grid-cols-2 gap-10 lg:grid-cols-[1.6fr_1fr_1fr]">
           <div className="col-span-2 lg:col-span-1">
             <Link href="#top" className="inline-flex items-center">
-              <Image src="/revetly/LogoEntwurf.png" alt="Revetly" width={170} height={120} className="h-[120px] w-auto" />
+              <Image src="/revetly/logo-footer-340.webp" alt="Revetly" width={170} height={120} className="h-[120px] w-auto" />
             </Link>
             <p className="mt-3.5 max-w-[260px] text-[.92rem] leading-[1.6] text-[var(--rv-muted)]">
               Lies die Shortlist, nicht den Stapel. Jeder Punkt belegt,
@@ -30,7 +30,7 @@ export function RvFooter() {
             </p>
           </div>
           <div>
-            <h4 className="mb-[18px] text-[.78rem] font-bold tracking-[.1em] text-[var(--rv-ink)] uppercase">Navigieren</h4>
+            <h3 className="mb-[18px] text-[.78rem] font-bold tracking-[.1em] text-[var(--rv-ink)] uppercase">Navigieren</h3>
             {NAV_LINKS.map((link) => (
               <a key={link.href} href={link.href} className="mb-3 block text-[.92rem] text-[var(--rv-muted)] transition-colors hover:text-[var(--rv-green-deep)]">
                 {link.label}
@@ -38,7 +38,7 @@ export function RvFooter() {
             ))}
           </div>
           <div>
-            <h4 className="mb-[18px] text-[.78rem] font-bold tracking-[.1em] text-[var(--rv-ink)] uppercase">Kontakt</h4>
+            <h3 className="mb-[18px] text-[.78rem] font-bold tracking-[.1em] text-[var(--rv-ink)] uppercase">Kontakt</h3>
             <a href="mailto:hallo@revetly.ai" className="mb-3 block text-[.92rem] leading-[1.5] text-[var(--rv-muted)] transition-colors hover:text-[var(--rv-green-deep)]">
               hallo@revetly.ai
             </a>

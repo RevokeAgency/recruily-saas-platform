@@ -16,7 +16,7 @@ export function BlogHeader() {
       <div className="mx-auto flex max-w-[820px] items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link href="/" aria-label="Revetly Startseite" className="inline-flex items-center">
           <Image
-            src="/revetly/LogoEntwurf-trim.png"
+            src="/revetly/logo-520.webp"
             alt="Revetly"
             width={116}
             height={28}

@@ -26,7 +26,7 @@ export default async function BookingPage({ params }: { params: Promise<{ token:
         <div className="mx-auto flex max-w-[880px] items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <Link href="/" aria-label="Revetly" className="inline-flex items-center">
             <Image
-              src="/revetly/LogoEntwurf-trim.png"
+              src="/revetly/logo-520.webp"
               alt="Revetly"
               width={116}
               height={28}

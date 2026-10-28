@@ -149,7 +149,7 @@ export function AppTopbar({ preview }: { preview?: { user: UserProfile; pathname
           className={cn("flex h-11 flex-none items-center rounded-full bg-white px-4", pillShadow)}
         >
           <Image
-            src="/revetly/LogoEntwurf-trim.png"
+            src="/revetly/logo-520.webp"
             alt="Revetly"
             width={97}
             height={24}

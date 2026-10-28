@@ -48,7 +48,8 @@ async function openJobs(): Promise<MetadataRoute.Sitemap> {
 // Login bleibt draußen.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = getAllPosts()
-  const newest = posts[0]?.publishedAt
+  // Jüngste Änderung irgendeines Beitrags, nicht nur der neueste Beitrag.
+  const newest = posts.map((p) => p.updatedAt ?? p.publishedAt).sort().at(-1)
 
   return [
     { url: absoluteUrl("/"), lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
@@ -60,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...posts.map((post) => ({
       url: absoluteUrl(`/blog/${post.slug}`),
-      lastModified: new Date(post.publishedAt),
+      lastModified: new Date(post.updatedAt ?? post.publishedAt),
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),

@@ -68,11 +68,12 @@ export function RvHero() {
           Die linke Kante wird in globals.css weich ausgeblendet, sonst entstuende
           dort eine sichtbare Naht zum Hintergrund. */}
       <div ref={bgRef} className="rv-hero-bg absolute inset-0 z-0 overflow-hidden lg:left-[14%]">
-        {/* Liegt im Supabase-Bucket statt lokal, deshalb kein srcSet: Es gibt nur
-            diese eine Groesse. Ein srcSet mit den alten Dateien wuerde das neue
-            Bild ueberstimmen, w-Deskriptoren gewinnen gegen src.
-            Das Bild ist das LCP-Element der Seite, der preconnect im Layout
-            spart den Verbindungsaufbau zur fremden Domain.
+        {/* Das Bild ist das LCP-Element der Seite. Seit dem SEO-Audit vom
+            28.10.2026 lokal als WebP in drei Breiten (public/revetly/hero-*.webp,
+            erzeugt aus dem Original im Supabase-Bucket, 4,1 MB auf 31 bis 126 KB).
+            sizes: Das Bild füllt die Fläche per object-cover. Ist die Fläche
+            schmaler als 16:9 (Handy, die meisten Laptops), bestimmt die Höhe
+            die Breite, rund 178vh; ab lg beginnt die Fläche bei 14 Prozent.
             objectPosition haelt das Motiv rechts, damit die linke Haelfte fuer
             Ueberschrift und Text frei bleibt. Achtung, der Wert wirkt
             umgekehrt zur Intuition: Er bestimmt, welcher Punkt des Bildes auf
@@ -81,7 +82,11 @@ export function RvHero() {
             rueckt. Ein eigenes transform waere hier wirkungslos, die
             Ken-Burns-Animation in globals.css belegt die Eigenschaft bereits. */}
         <img
-          src="https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/Revetly/magnific_bewerbungen-sollen-herumf_jU6Imq8LD0.png"
+          src="/revetly/hero-2048.webp"
+          srcSet="/revetly/hero-828.webp 828w, /revetly/hero-1280.webp 1280w, /revetly/hero-2048.webp 2048w"
+          sizes="(max-aspect-ratio: 16/9) 178vh, (min-width: 1024px) 86vw, 100vw"
+          width={2048}
+          height={1152}
           alt=""
           role="presentation"
           loading="eager"
@@ -120,6 +125,10 @@ export function RvHero() {
                 >
                   {w.text}
                 </span>
+                {/* Echtes Leerzeichen für Suchmaschinen und Screenreader. In der
+                    Flex-Zeile ist ein reiner Leerraum-Textknoten unsichtbar,
+                    der Abstand kommt weiter aus gap-x. */}
+                {i < HEADLINE.length - 1 && " "}
                 {w.break && <span aria-hidden className="h-0 basis-full" />}
               </Fragment>
             ))}

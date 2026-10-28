@@ -1,10 +1,12 @@
 import type { Metadata } from "next"
+import { pageMetadata } from "@/lib/seo/page-metadata"
 import { LegalPage, LegalSection } from "@/components/legal/legal-page"
 
-export const metadata: Metadata = {
-  title: "Impressum — Revetly",
-  description: "Impressum und Offenlegung gemäß §5 ECG, §14 UGB und §25 MedienG.",
-}
+export const metadata: Metadata = pageMetadata({
+  title: "Impressum | Revetly",
+  description: "Impressum und Offenlegung von Revetly gemäß §5 ECG, §14 UGB und §25 MedienG.",
+  path: "/impressum",
+})
 
 // Austrian Impressum / Offenlegung (§5 ECG, §14 UGB, §25 MedienG).
 // NOTE: fill in every [Platzhalter] and have it reviewed by legal counsel.

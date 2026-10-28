@@ -114,7 +114,7 @@ export function RvServices() {
                 style={{ backgroundImage: "var(--rv-gradient)" }}
               >
                 <img
-                  src="https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/Revetly/Bild1.png"
+                  src="/revetly/bild1-68.webp"
                   alt=""
                   width={34}
                   height={34}

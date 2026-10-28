@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js"
 import { PublicJobView, type PublicJob } from "@/components/public/public-job"
 import { jobPostingJsonLd } from "@/lib/seo/job-posting"
 import { absoluteUrl } from "@/lib/site"
+import { fitTitle, OG_IMAGE } from "@/lib/seo/page-metadata"
 
 export const dynamic = "force-dynamic"
 
@@ -51,16 +52,45 @@ async function resolve(
   }
 }
 
+const EMPLOYMENT: Record<string, string> = {
+  "full-time": "Vollzeit",
+  "part-time": "Teilzeit",
+  contract: "Freelance",
+  remote: "Remote",
+}
+
+/** Beschreibung mit Ort, Anstellung und Gehalt, soweit vorhanden. */
+function jobDescription(job: PublicJob): string {
+  const facts = [job.location, job.employment_type ? EMPLOYMENT[job.employment_type] ?? null : null, job.salary_range]
+    .filter(Boolean)
+    .join(", ")
+  const base = `Jetzt bewerben als ${job.title} bei ${job.company}`
+  return facts ? `${base}. ${facts}. Bewerbung in wenigen Schritten, ohne Konto.` : `${base}. Bewerbung in wenigen Schritten, ohne Konto.`
+}
+
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string; jobSlug: string }> },
 ): Promise<Metadata> {
   const { id: customerSlug, jobSlug } = await params
   const res = await resolve(customerSlug, jobSlug)
-  if (!res) return { title: "Stelle nicht gefunden" }
+  if (!res) return { title: { absolute: "Stelle nicht gefunden | Revetly" } }
+  const url = `/jobs/${customerSlug}/${jobSlug}`
+  // Höchstens 60 Zeichen: mit Firma, wenn es passt, sonst nur der Titel.
+  const title = fitTitle([`${res.job.title} bei ${res.job.company}`, res.job.title])
+  const description = jobDescription(res.job)
   return {
-    title: `${res.job.title} · ${res.job.company}`,
-    description: `Jetzt bewerben als ${res.job.title} bei ${res.job.company}.`,
-    alternates: { canonical: absoluteUrl(`/jobs/${customerSlug}/${jobSlug}`) },
+    title: { absolute: title },
+    description,
+    alternates: { canonical: absoluteUrl(url) },
+    openGraph: {
+      type: "website",
+      siteName: "Revetly",
+      locale: "de_DE",
+      url,
+      title,
+      description,
+      images: [OG_IMAGE],
+    },
     // Geschlossene Stellen raus aus dem Index, wie Google es für Jobs verlangt.
     ...(res.job.is_active ? {} : { robots: { index: false, follow: false } }),
   }

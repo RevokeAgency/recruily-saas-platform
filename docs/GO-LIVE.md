@@ -383,6 +383,18 @@ Nichts davon hält den Launch auf, alles davon ist vorher billig zu erledigen.
 
 ## Inhalt und SEO
 
+- [x] **SEO-Audit der Live-Domain umgesetzt** *(28.10.2026)*: Canonical und
+      og:url auf allen öffentlichen Seiten, Titel höchstens 60 Zeichen,
+      noindex für Registrierung und Löschseite, H1 mit echten Leerzeichen,
+      strukturierte Daten der Startseite (Organisation, Website, Software mit
+      Preisen aus PLANS, FAQ), BlogPosting mit Bild, Bilder als WebP (Startseite
+      4,9 MB → 0,64 MB), Sicherheits-Header mit CSP, llms.txt, security.txt,
+      Metadaten im head auch für KI-Crawler. Lokal Lighthouse Startseite
+      98 mobil / 99 Desktop, SEO 100.
+- [ ] **Markenfarbe `--rv-green-deep` (#0E9F62) erreicht auf Weiß nur 3,4:1**
+      statt 4,5:1 (WCAG AA). Betrifft Kategorie-Etiketten, Quellenverweise,
+      Links und Chips auf Blog- und Stellenseiten. Designentscheidung.
+
 - [x] **Metadaten und Footer auf die Tempo-Aussage nachgezogen**
       (`app/layout.tsx`, `components/landing/rv-footer.tsx`). Beide trugen noch
       die alte Formulierung „ohne alle zu lesen" und das Wort „bewerten", das

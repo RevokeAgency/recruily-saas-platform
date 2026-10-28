@@ -6,6 +6,7 @@ import { ArrowUpRight, Clock3 } from "lucide-react"
 import { BLOG_POSTS, getAllPosts, getPost, formatBlogDate, readingMinutes, type BlogBlock } from "@/lib/blog/posts"
 import { BlogHeader, BlogFooter } from "@/components/blog/blog-chrome"
 import { absoluteUrl } from "@/lib/site"
+import { fitTitle, OG_IMAGE } from "@/lib/seo/page-metadata"
 
 export function generateStaticParams() {
   return BLOG_POSTS.map((p) => ({ slug: p.slug }))
@@ -16,10 +17,12 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params
   const post = getPost(slug)
-  if (!post) return { title: "Beitrag nicht gefunden | Revetly" }
+  if (!post) return { title: { absolute: "Beitrag nicht gefunden | Revetly" } }
 
   return {
-    title: `${post.title} | Revetly`,
+    // Kurzer Titel für Suchergebnisse (höchstens 60 Zeichen), der volle
+    // Titel bleibt H1 und Vorschaukarte.
+    title: { absolute: fitTitle([post.metaTitle ?? "", post.title]) },
     description: post.metaDescription,
     keywords: post.keywords,
     alternates: { canonical: `/blog/${post.slug}` },
@@ -130,7 +133,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     keywords: post.keywords.join(", "),
     articleSection: post.category,
     author: { "@type": "Person", name: post.author },
-    publisher: { "@type": "Organization", name: "Revetly" },
+    image: [absoluteUrl(OG_IMAGE.url)],
+    url: absoluteUrl(`/blog/${post.slug}`),
+    publisher: {
+      "@type": "Organization",
+      name: "Revetly",
+      logo: { "@type": "ImageObject", url: absoluteUrl("/icon-512.png") },
+    },
     citation: post.sources.map((s) => (s.url ? { "@type": "CreativeWork", name: s.label, url: s.url } : s.label)),
     mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl(`/blog/${post.slug}`) },
   }

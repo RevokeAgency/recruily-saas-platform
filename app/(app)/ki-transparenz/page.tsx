@@ -4,6 +4,16 @@ import { Mail, ScrollText } from "lucide-react"
 import { PageHero } from "@/components/app/page-hero"
 import { Card, CardContent } from "@/components/ui/card"
 import { INTERVIEW_WEIGHT } from "@/lib/matching/screening"
+import { pageMetadata } from "@/lib/seo/page-metadata"
+
+// Öffentlich erreichbar und für Vertrauen wichtig, deshalb eigener Titel statt
+// dem der Startseite (SEO-Audit 28.10.2026).
+export const metadata = pageMetadata({
+  title: "KI-Transparenz und Gebrauchsanweisung | Revetly",
+  description:
+    "Wie die Revetly Match Analyse arbeitet, welche Daten sie nutzt und welche Pflichten Arbeitgeber nach der KI-Verordnung als Betreiber haben.",
+  path: "/ki-transparenz",
+})
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Gebrauchsanweisung und Betreiberpflichten nach der KI-Verordnung.

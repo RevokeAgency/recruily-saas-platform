@@ -7,7 +7,7 @@ import { BlogHeader, BlogFooter } from "@/components/blog/blog-chrome"
 import { absoluteUrl } from "@/lib/site"
 
 export const metadata: Metadata = {
-  title: "Blog — Recruiting-Wissen für DACH-Personalabteilungen | Revetly",
+  title: { absolute: "Recruiting-Blog für Personalabteilungen | Revetly" },
   description:
     "Beiträge zu KI-Recruiting, EU AI Act, strukturierten Interviews, Time-to-Hire und Bewerbermanagement-Software. Praxisnah für Personalabteilungen und Agenturen.",
   keywords: [
@@ -24,10 +24,15 @@ export const metadata: Metadata = {
     siteName: "Revetly",
     locale: "de_DE",
     url: "/blog",
-    title: "Revetly Blog — Recruiting-Wissen für DACH-Personalabteilungen",
+    title: "Revetly Blog: Recruiting-Wissen für Personalabteilungen im DACH-Raum",
     description:
       "Beiträge zu KI-Recruiting, EU AI Act, strukturierten Interviews und Bewerbermanagement. Praxisnah statt theoretisch.",
     images: [{ url: "/revetly/og-image.jpg", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Revetly Blog: Recruiting-Wissen für Personalabteilungen im DACH-Raum",
+    images: ["/revetly/og-image.jpg"],
   },
 }
 
@@ -67,7 +72,7 @@ export default function BlogIndexPage() {
               Revetly Blog
             </span>
             <h1 className="mt-[22px] text-[clamp(1.9rem,4vw,2.6rem)] leading-[1.15] font-bold tracking-[-0.03em] text-[var(--rv-ink)]">
-              Recruiting-Wissen,
+              Recruiting-Wissen,{" "}
               <br />
               <span className="rv-gradient-text">das im Alltag hilft.</span>
             </h1>
@@ -106,6 +111,8 @@ export default function BlogIndexPage() {
                   className="group mt-4 inline-flex items-center gap-1.5 text-[.88rem] font-bold text-[var(--rv-ink)] transition-colors hover:text-[var(--rv-green-deep)]"
                 >
                   Weiterlesen
+                  {/* Für Suchmaschinen und Screenreader sprechend, optisch unverändert. */}
+                  <span className="sr-only">: {post.cardTitle ?? post.title}</span>
                   <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={2.4} />
                 </Link>
               </article>

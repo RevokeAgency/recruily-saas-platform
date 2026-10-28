@@ -1,0 +1,5 @@
+Contact: mailto:support@revetly.ai
+Expires: 2027-10-28T00:00:00.000Z
+Preferred-Languages: de, en
+Canonical: https://www.revetly.ai/.well-known/security.txt
+Policy: https://www.revetly.ai/datenschutz

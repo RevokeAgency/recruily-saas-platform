@@ -95,7 +95,7 @@ export function OnboardingWizard({ initial }: Props) {
       <div className="mx-auto flex min-h-screen max-w-xl flex-col px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <Image
-            src="/revetly/LogoEntwurf-trim.png"
+            src="/revetly/logo-520.webp"
             alt="Revetly"
             width={129}
             height={32}

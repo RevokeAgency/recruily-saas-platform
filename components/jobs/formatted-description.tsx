@@ -49,9 +49,9 @@ export function formatJobDescription(text: string): React.ReactNode[] | null {
     if (trimmed.endsWith(":") && trimmed.length <= 60 && !/[.!?]\s/.test(trimmed)) {
       flushList()
       elements.push(
-        <h4 key={key++} className="mb-2 mt-5 font-semibold text-foreground first:mt-0">
+        <h3 key={key++} className="mb-2 mt-5 font-semibold text-foreground first:mt-0">
           {trimmed}
-        </h4>,
+        </h3>,
       )
       continue
     }

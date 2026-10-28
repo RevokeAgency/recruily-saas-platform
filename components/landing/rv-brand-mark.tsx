@@ -10,7 +10,7 @@ import Image from "next/image"
 export function RvBrandMark({ className }: { className?: string }) {
   return (
     <Image
-      src="/revetly/LogoEntwurf-trim.png"
+      src="/revetly/logo-520.webp"
       alt="Revetly"
       width={129}
       height={32}

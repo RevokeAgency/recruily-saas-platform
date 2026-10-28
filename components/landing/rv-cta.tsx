@@ -57,7 +57,9 @@ export function RvCta() {
               Dekoration und traegt keine Information, die der Text nicht schon gibt. */}
           <div className="relative hidden min-h-[340px] bg-[var(--rv-ink)] md:block">
             <img
-              src="https://wciddwedyrgwjsppzlfr.supabase.co/storage/v1/object/public/Revetly/magnific_generate-a-version-of-thi_ovqMfkn829.png"
+              src="/revetly/cta-1000.webp"
+              srcSet="/revetly/cta-640.webp 640w, /revetly/cta-1000.webp 1000w"
+              sizes="(min-width: 1200px) 600px, 50vw"
               alt=""
               loading="lazy"
               decoding="async"

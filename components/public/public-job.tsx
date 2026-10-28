@@ -65,7 +65,7 @@ function PoweredBy() {
       <span>Intelligentes Recruiting mit</span>
       <Link href="/" aria-label="Revetly" className="inline-flex items-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/revetly/LogoEntwurf-trim.png" alt="Revetly" className="h-5 w-auto" />
+        <img src="/revetly/logo-520.webp" alt="Revetly" className="h-5 w-auto" />
       </Link>
     </div>
   )

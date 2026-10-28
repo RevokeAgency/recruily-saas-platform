@@ -36,7 +36,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ token: 
       <header className="border-b border-[var(--app-line)] bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[880px] items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <Link href="/" aria-label="Revetly" className="inline-flex items-center">
-            <Image src="/revetly/LogoEntwurf-trim.png" alt="Revetly" width={116} height={28} className="h-7 w-auto" priority />
+            <Image src="/revetly/logo-520.webp" alt="Revetly" width={116} height={28} className="h-7 w-auto" priority />
           </Link>
           <span className="text-sm text-muted-foreground">Einschätzung zu Bewerbungen</span>
         </div>

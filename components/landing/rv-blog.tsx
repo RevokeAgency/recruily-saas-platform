@@ -77,6 +77,8 @@ export function RvBlog() {
               <RvButton variant="primary" size="sm" asChild>
                 <Link href={`/blog/${lead.slug}`} target="_blank" rel="noopener">
                   Weiterlesen
+                  {/* Für Suchmaschinen und Screenreader sprechend, optisch unverändert. */}
+                  <span className="sr-only">: {lead.cardTitle ?? lead.title}</span>
                   <ArrowUpRight className="rv-btn-arrow h-3.5 w-3.5" strokeWidth={2.4} />
                 </Link>
               </RvButton>
@@ -109,6 +111,8 @@ export function RvBlog() {
                   className="group mt-auto inline-flex w-fit items-center gap-1.5 pt-1 text-[.85rem] font-bold text-[var(--rv-ink)] transition-colors hover:text-[var(--rv-green-deep)]"
                 >
                   Weiterlesen
+                  {/* Für Suchmaschinen und Screenreader sprechend, optisch unverändert. */}
+                  <span className="sr-only">: {post.cardTitle ?? post.title}</span>
                   <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={2.4} />
                 </Link>
               </RvCard>
@@ -147,6 +151,8 @@ export function RvBlog() {
                   className="group mt-auto inline-flex w-fit items-center gap-1.5 pt-1 text-[.85rem] font-bold text-[var(--rv-ink)] transition-colors hover:text-[var(--rv-green-deep)]"
                 >
                   Weiterlesen
+                  {/* Für Suchmaschinen und Screenreader sprechend, optisch unverändert. */}
+                  <span className="sr-only">: {post.cardTitle ?? post.title}</span>
                   <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={2.4} />
                 </Link>
               </RvCard>

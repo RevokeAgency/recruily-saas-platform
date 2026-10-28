@@ -49,7 +49,7 @@ export function RvNavbar({ onLoginClick }: { onLoginClick?: () => void }) {
       >
         <Link href="/" aria-label="Revetly Startseite" className="inline-flex items-center">
           <Image
-            src="/revetly/LogoEntwurf-trim.png"
+            src="/revetly/logo-520.webp"
             alt="Revetly"
             width={129}
             height={32}

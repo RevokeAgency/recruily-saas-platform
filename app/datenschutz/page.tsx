@@ -2,11 +2,13 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import type { Metadata } from "next"
+import { pageMetadata } from "@/lib/seo/page-metadata"
 
-export const metadata: Metadata = {
-  title: "Datenschutz — Revetly",
-  description: "Datenschutzhinweise zur Verarbeitung personenbezogener Daten bei Revetly.",
-}
+export const metadata: Metadata = pageMetadata({
+  title: "Datenschutzerklärung | Revetly",
+  description: "Datenschutzhinweise zur Verarbeitung personenbezogener Daten bei Revetly: Bewerberdaten, KI-Auswertung in der EU, Speicherdauer und deine Rechte.",
+  path: "/datenschutz",
+})
 
 // Public privacy notice. Plain, readable, EU-focused. NOTE: this is a solid
 // starting template — have it reviewed by legal counsel before go-live and fill
@@ -18,7 +20,7 @@ export default function DatenschutzPage() {
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="inline-flex items-center" aria-label="Zur Startseite">
             <Image
-              src="/revetly/LogoEntwurf-trim.png"
+              src="/revetly/logo-520.webp"
               alt="Revetly"
               width={116}
               height={28}

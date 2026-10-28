@@ -21,7 +21,7 @@ export function LegalPage({
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="inline-flex items-center" aria-label="Zur Startseite">
             <Image
-              src="/revetly/LogoEntwurf-trim.png"
+              src="/revetly/logo-520.webp"
               alt="Revetly"
               width={116}
               height={28}

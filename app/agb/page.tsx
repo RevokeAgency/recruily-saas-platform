@@ -1,11 +1,13 @@
 import type { Metadata } from "next"
+import { pageMetadata } from "@/lib/seo/page-metadata"
 import Link from "next/link"
 import { LegalPage, LegalSection } from "@/components/legal/legal-page"
 
-export const metadata: Metadata = {
-  title: "AGB — Revetly",
-  description: "Allgemeine Geschäftsbedingungen für die Nutzung der Revetly-Plattform.",
-}
+export const metadata: Metadata = pageMetadata({
+  title: "AGB | Revetly",
+  description: "Allgemeine Geschäftsbedingungen für die Nutzung der Revetly-Plattform für Recruiting im DACH-Raum.",
+  path: "/agb",
+})
 
 // General terms for the SaaS (primarily B2B), Austrian law.
 // NOTE: fill in every [Platzhalter] and have it reviewed by legal counsel.

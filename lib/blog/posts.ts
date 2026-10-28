@@ -33,6 +33,8 @@ export interface BlogPost {
   title: string
   /** Kürzerer Titel für die Vorschaukarte, falls der volle zu lang ist. */
   cardTitle?: string
+  /** Titel für Suchergebnisse, höchstens 50 Zeichen (mit " | Revetly" 60). */
+  metaTitle?: string
   /** Anrisstext. Steht als Vorspann im Artikel, auf /blog und auf der Startseite. */
   excerpt: string
   /** Meta-Description für Suchmaschinen (max. ~155 Zeichen). */
@@ -58,6 +60,7 @@ export const BLOG_POSTS: BlogPost[] = [
   // ───────────────────────────────────────────────────────────────────────────
   {
     slug: "eu-ai-act-recruiting",
+    metaTitle: "EU AI Act im Recruiting: Pflichten für HR",
     title: "EU AI Act im Recruiting: Was Personalabteilungen jetzt wissen müssen",
     cardTitle: "EU AI Act im Recruiting",
     excerpt:
@@ -198,6 +201,7 @@ export const BLOG_POSTS: BlogPost[] = [
   // ───────────────────────────────────────────────────────────────────────────
   {
     slug: "strukturierte-interviews-leitfaden",
+    metaTitle: "Strukturierte Interviews: Leitfaden mit Beispielen",
     title: "Strukturierte Interviews: Der unterschätzte Hebel für bessere Einstellungen",
     cardTitle: "Strukturierte Interviews",
     excerpt:
@@ -333,6 +337,7 @@ export const BLOG_POSTS: BlogPost[] = [
   // ───────────────────────────────────────────────────────────────────────────
   {
     slug: "time-to-hire-senken",
+    metaTitle: "Time-to-Hire senken: Wo die Wochen verloren gehen",
     title: "Time-to-Hire senken: Wo die Wochen wirklich verloren gehen",
     cardTitle: "Time-to-Hire senken",
     excerpt:
@@ -451,6 +456,7 @@ export const BLOG_POSTS: BlogPost[] = [
   // ───────────────────────────────────────────────────────────────────────────
   {
     slug: "talent-pool-aktivieren",
+    metaTitle: "Talent-Pool nutzen: frühere Bewerber gewinnen",
     title: "Talent-Pool nutzen: Warum frühere Bewerber oft die besten Kandidaten sind",
     cardTitle: "Talent-Pool aktivieren",
     excerpt:
@@ -569,6 +575,7 @@ export const BLOG_POSTS: BlogPost[] = [
   // ───────────────────────────────────────────────────────────────────────────
   {
     slug: "ki-matching-vs-keyword-suche",
+    metaTitle: "KI-Matching statt Stichwortsuche im Recruiting",
     title: "KI-Matching statt Stichwortsuche: Warum Filter die Falschen aussortieren",
     cardTitle: "KI-Matching vs. Stichwortsuche",
     excerpt:
@@ -684,6 +691,7 @@ export const BLOG_POSTS: BlogPost[] = [
   // ───────────────────────────────────────────────────────────────────────────
   {
     slug: "bewerbermanagement-software-auswahl",
+    metaTitle: "Bewerbermanagement-Software für KMU auswählen",
     title: "Bewerbermanagement-Software für KMU: Woran Auswahlprojekte scheitern",
     cardTitle: "Software-Auswahl für KMU",
     excerpt:
