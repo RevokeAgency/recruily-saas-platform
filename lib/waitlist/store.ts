@@ -1,6 +1,6 @@
 import { createClient as createAdmin, type SupabaseClient } from "@supabase/supabase-js"
 
-import { notifyWaitlistSignup, sendWaitlistConfirm, sendWaitlistWelcome } from "@/lib/email/waitlist"
+import { notifyWaitlistSignup, sendWaitlistConfirm, sendWaitlistLaunch, sendWaitlistWelcome } from "@/lib/email/waitlist"
 import { absoluteUrl } from "@/lib/site"
 
 import {
@@ -112,4 +112,65 @@ export async function unsubscribe(db: SupabaseClient, token: unknown): Promise<"
     return "invalid"
   }
   return "done"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Zum Start (Admin-Seite /admin/warteliste)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function waitlistStats(db: SupabaseClient): Promise<{ confirmed: number; pending: number } | null> {
+  const count = async (status: string) => {
+    const { count, error } = await db.from("waitlist").select("id", { count: "exact", head: true }).eq("status", status)
+    return error ? null : (count ?? 0)
+  }
+  const [confirmed, pending] = await Promise.all([count("confirmed"), count("pending")])
+  return confirmed === null || pending === null ? null : { confirmed, pending }
+}
+
+/**
+ * Schickt die Mail zum Start an bis zu `limit` bestätigte Adressen und
+ * löscht jede Adresse, sobald ihre Mail angenommen wurde. Ein abgebrochener
+ * Versand lässt sich deshalb einfach fortsetzen: Wer noch in der Tabelle
+ * steht, hat die Mail noch nicht. Nach drei Fehlern in Folge bricht der
+ * Durchgang ab (meist Kontingent oder Zugang beim Mailanbieter).
+ */
+export async function sendLaunchBatch(
+  db: SupabaseClient,
+  limit = 25,
+): Promise<{ sent: number; failed: number; remaining: number; stopped: boolean }> {
+  const { data, error } = await db
+    .from("waitlist")
+    .select("id, email")
+    .eq("status", "confirmed")
+    .order("confirmed_at", { ascending: true })
+    .limit(limit)
+  if (error) throw new Error(`waitlist lesen: ${error.message}`)
+
+  let sent = 0
+  let failed = 0
+  let streak = 0
+  for (const row of data ?? []) {
+    const ok = await sendWaitlistLaunch({ to: row.email, unsubscribeUrl: unsubscribeUrl(row.id) })
+    if (ok) {
+      sent++
+      streak = 0
+      // Lässt sich die Adresse nicht löschen, sofort abbrechen: Sonst bekäme
+      // sie beim nächsten Durchgang dieselbe Mail ein zweites Mal.
+      const { error: delError } = await db.from("waitlist").delete().eq("id", row.id)
+      if (delError) throw new Error(`waitlist löschen nach Versand: ${delError.message}`)
+    } else {
+      failed++
+      if (++streak >= 3) break
+    }
+  }
+
+  const stats = await waitlistStats(db)
+  return { sent, failed, remaining: stats?.confirmed ?? 0, stopped: streak >= 3 }
+}
+
+/** Löscht alle unbestätigten Einträge, etwa nach dem Versand zum Start. */
+export async function purgePending(db: SupabaseClient): Promise<number> {
+  const { data, error } = await db.from("waitlist").delete().eq("status", "pending").select("id")
+  if (error) throw new Error(`waitlist löschen: ${error.message}`)
+  return data?.length ?? 0
 }

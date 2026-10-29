@@ -1,9 +1,11 @@
 import { sendMail } from "./client"
 import { button, escapeHtml, eyebrow, heading, paragraph, shell } from "./layout"
+import { PLANS } from "@/lib/plans"
+import { absoluteUrl } from "@/lib/site"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mails der Warteliste: Bestätigung (Double-Opt-in), Begrüßung nach dem
-// Bestätigen und ein kurzer Hinweis an uns.
+// Bestätigen, ein kurzer Hinweis an uns und die eine Mail zum Start.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function sendWaitlistConfirm(opts: { to: string; confirmUrl: string }): Promise<boolean> {
@@ -39,6 +41,7 @@ export async function sendWaitlistWelcome(opts: { to: string; unsubscribeUrl: st
         preheader: "Wir melden uns, sobald du Revetly nutzen kannst.",
         footerNote: `Du bekommst diese Mail, weil du dich auf der Warteliste eingetragen hast. <a href="${escapeHtml(opts.unsubscribeUrl)}" style="color:inherit;">Austragen</a>`,
       }),
+      headers: { "List-Unsubscribe": `<${opts.unsubscribeUrl}>` },
     },
     "Warteliste Begrüßung",
   )
@@ -54,4 +57,42 @@ export async function notifyWaitlistSignup(email: string, total: number | null):
     ${paragraph(`<strong>${escapeHtml(email)}</strong> hat die Adresse bestätigt.${total ? ` Bestätigte Einträge insgesamt: ${total}.` : ""}`, { last: true })}
   `
   await sendMail({ to, subject: `Warteliste: ${email}`, html: shell("Revetly", body) }, "Warteliste Hinweis")
+}
+
+/**
+ * Die Mail zum Start. Geht einmal an jede bestätigte Adresse, danach wird
+ * die Adresse gelöscht (siehe sendLaunchBatch in lib/waitlist/store.ts).
+ */
+export function waitlistLaunchMail(unsubscribeUrl: string): { subject: string; html: string } {
+  const startUrl = absoluteUrl("/auth/register")
+  const body = `
+    ${eyebrow("Revetly ist da")}
+    ${heading("Du kannst jetzt loslegen")}
+    ${paragraph("Du hast dich auf die Warteliste von Revetly eingetragen. Ab heute kannst du Revetly nutzen.")}
+    ${paragraph(`Leg deine erste Stelle an und probier es mit echten Bewerbungen aus. Revetly liest jede Bewerbung, prüft die Passung mit Beleg und plant die Gespräche. Die Entscheidung triffst du. Zum Start bekommst du ${PLANS.free.matches} Matches gratis, ohne Kreditkarte.`)}
+    ${button(startUrl, "Jetzt starten")}
+    ${paragraph("Das ist die einzige Mail, die du von der Warteliste bekommst. Danach löschen wir deine Adresse von der Liste.", { muted: true, small: true, last: true })}
+  `
+  return {
+    subject: "Revetly ist da",
+    html: shell("Revetly", body, {
+      preheader: "Ab heute kannst du Revetly nutzen.",
+      footerNote: `Du bekommst diese Mail, weil du dich auf der Warteliste eingetragen hast. <a href="${escapeHtml(unsubscribeUrl)}" style="color:inherit;">Austragen</a>`,
+    }),
+  }
+}
+
+export async function sendWaitlistLaunch(opts: { to: string; unsubscribeUrl: string }): Promise<boolean> {
+  const { subject, html } = waitlistLaunchMail(opts.unsubscribeUrl)
+  return sendMail(
+    {
+      to: opts.to,
+      subject,
+      html,
+      headers: { "List-Unsubscribe": `<${opts.unsubscribeUrl}>` },
+      // Eigene Route für Rundmails, falls in Lettermint angelegt.
+      route: process.env.LETTERMINT_BROADCAST_ROUTE || undefined,
+    },
+    "Warteliste Start",
+  )
 }

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server"
 import { createClient as createServer } from "@/lib/supabase/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
+import { isOperator as istBetreiber } from "@/lib/admin"
 
 export const dynamic = "force-dynamic"
 
@@ -12,17 +13,8 @@ export const dynamic = "force-dynamic"
  * nicht Stacktraces, die Bruchstücke fremder Vorgänge enthalten können.
  *
  * Zugang über MONITORING_ADMIN_EMAIL (kommagetrennt). Ist die Variable nicht
- * gesetzt, ist der Endpunkt für alle gesperrt — fail-closed.
+ * gesetzt, ist der Endpunkt für alle gesperrt — fail-closed (lib/admin.ts).
  */
-function istBetreiber(email: string | null | undefined): boolean {
-  const erlaubt = (process.env.MONITORING_ADMIN_EMAIL ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean)
-  if (erlaubt.length === 0 || !email) return false
-  return erlaubt.includes(email.trim().toLowerCase())
-}
-
 export async function GET(req: NextRequest) {
   const supabase = await createServer()
   const { data: { user } } = await supabase.auth.getUser()

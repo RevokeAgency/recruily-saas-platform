@@ -33,6 +33,10 @@ export interface MailInput {
   html: string
   replyTo?: string
   attachments?: MailAttachment[]
+  /** Zusätzliche Kopfzeilen, etwa List-Unsubscribe. */
+  headers?: Record<string, string>
+  /** Lettermint-Route für diese Mail, sonst LETTERMINT_ROUTE. */
+  route?: string
 }
 
 const FROM = process.env.MAIL_FROM || "Revetly <karriere@revetly.ai>"
@@ -62,7 +66,9 @@ async function sendViaLettermint(mail: MailInput): Promise<string> {
       ...(a.contentType ? { content_type: a.contentType } : {}),
     }))
   }
-  if (process.env.LETTERMINT_ROUTE) body.route = process.env.LETTERMINT_ROUTE
+  const route = mail.route || process.env.LETTERMINT_ROUTE
+  if (route) body.route = route
+  if (mail.headers && Object.keys(mail.headers).length) body.headers = mail.headers
 
   const res = await fetch(LETTERMINT_URL, {
     method: "POST",

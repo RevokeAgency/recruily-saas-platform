@@ -37,9 +37,9 @@ Registrierung ist zu. Die Landing bleibt über einen Vorschau-Link sichtbar.
 - [ ] `NEXT_PUBLIC_LAUNCH_MODE` in Vercel löschen (oder `live`) und neu
       deployen. Die Variable wird beim Bauen in den Blog eingesetzt, deshalb
       wirkt sie erst mit dem Deployment.
-- [ ] Bestätigte Adressen anschreiben (Abfrage in `scripts/037_waitlist.md`),
-      jede Mail mit Austragelink. Danach die Tabelle leeren, wie in der
-      Datenschutzerklärung (Abschnitt 8) zugesagt.
+- [ ] Bestätigte Adressen anschreiben: `/admin/warteliste` → Testmail →
+      „An alle Bestätigten senden“ → „Unbestätigte löschen“. Ablauf in
+      `scripts/037_waitlist.md`. Vorher Lettermint-Kontingent prüfen.
 
 ---
 

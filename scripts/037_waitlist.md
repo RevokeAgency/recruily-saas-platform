@@ -43,10 +43,20 @@ select email, confirmed_at from public.waitlist
 
 ## Zum Start
 
-Mail an alle bestätigten Adressen, jede mit eigenem Austragelink
-(`unsubscribeUrl(id)` aus `lib/waitlist/store.ts`). Danach die Tabelle leeren,
-so steht es in der Datenschutzerklärung (Abschnitt 8):
+Alles läuft über die interne Seite **`/admin/warteliste`** (nur für Konten aus
+`MONITORING_ADMIN_EMAIL`, alle anderen sehen ein 404):
 
-```sql
-delete from public.waitlist;
-```
+1. **Testmail an mich** schicken und ansehen.
+2. `NEXT_PUBLIC_LAUNCH_MODE` in Vercel entfernen und neu deployen. Vorher ist
+   der Versand an alle gesperrt, weil „Jetzt starten“ sonst auf die
+   Coming-Soon-Seite führt.
+3. **An alle Bestätigten senden.** Geht in Paketen zu 25 Mails. Jede Adresse
+   wird gelöscht, sobald Lettermint ihre Mail angenommen hat. Bricht der
+   Versand ab (etwa Kontingent erreicht), einfach erneut starten: Wer noch in
+   der Liste steht, hat die Mail noch nicht.
+4. **Unbestätigte löschen.** Danach ist die Tabelle leer, wie in der
+   Datenschutzerklärung (Abschnitt 8) zugesagt.
+
+Optional `LETTERMINT_BROADCAST_ROUTE` setzen, wenn die Mail über eine eigene
+Rundmail-Route bei Lettermint laufen soll. Vorher das Kontingent bei
+Lettermint prüfen: Der Free-Plan hat 300 Mails im Monat.
