@@ -1,16 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { waitlistLaunchMail } from "@/lib/email/waitlist"
+import { PLANS } from "@/lib/plans"
+import { sendLaunchBatch } from "@/lib/waitlist/store"
+
 const sendMock = vi.fn<(opts: { to: string; unsubscribeUrl: string }) => Promise<boolean>>()
 vi.mock("@/lib/email/waitlist", async (orig) => ({
   ...(await orig<typeof import("@/lib/email/waitlist")>()),
   sendWaitlistLaunch: (opts: { to: string; unsubscribeUrl: string }) => sendMock(opts),
 }))
 
+// Der Schlüssel wird erst beim Signieren gelesen, nicht beim Import.
 process.env.WAITLIST_SECRET = "test-secret"
-
-const { sendLaunchBatch } = await import("@/lib/waitlist/store")
-const { waitlistLaunchMail } = await import("@/lib/email/waitlist")
-const { PLANS } = await import("@/lib/plans")
 
 type Row = { id: string; email: string; status: string }
 
