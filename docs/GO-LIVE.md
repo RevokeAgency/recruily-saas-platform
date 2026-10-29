@@ -15,17 +15,18 @@ Registrierung ist zu. Die Landing bleibt über einen Vorschau-Link sichtbar.
 
 **Einschalten**
 
-- [ ] Migration `scripts/037_waitlist.sql` einspielen (Details in
+- [x] Migration `scripts/037_waitlist.sql` einspielen *(29.10.2026)* (Details in
       `scripts/037_waitlist.md`).
-- [ ] In Vercel (Production) setzen und neu deployen:
+- [x] In Vercel (Production) setzen und neu deployen *(29.10.2026)*:
   - `NEXT_PUBLIC_LAUNCH_MODE` = `waitlist`
   - `LAUNCH_PREVIEW_TOKEN` = langer Zufallswert (`openssl rand -hex 16`)
   - `WAITLIST_SECRET` = Zufallswert (`openssl rand -hex 32`). Signiert die
     Austragelinks. **Nicht mehr ändern**, sonst gelten alte Links nicht mehr.
   - `WAITLIST_NOTIFY_EMAIL` *(optional)*: bekommt eine kurze Mail bei jeder
     Bestätigung.
-- [ ] Lettermint muss Mails verschicken können (Domain verifiziert), sonst
-      kommt kein Bestätigungslink an und das Formular meldet einen Fehler.
+- [x] Lettermint verschickt *(29.10.2026)*: Domain `revetly.ai` (ohne www)
+      verifiziert, Einträge per Cloudflare-Verbindung angelegt. Ablauf
+      Eintragen, Bestätigen, Austragen live getestet.
 - [ ] Vorschau: `https://www.revetly.ai/?vorschau=<LAUNCH_PREVIEW_TOKEN>`
       einmal aufrufen. Das setzt ein Cookie für 30 Tage, danach zeigt `/`
       die Landing und die Registrierung ist offen. `/?vorschau=aus` beendet
@@ -142,7 +143,9 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
       selbst bleibt davon unberührt (eigene Postfächer wie hallo@).
       Subdomains mit eigenen Einträgen (www, app …) sind als Kurznamen
       gesperrt, siehe Migration 034.
-- [ ] **Lettermint**: Absenderdomain `revetly.ai` verifizieren (SPF/DKIM), damit
+- [x] **Lettermint** *(29.10.2026)*: Absenderdomain `revetly.ai` verifiziert (DKIM, Return-Path,
+      DMARC `p=reject`). Wichtig: bei Lettermint `revetly.ai` ohne www, sonst
+      lehnt Lettermint den Absender `@revetly.ai` ab. Damit
       Auto-Reply / Interview / Absage / Terminmails nicht im Spam landen.
 - [ ] **`NEXT_PUBLIC_SITE_URL`** auf `https://revetly.ai` setzen. Daraus bauen
       sich `metadataBase`, die canonical-Links der Blog-Beiträge, `robots.txt`
@@ -200,7 +203,7 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       privater Stellen sieht nur, wer die Stelle sieht. Bestehende Stellen
       werden privat, der Inhaber sieht weiter alles. Lokal getestet, Details
       in `scripts/036_job_visibility.md`.
-- [ ] `scripts/037_waitlist.sql` *(neu 29.10.2026)*: **Warteliste vor dem
+- [x] `scripts/037_waitlist.sql` *(eingespielt 29.10.2026)*: **Warteliste vor dem
       Start.** Eigene Tabelle, nur der Server hat Zugriff. Unabhängig von 035
       und 036. Lokal getestet, Details in `scripts/037_waitlist.md`.
 
