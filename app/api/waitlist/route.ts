@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   // Neutraler Name, damit Autofill im Browser es nicht befüllt.
   const trap = body.rv_check ?? body.website
   if (typeof trap === "string" && trap.trim()) {
-    console.info("[waitlist] Bot-Feld ausgefüllt, keine Mail")
+    console.warn("[waitlist] Bot-Feld ausgefüllt, keine Mail")
     return Response.json({ ok: true })
   }
 
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   // Pro Adresse höchstens drei Mails am Tag. Darüber kommt dieselbe Antwort, nur ohne Mail.
   const perEmail = await consumeRateLimit(db, "waitlist_email", emailKey(email), 3, 86400)
   if (!perEmail.allowed) {
-    console.info("[waitlist] Tagesgrenze für diese Adresse erreicht, keine Mail")
+    console.warn("[waitlist] Tagesgrenze für diese Adresse erreicht, keine Mail")
     return Response.json({ ok: true })
   }
 
