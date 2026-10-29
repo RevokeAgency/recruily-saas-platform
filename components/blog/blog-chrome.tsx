@@ -2,6 +2,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft, ArrowUpRight } from "lucide-react"
 
+import { isWaitlistMode } from "@/lib/launch"
+
 /**
  * Kopf- und Fußbereich der Blogseiten.
  *
@@ -45,6 +47,8 @@ export function BlogHeader() {
 }
 
 export function BlogFooter() {
+  // Vor dem Start führt der Knopf zur Warteliste auf der Startseite.
+  const waitlist = isWaitlistMode()
   return (
     <footer className="border-t border-[rgba(12,26,22,.10)] bg-white">
       <div className="mx-auto max-w-[820px] px-4 py-10 sm:px-6">
@@ -57,10 +61,10 @@ export function BlogFooter() {
             begründet jeden Punkt. Auf EU-Servern, ohne Training auf Bewerberdaten.
           </p>
           <Link
-            href="/auth/register"
+            href={waitlist ? "/" : "/auth/register"}
             className="rv-btn rv-btn-shine mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--rv-green)] px-6 py-3.5 text-sm font-bold tracking-tight text-[#0C1A16] shadow-[0_10px_26px_-14px_rgba(22,199,124,.55)] transition-[transform,background-color,box-shadow] duration-200 hover:-translate-y-px hover:bg-[var(--rv-green-deep)]"
           >
-            Kostenlos testen
+            {waitlist ? "Auf die Warteliste" : "Kostenlos testen"}
             <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.4} />
           </Link>
         </div>

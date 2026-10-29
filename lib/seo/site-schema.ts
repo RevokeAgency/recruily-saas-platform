@@ -12,7 +12,11 @@ const ORG_ID = `${SITE_URL}/#organization`
 
 const PAID: PlanId[] = ["starter", "growth", "pro"]
 
-export function siteJsonLd() {
+/**
+ * `minimal`: nur Organisation und Website. Für die Coming-Soon-Seite, die
+ * weder Preise noch FAQ zeigt; strukturierte Daten müssen zum Sichtbaren passen.
+ */
+export function siteJsonLd({ minimal = false }: { minimal?: boolean } = {}) {
   const organization = {
     "@type": "Organization",
     "@id": ORG_ID,
@@ -32,6 +36,8 @@ export function siteJsonLd() {
     inLanguage: "de",
     publisher: { "@id": ORG_ID },
   }
+
+  if (minimal) return { "@context": "https://schema.org", "@graph": [organization, website] }
 
   const software = {
     "@type": "SoftwareApplication",

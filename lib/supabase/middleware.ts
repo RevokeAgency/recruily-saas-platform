@@ -1,7 +1,10 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function updateSession(request: NextRequest) {
+export async function updateSession(
+  request: NextRequest,
+  { loginPath = '/auth/register' }: { loginPath?: string } = {},
+) {
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -57,8 +60,10 @@ export async function updateSession(request: NextRequest) {
   )
 
   if (isProtectedRoute && !user) {
+    const target = new URL(loginPath, request.url)
     const url = request.nextUrl.clone()
-    url.pathname = '/auth/register'
+    url.pathname = target.pathname
+    url.search = target.search
     return NextResponse.redirect(url)
   }
 

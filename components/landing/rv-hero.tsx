@@ -15,7 +15,7 @@ import { PLANS } from "@/lib/plans"
 //
 // Die Arbeitsteilung ist die These der Seite: Der Mensch führt die
 // Gespräche (Tinte), Revetly erledigt den Rest (Verlauf).
-const HEADLINE: Array<{ text: string; gradient?: boolean; break?: boolean }> = [
+export const HEADLINE: Array<{ text: string; gradient?: boolean; break?: boolean }> = [
   { text: "Du" },
   { text: "führst" },
   { text: "die", break: true },
@@ -26,7 +26,7 @@ const HEADLINE: Array<{ text: string; gradient?: boolean; break?: boolean }> = [
   { text: "Rest.", gradient: true },
 ]
 
-const TRUST_ITEMS = ["Entscheidung immer beim Menschen", "Jeder Match belegt", "Verarbeitung in der EU"]
+export const TRUST_ITEMS = ["Entscheidung immer beim Menschen", "Jeder Match belegt", "Verarbeitung in der EU"]
 
 /**
  * Full-bleed Ken-Burns hero (index.html .hero): background photo drift,

@@ -21,9 +21,11 @@ import { toast } from "sonner"
 interface LoginModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Vor dem Start (Warteliste) gibt es keine öffentliche Registrierung. */
+  showRegister?: boolean
 }
 
-export function LoginModal({ open, onOpenChange }: LoginModalProps) {
+export function LoginModal({ open, onOpenChange, showRegister = true }: LoginModalProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState("")
@@ -125,7 +127,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           </Button>
         </form>
 
-        <div className="text-center text-sm text-muted-foreground mt-4">
+        {showRegister && <div className="text-center text-sm text-muted-foreground mt-4">
           {"Noch kein Konto? "}
           <Link
             href="/auth/register"
@@ -134,7 +136,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
           >
             Registrieren
           </Link>
-        </div>
+        </div>}
       </DialogContent>
     </Dialog>
   )

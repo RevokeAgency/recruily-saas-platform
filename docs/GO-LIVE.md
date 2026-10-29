@@ -6,6 +6,42 @@ Punkt durchgehen.
 
 ---
 
+## 🕒 Warteliste vor dem Start *(seit 29.10.2026)*
+
+Solange die Seite nicht fertig ist, zeigt `www.revetly.ai` eine Coming-Soon-
+Seite mit Warteliste (Double-Opt-in). Blog, Rechtstexte, Stellenseiten,
+Login, App und Team-Einladungen laufen normal, nur die öffentliche
+Registrierung ist zu. Die Landing bleibt über einen Vorschau-Link sichtbar.
+
+**Einschalten**
+
+- [ ] Migration `scripts/037_waitlist.sql` einspielen (Details in
+      `scripts/037_waitlist.md`).
+- [ ] In Vercel (Production) setzen und neu deployen:
+  - `NEXT_PUBLIC_LAUNCH_MODE` = `waitlist`
+  - `LAUNCH_PREVIEW_TOKEN` = langer Zufallswert (`openssl rand -hex 16`)
+  - `WAITLIST_SECRET` = Zufallswert (`openssl rand -hex 32`). Signiert die
+    Austragelinks. **Nicht mehr ändern**, sonst gelten alte Links nicht mehr.
+  - `WAITLIST_NOTIFY_EMAIL` *(optional)*: bekommt eine kurze Mail bei jeder
+    Bestätigung.
+- [ ] Lettermint muss Mails verschicken können (Domain verifiziert), sonst
+      kommt kein Bestätigungslink an und das Formular meldet einen Fehler.
+- [ ] Vorschau: `https://www.revetly.ai/?vorschau=<LAUNCH_PREVIEW_TOKEN>`
+      einmal aufrufen. Das setzt ein Cookie für 30 Tage, danach zeigt `/`
+      die Landing und die Registrierung ist offen. `/?vorschau=aus` beendet
+      die Vorschau. Neues Token in Vercel = alle Vorschau-Cookies ungültig.
+
+**Zum Start**
+
+- [ ] `NEXT_PUBLIC_LAUNCH_MODE` in Vercel löschen (oder `live`) und neu
+      deployen. Die Variable wird beim Bauen in den Blog eingesetzt, deshalb
+      wirkt sie erst mit dem Deployment.
+- [ ] Bestätigte Adressen anschreiben (Abfrage in `scripts/037_waitlist.md`),
+      jede Mail mit Austragelink. Danach die Tabelle leeren, wie in der
+      Datenschutzerklärung (Abschnitt 8) zugesagt.
+
+---
+
 ## 🚩 Blocker — ohne diese Punkte geht nichts live
 
 Stand der Durchsicht: 19.09.2026.
@@ -164,6 +200,9 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       privater Stellen sieht nur, wer die Stelle sieht. Bestehende Stellen
       werden privat, der Inhaber sieht weiter alles. Lokal getestet, Details
       in `scripts/036_job_visibility.md`.
+- [ ] `scripts/037_waitlist.sql` *(neu 29.10.2026)*: **Warteliste vor dem
+      Start.** Eigene Tabelle, nur der Server hat Zugriff. Unabhängig von 035
+      und 036. Lokal getestet, Details in `scripts/037_waitlist.md`.
 
 - [x] `scripts/015_rls_hardening.sql` *(eingespielt 05.10.2026)* — RLS owner-scoped (Sicherheits-Pflicht)
 - [x] `scripts/016_invited_at.sql` *(eingespielt 05.10.2026)* — Time-to-Interview-Messung
@@ -277,6 +316,9 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       Missbrauchsschutz. Ohne ihn werden Adressen zwar gehasht, ließen sich aber
       mit dem IPv4-Raum durchprobieren. `openssl rand -hex 16`.
 - [ ] `INBOUND_WEBHOOK_SECRET` (EmailConnect-Signatur)
+- [ ] `NEXT_PUBLIC_LAUNCH_MODE`, `LAUNCH_PREVIEW_TOKEN`, `WAITLIST_SECRET`,
+      `WAITLIST_NOTIFY_EMAIL`: nur für die Warteliste vor dem Start, siehe
+      Abschnitt „Warteliste vor dem Start“ oben.
 - [ ] `FEEDBACK_NOTIFY_EMAIL` *(optional)* — Adresse, an die eine Kopie jeder
       Produkt-Rückmeldung geht. Ohne die Variable landet das Feedback nur in
       der Tabelle `product_feedback`.

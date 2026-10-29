@@ -103,7 +103,7 @@ export default function DatenschutzPage() {
               für die Zukunft widerrufbar, gegenüber dem Unternehmen, bei dem du dich beworben hast,
               oder indem du die Löschung deiner Daten veranlasst. Ohne Zustimmung wird deine
               Bewerbung nur für die Stelle genutzt, auf die du dich beworben hast. In beiden Fällen
-              gilt die Speicherdauer aus Abschnitt 8.
+              gilt die Speicherdauer aus Abschnitt 9.
             </p>
             <p className="mt-2">
               <strong>Einschätzung durch die Fachabteilung.</strong> Das Unternehmen kann ausgewählte
@@ -179,6 +179,10 @@ export default function DatenschutzPage() {
                 ist (7 Tage).
               </li>
               <li>
+                Vor dem Start ein Cookie für die <strong>interne Vorschau</strong> der Website. Es
+                wird nur gesetzt, wenn jemand einen Vorschau-Link aufruft, und gilt 30 Tage.
+              </li>
+              <li>
                 Einträge im lokalen Speicher deines Browsers, die du selbst auslöst: die gewählte
                 Ansicht der Kandidatenliste, der Zeitpunkt, an dem du Benachrichtigungen zuletzt
                 angesehen hast, und der gewählte Tarif zwischen Auswahl und Bezahlung. Diese Daten
@@ -225,8 +229,34 @@ export default function DatenschutzPage() {
             </p>
           </section>
 
+          <section id="warteliste" className="scroll-mt-8">
+            <h2 className="mb-2 text-lg font-semibold text-foreground">8. Warteliste vor dem Start</h2>
+            <p>
+              Solange Revetly noch nicht gestartet ist, kannst du dich auf der Startseite mit deiner
+              E-Mail-Adresse auf die Warteliste eintragen. Wir verwenden die Adresse ausschließlich,
+              um dir mitzuteilen, wann du Revetly nutzen kannst. Rechtsgrundlage ist deine
+              Einwilligung (Art. 6 Abs. 1 lit. a DSGVO).
+            </p>
+            <p className="mt-2">
+              Wir nutzen das <strong>Double-Opt-in-Verfahren</strong>: Nach dem Eintragen bekommst du
+              eine Mail mit einem Bestätigungslink. Erst nach dem Klick stehst du auf der Liste. Wird
+              die Adresse nicht innerhalb von sieben Tagen bestätigt, löschen wir sie. Zum Nachweis
+              deiner Einwilligung speichern wir den Zeitpunkt des Eintragens und der Bestätigung
+              sowie den Stand dieses Hinweises. Damit niemand die Liste missbraucht, zählen wir
+              Anfragen pro Absender; dafür speichern wir einen Prüfwert (Hash) der
+              IP-Adresse, nicht die Adresse selbst (Art. 6 Abs. 1 lit. f DSGVO).
+            </p>
+            <p className="mt-2">
+              Du kannst die Einwilligung <strong>jederzeit widerrufen</strong>, über den Link zum
+              Austragen in jeder Mail der Warteliste oder per Nachricht an uns. Dann löschen wir
+              deine Adresse. Spätestens löschen wir die Liste, wenn wir alle Eingetragenen über den
+              Start informiert haben. Der Versand läuft über den in Abschnitt 5 genannten
+              Mail-Dienstleister in Europa.
+            </p>
+          </section>
+
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">8. Speicherdauer</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">9. Speicherdauer</h2>
             <p>
               Bewerberdaten werden nur so lange gespeichert, wie es für den
               Bewerbungsprozess erforderlich ist, und spätestens <strong>6 Monate</strong>{" "}
@@ -237,7 +267,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">9. Deine Rechte</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">10. Deine Rechte</h2>
             <p>
               Dir stehen die Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung
               der Verarbeitung, Datenübertragbarkeit und Widerspruch zu. Außerdem hast du
@@ -259,7 +289,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">10. Kontakt</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">11. Kontakt</h2>
             <p>
               Bei Fragen zum Datenschutz erreichst du uns unter [Datenschutz-Kontakt,
               E-Mail]. Für Bewerbungen bei einem bestimmten Unternehmen wende dich bitte
