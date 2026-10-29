@@ -27,13 +27,16 @@ Registrierung ist zu. Die Landing bleibt über einen Vorschau-Link sichtbar.
 - [x] Lettermint verschickt *(29.10.2026)*: Domain `revetly.ai` (ohne www)
       verifiziert, Einträge per Cloudflare-Verbindung angelegt. Ablauf
       Eintragen, Bestätigen, Austragen live getestet.
-- [ ] Vorschau: `https://www.revetly.ai/?vorschau=<LAUNCH_PREVIEW_TOKEN>`
+- [x] Vorschau *(eingerichtet 29.10.2026)*: `https://www.revetly.ai/?vorschau=<LAUNCH_PREVIEW_TOKEN>`
       einmal aufrufen. Das setzt ein Cookie für 30 Tage, danach zeigt `/`
       die Landing und die Registrierung ist offen. `/?vorschau=aus` beendet
       die Vorschau. Neues Token in Vercel = alle Vorschau-Cookies ungültig.
 
-**Zum Start**
+**Zum Start** (Ablauf Schritt für Schritt in `docs/SMOKE-TEST.md`)
 
+- [ ] **Lettermint auf einen bezahlten Plan.** Der Free-Plan hat 300 Mails im
+      Monat für alles: Warteliste, Supabase-Mails, Bewerber- und
+      Recruiter-Mails.
 - [ ] `NEXT_PUBLIC_LAUNCH_MODE` in Vercel löschen (oder `live`) und neu
       deployen. Die Variable wird beim Bauen in den Blog eingesetzt, deshalb
       wirkt sie erst mit dem Deployment.
@@ -47,7 +50,10 @@ Registrierung ist zu. Die Landing bleibt über einen Vorschau-Link sichtbar.
 
 Stand der Durchsicht: 19.09.2026.
 
-- [ ] **Das Matching läuft in Produktion nicht.** `lib/ai/provider.ts:43` und
+- [ ] **Das Matching läuft in Produktion nicht** *(Stand 19.09.; seitdem fällt
+      der Code bei fehlendem Zugriff automatisch auf `mistral-small-latest`
+      zurück, siehe `MISTRAL_FALLBACK` in `lib/ai/provider.ts`. Mit einer echten
+      Bewerbung auf einer Teststelle bestätigen, dann abhaken)*. `lib/ai/provider.ts:43` und
       `:49` setzen `reasoning` und `verification` per Default auf
       `mistral-large-latest`. Der aktuelle Mistral-Tarif antwortet darauf mit
       „This model is not available in your subscription tier", deshalb bleibt
@@ -98,43 +104,31 @@ Stand der Durchsicht: 19.09.2026.
 - [x] **Domain `revetly.ai` registriert** *(bestätigt 28.10.2026)*.
 - [x] **Favicon** *(28.10.2026)*: Revetly-Logo statt v0/Vercel-Icon,
       `favicon.ico`, PNG-Größen, Apple-Icon und Web-App-Manifest.
-- [ ] **Hauptadresse festlegen: `www.revetly.ai` oder `revetly.ai`.** Die
-      andere leitet in Vercel per 301 dorthin um. `NEXT_PUBLIC_SITE_URL`,
+- [x] **Hauptadresse `https://www.revetly.ai`** *(28.10.2026)*. `revetly.ai`
+      leitet per 308 dorthin um. `NEXT_PUBLIC_SITE_URL` ist gesetzt, Canonical,
+      `robots.txt` und Sitemap zeigen auf `www` (geprüft 29.10.2026).
       Stripe-Webhook, Supabase-Redirects und OAuth-URIs müssen genau diese
-      Adresse verwenden. Der Code nimmt ohne Variable `https://revetly.ai`.
+      Adresse verwenden.
+- [ ] *(optional)* Schutz-Registrierung `revetly.at` (Revetly e.U. ist ein
+      österreichisches Unternehmen), Weiterleitung auf `www.revetly.ai`.
 
-Ursprünglicher Hinweis: Am 19.09.2026 hatte weder `revetly.ai` noch
-`.com`, `.at` oder `.de` Nameserver hinterlegt, was auf frei hindeutet, beim
-Registrar aber gegenzuprüfen ist. Die Registrierung früh zu erledigen lohnt
-sich aus einem Grund, der nichts mit der Website zu tun hat: Der Mailversand
-hängt daran. SPF- und DKIM-Einträge müssen propagieren, und eine frische
-Absenderdomain braucht Zustellreputation, bevor Auto-Reply, Absagen und
-Terminmails zuverlässig im Posteingang statt im Spam landen. Das ist der
-Punkt mit der längsten Vorlaufzeit im ganzen Launch.
-
-Neben `.ai` auch die Abwehr-Registrierungen mitdenken (mindestens `.at`, da
-Revetly e.U. ein österreichisches Unternehmen ist).
-
-Aktuell läuft alles unter der **Vercel-URL**. Wenn die Produktivdomain
-`revetly.ai` scharf geschaltet wird, müssen folgende Stellen von der
-Vercel-URL auf `https://revetly.ai` umgestellt werden:
+Noch auf die Hauptadresse umzustellen:
 
 - [ ] **Stripe-Webhook-Endpoint** (Stripe → Entwickler → Webhooks): URL auf
-      `https://revetly.ai/api/stripe/webhook` ändern. Danach ggf. neues
+      `https://www.revetly.ai/api/stripe/webhook` ändern. Danach ggf. neues
       **Signing Secret** → `STRIPE_WEBHOOK_SECRET` in Vercel aktualisieren.
       *(Die Checkout-/Portal-Return-URLs im Code sind relativ zur Request-
       Origin — die passen sich automatisch an, sobald die App unter
-      revetly.ai läuft. Nur der Webhook ist fest in Stripe hinterlegt.)*
+      www.revetly.ai läuft. Nur der Webhook ist fest in Stripe hinterlegt.)*
 - [ ] **Supabase Auth → URL Configuration**: Site URL + Redirect URLs auf
-      `https://revetly.ai` (Confirm-/Reset-Mail-Links).
-- [ ] **Supabase Auth E-Mail-Templates**: absolute Links prüfen.
-- [ ] **Supabase Auth → SMTP Settings: eigenen SMTP-Zugang eintragen.**
-      Registrierungs- und Passwort-Mails verschickt Supabase selbst, nicht
-      Revetly. Ohne eigenen SMTP-Server stellt Supabase sie nur stark
-      begrenzt zu (bei neueren Projekten nur an Adressen des eigenen Teams,
-      wenige pro Stunde). Echte Kunden könnten sich dann nicht registrieren.
-      Prüfen, ob Lettermint SMTP-Zugangsdaten anbietet, und die Domain
-      `revetly.ai` verwenden.
+      `https://www.revetly.ai` prüfen (Passwort-Reset funktioniert bereits,
+      29.10.2026).
+- [ ] **Supabase Auth → E-Mail-Templates** im Revetly-Layout einfügen:
+      Vorlagen und Betreffzeilen in `docs/supabase-mails/README.md`.
+- [x] **Supabase Auth → SMTP** *(29.10.2026)*: über Lettermint
+      (`smtp.lettermint.co`, Port 465, Benutzer `lettermint`, Projekt-Token).
+      Passwort-Reset live getestet. Rate Limit unter Authentication → Rate
+      Limits bei Bedarf erhöhen.
 - [ ] **EmailConnect / Inbound**: Bewerbungsadressen haben das Format
       `stelle@kunde.revetly.ai`. Dafür im DNS einen **Wildcard-MX**
       `*.revetly.ai` auf EmailConnect setzen und bei EmailConnect klären, dass
@@ -151,17 +145,12 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
       DMARC `p=reject`). Wichtig: bei Lettermint `revetly.ai` ohne www, sonst
       lehnt Lettermint den Absender `@revetly.ai` ab. Damit
       Auto-Reply / Interview / Absage / Terminmails nicht im Spam landen.
-- [ ] **`NEXT_PUBLIC_SITE_URL`** auf `https://revetly.ai` setzen. Daraus bauen
-      sich `metadataBase`, die canonical-Links der Blog-Beiträge, `robots.txt`
-      und `sitemap.xml`. Ohne die Variable greift der Default `revetly.ai`,
-      solange die App aber noch unter der Vercel-URL läuft, zeigen die
-      canonical-Links auf eine Domain, die es noch nicht gibt.
 - [ ] **Sitemap in der Google Search Console einreichen**:
-      `https://revetly.ai/sitemap.xml`.
+      `https://www.revetly.ai/sitemap.xml` (dazu Bing Webmaster Tools).
 - [ ] **OAuth-Weiterleitungs-URIs der Kalender-Apps** auf die Live-Domain
       umstellen (falls Kalenderanbindung genutzt wird):
-      Google Cloud Console → `https://revetly.ai/api/calendar/callback/google`,
-      Entra ID → `https://revetly.ai/api/calendar/callback/microsoft`. Sie
+      Google Cloud Console → `https://www.revetly.ai/api/calendar/callback/google`,
+      Entra ID → `https://www.revetly.ai/api/calendar/callback/microsoft`. Sie
       werden aus `NEXT_PUBLIC_SITE_URL` gebildet und müssen beim Anbieter exakt
       übereinstimmen, sonst schlägt das Verbinden fehl.
 
@@ -171,7 +160,7 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
 
 - [ ] `STRIPE_SECRET_KEY` in Vercel auf den **Live-Key** (`sk_live_…`) tauschen.
 - [ ] **Live-Webhook** neu anlegen (Test- und Live-Webhooks sind getrennt):
-      `https://revetly.ai/api/stripe/webhook`, Events
+      `https://www.revetly.ai/api/stripe/webhook`, Events
       `checkout.session.completed`, `customer.subscription.updated`,
       `customer.subscription.deleted` → Live-`STRIPE_WEBHOOK_SECRET` in Vercel.
 - [ ] Der **Produktkatalog legt sich beim ersten Live-Checkout selbst an**
@@ -424,10 +413,15 @@ Nichts davon hält den Launch auf, alles davon ist vorher billig zu erledigen.
       Next.js-Konfiguration (0 Fehler), 45 Tests mit Vitest (`pnpm test`).
       `.github/workflows/ci.yml` prüft Typen, Lint, Tests und Build bei jedem
       Push auf main. Das verirrte Verzeichnis `undefined/` ist entfernt.
-- [ ] **Hero-Bild ist das LCP-Element** und liegt als einzelnes PNG auf der
-      Supabase-Domain (`components/landing/rv-hero.tsx`). Sobald die Datei in
-      `public/revetly/` liegt, lassen sich responsive Größen per `srcSet`
-      nachrüsten. Der `preconnect` in `app/layout.tsx` ist gesetzt.
+- [x] **Hero-Bild** *(28.10.2026)*: lokal als WebP in drei Breiten mit
+      `srcSet` (`public/revetly/hero-*.webp`).
+- [x] **Landing schlanker** *(29.10.2026)*: framer-motion entfernt,
+      Anmeldefenster wird erst beim Klick geladen. JavaScript beim ersten
+      Laden 335 KB → 228 KB (gzip), Lighthouse mobil lokal 98 bis 99.
+- [x] **`middleware.ts` → `proxy.ts`** *(29.10.2026)*, Next-16-Konvention.
+- [x] **Einheitliches Mail-Layout** *(29.10.2026)*: Jede Mail läuft durch
+      `shell()` (`lib/email/layout.ts`), ein Test (`tests/mail-ci.test.ts`)
+      hält das fest.
 
 ## Inhalt und SEO
 
@@ -448,27 +442,15 @@ Nichts davon hält den Launch auf, alles davon ist vorher billig zu erledigen.
       die alte Formulierung „ohne alle zu lesen" und das Wort „bewerten", das
       laut Wording-System durch Match, Passung und Ranking ersetzt ist.
 - [ ] **Blogbeiträge gegenlesen**, ob sie dieselbe Sprachregelung einhalten.
+- [ ] **Teststellen löschen**: Allianz, SeneCura, Magirus, XARION, GAMED
+      (Konten `revet` und `roland-krottmaier-91b555`). Sie sind öffentlich und
+      stehen in der Sitemap.
 - [ ] Nach dem Domain-Wechsel: **Sitemap in der Google Search Console
       einreichen** und die Indexierung der Vercel-Vorschau-URL ausschließen.
 
 ---
 
-## Smoke-Test nach Go-Live (Live-Mode, echte Karte / Test im Live sparsam)
+## Smoke-Test nach Go-Live
 
-- [ ] Registrierung → Onboarding → Dashboard
-- [ ] Abo-Kauf (Abo-Seite) → Plan + Kontingent aktiv nach wenigen Sekunden
-- [ ] „Abo verwalten" → Stripe-Portal öffnet, Planwechsel/Kündigung möglich
-- [ ] Kontingent aufbrauchen → Paywall → Upgrade schaltet frei
-- [ ] Public-Job-Page-Bewerbung + Inbound-E-Mail → Kandidat landet im Job,
-      Recruiter bekommt die Mail „Neue Bewerbung“ mit Match
-- [ ] Stellenseite im Google Rich Results Test prüfen (JobPosting ohne
-      Fehler), danach Sitemap in der Search Console einreichen
-- [ ] Einstellungen → „Exportieren“ lädt eine JSON-Datei, die Links zu den
-      Lebensläufen öffnen sich. Kontolöschung mit einem Testkonto mit
-      Testabo: Abo in Stripe gekündigt, Konto weg, Anmeldung nicht mehr möglich
-- [ ] Bewerberfoto im Dashboard sichtbar, dieselbe Adresse in einem privaten
-      Fenster ohne Anmeldung liefert nichts
-- [ ] Stelle abschließen → Bestätigung der Prüfung nötig → „Protokoll“ lädt
-      eine CSV mit Bewerbungen und Ereignissen
-- [ ] Vercel → Deployment → Functions: Region zeigt `fra1`
-- [ ] DSGVO: Kandidat löschen entfernt auch Storage-Dateien
+Der komplette Ablauf für den Launch-Tag (Umschalten, Smoke-Test, Warteliste
+anschreiben, Aufräumen) steht in **`docs/SMOKE-TEST.md`**.
