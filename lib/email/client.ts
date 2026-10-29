@@ -52,12 +52,14 @@ async function sendViaLettermint(mail: MailInput): Promise<boolean> {
     subject: mail.subject,
     html: mail.html,
   }
-  if (mail.replyTo) body.replyTo = mail.replyTo
+  // Feldnamen laut Lettermint-OpenAPI (Sending API 0.0.1): reply_to als
+  // Liste, content_type in snake_case.
+  if (mail.replyTo) body.reply_to = [mail.replyTo]
   if (mail.attachments?.length) {
     body.attachments = mail.attachments.map((a) => ({
       filename: a.filename,
       content: a.content,
-      ...(a.contentType ? { contentType: a.contentType } : {}),
+      ...(a.contentType ? { content_type: a.contentType } : {}),
     }))
   }
   if (process.env.LETTERMINT_ROUTE) body.route = process.env.LETTERMINT_ROUTE
