@@ -2,7 +2,7 @@ import { ComingSoon } from "@/components/waitlist/coming-soon"
 import { pageMetadata } from "@/lib/seo/page-metadata"
 import { siteJsonLd } from "@/lib/seo/site-schema"
 
-// Erreichbar nur unter "/": Im Wartelisten-Modus schreibt die Middleware die
+// Erreichbar nur unter "/": Im Wartelisten-Modus schreibt der Proxy (proxy.ts) die
 // Startseite hierher um, der direkte Pfad leitet auf "/" (lib/launch.ts).
 // Deshalb Canonical und og:url auf "/".
 export const metadata = pageMetadata({

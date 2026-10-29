@@ -18,7 +18,7 @@ import { WaitlistForm } from "./waitlist-form"
 // des Test-Knopfs das Feld für die Warteliste. Keine neuen Gestaltungsmittel.
 //
 // Anmelden bleibt möglich: Wer schon ein Konto hat (Team, Testkunden), kommt
-// über den Knopf oben oder über /?anmelden=1 hierher, wohin die Middleware
+// über den Knopf oben oder über /?anmelden=1 hierher, wohin der Proxy (proxy.ts)
 // geschützte Seiten ohne Sitzung schickt.
 // ─────────────────────────────────────────────────────────────────────────────
 

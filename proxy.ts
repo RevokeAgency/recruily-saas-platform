@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { PREVIEW_COOKIE, PREVIEW_MAX_AGE, launchGate, launchMode } from '@/lib/launch'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Warteliste vor dem Start (lib/launch.ts): Startseite umleiten, Vorschau-
   // Cookie setzen, Registrierung schließen.
   const mode = launchMode()

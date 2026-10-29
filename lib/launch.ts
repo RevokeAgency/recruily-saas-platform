@@ -45,7 +45,7 @@ export type GateDecision =
   | { type: "redirect"; pathname: string; search: string; cookie?: "set" | "clear" }
 
 /**
- * Was die Middleware mit einer Anfrage tut. Reine Funktion, damit sie ohne
+ * Was der Proxy (proxy.ts) mit einer Anfrage tut. Reine Funktion, damit sie ohne
  * Next.js testbar ist.
  */
 export function launchGate(input: {
