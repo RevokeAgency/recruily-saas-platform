@@ -141,6 +141,10 @@ Vercel-URL auf `https://revetly.ai` umgestellt werden:
       Mails an **beliebige Subdomains** angenommen und an
       `/api/inbound/email` weitergeleitet werden. Der MX von `revetly.ai`
       selbst bleibt davon unberührt (eigene Postfächer wie hallo@).
+      *Stand 29.10.2026:* `hallo@revetly.ai` läuft über Cloudflare Email
+      Routing (MX `route*.mx.cloudflare.net`) als Weiterleitung. DMARC steht
+      auf `p=reject`: Antworten **als** `hallo@` nur über einen Dienst mit
+      SPF/DKIM für `revetly.ai` verschicken, nicht direkt aus Gmail.
       Subdomains mit eigenen Einträgen (www, app …) sind als Kurznamen
       gesperrt, siehe Migration 034.
 - [x] **Lettermint** *(29.10.2026)*: Absenderdomain `revetly.ai` verifiziert (DKIM, Return-Path,
@@ -300,10 +304,9 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
 - [ ] `STRIPE_WEBHOOK_SECRET` = `whsec_…` (aus dem **Live**-Webhook)
 - [ ] `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
       `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- [ ] `LETTERMINT_API_TOKEN` — **Mailversand.** Lettermint (Europa), löst Resend
-      (USA) ab. Solange der Token fehlt und `RESEND_API_KEY` noch gesetzt ist,
-      läuft der Versand weiter über Resend; das ist die Brücke für den Umstieg.
-      Nach dem Wechsel `RESEND_API_KEY` entfernen.
+- [x] `LETTERMINT_API_TOKEN` *(29.10.2026)* — **Mailversand.** Lettermint (Europa),
+      löst Resend (USA) ab. `RESEND_API_KEY` ist entfernt, es gibt keinen
+      Rückweg über Resend mehr.
 - [ ] `MAIL_FROM` *(optional)* — Absender, Standard
       `Revetly <karriere@revetly.ai>`. Die Domain muss bei Lettermint
       verifiziert sein (SPF/DKIM), sonst wird abgelehnt.
