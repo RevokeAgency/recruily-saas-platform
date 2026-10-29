@@ -1,16 +1,20 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { Fragment, useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Check } from "lucide-react"
 
 import { HEADLINE, TRUST_ITEMS } from "@/components/landing/rv-hero"
-import { LoginModal } from "@/components/landing/login-modal"
 import { RvButton } from "@/components/landing/rv-button"
-import { createClient } from "@/lib/supabase/client"
 
 import { WaitlistForm } from "./waitlist-form"
+
+// Erst laden, wenn jemand auf "Anmelden" klickt: Das Fenster bringt den
+// Supabase-Client und die Dialog-Bausteine mit, die sonst jeder Besucher
+// der Startseite herunterlädt.
+const LoginModal = dynamic(() => import("@/components/landing/login-modal").then((m) => m.LoginModal), { ssr: false })
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Startseite vor dem Launch (NEXT_PUBLIC_LAUNCH_MODE=waitlist, lib/launch.ts).
@@ -24,20 +28,25 @@ import { WaitlistForm } from "./waitlist-form"
 
 export function ComingSoon() {
   const [loginOpen, setLoginOpen] = useState(false)
+  const [loginLoaded, setLoginLoaded] = useState(false)
   const [signedIn, setSignedIn] = useState(false)
+  const openLogin = () => {
+    setLoginLoaded(true)
+    setLoginOpen(true)
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.has("anmelden")) {
-      setLoginOpen(true)
+      openLogin()
       params.delete("anmelden")
       const rest = params.toString()
       window.history.replaceState(null, "", rest ? `/?${rest}` : "/")
     }
-    createClient()
-      .auth.getSession()
-      .then(({ data }) => setSignedIn(!!data.session))
-      .catch(() => {})
+    // Sitzung am Cookie erkennen statt über den Supabase-Client, der sonst
+    // für jeden Besucher mitgeladen würde. Ist die Sitzung abgelaufen, schickt
+    // das Dashboard ohnehin zur Anmeldung.
+    setSignedIn(/(?:^|;\s*)sb-[^=]+-auth-token(?:\.\d+)?=/.test(document.cookie))
   }, [])
 
   return (
@@ -59,7 +68,7 @@ export function ComingSoon() {
                 <Link href="/dashboard">Zum Dashboard</Link>
               </RvButton>
             ) : (
-              <RvButton variant="blue" size="sm" onClick={() => setLoginOpen(true)}>
+              <RvButton variant="blue" size="sm" onClick={openLogin}>
                 Anmelden
               </RvButton>
             )}
@@ -148,7 +157,7 @@ export function ComingSoon() {
         </section>
       </main>
 
-      <LoginModal open={loginOpen} onOpenChange={setLoginOpen} showRegister={false} />
+      {loginLoaded && <LoginModal open={loginOpen} onOpenChange={setLoginOpen} showRegister={false} />}
     </div>
   )
 }
