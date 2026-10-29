@@ -44,7 +44,7 @@ export function mailProvider(): "lettermint" | "resend" | null {
   return null
 }
 
-async function sendViaLettermint(mail: MailInput): Promise<boolean> {
+async function sendViaLettermint(mail: MailInput): Promise<string> {
   const body: Record<string, unknown> = {
     from: FROM,
     // Lettermint erwartet Empfänger als Liste.
@@ -76,13 +76,18 @@ async function sendViaLettermint(mail: MailInput): Promise<boolean> {
   if (!res.ok) {
     throw new Error(`Lettermint ${res.status}: ${(await res.text()).slice(0, 300)}`)
   }
-  return true
+  const data = (await res.json().catch(() => ({}))) as { message_id?: string; sandbox?: boolean }
+  // Ein Projekt im Sandbox-Modus nimmt an, stellt aber nie zu.
+  if (data.sandbox) console.warn("[mail] Lettermint-Projekt im Sandbox-Modus, Mail wird nicht zugestellt")
+  return data.message_id ?? "ok"
 }
 
-async function sendViaResend(mail: MailInput): Promise<boolean> {
+async function sendViaResend(mail: MailInput): Promise<string> {
   const { Resend } = await import("resend")
   const resend = new Resend(process.env.RESEND_API_KEY!)
-  await resend.emails.send({
+  // Das SDK wirft bei einer Ablehnung nicht, es liefert { error }. Ohne diese
+  // Prüfung gälte eine abgelehnte Mail als verschickt.
+  const { data, error } = await resend.emails.send({
     from: FROM,
     to: mail.to,
     subject: mail.subject,
@@ -98,7 +103,8 @@ async function sendViaResend(mail: MailInput): Promise<boolean> {
         }
       : {}),
   })
-  return true
+  if (error) throw new Error(`Resend: ${error.message}`)
+  return data?.id ?? "ok"
 }
 
 /**
@@ -115,7 +121,10 @@ export async function sendMail(mail: MailInput, label: string): Promise<boolean>
   if (!mail.to?.trim()) return false
 
   try {
-    return provider === "lettermint" ? await sendViaLettermint(mail) : await sendViaResend(mail)
+    const id = provider === "lettermint" ? await sendViaLettermint(mail) : await sendViaResend(mail)
+    // Ohne Empfänger im Log (personenbezogen), nur was, wie und die Kennung beim Anbieter.
+    console.info(`[mail] ${label} über ${provider} verschickt (${id})`)
+    return true
   } catch (err) {
     console.error(`[mail] ${label} über ${provider} fehlgeschlagen:`, err)
     return false

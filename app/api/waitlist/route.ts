@@ -11,7 +11,12 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>
 
   // Unsichtbares Feld. Menschen lassen es leer, einfache Bots füllen es aus.
-  if (typeof body.website === "string" && body.website.trim()) return Response.json({ ok: true })
+  // Neutraler Name, damit Autofill im Browser es nicht befüllt.
+  const trap = body.rv_check ?? body.website
+  if (typeof trap === "string" && trap.trim()) {
+    console.info("[waitlist] Bot-Feld ausgefüllt, keine Mail")
+    return Response.json({ ok: true })
+  }
 
   const email = normalizeEmail(body.email)
   if (!email) return Response.json({ error: "Bitte gib eine gültige E-Mail-Adresse an." }, { status: 400 })
@@ -23,10 +28,14 @@ export async function POST(req: Request) {
   if (!perIp.allowed) return tooManyRequests(perIp, "Zu viele Anfragen. Bitte versuche es später noch einmal.")
   // Pro Adresse höchstens drei Mails am Tag. Darüber kommt dieselbe Antwort, nur ohne Mail.
   const perEmail = await consumeRateLimit(db, "waitlist_email", emailKey(email), 3, 86400)
-  if (!perEmail.allowed) return Response.json({ ok: true })
+  if (!perEmail.allowed) {
+    console.info("[waitlist] Tagesgrenze für diese Adresse erreicht, keine Mail")
+    return Response.json({ ok: true })
+  }
 
   const source = typeof body.source === "string" ? body.source.slice(0, 40) : null
   const result = await requestSignup(db, email, source)
+  console.info(`[waitlist] Ergebnis: ${result}`)
   if (result === "failed") {
     return Response.json({ error: "Das hat nicht geklappt. Bitte versuche es später noch einmal." }, { status: 502 })
   }

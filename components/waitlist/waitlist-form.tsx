@@ -22,7 +22,7 @@ export function WaitlistForm() {
       const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, website, source: "coming-soon" }),
+        body: JSON.stringify({ email, rv_check: website, source: "coming-soon" }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -77,8 +77,8 @@ export function WaitlistForm() {
         {/* Für Menschen unsichtbar, für einfache Bots ein Feld wie jedes andere. */}
         <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
           <label>
-            Website
-            <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} name="website" />
+            Bitte leer lassen
+            <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} name="rv_check" />
           </label>
         </div>
         <RvButton type="submit" variant="grad" size="lg" disabled={state === "sending"} className="w-full sm:w-auto">
