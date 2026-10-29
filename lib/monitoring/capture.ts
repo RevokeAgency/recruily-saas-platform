@@ -187,11 +187,11 @@ export async function notifyNewError(erfasst: Erfasst, route?: string): Promise<
     const body = `
       <p style="margin:0 0 16px;">Ein neuer Fehler ist zum ersten Mal aufgetreten.</p>
       <p style="margin:0 0 8px;"><strong>${escapeHtml(erfasst.name)}</strong></p>
-      <p style="margin:0 0 16px; font-family:monospace; font-size:13px; background:#F4F7F6; padding:12px; border-radius:8px;">
+      <p style="margin:0 0 16px; font-family:monospace; font-size:13px; background:#F4F8F6; padding:12px; border-radius:8px;">
         ${escapeHtml(erfasst.message)}
       </p>
-      ${route ? `<p style="margin:0 0 8px; color:#64707B;">Route: ${escapeHtml(route)}</p>` : ""}
-      <p style="margin:0; color:#64707B; font-size:12px;">Kennung: ${escapeHtml(erfasst.fingerprint)}</p>
+      ${route ? `<p style="margin:0 0 8px; color:#5E736D;">Route: ${escapeHtml(route)}</p>` : ""}
+      <p style="margin:0; color:#5E736D; font-size:12px;">Kennung: ${escapeHtml(erfasst.fingerprint)}</p>
     `
     const ok = await sendMail(
       { to, subject: `Neuer Fehler: ${erfasst.name}`, html: shell("Revetly", body) },

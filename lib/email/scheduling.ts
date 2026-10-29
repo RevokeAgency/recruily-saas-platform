@@ -237,3 +237,84 @@ export async function sendBookingCancellation(
     "Absagemail",
   )
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Feste Einladung (Recruiter wählt Datum und Uhrzeit selbst, ohne Buchungslink)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function sendFixedInterviewInvite(opts: {
+  to: string
+  candidateName?: string | null
+  jobTitle: string
+  companyName?: string | null
+  start: Date
+  durationMinutes: number
+  timezone: string
+  format: "remote" | "onsite"
+  note?: string | null
+  replyTo?: string | null
+}): Promise<boolean> {
+  if (!opts.to) return false
+
+  const company = (opts.companyName || "Revetly").trim()
+  const greeting = opts.candidateName?.trim() ? `Hallo ${escapeHtml(opts.candidateName.trim())},` : "Hallo,"
+  const end = new Date(opts.start.getTime() + opts.durationMinutes * 60000)
+  const where = opts.format === "remote" ? "Remote" : "Vor Ort"
+  const when = `${formatInZone(opts.start, opts.timezone)} Uhr (${zoneAbbreviation(opts.start, opts.timezone)})`
+  const summary = `Vorstellungsgespräch: ${opts.jobTitle} bei ${company}`
+
+  const ics = buildIcs({
+    uid: `interview-${opts.start.getTime()}-${Buffer.from(opts.to).toString("hex").slice(0, 16)}@revetly.ai`,
+    start: opts.start,
+    end,
+    summary,
+    description: [`Format: ${where}`, opts.note?.trim() ? `Notiz: ${opts.note.trim()}` : ""].filter(Boolean).join("\n"),
+    location: where,
+    organizerName: company,
+    organizerEmail: opts.replyTo ?? undefined,
+    attendeeEmail: opts.to,
+    attendeeName: opts.candidateName,
+    method: "REQUEST",
+  })
+
+  const stamp = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")
+  const google = `https://calendar.google.com/calendar/render?${new URLSearchParams({
+    action: "TEMPLATE",
+    text: summary,
+    dates: `${stamp(opts.start)}/${stamp(end)}`,
+    details: opts.note?.trim() ?? "",
+    location: where,
+  }).toString()}`
+
+  const body = `
+    ${eyebrow("Einladung zum Gespräch")}
+    ${heading("Einladung zum Vorstellungsgespräch")}
+    ${paragraph(`${greeting} wir freuen uns, Sie zu einem Gespräch zur Stelle <strong style="color:${MAIL.ink};">${escapeHtml(opts.jobTitle)}</strong> einzuladen.`)}
+    ${details([
+      ["Wann", `<strong>${escapeHtml(when)}</strong>`],
+      ["Dauer", `${opts.durationMinutes} Minuten`],
+      ["Format", escapeHtml(where)],
+    ])}
+    ${opts.note?.trim() ? note(opts.note.trim()) : ""}
+    ${button(google, "In Google Kalender eintragen")}
+    ${paragraph("Für Outlook und Apple Kalender liegt der Termin als Kalendereintrag im Anhang. Bitte bestätigen Sie kurz Ihre Teilnahme, indem Sie auf diese E-Mail antworten.", { muted: true, small: true, last: true })}
+    ${SIGN(company)}
+  `
+
+  return sendMail(
+    {
+      to: opts.to,
+      subject: `Einladung zum Vorstellungsgespräch: ${opts.jobTitle}`,
+      html: shell(company, body, { preheader: `${when} · ${where}` }),
+      ...(opts.replyTo ? { replyTo: opts.replyTo } : {}),
+      attachments: [
+        {
+          filename: "einladung.ics",
+          content: Buffer.from(ics).toString("base64"),
+          contentType: "text/calendar; method=REQUEST; charset=utf-8",
+        },
+      ],
+    },
+    "Interview-Einladung",
+  )
+}

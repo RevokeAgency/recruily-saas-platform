@@ -62,12 +62,12 @@ export async function GET(req: NextRequest) {
       .map(
         (g) => `
         <tr>
-          <td style="padding:8px 10px; border-bottom:1px solid #e2e8f0; font-size:13px;">
+          <td style="padding:8px 10px; border-bottom:1px solid #E3ECE8; font-size:13px;">
             <strong>${escapeHtml(String(g.name ?? "Fehler"))}</strong><br>
-            <span style="color:#64707B; font-family:monospace; font-size:12px;">${escapeHtml(String(g.message ?? "").slice(0, 160))}</span>
-            ${g.route ? `<br><span style="color:#94a3b8; font-size:11px;">${escapeHtml(String(g.route))} · ${escapeHtml(String(g.source ?? ""))}</span>` : ""}
+            <span style="color:#5E736D; font-family:monospace; font-size:12px;">${escapeHtml(String(g.message ?? "").slice(0, 160))}</span>
+            ${g.route ? `<br><span style="color:#8A9E98; font-size:11px;">${escapeHtml(String(g.route))} · ${escapeHtml(String(g.source ?? ""))}</span>` : ""}
           </td>
-          <td style="padding:8px 10px; border-bottom:1px solid #e2e8f0; text-align:right; font-size:13px; white-space:nowrap;">
+          <td style="padding:8px 10px; border-bottom:1px solid #E3ECE8; text-align:right; font-size:13px; white-space:nowrap;">
             ${escapeHtml(String(g.occurrences))}&times;
           </td>
         </tr>`,
@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
         <strong>${gruppen.length}</strong> ${gruppen.length === 1 ? "Fehlerart" : "Fehlerarten"}.
       </p>
       <table style="width:100%; border-collapse:collapse;">${zeilen}</table>
-      <p style="margin:20px 0 0; color:#64707B; font-size:12px;">
+      <p style="margin:20px 0 0; color:#5E736D; font-size:12px;">
         Vollständige Liste über /api/monitoring/errors.
       </p>
     `

@@ -531,7 +531,7 @@ export function CandidateMatchModal({
     // 2. Send email with .ics attachment if candidate has an email address
     if (candidate.email) {
       try {
-        await fetch("/api/send-interview-invite", {
+        const res = await fetch("/api/send-interview-invite", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -541,10 +541,13 @@ export function CandidateMatchModal({
             companyName: job.company,
             date: inviteDate,
             time: inviteTime,
+            // Datum und Uhrzeit gelten in der Zeitzone des Recruiters.
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             format: inviteFormat,
             note: inviteNote,
           }),
         })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
       } catch (emailError) {
         console.error("[v0] Interview invite email failed:", emailError)
         // Non-fatal: status was already updated, just warn
