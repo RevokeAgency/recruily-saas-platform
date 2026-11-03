@@ -373,10 +373,11 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
 
 ## DSGVO
 
-- [ ] **Rechtstexte juristisch prüfen lassen** und alle `[Platzhalter]`
-      ausfüllen: `/datenschutz`, `/impressum` (Firmenbuchnr., UID, Anschrift,
-      Behörde, WKO-Fachgruppe …) und `/agb` (Gerichtsstand). Firmenname steht
-      fix als **Revetly e.U.** (österr. eingetragener Unternehmer).
+- [ ] **Rechtstexte juristisch prüfen lassen.** Platzhalter sind seit
+      03.11.2026 ausgefüllt (Inhaber, Anschrift, Kontakt, Gericht, Behörde,
+      Gerichtsstand Graz in den AGB). Noch offen im Impressum:
+      Firmenbuchnummer und UID (stehen auf „in Gründung“), optional die
+      WKO-Fachgruppe in „Kammerzugehörigkeit“.
 - [ ] Aufbewahrungsfrist bestätigen: Auto-Löschung läuft nach **180 Tagen**
       (Konstante `RETENTION_DAYS` in `app/api/cron/purge-candidates/route.ts`).
 - [ ] Self-Service-Löschung testen: `/datenschutz/loeschung` → Mail →

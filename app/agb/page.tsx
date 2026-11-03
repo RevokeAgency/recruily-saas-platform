@@ -10,7 +10,7 @@ export const metadata: Metadata = pageMetadata({
 })
 
 // General terms for the SaaS (primarily B2B), Austrian law.
-// NOTE: fill in every [Platzhalter] and have it reviewed by legal counsel.
+// Vor dem Launch juristisch prüfen lassen.
 export default function AgbPage() {
   return (
     <LegalPage
@@ -134,7 +134,7 @@ export default function AgbPage() {
         <p>
           Es gilt österreichisches Recht unter Ausschluss des UN-Kaufrechts und der
           Verweisungsnormen des internationalen Privatrechts. Ausschließlicher Gerichtsstand für
-          Streitigkeiten mit Unternehmern ist [Ort], soweit gesetzlich zulässig. Sollte eine
+          Streitigkeiten mit Unternehmern ist Graz, soweit gesetzlich zulässig. Sollte eine
           Bestimmung dieser AGB unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen
           unberührt.
         </p>

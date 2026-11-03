@@ -9,40 +9,45 @@ export const metadata: Metadata = pageMetadata({
 })
 
 // Austrian Impressum / Offenlegung (§5 ECG, §14 UGB, §25 MedienG).
-// NOTE: fill in every [Platzhalter] and have it reviewed by legal counsel.
+// Firmenbuchnummer und UID nachtragen, sobald vergeben.
 export default function ImpressumPage() {
   return (
     <LegalPage title="Impressum" intro="Offenlegung gemäß §5 ECG, §14 UGB und §25 MedienG.">
       <LegalSection title="Medieninhaber & Diensteanbieter">
         <p className="whitespace-pre-line">
           {`Revetly e.U.
-Inhaber: [Vor- und Nachname]
-[Straße und Hausnummer]
-[PLZ] [Ort], Österreich`}
+Inhaber: Roland Krottmaier
+Triesterstraße 375
+8055 Graz, Österreich`}
         </p>
       </LegalSection>
 
       <LegalSection title="Kontakt">
-        <p className="whitespace-pre-line">
-          {`E-Mail: [kontakt@revetly.ai]
-Telefon: [+43 …]`}
+        <p>
+          E-Mail:{" "}
+          <a href="mailto:hallo@revetly.ai" className="font-medium text-[var(--rv-green-deep)] underline">
+            hallo@revetly.ai
+          </a>
         </p>
       </LegalSection>
 
       <LegalSection title="Unternehmensdaten">
         <ul className="list-none space-y-1">
-          <li>Unternehmensgegenstand: [z. B. Softwareentwicklung / IT-Dienstleistungen]</li>
-          <li>Firmenbuchnummer: [FN …]</li>
-          <li>Firmenbuchgericht: [z. B. Landesgericht …]</li>
-          <li>UID-Nummer: [ATU…]</li>
-          <li>Gewerbebehörde: [Bezirkshauptmannschaft / Magistrat …]</li>
+          <li>
+            Unternehmensgegenstand: Entwicklung, Vertrieb und Betrieb von Softwarelösungen
+            (insbesondere KI-gestützte Recruiting- und Bewerbermanagement-Systeme) sowie
+            IT-Dienstleistungen
+          </li>
+          <li>Firmenbuchnummer: in Gründung</li>
+          <li>Firmenbuchgericht: Landesgericht für Zivilrechtssachen Graz</li>
+          <li>UID-Nummer: in Gründung</li>
+          <li>Gewerbebehörde: Magistrat Graz</li>
         </ul>
       </LegalSection>
 
       <LegalSection title="Kammerzugehörigkeit & Berufsrecht">
         <p>
-          Mitglied der Wirtschaftskammer [Bundesland], Fachgruppe [z. B. Unternehmensberatung,
-          Buchhaltung und Informationstechnologie]. Anwendbare Rechtsvorschrift: Gewerbeordnung
+          Mitglied der Wirtschaftskammer Steiermark. Anwendbare Rechtsvorschrift: Gewerbeordnung
           (GewO), abrufbar unter{" "}
           <a
             href="https://www.ris.bka.gv.at"

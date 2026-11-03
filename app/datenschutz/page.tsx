@@ -54,7 +54,12 @@ export default function DatenschutzPage() {
               verantwortlich.
             </p>
             <p className="mt-2">
-              Verantwortlicher für die Plattform: [Firmenname, Anschrift, E-Mail].
+              Verantwortlicher für die Plattform: Revetly e.U., Inhaber Roland Krottmaier,
+              Triesterstraße 375, 8055 Graz, Österreich, E-Mail{" "}
+              <a href="mailto:hallo@revetly.ai" className="font-medium text-[var(--rv-green-deep)] underline">
+                hallo@revetly.ai
+              </a>
+              .
             </p>
           </section>
 
@@ -321,8 +326,11 @@ export default function DatenschutzPage() {
           <section>
             <h2 className="mb-2 text-lg font-semibold text-foreground">11. Kontakt</h2>
             <p>
-              Bei Fragen zum Datenschutz erreichst du uns unter [Datenschutz-Kontakt,
-              E-Mail]. Für Bewerbungen bei einem bestimmten Unternehmen wende dich bitte
+              Bei Fragen zum Datenschutz erreichst du uns unter{" "}
+              <a href="mailto:hallo@revetly.ai" className="font-medium text-[var(--rv-green-deep)] underline">
+                hallo@revetly.ai
+              </a>
+              . Für Bewerbungen bei einem bestimmten Unternehmen wende dich bitte
               zusätzlich direkt an das jeweilige Unternehmen als Verantwortlichen.
             </p>
           </section>
