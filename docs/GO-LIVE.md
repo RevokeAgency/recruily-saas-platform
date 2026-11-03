@@ -50,7 +50,9 @@ Registrierung ist zu. Die Landing bleibt über einen Vorschau-Link sichtbar.
 
 Stand der Durchsicht: 19.09.2026.
 
-- [ ] **Das Matching läuft in Produktion nicht** *(Stand 19.09.; seitdem fällt
+- [ ] **Das Matching läuft in Produktion nicht** *(03.11.2026: Mistral ist
+      auf einem Bezahlplan, `mistral-large-latest` sollte damit erreichbar
+      sein. Noch mit einer echten Bewerbung bestätigen. Stand 19.09.; seitdem fällt
       der Code bei fehlendem Zugriff automatisch auf `mistral-small-latest`
       zurück, siehe `MISTRAL_FALLBACK` in `lib/ai/provider.ts`. Mit einer echten
       Bewerbung auf einer Teststelle bestätigen, dann abhaken)*. `lib/ai/provider.ts:43` und
@@ -85,7 +87,8 @@ Stand der Durchsicht: 19.09.2026.
       weiterentwickelt (Termine 07.08., Interview-Score 03.08.,
       Feedback-Loop 03.08.). Wenn die Optik gewünscht ist, gehört sie auf dem
       heutigen `main` neu gebaut, nicht zurückgemerged.
-- [ ] **Rechtstexte enthalten Platzhalter** (siehe Abschnitt DSGVO weiter
+- [x] **Rechtstexte enthalten Platzhalter** *(03.11.2026 ausgefüllt, nur
+      Firmenbuchnummer und UID fehlen noch)* (siehe Abschnitt DSGVO weiter
       unten). Beim Impressum sind das Pflichtangaben nach ECG und UGB, das ist
       in AT und DE unmittelbar abmahnfähig.
 - [x] **Datenexport und Kontolöschung** *(01.10.2026)*: funktionieren jetzt
@@ -145,7 +148,8 @@ Noch auf die Hauptadresse umzustellen:
       DMARC `p=reject`). Wichtig: bei Lettermint `revetly.ai` ohne www, sonst
       lehnt Lettermint den Absender `@revetly.ai` ab. Damit
       Auto-Reply / Interview / Absage / Terminmails nicht im Spam landen.
-- [ ] **Sitemap in der Google Search Console einreichen**:
+- [ ] **Sitemap in der Google Search Console einreichen** *(Search Console
+      eingerichtet 03.11.2026)*:
       `https://www.revetly.ai/sitemap.xml` (dazu Bing Webmaster Tools).
 - [ ] **Kalenderanbindung einrichten** (Schritt für Schritt in
       `scripts/025_scheduling.md`, Code fertig seit 03.11.2026):
@@ -192,14 +196,14 @@ Noch auf die Hauptadresse umzustellen:
 Stand 05.10.2026: alle Migrationen bis einschließlich `034` sind in
 Supabase eingespielt. Reihenfolge egal, alle additiv:
 
-- [ ] `scripts/035_team.sql` *(neu 13.10.2026, noch einspielen)*: **Teamzugänge.**
+- [x] `scripts/035_team.sql` *(eingespielt, bestätigt 03.11.2026)*: **Teamzugänge.**
       Mitglieder, Einladungen, Platzlimits (1 / 2 / 5 / unbegrenzt) und
       Zusatzplätze. Stellt die Zugriffsregeln von Stellen, Kandidaten,
       Protokoll und Freigabe-Links auf den Arbeitsbereich um; für bestehende
       Konten ändert sich nichts. Ohne diese Migration läuft die App wie
       bisher, die Team-Karte zeigt „wird gerade eingerichtet“. Lokal
       getestet, Details in `scripts/035_team.md`.
-- [ ] `scripts/036_job_visibility.sql` *(neu 16.10.2026, nach 035 einspielen)*:
+- [x] `scripts/036_job_visibility.sql` *(eingespielt, bestätigt 03.11.2026)*:
       **Sichtbarkeit von Stellen.** Stellen sind privat (nur Ersteller und
       Inhaber) oder fürs Team freigegeben, neue Stellen privat. Bewerber
       privater Stellen sieht nur, wer die Stelle sieht. Bestehende Stellen
@@ -453,7 +457,9 @@ Nichts davon hält den Launch auf, alles davon ist vorher billig zu erledigen.
       (`app/layout.tsx`, `components/landing/rv-footer.tsx`). Beide trugen noch
       die alte Formulierung „ohne alle zu lesen" und das Wort „bewerten", das
       laut Wording-System durch Match, Passung und Ranking ersetzt ist.
-- [ ] **Blogbeiträge gegenlesen**, ob sie dieselbe Sprachregelung einhalten.
+- [x] **Blogbeiträge gegenlesen** *(03.11.2026)*: keine Gedankenstriche,
+      kein „!“, kein „bewerten“, keine Anbieternamen. Minutenangaben betreffen
+      nur die Gesprächsdauer, keine Produktversprechen.
 - [ ] **Teststellen löschen**: Allianz, SeneCura, Magirus, XARION, GAMED
       (Konten `revet` und `roland-krottmaier-91b555`). Sie sind öffentlich und
       stehen in der Sitemap.
