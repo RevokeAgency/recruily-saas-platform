@@ -50,26 +50,14 @@ Registrierung ist zu. Die Landing bleibt über einen Vorschau-Link sichtbar.
 
 Stand der Durchsicht: 19.09.2026.
 
-- [ ] **Das Matching läuft in Produktion nicht** *(03.11.2026: Mistral ist
-      auf einem Bezahlplan. Diagnose vom 03.11. zeigt: Der Schlüssel in
-      Vercel (`MISTRAL_GENERATIVE_AI_API_KEY`) gehört nicht zum bezahlten
-      Workspace, large antwortet mit 403 `tier_not_allowed`, small mit
-      Rate-Limit. Neuen Schlüssel im bezahlten Workspace erzeugen, als
-      `MISTRAL_API_KEY` eintragen, alten löschen. Modelle: `mistral-large-2512`
-      für alle Textaufgaben. Noch mit
-      einer echten Bewerbung bestätigen und `/api/matching/eval` laufen lassen. Stand 19.09.; seitdem fällt
-      der Code bei fehlendem Zugriff automatisch auf `mistral-small-latest`
-      zurück, siehe `MISTRAL_FALLBACK` in `lib/ai/provider.ts`. Mit einer echten
-      Bewerbung auf einer Teststelle bestätigen, dann abhaken)*. `lib/ai/provider.ts:43` und
-      `:49` setzen `reasoning` und `verification` per Default auf
-      `mistral-large-latest`. Der aktuelle Mistral-Tarif antwortet darauf mit
-      „This model is not available in your subscription tier", deshalb bleibt
-      der Score leer und der Kandidat zeigt „Fehler". Zwei Wege: entweder
-      `AI_MODEL_REASONING=mistral-small-latest` und
-      `AI_MODEL_VERIFICATION=mistral-small-latest` in Vercel setzen, oder den
-      Mistral-Tarif hochstufen. Danach `node scripts/eval/run-eval.mjs` gegen
-      den Golden Set laufen lassen und prüfen, ob die erwarteten Score-Bänder
-      mit dem kleineren Modell halten.
+- [ ] **Matching in Produktion** *(03.11.2026: Ursache gefunden und
+      behoben)*. Der API-Tarif bei Mistral war nicht freigeschaltet: große
+      Modelle antworteten mit 403 `tier_not_allowed`, das kleine war sofort
+      am Limit. Seit „API Pay-as-you-go“ aktiv ist, meldet
+      `/api/matching/diagnose` alle Modelle „frei“. Schlüssel heißt jetzt
+      `MISTRAL_API_KEY`, Textaufgaben laufen auf `mistral-large-2512`.
+      Zum Abhaken noch: eine echte Bewerbung mit Score, `/api/matching/eval`
+      ohne Ausreißer, Guthaben und Ausgabenlimit bei Mistral für den Betrieb.
 - [x] **Branch-Frage geklärt: `main` ist die Produktionslinie.** Vercel baut
       `main`, alles andere ist Nebengleis.
 
