@@ -47,25 +47,32 @@ export interface CreatedEvent {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Google braucht calendar.events zum Schreiben und calendar.readonly für die
- * Belegtzeiten. Meet-Links entstehen über conferenceData beim Anlegen des
- * Termins, dafür ist kein weiterer Scope nötig.
+ * Google: so schmal wie möglich, weil Google jede Berechtigung im
+ * Prüfverfahren einzeln begründet haben will.
+ *   calendar.freebusy      nur „wann belegt“, keine Inhalte (freeBusy.query)
+ *   calendar.events.owned  Termine in eigenen Kalendern anlegen und löschen
+ * Früher calendar.readonly + calendar.events, also Lesen aller Kalender und
+ * Schreiben in alle. Bereits verbundene Konten behalten ihren Zugang, der
+ * die neuen Aufrufe ebenfalls abdeckt. Meet-Links entstehen über
+ * conferenceData beim Anlegen des Termins, ohne eigenen Scope.
  */
 export const GOOGLE_SCOPES = [
-  "https://www.googleapis.com/auth/calendar.events",
-  "https://www.googleapis.com/auth/calendar.readonly",
+  "https://www.googleapis.com/auth/calendar.freebusy",
+  "https://www.googleapis.com/auth/calendar.events.owned",
   "openid",
   "email",
 ].join(" ")
 
 /**
  * offline_access hält den Refresh-Token am Leben, sonst wäre nach einer Stunde
- * Schluss und der Kunde müsste ständig neu verbinden.
+ * Schluss und der Kunde müsste ständig neu verbinden. User.Read braucht der
+ * Abruf der Postfach-Adresse über /me; ohne sie liefert getSchedule nichts.
  */
 export const MICROSOFT_SCOPES = [
   "offline_access",
   "openid",
   "email",
+  "User.Read",
   "Calendars.ReadWrite",
 ].join(" ")
 

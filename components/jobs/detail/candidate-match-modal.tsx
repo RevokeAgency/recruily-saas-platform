@@ -529,6 +529,7 @@ export function CandidateMatchModal({
       .then(({ error }) => { if (error) console.error("[invite] invited_at skipped:", error.message) })
 
     // 2. Send email with .ics attachment if candidate has an email address
+    let calendarNote: string | null = null
     if (candidate.email) {
       try {
         const res = await fetch("/api/send-interview-invite", {
@@ -545,9 +546,20 @@ export function CandidateMatchModal({
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             format: inviteFormat,
             note: inviteNote,
+            // Damit der Termin als Buchung gespeichert und in den Kalender
+            // eingetragen wird.
+            jobCandidateId: candidate.linkId,
           }),
         })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const result = await res.json().catch(() => ({}))
+        if (result.calendar === "eingetragen") {
+          calendarNote = inviteFormat === "remote" && result.meetingUrl
+            ? "Termin steht in deinem Kalender, mit Videolink."
+            : "Termin steht in deinem Kalender."
+        } else if (result.calendar === "fehler") {
+          calendarNote = "Der Kalendereintrag hat nicht geklappt. Den Grund siehst du unter Termine."
+        }
       } catch (emailError) {
         console.error("[v0] Interview invite email failed:", emailError)
         // Non-fatal: status was already updated, just warn
@@ -563,7 +575,7 @@ export function CandidateMatchModal({
     setIsSubmitting(false)
     setInviteOpen(false)
     setInvited(true)
-    toast.success("Interview-Einladung gespeichert ✓")
+    toast.success("Interview-Einladung gespeichert ✓", calendarNote ? { description: calendarNote } : undefined)
     onInviteToInterview?.(candidate.id)
   }
 
@@ -1218,6 +1230,25 @@ export function CandidateMatchModal({
                   </div>
                 </RadioGroup>
               </div>
+
+              {/* Was mit dem Termin passiert, hängt am verbundenen Kalender. */}
+              {calendarConnected === true ? (
+                <p className="flex items-center gap-1.5 text-xs text-[var(--rv-green-deep)]">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  {inviteFormat === "remote"
+                    ? "Wird in deinen Kalender eingetragen, mit Videolink für die Einladung"
+                    : "Wird in deinen Kalender eingetragen"}
+                </p>
+              ) : calendarConnected === false && inviteFormat === "remote" ? (
+                <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
+                  Ohne verbundenen Kalender enthält die Einladung keinen Videolink. Schreib ihn in die
+                  Notiz oder verbinde deinen Kalender unter{" "}
+                  <Link href="/termine" className="font-medium underline underline-offset-2">
+                    Termine
+                  </Link>
+                  , dann entsteht der Link automatisch.
+                </p>
+              ) : null}
             </>
           )}
 

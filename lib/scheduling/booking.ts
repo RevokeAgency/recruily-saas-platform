@@ -85,7 +85,8 @@ export async function createBooking(
     .from("bookings")
     .insert({
       user_id: ctx.userId,
-      meeting_type_id: ctx.meetingType.id,
+      // Feste Einladungen haben keine gespeicherte Terminart.
+      meeting_type_id: ctx.meetingType.id || null,
       job_candidate_id: ctx.jobCandidateId ?? null,
       job_id: ctx.jobId ?? null,
       candidate_id: ctx.candidateId ?? null,

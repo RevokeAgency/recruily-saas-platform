@@ -253,23 +253,37 @@ export async function sendFixedInterviewInvite(opts: {
   format: "remote" | "onsite"
   note?: string | null
   replyTo?: string | null
+  /** Videolink aus dem verbundenen Kalender (Meet oder Teams), falls angelegt. */
+  meetingUrl?: string | null
+  /**
+   * Kennung der Buchung in Revetly. Dieselbe UID wie bei der Selbstbuchung
+   * (booking-<id>), damit eine spätere Absage den Kalendereintrag beim
+   * Bewerber ersetzt statt einen zweiten danebenzulegen.
+   */
+  bookingId?: string | null
 }): Promise<boolean> {
   if (!opts.to) return false
 
   const company = (opts.companyName || "Revetly").trim()
   const greeting = opts.candidateName?.trim() ? `Hallo ${escapeHtml(opts.candidateName.trim())},` : "Hallo,"
   const end = new Date(opts.start.getTime() + opts.durationMinutes * 60000)
-  const where = opts.format === "remote" ? "Remote" : "Vor Ort"
+  const where = opts.format === "remote" ? (opts.meetingUrl ? "Videocall" : "Remote") : "Vor Ort"
   const when = `${formatInZone(opts.start, opts.timezone)} Uhr (${zoneAbbreviation(opts.start, opts.timezone)})`
   const summary = `Vorstellungsgespräch: ${opts.jobTitle} bei ${company}`
 
   const ics = buildIcs({
-    uid: `interview-${opts.start.getTime()}-${Buffer.from(opts.to).toString("hex").slice(0, 16)}@revetly.ai`,
+    uid: opts.bookingId
+      ? `booking-${opts.bookingId}@revetly.ai`
+      : `interview-${opts.start.getTime()}-${Buffer.from(opts.to).toString("hex").slice(0, 16)}@revetly.ai`,
     start: opts.start,
     end,
     summary,
-    description: [`Format: ${where}`, opts.note?.trim() ? `Notiz: ${opts.note.trim()}` : ""].filter(Boolean).join("\n"),
-    location: where,
+    description: [
+      opts.meetingUrl ? `Videocall: ${opts.meetingUrl}` : `Format: ${where}`,
+      opts.note?.trim() ? `Notiz: ${opts.note.trim()}` : "",
+    ].filter(Boolean).join("\n"),
+    location: opts.meetingUrl ?? where,
+    url: opts.meetingUrl ?? undefined,
     organizerName: company,
     organizerEmail: opts.replyTo ?? undefined,
     attendeeEmail: opts.to,
@@ -282,8 +296,8 @@ export async function sendFixedInterviewInvite(opts: {
     action: "TEMPLATE",
     text: summary,
     dates: `${stamp(opts.start)}/${stamp(end)}`,
-    details: opts.note?.trim() ?? "",
-    location: where,
+    details: [opts.meetingUrl ? `Videocall: ${opts.meetingUrl}` : "", opts.note?.trim() ?? ""].filter(Boolean).join("\n\n"),
+    location: opts.meetingUrl ?? where,
   }).toString()}`
 
   const body = `
@@ -296,8 +310,13 @@ export async function sendFixedInterviewInvite(opts: {
       ["Format", escapeHtml(where)],
     ])}
     ${opts.note?.trim() ? note(opts.note.trim()) : ""}
-    ${button(google, "In Google Kalender eintragen")}
-    ${paragraph("Für Outlook und Apple Kalender liegt der Termin als Kalendereintrag im Anhang. Bitte bestätigen Sie kurz Ihre Teilnahme, indem Sie auf diese E-Mail antworten.", { muted: true, small: true, last: true })}
+    ${opts.meetingUrl ? button(opts.meetingUrl, "Zum Videocall") : button(google, "In Google Kalender eintragen")}
+    ${paragraph(
+      opts.meetingUrl
+        ? `Der Termin liegt als Kalendereintrag im Anhang, samt Link zum Videocall. Für Google Kalender: <a href="${escapeHtml(google)}" style="color:${MAIL.greenDeep};font-weight:700;">hier eintragen</a>. Bitte bestätigen Sie kurz Ihre Teilnahme, indem Sie auf diese E-Mail antworten.`
+        : "Für Outlook und Apple Kalender liegt der Termin als Kalendereintrag im Anhang. Bitte bestätigen Sie kurz Ihre Teilnahme, indem Sie auf diese E-Mail antworten.",
+      { muted: true, small: true, last: true },
+    )}
     ${SIGN(company)}
   `
 
