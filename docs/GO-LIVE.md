@@ -396,6 +396,13 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       Fassung `2026-09-v2` in `lib/training/consent.ts`; bei inhaltlicher
       Änderung hochzählen, die Fassung wird pro Einwilligung gespeichert
       (Nachweispflicht Art. 7 Abs. 1 DSGVO).
+- [ ] `scripts/038_match_cache.sql` *(neu 03.11.2026, noch einspielen)*:
+      **Ergebnis-Cache für das Matching.** Gleiche Eingaben (Lebenslauf,
+      Stelle, Gewichtung, Modelle, Prompts) ergeben denselben Score ohne
+      neuen KI-Aufruf. Nur der Server hat Zugriff, Einträge hängen per
+      Cascade am Kandidaten, an der Stelle und am Konto. Ohne die Migration
+      läuft das Matching wie bisher, nur ohne Cache. Details in
+      `scripts/038_match_cache.md`.
 - [ ] **Entscheiden, ob die Beispiele für das gemeinsame Modell gelöscht
       werden** (auskommentierter Schritt am Ende von 029). Das gemeinsame
       Training ist abgeschaltet, der Export antwortet mit 403.

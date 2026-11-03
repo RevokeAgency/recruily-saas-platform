@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { createClient as createAdmin } from "@supabase/supabase-js"
-import { runIMLRSMatch } from "@/lib/matching/imlrs"
+import { runIMLRSMatch, type IMLRSCandidateInput, type IMLRSJobInput, type IMLRSMatchResult } from "@/lib/matching/imlrs"
+import { matchInputHash, readMatchCache, writeMatchCache } from "@/lib/matching/cache"
 import { isRateLimit, isTierNotAllowed } from "@/lib/ai/generate"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { extractDocumentText } from "@/lib/cv-parse"
@@ -155,37 +156,59 @@ export async function scoreJobCandidateLink(
       }
     }
 
-    const match = await runIMLRSMatch(
-      {
-        id: candidate.id,
-        name: candidate.full_name,
-        job_title: candidate.job_title,
-        skills: candidate.skills,
-        experience: `${candidate.years_of_experience} years`,
-        experienceLevel: candidate.experience_level,
-        years_of_experience: candidate.years_of_experience,
-        education: candidate.education,
-        location: candidate.location,
-        summary_ai: candidate.summary_ai,
-        cover_letter_text: coverText,
-        resume_text: resumeText,
-        dossier: cachedDossier, // cached Stage A from a previous match
-      },
-      {
-        id: job.id,
-        title: job.title,
-        company: job.company,
-        required_skills: job.required_skills || [],
-        nice_to_have_skills: job.nice_to_have_skills || [],
-        years_experience: job.years_experience,
-        education: job.education,
-        location: job.location,
-        description: job.description,
-        languages: job.languages || [],
-        ko_criteria: job.ko_criteria || [],
-      },
-      { weights: tenantWeights },
-    )
+    const candidateInput: IMLRSCandidateInput = {
+      id: candidate.id,
+      name: candidate.full_name,
+      job_title: candidate.job_title,
+      skills: candidate.skills,
+      experience: `${candidate.years_of_experience} years`,
+      experienceLevel: candidate.experience_level,
+      years_of_experience: candidate.years_of_experience,
+      education: candidate.education,
+      location: candidate.location,
+      summary_ai: candidate.summary_ai,
+      cover_letter_text: coverText,
+      resume_text: resumeText,
+      dossier: cachedDossier, // cached Stage A from a previous match
+    }
+    const jobInput: IMLRSJobInput = {
+      id: job.id,
+      title: job.title,
+      company: job.company,
+      required_skills: job.required_skills || [],
+      nice_to_have_skills: job.nice_to_have_skills || [],
+      years_experience: job.years_experience,
+      education: job.education,
+      location: job.location,
+      description: job.description,
+      languages: job.languages || [],
+      ko_criteria: job.ko_criteria || [],
+    }
+
+    // Gleiche Eingaben, gleiches Ergebnis (Migration 038, lib/matching/cache.ts):
+    // Liegt für genau diese Eingaben schon ein vollständiges Ergebnis vor, wird
+    // es übernommen statt neu gerechnet. Ohne Arbeitsbereich kein Cache.
+    const inputHash = matchInputHash({ candidate: candidateInput, job: jobInput, weights: tenantWeights })
+    const cached = link.user_id ? await readMatchCache(link.user_id, inputHash) : null
+    let match: IMLRSMatchResult
+    if (cached) {
+      match = {
+        ...cached.result,
+        dossier: null,
+        detail: { ...cached.result.detail, cache: { berechnetAm: cached.createdAt } },
+      }
+    } else {
+      match = await runIMLRSMatch(candidateInput, jobInput, { weights: tenantWeights })
+      if (link.user_id) {
+        await writeMatchCache({
+          ownerId: link.user_id,
+          candidateId: candidate.id,
+          jobId: job.id,
+          hash: inputHash,
+          result: match,
+        })
+      }
+    }
 
     // Cache the freshly built dossier on the candidate (reused across jobs).
     if (match.dossier) {

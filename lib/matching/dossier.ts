@@ -49,7 +49,7 @@ const dossierSchema = z.object({
 
 export type CareerDossier = z.infer<typeof dossierSchema>
 
-const systemPrompt = `Du bist ein präziser CV-Analyst. Du überführst Lebensläufe in ein strukturiertes Karriere-Dossier.
+export const DOSSIER_SYSTEM_PROMPT = `Du bist ein präziser CV-Analyst. Du überführst Lebensläufe in ein strukturiertes Karriere-Dossier.
 
 ## Regeln
 - Extrahiere NUR, was im Text belegt ist. Erfinde nichts, schätze nicht großzügig.
@@ -96,7 +96,7 @@ Zusammenfassung: ${input.summaryAi || "—"}`
     task: "extraction",
     label: "Dossier-Extraktion",
     schema: dossierSchema,
-    system: withApplicantTextRule(systemPrompt),
+    system: withApplicantTextRule(DOSSIER_SYSTEM_PROMPT),
     prompt: `Erstelle das Karriere-Dossier für diesen Kandidaten:\n\n${source}${cover}`,
   })
 

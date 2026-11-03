@@ -193,6 +193,8 @@ export interface IMLRSMatchDetail {
   modelUsed: string
   /** Whether the judgment stayed inside the EU (DSGVO audit trail). */
   euResident: boolean
+  /** Gesetzt, wenn das Ergebnis aus dem Match-Cache kommt: wann es berechnet wurde. */
+  cache?: { berechnetAm: string }
 }
 
 export interface IMLRSMatchResult {
@@ -209,9 +211,15 @@ export interface IMLRSMatchResult {
   detail: IMLRSMatchDetail
   /** Freshly built dossier (when Stage A ran) — caller should persist it. */
   dossier: CareerDossier | null
+  /**
+   * Alle Stufen liefen wie vorgesehen: Dossier vorhanden, Urteil vom ersten
+   * Modell der Kette, Prüfinstanz gelaufen, Skill-Zuordnung ohne Ausfall. Nur
+   * solche Ergebnisse kommen in den Match-Cache (lib/matching/cache.ts).
+   */
+  complete: boolean
 }
 
-const judgeSystemPrompt = `Du bist der Bewertungs-Richter des IMLRS 2.0 (Intelligent Multi-Layer Ranking System) von Revetly — ein Eignungsdiagnostiker auf Enterprise-Niveau.
+export const judgeSystemPrompt = `Du bist der Bewertungs-Richter des IMLRS 2.0 (Intelligent Multi-Layer Ranking System) von Revetly — ein Eignungsdiagnostiker auf Enterprise-Niveau.
 
 ## Arbeitsweise (nicht verhandelbar)
 1. Du bewertest AUSSCHLIESSLICH auf Basis des Dossiers und der deterministisch geprüften Hard Facts. Was dort nicht steht, existiert nicht.
@@ -237,7 +245,7 @@ Prüfe jedes vorgegebene KO-Kriterium einzeln und KONSERVATIV: "failed" nur bei 
 
 Antworte IMMER auf Deutsch.`
 
-const verifierSystemPrompt = `Du bist die unabhängige Prüfinstanz des IMLRS 2.0 — ein zweiter, kritischer Eignungsdiagnostiker (Vier-Augen-Prinzip).
+export const verifierSystemPrompt = `Du bist die unabhängige Prüfinstanz des IMLRS 2.0 — ein zweiter, kritischer Eignungsdiagnostiker (Vier-Augen-Prinzip).
 
 Du erhältst Dossier, Hard Facts und die Bewertung des Richters. Prüfe JEDE der 9 Kategorien:
 - Ist der Score durch die zitierten Belege gedeckt?
@@ -338,6 +346,7 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
 
   // ── Stage D: independent verifier (optional — never fails the match) ──────
   let verifierNote = "Prüfung nicht verfügbar — Richter-Scores unverändert übernommen."
+  let verifierRan = false
   const verifierReviews = new Map<CategoryKey, { urteil: string; begruendung: string; korrigierterScore: number }>()
   try {
     const judgedRendered = CATEGORY_KEYS
@@ -351,6 +360,7 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
       label: "IMLRS-Prüfung",
     })
     verifierNote = verified.gesamtanmerkung
+    verifierRan = true
     for (const r of verified.reviews) verifierReviews.set(r.category, r)
   } catch (err) {
     console.error("[imlrs2] verifier failed, keeping judge scores:", err)
@@ -457,5 +467,10 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
       euResident: judgeRun.euResident,
     },
     dossier: dossierIsFresh ? dossier : null,
+    complete:
+      !!dossier &&
+      verifierRan &&
+      !hardFacts.skillMatrixFailed &&
+      `${judgeRun.provider}:${judgeRun.modelId}` === describeChain("reasoning")[0],
   }
 }
