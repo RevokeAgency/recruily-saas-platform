@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { createClient as createAdmin } from "@supabase/supabase-js"
 import { runIMLRSMatch } from "@/lib/matching/imlrs"
+import { isRateLimit } from "@/lib/ai/generate"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { extractDocumentText } from "@/lib/cv-parse"
 import { screenCandidateDocuments } from "@/lib/document-guard/store"
@@ -260,7 +261,12 @@ export async function scoreJobCandidateLink(
     // Genau dieser Fall landet beim Kunden als Status "Fehler". Bisher stand
     // er nur im Log, und niemand hat davon erfahren.
     await captureAndNotify(err, { route: "scoreJobCandidateLink", extra: { linkId } })
-    const reason = err instanceof Error ? err.message : String(err)
+    const raw = err instanceof Error ? err.message : String(err)
+    // Der technische Text steht im Log und in der Fehlermail. Beim Kunden
+    // steht, was passiert ist und was er tun kann.
+    const reason = isRateLimit(raw)
+      ? "Der KI-Dienst war gerade ausgelastet. Bitte später über „Erneut versuchen“ noch einmal starten."
+      : raw
     await supabase.from("job_candidates").update({ status: "error" }).eq("id", linkId)
     // Persist WHY it failed so "Fehler" is diagnosable in the UI instead of
     // being a dead end. Best-effort (needs migration 021).

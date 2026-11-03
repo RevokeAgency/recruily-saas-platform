@@ -883,7 +883,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
                     <div className="mb-4 rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
                       <div className="mb-1.5 flex items-center gap-2">
                         <ShieldAlert className="h-4 w-4 text-destructive" />
-                        <span className="text-sm font-semibold text-destructive">Bewertung fehlgeschlagen</span>
+                        <span className="text-sm font-semibold text-destructive">Matching fehlgeschlagen</span>
                       </div>
                       <p className="text-sm leading-relaxed break-words text-muted-foreground">
                         {candidate.match_detail.error}

@@ -23,6 +23,20 @@ export interface StructuredResult<T> {
   run: AiRunInfo
 }
 
+/**
+ * Wiederholungen je Modell. Das SDK wartet zwischen den Versuchen 2, 4, 8
+ * und 16 Sekunden und hält sich an einen Retry-After-Header. Mit dem Standard
+ * (2 Wiederholungen, 6 Sekunden) reichte das bei einem Rate-Limit pro Minute
+ * nicht: Großes und kleines Modell teilen sich das Kontingent des Kontos, also
+ * scheiterten beide im selben Fenster.
+ */
+export const AI_MAX_RETRIES = 4
+
+/** Hat der Anbieter wegen zu vieler Anfragen abgelehnt? */
+export function isRateLimit(message: string): boolean {
+  return /rate.?limit|too many requests|\b429\b|capacity exceeded/i.test(message)
+}
+
 /** Fehler, die ein anderes Modell ebenfalls nicht lösen würde. */
 function isTerminal(message: string): boolean {
   return /schema|validation|zod|invalid.*json/i.test(message)
@@ -56,6 +70,7 @@ export async function generateStructured<T>(args: {
       const { output } = await generateText({
         model: entry.model,
         temperature: args.temperature ?? 0,
+        maxRetries: AI_MAX_RETRIES,
         output: Output.object({ schema: args.schema }),
         system: args.system,
         ...(args.messages ? { messages: args.messages } : { prompt: args.prompt ?? "" }),
@@ -109,6 +124,7 @@ export async function generatePlain(args: {
       const { text } = await generateText({
         model: entry.model,
         temperature: 0,
+        maxRetries: AI_MAX_RETRIES,
         system: args.system,
         prompt: args.prompt,
       })
