@@ -9,6 +9,7 @@ import { parseCvBuffer, isUsableCandidate, isPdfFile, extractDocumentText } from
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { sendApplicationReceived } from "@/lib/email/send"
 import { captureAndNotify } from "@/lib/monitoring/capture"
+import { findDuplicateInJob } from "@/lib/matching/duplicate"
 import {
   consumeRateLimit,
   emailKey,
@@ -145,6 +146,18 @@ export async function POST(req: NextRequest) {
     const cvBuf = Buffer.from(await cvFile.arrayBuffer())
     const coverBuf = coverFile ? Buffer.from(await coverFile.arrayBuffer()) : null
 
+    // Derselbe Lebenslauf liegt schon in der Stelle (etwa mit anderer
+    // Adresse erneut abgeschickt): kein zweiter Kandidat, kein zweiter Score.
+    // Antwort wie bei der Doppelbewerbung oben.
+    const resumeText = await extractDocumentText(cvBuf, cvFile.type, cvFile.name)
+    if (await findDuplicateInJob(supabase, jobId, resumeText)) {
+      return Response.json({
+        success: true,
+        duplicate: true,
+        message: "Deine Bewerbung für diese Stelle liegt uns bereits vor.",
+      })
+    }
+
     // Cover-letter text = typed motivation + text of an uploaded cover letter.
     let coverText = message
     if (coverBuf && coverFile) {
@@ -215,6 +228,8 @@ export async function POST(req: NextRequest) {
       cover_letter_path: coverPath,
       cover_letter_text: coverText || null,
       photo_url: photoUrl,
+      // Für die Dublettenprüfung, auch solange das Matching noch wartet.
+      resume_text: resumeText?.trim() ? resumeText : null,
     }).eq("id", candidate.id).then(({ error }) => {
       if (error) console.error("[apply] document enrichment skipped:", error.message)
     })

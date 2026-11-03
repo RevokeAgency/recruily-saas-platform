@@ -232,6 +232,14 @@ function NewCandidateContent() {
           setIsSaving(false)
           return
         }
+        if (matchRes.status === 409 && matchResult.duplicate) {
+          // Derselbe Lebenslauf liegt schon in der Stelle. Der eben angelegte
+          // Kandidat wäre eine Dublette ohne Stelle, also wieder entfernen.
+          await fetch(`/api/candidates/${candidateId}`, { method: "DELETE" }).catch(() => null)
+          toast.error(matchResult.error)
+          setIsSaving(false)
+          return
+        }
         if (!matchRes.ok) {
           toast.error(matchResult.error || "Verknüpfung fehlgeschlagen")
         } else {

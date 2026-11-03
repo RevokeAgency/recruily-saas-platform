@@ -3,7 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { parseEmailConnectPayload } from '@/lib/email/emailconnect'
 import { loadInboundAttachment } from '@/lib/email/attachments'
-import { parseCvBuffer, isSupportedCvType, isUsableCandidate } from '@/lib/cv-parse'
+import { parseCvBuffer, isSupportedCvType, isUsableCandidate, extractDocumentText } from '@/lib/cv-parse'
+import { duplicateMessage, findDuplicateInJob } from '@/lib/matching/duplicate'
 import { consumeMatch } from '@/lib/quota'
 import { scoreJobCandidateLink } from '@/lib/scoring'
 import { getWorkspace } from "@/lib/workspace"
@@ -40,6 +41,11 @@ export async function assignInboundEmail(
   const buffer = await loadInboundAttachment(cvAtt)
   if (!buffer) return { ok: false, error: 'Anhang nicht mehr verfügbar' }
 
+  // Derselbe Lebenslauf liegt schon in der Stelle: nicht doppelt anlegen.
+  const resumeText = await extractDocumentText(buffer, cvAtt.mimeType, cvAtt.filename)
+  const duplicate = await findDuplicateInJob(supabase, jobId, resumeText)
+  if (duplicate) return { ok: false, error: duplicateMessage(duplicate) }
+
   const parsed = await parseCvBuffer(buffer, cvAtt.mimeType, cvAtt.filename, email.text)
   if (!isUsableCandidate(parsed)) return { ok: false, error: 'Lebenslauf konnte nicht ausgelesen werden' }
 
@@ -56,6 +62,7 @@ export async function assignInboundEmail(
       education: parsed.education,
       summary_ai: parsed.summary_ai,
       location: parsed.location,
+      resume_text: resumeText?.trim() ? resumeText : null,
       user_id: ownerId,
     })
     .select('id')

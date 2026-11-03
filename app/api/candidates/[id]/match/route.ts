@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { createClient as createAdmin } from "@supabase/supabase-js"
 import { after } from "next/server"
 import { consumeMatch } from "@/lib/quota"
-import { scoreJobCandidateLink } from "@/lib/scoring"
+import { extractResumeText, scoreJobCandidateLink } from "@/lib/scoring"
+import { duplicateMessage, findDuplicateInJob } from "@/lib/matching/duplicate"
 import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
@@ -32,7 +33,7 @@ export async function POST(
     // a failed/duplicate request never consumes quota.
     const { data: candidate, error: candidateError } = await supabase
       .from("candidates")
-      .select("id")
+      .select("id, resume_text, resume_path")
       .eq("id", candidateId)
       .single()
     if (candidateError || !candidate) {
@@ -56,6 +57,27 @@ export async function POST(
       .single()
     if (existingLink) {
       return Response.json({ error: "Kandidat ist bereits mit diesem Job verknüpft" }, { status: 400 })
+    }
+
+    // Derselbe Lebenslauf liegt schon in der Stelle (als anderer Kandidat,
+    // etwa zweimal hochgeladen)? Dann kein zweites Matching: Es würde einen
+    // zweiten, womöglich abweichenden Score für dieselbe Person liefern und
+    // ein Match verbrauchen. Den Text dafür jetzt auslesen und speichern,
+    // das Matching braucht ihn ohnehin.
+    let resumeText: string | null = candidate.resume_text ?? null
+    if (!resumeText && candidate.resume_path) {
+      resumeText = await extractResumeText(candidate.resume_path)
+      if (resumeText) {
+        await supabase.from("candidates").update({ resume_text: resumeText }).eq("id", candidateId)
+          .then(({ error }) => { if (error) console.error("[match] resume_text skipped:", error.message) })
+      }
+    }
+    const duplicate = await findDuplicateInJob(supabase, jobId, resumeText, candidateId)
+    if (duplicate) {
+      return Response.json(
+        { error: duplicateMessage(duplicate), duplicate: true, existingLinkId: duplicate.linkId },
+        { status: 409 },
+      )
     }
 
     // Atomically spend one match (row-locked, monthly-reset aware).

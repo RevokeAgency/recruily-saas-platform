@@ -2,7 +2,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { NextRequest, after } from "next/server"
 import { parseEmailConnectPayload, verifyEmailConnectSignature } from "@/lib/email/emailconnect"
 import { matchJobByKey, parseInboundRecipient } from "@/lib/email/routing"
-import { parseCvBuffer, isSupportedCvType, isUsableCandidate, isPdfFile } from "@/lib/cv-parse"
+import { parseCvBuffer, isSupportedCvType, isUsableCandidate, isPdfFile, extractDocumentText } from "@/lib/cv-parse"
+import { findDuplicateInJob } from "@/lib/matching/duplicate"
 import { consumeMatch } from "@/lib/quota"
 import { scoreJobCandidateLink } from "@/lib/scoring"
 import { screenCandidateDocuments } from "@/lib/document-guard/store"
@@ -152,6 +153,20 @@ export async function POST(req: NextRequest) {
       return Response.json({ success: true, status: "error" })
     }
 
+    // Derselbe Lebenslauf liegt schon in der Stelle (Mail doppelt geschickt,
+    // oder vorher hochgeladen): kein zweiter Kandidat, kein zweiter Score,
+    // keine zweite Eingangsbestätigung.
+    const resumeText = await extractDocumentText(buffer, cvAtt.mimeType, cvAtt.filename)
+    const duplicate = await findDuplicateInJob(supabase, job.id, resumeText)
+    if (duplicate) {
+      await finalize(
+        "processed",
+        `Lebenslauf liegt in der Stelle schon vor${duplicate.name ? ` (${duplicate.name})` : ""}`,
+        duplicate.candidateId,
+      )
+      return Response.json({ success: true, status: "duplicate" })
+    }
+
     const parsed = await parseCvBuffer(buffer, cvAtt.mimeType, cvAtt.filename, email.text)
     if (!isUsableCandidate(parsed)) {
       await finalize("no_cv", "Lebenslauf konnte nicht ausgelesen werden")
@@ -202,7 +217,12 @@ export async function POST(req: NextRequest) {
         }
       }
       await supabase.from("candidates")
-        .update({ resume_path: resumePath, photo_url: photoUrl, cover_letter_text: email.text || null })
+        .update({
+          resume_path: resumePath,
+          photo_url: photoUrl,
+          cover_letter_text: email.text || null,
+          resume_text: resumeText?.trim() ? resumeText : null,
+        })
         .eq("id", candidate.id)
     } catch (err) {
       console.error("[inbound] document/photo storage failed:", err)

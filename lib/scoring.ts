@@ -17,7 +17,7 @@ const roundScore = (s: number | undefined | null): number | null =>
  * Downloads the stored CV and extracts its full text (IMLRS 2.0 input).
  * Best-effort — returns null on any failure, never throws.
  */
-async function extractResumeText(resumePath: string): Promise<string | null> {
+export async function extractResumeText(resumePath: string): Promise<string | null> {
   try {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY
