@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { sendFixedInterviewInvite } from "@/lib/email/scheduling"
-import { GOOGLE_SCOPES, MICROSOFT_SCOPES, authorizeUrl } from "@/lib/scheduling/providers"
+import { encryptToken } from "@/lib/scheduling/crypto"
+import { GOOGLE_SCOPES, MICROSOFT_SCOPES, authorizeUrl, revokeAccess, type CalendarAccountRow } from "@/lib/scheduling/providers"
 
 const sent: Array<{ html: string; attachments?: { content: string }[] }> = []
 vi.mock("@/lib/email/client", async (orig) => ({
@@ -68,5 +69,31 @@ describe("Feste Interview-Einladung", () => {
     expect(sent[0].html).toContain("In Google Kalender eintragen")
     expect(sent[0].html).toContain("Remote")
     expect(sent[0].html).not.toContain("Zum Videocall")
+  })
+})
+
+describe("Verbindung trennen", () => {
+  it("widerruft den Google-Zugang mit dem Refresh-Token, Microsoft nicht", async () => {
+    process.env.SCHEDULING_TOKEN_KEY = Buffer.alloc(32, 7).toString("base64")
+    const calls: Array<{ url: string; body: string }> = []
+    const realFetch = globalThis.fetch
+    globalThis.fetch = (async (url: string, init?: RequestInit) => {
+      calls.push({ url: String(url), body: String(init?.body) })
+      return new Response("{}", { status: 200 })
+    }) as typeof fetch
+    try {
+      const account = {
+        id: "a", user_id: "u", provider: "google", account_email: "x@y.at",
+        access_token: encryptToken("access-1"), refresh_token: encryptToken("refresh-1"),
+        token_expires_at: null, calendar_id: "primary", busy_enabled: true, write_enabled: true,
+      } as CalendarAccountRow
+      expect(await revokeAccess(account)).toBe(true)
+      expect(calls[0].url).toBe("https://oauth2.googleapis.com/revoke")
+      expect(calls[0].body).toContain("token=refresh-1")
+      expect(await revokeAccess({ ...account, provider: "microsoft" })).toBe(false)
+      expect(calls).toHaveLength(1)
+    } finally {
+      globalThis.fetch = realFetch
+    }
   })
 })

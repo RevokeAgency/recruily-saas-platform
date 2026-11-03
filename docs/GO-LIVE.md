@@ -147,12 +147,21 @@ Noch auf die Hauptadresse umzustellen:
       Auto-Reply / Interview / Absage / Terminmails nicht im Spam landen.
 - [ ] **Sitemap in der Google Search Console einreichen**:
       `https://www.revetly.ai/sitemap.xml` (dazu Bing Webmaster Tools).
-- [ ] **OAuth-Weiterleitungs-URIs der Kalender-Apps** auf die Live-Domain
-      umstellen (falls Kalenderanbindung genutzt wird):
-      Google Cloud Console → `https://www.revetly.ai/api/calendar/callback/google`,
-      Entra ID → `https://www.revetly.ai/api/calendar/callback/microsoft`. Sie
-      werden aus `NEXT_PUBLIC_SITE_URL` gebildet und müssen beim Anbieter exakt
-      übereinstimmen, sonst schlägt das Verbinden fehl.
+- [ ] **Kalenderanbindung einrichten** (Schritt für Schritt in
+      `scripts/025_scheduling.md`, Code fertig seit 03.11.2026):
+  - [ ] `SCHEDULING_TOKEN_KEY` in Vercel
+  - [ ] Google Cloud: Calendar API, Branding, Bereiche `calendar.freebusy` und
+        `calendar.events.owned`, Client mit
+        `https://www.revetly.ai/api/calendar/callback/google`, App
+        veröffentlichen, **Prüfung beantragen** (Video + Begründung, dauert
+        Tage bis Wochen; bis dahin Hinweis „nicht überprüft“, max. 100 Konten)
+  - [ ] Microsoft Entra: App mehrinstanzenfähig, Umleitung
+        `https://www.revetly.ai/api/calendar/callback/microsoft`,
+        Berechtigungen, Geheimnis (**Ablaufdatum vormerken**),
+        Herausgeberdomäne `revetly.ai`, verifizierter Herausgeber
+  - [ ] Test: Termine → Diagnose grün, Google und Microsoft verbinden,
+        feste Einladung „Remote“ → Termin mit Videolink im Kalender, absagen →
+        Termin weg
 
 ---
 
@@ -326,7 +335,9 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       *(optional)* — Google-Workspace-Anbindung. Einrichtung siehe
       `scripts/025_scheduling.md`.
 - [ ] `MICROSOFT_CALENDAR_CLIENT_ID` / `MICROSOFT_CALENDAR_CLIENT_SECRET` /
-      `MICROSOFT_CALENDAR_TENANT` *(optional)* — Microsoft-365-Anbindung.
+      `MICROSOFT_CALENDAR_TENANT` *(optional, empfohlen `organizations`)* —
+      Microsoft-365-Anbindung. Das Geheimnis läuft nach höchstens 24 Monaten
+      ab.
 - [ ] `CRON_SECRET` — schützt die täglichen Cron-Jobs (`/api/cron/purge-candidates`
       um 03:00 und `/api/cron/calibrate-matching` um 04:00 UTC). Vercel sendet ihn
       als Bearer-Token an Cron-Aufrufe. In Vercel setzen; ohne ihn liefern die

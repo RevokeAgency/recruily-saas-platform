@@ -197,6 +197,31 @@ async function refresh(provider: Provider, refreshToken: string): Promise<OAuthT
   }
 }
 
+/**
+ * Zugang beim Anbieter widerrufen, wenn der Kunde die Verbindung trennt.
+ * Google bietet dafür einen Endpunkt; ein widerrufener Refresh-Token nimmt
+ * auch alle daraus erzeugten Zugänge mit. Microsoft kennt keinen solchen
+ * Aufruf für einzelne Tokens, dort entfernt der Kunde die App selbst unter
+ * myapps.microsoft.com. Best-effort: Ein Fehler hier verhindert das Trennen
+ * nicht, die Tokens sind in Revetly danach ohnehin gelöscht.
+ */
+export async function revokeAccess(account: CalendarAccountRow): Promise<boolean> {
+  if (account.provider !== "google") return false
+  try {
+    const token = decryptToken(account.refresh_token ?? account.access_token)
+    const res = await fetch("https://oauth2.googleapis.com/revoke", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ token }),
+    })
+    // 400 invalid_token heißt: schon widerrufen oder abgelaufen.
+    return res.ok || res.status === 400
+  } catch (err) {
+    console.error("[calendar] Widerruf bei Google fehlgeschlagen:", err)
+    return false
+  }
+}
+
 /** E-Mail-Adresse des verbundenen Kontos, für die Anzeige in den Einstellungen. */
 export async function fetchAccountEmail(provider: Provider, accessToken: string): Promise<string | null> {
   try {

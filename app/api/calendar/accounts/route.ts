@@ -2,7 +2,7 @@ import { NextRequest } from "next/server"
 
 import { createClient as createServer } from "@/lib/supabase/server"
 import { encryptionAvailable } from "@/lib/scheduling/crypto"
-import { providerConfigured } from "@/lib/scheduling/providers"
+import { providerConfigured, revokeAccess, type CalendarAccountRow } from "@/lib/scheduling/providers"
 import { adminClient } from "@/lib/scheduling/store"
 
 export const dynamic = "force-dynamic"
@@ -88,8 +88,18 @@ export async function DELETE(req: NextRequest) {
 
   // Bereits eingetragene Termine bleiben im fremden Kalender stehen. Sie dort
   // stillschweigend zu löschen wäre ein größerer Eingriff als das Trennen der
-  // Verbindung, um das der Kunde gebeten hat.
-  const { error } = await adminClient()
+  // Verbindung, um das der Kunde gebeten hat. Der Zugang selbst wird beim
+  // Anbieter widerrufen, soweit der das anbietet (Google).
+  const db = adminClient()
+  const { data: account } = await db
+    .from("calendar_accounts")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle()
+  if (account) await revokeAccess(account as CalendarAccountRow)
+
+  const { error } = await db
     .from("calendar_accounts")
     .delete()
     .eq("id", id)

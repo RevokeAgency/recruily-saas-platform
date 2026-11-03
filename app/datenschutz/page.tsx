@@ -156,6 +156,36 @@ export default function DatenschutzPage() {
               damit innerhalb der EU. Bewerbungsunterlagen werden ausschließlich zur Erstellung
               der Analyse verarbeitet und dort nicht zum Training fremder Modelle verwendet.
             </p>
+            <p id="kalender" className="mt-2 scroll-mt-8">
+              <strong>Kalenderanbindung (Google, Microsoft).</strong> Nur wenn ein Kunde sie selbst
+              einschaltet. Revetly fragt dann ab, wann der verbundene Kalender belegt ist, und
+              verwendet dabei nur die Zeitspannen, keine Titel oder Inhalte. Außerdem legt Revetly
+              die über Revetly vereinbarten Gespräche als Termin an, auf Wunsch mit Meet- oder
+              Teams-Link, und löscht sie bei einer Absage wieder. Andere Termine ändert Revetly
+              nicht. Gespeichert werden die Adresse des verbundenen Kontos und die
+              Zugangsschlüssel, diese verschlüsselt. Trennt der Kunde die Verbindung, löschen wir
+              die Schlüssel und widerrufen den Zugang bei Google; bei Microsoft lässt er sich
+              zusätzlich unter myapps.microsoft.com entfernen. Daten aus verbundenen Kalendern
+              nutzen wir ausschließlich für die Terminplanung, nicht für Werbung, nicht zum
+              Training von KI-Modellen, und wir geben sie nicht an Dritte weiter.
+            </p>
+            <p className="mt-2">
+              Die Nutzung und Weitergabe von Informationen, die Revetly über Google-APIs erhält,
+              entspricht der{" "}
+              <a
+                href="https://developers.google.com/terms/api-services-user-data-policy"
+                className="text-[var(--rv-green-deep)] underline underline-offset-2"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Google API Services User Data Policy
+              </a>
+              , einschließlich der Anforderungen zur eingeschränkten Nutzung (Limited Use).{" "}
+              <span lang="en">
+                Revetly&apos;s use and transfer of information received from Google APIs adheres to
+                the Google API Services User Data Policy, including the Limited Use requirements.
+              </span>
+            </p>
           </section>
 
           <section>
