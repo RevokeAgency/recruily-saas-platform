@@ -1,6 +1,6 @@
 import { generateText, Output, type ModelMessage } from "ai"
 import type { z } from "zod"
-import { modelChain, describeChain, type AiTask } from "./provider"
+import { modelChain, type AiTask } from "./provider"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Einheitlicher Ausführungspfad für alle KI-Aufrufe.
@@ -31,6 +31,11 @@ export interface StructuredResult<T> {
  * scheiterten beide im selben Fenster.
  */
 export const AI_MAX_RETRIES = 4
+
+/** Ist das Modell im Tarif des Kontos nicht freigeschaltet (Fehler bei uns, nicht beim Kunden)? */
+export function isTierNotAllowed(message: string): boolean {
+  return /not available in your subscription tier|tier_not_allowed/i.test(message)
+}
 
 /** Hat der Anbieter wegen zu vieler Anfragen abgelehnt? */
 export function isRateLimit(message: string): boolean {
@@ -85,7 +90,10 @@ export async function generateStructured<T>(args: {
     )
   }
 
-  let lastError: unknown = null
+  // Grund je Modell. Bisher stand in der Meldung nur der letzte, und der war
+  // irreführend: "Rate limit" vom Rückfallmodell, obwohl das erste Modell mit
+  // "nicht in deinem Tarif" abgelehnt hatte.
+  const failures: string[] = []
   for (let i = 0; i < chain.length; i++) {
     const entry = chain[i]
     try {
@@ -110,8 +118,8 @@ export async function generateStructured<T>(args: {
         run: { provider: entry.provider, modelId: entry.modelId, euResident: entry.euResident },
       }
     } catch (err) {
-      lastError = err
       const msg = err instanceof Error ? err.message : String(err)
+      failures.push(`${entry.provider}:${entry.modelId}: ${msg}`)
       const detail = providerErrorDetail(err)
       console.error(`[ai] ${args.label} mit ${entry.provider}:${entry.modelId} fehlgeschlagen: ${msg}${detail ? ` | ${detail}` : ""}`)
       // Schema-/JSON-Fehler lösen andere Anbieter meist nicht anders — der
@@ -124,11 +132,7 @@ export async function generateStructured<T>(args: {
     }
   }
 
-  throw new Error(
-    `${args.label} fehlgeschlagen (${describeChain(args.task).join(" → ")}): ${
-      lastError instanceof Error ? lastError.message : String(lastError)
-    }`,
-  )
+  throw new Error(`${args.label} fehlgeschlagen: ${failures.join(" | ")}`)
 }
 
 /** Freitext-Generierung über dieselbe Kette (selten gebraucht). */

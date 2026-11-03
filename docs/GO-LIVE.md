@@ -51,8 +51,12 @@ Registrierung ist zu. Die Landing bleibt über einen Vorschau-Link sichtbar.
 Stand der Durchsicht: 19.09.2026.
 
 - [ ] **Das Matching läuft in Produktion nicht** *(03.11.2026: Mistral ist
-      auf einem Bezahlplan. Erster Test scheiterte am Minutenkontingent von
-      small, daher jetzt `mistral-large-2512` für alle Textaufgaben. Noch mit
+      auf einem Bezahlplan. Diagnose vom 03.11. zeigt: Der Schlüssel in
+      Vercel (`MISTRAL_GENERATIVE_AI_API_KEY`) gehört nicht zum bezahlten
+      Workspace, large antwortet mit 403 `tier_not_allowed`, small mit
+      Rate-Limit. Neuen Schlüssel im bezahlten Workspace erzeugen, als
+      `MISTRAL_API_KEY` eintragen, alten löschen. Modelle: `mistral-large-2512`
+      für alle Textaufgaben. Noch mit
       einer echten Bewerbung bestätigen und `/api/matching/eval` laufen lassen. Stand 19.09.; seitdem fällt
       der Code bei fehlendem Zugriff automatisch auf `mistral-small-latest`
       zurück, siehe `MISTRAL_FALLBACK` in `lib/ai/provider.ts`. Mit einer echten

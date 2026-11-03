@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { createClient as createAdmin } from "@supabase/supabase-js"
 import { runIMLRSMatch } from "@/lib/matching/imlrs"
-import { isRateLimit } from "@/lib/ai/generate"
+import { isRateLimit, isTierNotAllowed } from "@/lib/ai/generate"
 import { extractCandidatePhoto } from "@/lib/cv-photo"
 import { extractDocumentText } from "@/lib/cv-parse"
 import { screenCandidateDocuments } from "@/lib/document-guard/store"
@@ -264,7 +264,9 @@ export async function scoreJobCandidateLink(
     const raw = err instanceof Error ? err.message : String(err)
     // Der technische Text steht im Log und in der Fehlermail. Beim Kunden
     // steht, was passiert ist und was er tun kann.
-    const reason = isRateLimit(raw)
+    const reason = isTierNotAllowed(raw)
+      ? "Das Matching ist gerade nicht verfügbar. Wir sind informiert und kümmern uns darum."
+      : isRateLimit(raw)
       ? "Der KI-Dienst war gerade ausgelastet. Bitte später über „Erneut versuchen“ noch einmal starten."
       : raw
     await supabase.from("job_candidates").update({ status: "error" }).eq("id", linkId)

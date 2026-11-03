@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { AI_MAX_RETRIES, isRateLimit, providerErrorDetail } from "@/lib/ai/generate"
+import { AI_MAX_RETRIES, isRateLimit, isTierNotAllowed, providerErrorDetail } from "@/lib/ai/generate"
 
 describe("Rate-Limit beim KI-Anbieter", () => {
   it("erkennt die Meldungen des Anbieters", () => {
@@ -8,6 +8,11 @@ describe("Rate-Limit beim KI-Anbieter", () => {
     expect(isRateLimit("429 Too Many Requests")).toBe(true)
     expect(isRateLimit("Service tier capacity exceeded for this model")).toBe(true)
     expect(isRateLimit("Invalid JSON in response")).toBe(false)
+  })
+
+  it("erkennt ein Modell, das im Tarif fehlt", () => {
+    expect(isTierNotAllowed("mistral:mistral-large-2512: This model is not available in your subscription tier")).toBe(true)
+    expect(isTierNotAllowed("Rate limit exceeded")).toBe(false)
   })
 
   it("wartet lange genug für ein Limit pro Minute", () => {
