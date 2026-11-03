@@ -51,8 +51,9 @@ Registrierung ist zu. Die Landing bleibt über einen Vorschau-Link sichtbar.
 Stand der Durchsicht: 19.09.2026.
 
 - [ ] **Das Matching läuft in Produktion nicht** *(03.11.2026: Mistral ist
-      auf einem Bezahlplan, `mistral-large-latest` sollte damit erreichbar
-      sein. Noch mit einer echten Bewerbung bestätigen. Stand 19.09.; seitdem fällt
+      auf einem Bezahlplan. Erster Test scheiterte am Minutenkontingent von
+      small, daher jetzt `mistral-large-2512` für alle Textaufgaben. Noch mit
+      einer echten Bewerbung bestätigen und `/api/matching/eval` laufen lassen. Stand 19.09.; seitdem fällt
       der Code bei fehlendem Zugriff automatisch auf `mistral-small-latest`
       zurück, siehe `MISTRAL_FALLBACK` in `lib/ai/provider.ts`. Mit einer echten
       Bewerbung auf einer Teststelle bestätigen, dann abhaken)*. `lib/ai/provider.ts:43` und
@@ -355,9 +356,11 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       Frankreich). Ohne diesen Key läuft kein Matching.
 - [ ] `AI_MODEL_REASONING` / `AI_MODEL_EXTRACTION` / `AI_MODEL_UTILITY` /
       `AI_MODEL_VERIFICATION` / `AI_MODEL_VISION` *(optional)* — übersteuern die
-      Modellwahl je Aufgabe (Defaults: `mistral-large-latest`,
-      `mistral-small-latest`, `mistral-small-latest`, `mistral-large-latest`,
-      `pixtral-12b-2409`).
+      Modellwahl je Aufgabe. Default seit 03.11.2026 für alle Textaufgaben
+      `mistral-large-2512`, Rückfall `mistral-small-latest` (übersteuerbar mit
+      `AI_MODEL_*_FALLBACK`), Bild `pixtral-12b-2409`. Grund: Kontingent bei
+      Mistral, large-2512 hat 250.000 Tokens pro Minute, small-2603 und
+      large-4 nur 20.000. Eine Bewerbung braucht grob 20.000 bis 40.000.
       **Laufzeit-Hebel:** Eine vollständige Bewertung dauert ~60 s (4 sequenzielle
       Modell-Aufrufe: Dossier → Skill-Deckung → Richter → Prüfinstanz). Beim
       erneuten Matchen desselben Kandidaten entfällt das Dossier (gecacht) →

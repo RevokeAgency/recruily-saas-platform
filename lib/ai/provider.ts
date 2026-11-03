@@ -31,33 +31,40 @@ export type AiTask =
 type ProviderName = "mistral" | "google"
 
 /**
- * Modellwahl je Aufgabe. Begründung:
- * - reasoning  → mistral-large: bestes Urteilsvermögen für die Rubrik-Bewertung.
- * - extraction → mistral-small: Dossier/Parsing sind Formataufgaben mit hohem
- *   Volumen; small ist deutlich günstiger und schneller bei gleicher Qualität.
- *   Genau hier setzt später das eigene Fine-Tune an.
- * - utility    → mistral-small: kurze, eng geführte Aufgaben.
- * - vision     → pixtral: einziger Bildpfad, nur Fallback.
+ * Modellwahl je Aufgabe, mit festen Versionen statt "-latest".
+ *
+ * Grund sind die Kontingente bei Mistral (Stand 03.11.2026, Bezahlplan):
+ * mistral-large-2512 hat 250.000 Tokens pro Minute, mistral-small-2603 und
+ * mistral-large-4 nur je 20.000. Eine Bewerbung braucht über alle Schritte
+ * (Lebenslauf lesen, Dossier, Skill-Deckung, Urteil, Prüfung) grob 20.000
+ * bis 40.000 Tokens. Mit small für die Extraktion war das Minutenkontingent
+ * schon vor dem Urteil verbraucht, und der Rückfall auf small scheiterte am
+ * selben Kontingent. Ein "-latest"-Alias kann außerdem ohne Vorwarnung auf ein
+ * neues Modell mit kleinem Kontingent umspringen.
+ *
+ * Deshalb laufen alle Textaufgaben auf mistral-large-2512, small bleibt
+ * Rückfall. Jede Aufgabe lässt sich per Umgebungsvariable übersteuern; nach
+ * einem Wechsel /api/matching/eval laufen lassen.
+ * - vision → pixtral: einziger Bildpfad, nur Fallback.
  */
+const PRIMARY = "mistral-large-2512"
+const SECONDARY = "mistral-small-latest"
+
 const MISTRAL_MODELS: Record<AiTask, string> = {
-  reasoning: process.env.AI_MODEL_REASONING || "mistral-large-latest",
-  extraction: process.env.AI_MODEL_EXTRACTION || "mistral-small-latest",
-  utility: process.env.AI_MODEL_UTILITY || "mistral-small-latest",
-  // Default bewusst das große Modell: Die Prüfung ist die Qualitätssicherung
-  // der Bewertung. Wer Laufzeit sparen will, kann hier auf small umstellen —
-  // danach das Eval laufen lassen und prüfen, ob die Bänder halten.
-  verification: process.env.AI_MODEL_VERIFICATION || "mistral-large-latest",
+  reasoning: process.env.AI_MODEL_REASONING || PRIMARY,
+  extraction: process.env.AI_MODEL_EXTRACTION || PRIMARY,
+  utility: process.env.AI_MODEL_UTILITY || PRIMARY,
+  verification: process.env.AI_MODEL_VERIFICATION || PRIMARY,
   vision: process.env.AI_MODEL_VISION || "pixtral-12b-2409",
 }
 
-// In-EU-Modellfallback: Wenn das große Urteilsmodell ausfällt (kein Zugriff auf
-// mistral-large im Account, Kapazitätsgrenze, Rate-Limit), soll die Bewertung
-// nicht komplett scheitern, solange das kleinere Mistral-Modell antwortet. Beide
-// bleiben in der EU. Betrifft nur die Aufgaben mit großem Standardmodell; für
-// extraction/utility ist small ohnehin schon primär.
+// In-EU-Modellfallback: Fällt das erste Modell aus (Kapazitätsgrenze,
+// Rate-Limit, kein Zugriff), versucht es das zweite. Beide bleiben in der EU.
 const MISTRAL_FALLBACK: Partial<Record<AiTask, string>> = {
-  reasoning: process.env.AI_MODEL_REASONING_FALLBACK || "mistral-small-latest",
-  verification: process.env.AI_MODEL_VERIFICATION_FALLBACK || "mistral-small-latest",
+  reasoning: process.env.AI_MODEL_REASONING_FALLBACK || SECONDARY,
+  extraction: process.env.AI_MODEL_EXTRACTION_FALLBACK || SECONDARY,
+  utility: process.env.AI_MODEL_UTILITY_FALLBACK || SECONDARY,
+  verification: process.env.AI_MODEL_VERIFICATION_FALLBACK || SECONDARY,
 }
 
 // Notfall-Pfad. Nur aktiv, wenn AI_ALLOW_NON_EU_FALLBACK === "true".
@@ -144,7 +151,7 @@ export function modelChain(task: AiTask): ResolvedModel[] {
   return chain
 }
 
-/** Menschenlesbare Kette für Logs/Diagnose, z. B. "mistral:mistral-large-latest". */
+/** Menschenlesbare Kette für Logs/Diagnose, z. B. "mistral:mistral-large-2512". */
 export function describeChain(task: AiTask): string[] {
   return modelChain(task).map((m) => `${m.provider}:${m.modelId}`)
 }
