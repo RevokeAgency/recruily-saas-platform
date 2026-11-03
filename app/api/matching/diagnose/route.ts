@@ -2,12 +2,19 @@ import { createClient } from "@/lib/supabase/server"
 import { generateText } from "ai"
 import { z } from "zod"
 import { modelChain, nonEuFallbackAllowed, mistralApiKey, type AiTask } from "@/lib/ai/provider"
-import { generateStructured } from "@/lib/ai/generate"
+import { AI_MAX_RETRIES, generateStructured, providerErrorDetail } from "@/lib/ai/generate"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
-const TASKS: AiTask[] = ["reasoning", "extraction", "utility", "vision"]
+const TASKS: AiTask[] = ["reasoning", "extraction", "utility", "verification", "vision"]
+
+// Variablen, die die Modellwahl übersteuern. Steht hier etwas, gilt nicht der
+// Default aus lib/ai/provider.ts.
+const OVERRIDES = [
+  "AI_MODEL_REASONING", "AI_MODEL_EXTRACTION", "AI_MODEL_UTILITY", "AI_MODEL_VERIFICATION", "AI_MODEL_VISION",
+  "AI_MODEL_REASONING_FALLBACK", "AI_MODEL_EXTRACTION_FALLBACK", "AI_MODEL_UTILITY_FALLBACK", "AI_MODEL_VERIFICATION_FALLBACK",
+]
 
 // Der eigentliche Matching-Fehler steckt fast immer im STRUKTURIERTEN Pfad
 // (Urteil ins feste Schema), nicht in der reinen Erreichbarkeit. Der Klartext-
@@ -44,6 +51,7 @@ export async function GET() {
         const { text } = await generateText({
           model: entry.model,
           temperature: 0,
+          maxRetries: 0,
           prompt: "Antworte exakt mit: OK",
         })
         results.push({
@@ -64,6 +72,7 @@ export async function GET() {
           model: entry.modelId,
           ms: Date.now() - started,
           error: message.slice(0, 300),
+          anbieter: providerErrorDetail(err),
         })
       }
     }
@@ -77,6 +86,7 @@ export async function GET() {
       euResident?: boolean
       ms: number
       error?: string
+      anbieter?: string | null
     }
     {
       const started = Date.now()
@@ -100,6 +110,7 @@ export async function GET() {
           ok: false,
           ms: Date.now() - started,
           error: (err instanceof Error ? err.message : String(err)).slice(0, 400),
+          anbieter: providerErrorDetail(err),
         }
       }
     }
@@ -120,6 +131,15 @@ export async function GET() {
       // Das ist der aussagekräftigste Wert bei Status "Fehler": Läuft der
       // strukturierte Urteilspfad? Wenn nein, steht hier der genaue Grund.
       urteilStrukturiert: structured,
+      // Welche Modelle tatsächlich konfiguriert sind, und ob Vercel-Variablen
+      // den Default übersteuern.
+      modelle: Object.fromEntries(
+        TASKS.map((t) => [t, modelChain(t).map((m) => `${m.provider}:${m.modelId}`)]),
+      ),
+      uebersteuert: Object.fromEntries(
+        OVERRIDES.filter((k) => process.env[k]).map((k) => [k, process.env[k]]),
+      ),
+      wiederholungenJeModell: AI_MAX_RETRIES,
       apiKey: {
         gefunden: !!mistralApiKey(),
         variable: keyVar,

@@ -37,6 +37,28 @@ export function isRateLimit(message: string): boolean {
   return /rate.?limit|too many requests|\b429\b|capacity exceeded/i.test(message)
 }
 
+/**
+ * Was der Anbieter bei einem Fehler wirklich geschickt hat: HTTP-Status,
+ * Antworttext und die Header zu Limits. Das SDK verpackt den letzten Fehler
+ * nach den Wiederholungen in einen RetryError, dessen Meldung nur noch
+ * "Rate limit exceeded" sagt. Welches Limit (pro Sekunde, pro Minute,
+ * Monatsbudget) greift, steht nur in Antwort und Headern.
+ */
+export function providerErrorDetail(err: unknown): string | null {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const e = err as any
+  const inner = e?.lastError ?? (Array.isArray(e?.errors) ? e.errors[e.errors.length - 1] : null) ?? e
+  if (!inner || (inner.statusCode == null && inner.responseBody == null)) return null
+  const headers: Record<string, string> = inner.responseHeaders ?? {}
+  const limits = Object.entries(headers)
+    .filter(([k]) => /ratelimit|retry-after|x-kong|request-id/i.test(k))
+    .map(([k, v]) => `${k}=${v}`)
+    .join(", ")
+  const body = typeof inner.responseBody === "string" ? inner.responseBody.slice(0, 400) : ""
+  const attempts = Array.isArray(e?.errors) ? ` nach ${e.errors.length} Versuchen` : ""
+  return `HTTP ${inner.statusCode ?? "?"}${attempts}${body ? `, Antwort: ${body}` : ""}${limits ? `, Header: ${limits}` : ""}`
+}
+
 /** Fehler, die ein anderes Modell ebenfalls nicht lösen würde. */
 function isTerminal(message: string): boolean {
   return /schema|validation|zod|invalid.*json/i.test(message)
@@ -90,7 +112,8 @@ export async function generateStructured<T>(args: {
     } catch (err) {
       lastError = err
       const msg = err instanceof Error ? err.message : String(err)
-      console.error(`[ai] ${args.label} mit ${entry.provider}:${entry.modelId} fehlgeschlagen: ${msg}`)
+      const detail = providerErrorDetail(err)
+      console.error(`[ai] ${args.label} mit ${entry.provider}:${entry.modelId} fehlgeschlagen: ${msg}${detail ? ` | ${detail}` : ""}`)
       // Schema-/JSON-Fehler lösen andere Anbieter meist nicht anders — der
       // Wechsel dorthin lohnt dann nicht. Ein anderes Modell DESSELBEN Anbieters
       // kann dieselbe Ausgabe aber sehr wohl sauber liefern (small parst
