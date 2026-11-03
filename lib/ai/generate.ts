@@ -32,6 +32,15 @@ export interface StructuredResult<T> {
  */
 export const AI_MAX_RETRIES = 4
 
+/**
+ * Fester Zufallswert für jede Anfrage (bei Mistral "random_seed"). Temperatur 0
+ * allein macht die Antwort nicht vollständig gleich, weil das Modell bei
+ * Gleichstand zwischen Tokens trotzdem zufällig wählt. Mit festem Seed liefern
+ * gleiche Eingaben deutlich stabiler dasselbe Ergebnis. Ganz garantiert ist es
+ * nicht, die Rechenumgebung beim Anbieter kann trotzdem minimal abweichen.
+ */
+export const AI_SEED = 20261103
+
 /** Ist das Modell im Tarif des Kontos nicht freigeschaltet (Fehler bei uns, nicht beim Kunden)? */
 export function isTierNotAllowed(message: string): boolean {
   return /not available in your subscription tier|tier_not_allowed/i.test(message)
@@ -101,6 +110,7 @@ export async function generateStructured<T>(args: {
         model: entry.model,
         temperature: args.temperature ?? 0,
         maxRetries: AI_MAX_RETRIES,
+        seed: AI_SEED,
         output: Output.object({ schema: args.schema }),
         system: args.system,
         ...(args.messages ? { messages: args.messages } : { prompt: args.prompt ?? "" }),
@@ -152,6 +162,7 @@ export async function generatePlain(args: {
         model: entry.model,
         temperature: 0,
         maxRetries: AI_MAX_RETRIES,
+        seed: AI_SEED,
         system: args.system,
         prompt: args.prompt,
       })
