@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { generateText } from "ai"
 import { z } from "zod"
+import { createMistral } from "@ai-sdk/mistral"
 import { modelChain, nonEuFallbackAllowed, mistralApiKey, type AiTask } from "@/lib/ai/provider"
 import { AI_MAX_RETRIES, generateStructured, providerErrorDetail } from "@/lib/ai/generate"
 
@@ -11,6 +12,19 @@ const TASKS: AiTask[] = ["reasoning", "extraction", "utility", "verification", "
 
 // Variablen, die die Modellwahl übersteuern. Steht hier etwas, gilt nicht der
 // Default aus lib/ai/provider.ts.
+// Modelle, die für das Matching in Frage kommen. Je eines mit einer winzigen
+// Anfrage ohne Wiederholung: zeigt, was der Tarif des Kontos freigibt.
+// "frei" = antwortet, "limit" = freigegeben, aber gerade am Kontingent,
+// "gesperrt" = nicht im Tarif.
+const PROBE_MODELS = [
+  "mistral-large-2512",
+  "mistral-large-latest",
+  "mistral-medium-latest",
+  "mistral-small-latest",
+  "ministral-14b-2512",
+  "ministral-8b-2512",
+]
+
 const OVERRIDES = [
   "AI_MODEL_REASONING", "AI_MODEL_EXTRACTION", "AI_MODEL_UTILITY", "AI_MODEL_VERIFICATION", "AI_MODEL_VISION",
   "AI_MODEL_REASONING_FALLBACK", "AI_MODEL_EXTRACTION_FALLBACK", "AI_MODEL_UTILITY_FALLBACK", "AI_MODEL_VERIFICATION_FALLBACK",
@@ -115,6 +129,25 @@ export async function GET() {
       }
     }
 
+    const tarif: Record<string, string> = {}
+    const key = mistralApiKey()
+    if (key) {
+      const mistral = createMistral({ apiKey: key })
+      for (const id of PROBE_MODELS) {
+        try {
+          await generateText({ model: mistral(id), temperature: 0, maxRetries: 0, maxOutputTokens: 5, prompt: "OK" })
+          tarif[id] = "frei"
+        } catch (err) {
+          const detail = providerErrorDetail(err) ?? (err instanceof Error ? err.message : String(err))
+          tarif[id] = /tier_not_allowed|subscription tier/i.test(detail)
+            ? "gesperrt"
+            : /HTTP 429|rate limit/i.test(detail)
+              ? "limit"
+              : detail.slice(0, 160)
+        }
+      }
+    }
+
     // Welcher Env-Name den Key tatsächlich liefert (häufigste Fehlerquelle).
     const keyVar = process.env.MISTRAL_API_KEY
       ? "MISTRAL_API_KEY"
@@ -140,6 +173,7 @@ export async function GET() {
         OVERRIDES.filter((k) => process.env[k]).map((k) => [k, process.env[k]]),
       ),
       wiederholungenJeModell: AI_MAX_RETRIES,
+      tarif,
       apiKey: {
         gefunden: !!mistralApiKey(),
         variable: keyVar,
