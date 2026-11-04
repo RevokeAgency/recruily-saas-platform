@@ -65,6 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
+    { url: absoluteUrl("/ki-transparenz"), changeFrequency: "monthly" as const, priority: 0.5 },
     { url: absoluteUrl("/datenschutz"), changeFrequency: "yearly" as const, priority: 0.3 },
     { url: absoluteUrl("/impressum"), changeFrequency: "yearly" as const, priority: 0.3 },
     { url: absoluteUrl("/agb"), changeFrequency: "yearly" as const, priority: 0.3 },

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
 import { PublicJobView, type PublicJob } from "@/components/public/public-job"
+import { jobDescription } from "@/lib/seo/job-description"
 import { jobPostingJsonLd } from "@/lib/seo/job-posting"
 import { absoluteUrl } from "@/lib/site"
 import { fitTitle, OG_IMAGE } from "@/lib/seo/page-metadata"
@@ -50,22 +51,6 @@ async function resolve(
     // Seit Migration 031 liefert die Abfrage das Veröffentlichungsdatum mit.
     createdAt: (d.created_at as string) ?? null,
   }
-}
-
-const EMPLOYMENT: Record<string, string> = {
-  "full-time": "Vollzeit",
-  "part-time": "Teilzeit",
-  contract: "Freelance",
-  remote: "Remote",
-}
-
-/** Beschreibung mit Ort, Anstellung und Gehalt, soweit vorhanden. */
-function jobDescription(job: PublicJob): string {
-  const facts = [job.location, job.employment_type ? EMPLOYMENT[job.employment_type] ?? null : null, job.salary_range]
-    .filter(Boolean)
-    .join(", ")
-  const base = `Jetzt bewerben als ${job.title} bei ${job.company}`
-  return facts ? `${base}. ${facts}. Bewerbung in wenigen Schritten, ohne Konto.` : `${base}. Bewerbung in wenigen Schritten, ohne Konto.`
 }
 
 export async function generateMetadata(
