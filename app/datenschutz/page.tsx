@@ -108,7 +108,7 @@ export default function DatenschutzPage() {
               für die Zukunft widerrufbar, gegenüber dem Unternehmen, bei dem du dich beworben hast,
               oder indem du die Löschung deiner Daten veranlasst. Ohne Zustimmung wird deine
               Bewerbung nur für die Stelle genutzt, auf die du dich beworben hast. In beiden Fällen
-              gilt die Speicherdauer aus Abschnitt 9.
+              gilt die Speicherdauer aus Abschnitt 10.
             </p>
             <p className="mt-2">
               <strong>Einschätzung durch die Fachabteilung.</strong> Das Unternehmen kann ausgewählte
@@ -290,8 +290,30 @@ export default function DatenschutzPage() {
             </p>
           </section>
 
+          <section id="kontaktformular" className="scroll-mt-8">
+            <h2 className="mb-2 text-lg font-semibold text-foreground">9. Kontaktformular und Anfragen per Mail</h2>
+            <p>
+              Wenn du uns über das Kontaktformular oder per Mail schreibst, verarbeiten wir deinen
+              Namen, deine E-Mail-Adresse, optional deine Firma und den Inhalt deiner Nachricht, um
+              dir zu antworten. Bist du dabei in Revetly angemeldet, hängen wir deine
+              Kontoadresse, die Kennung deines Kontos und deinen Plan an, damit wir dir ohne
+              Rückfrage helfen können. Rechtsgrundlage ist unser berechtigtes Interesse, Anfragen
+              zu beantworten (Art. 6 Abs. 1 lit. f DSGVO), bei Fragen zu einem Vertrag oder einem
+              Angebot die Vertragsanbahnung oder -erfüllung (Art. 6 Abs. 1 lit. b DSGVO).
+            </p>
+            <p className="mt-2">
+              Die Nachricht aus dem Formular speichern wir nicht in Revetly, sie geht per Mail an
+              unser Postfach. Dort löschen wir sie, wenn die Anfrage erledigt ist und keine
+              gesetzliche Aufbewahrungspflicht besteht. Du bekommst eine kurze Bestätigung an die
+              angegebene Adresse. Damit niemand das Formular missbraucht, zählen wir Anfragen pro
+              Absender; dafür speichern wir einen Prüfwert (Hash) der IP-Adresse und der
+              E-Mail-Adresse, nicht die Adressen selbst. Der Versand läuft über den in Abschnitt 5
+              genannten Mail-Dienstleister in Europa.
+            </p>
+          </section>
+
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">9. Speicherdauer</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">10. Speicherdauer</h2>
             <p>
               Bewerberdaten werden nur so lange gespeichert, wie es für den
               Bewerbungsprozess erforderlich ist, und spätestens <strong>6 Monate</strong>{" "}
@@ -302,7 +324,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">10. Deine Rechte</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">11. Deine Rechte</h2>
             <p>
               Dir stehen die Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung
               der Verarbeitung, Datenübertragbarkeit und Widerspruch zu. Außerdem hast du
@@ -324,7 +346,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-lg font-semibold text-foreground">11. Kontakt</h2>
+            <h2 className="mb-2 text-lg font-semibold text-foreground">12. Kontakt</h2>
             <p>
               Bei Fragen zum Datenschutz erreichst du uns unter{" "}
               <a href="mailto:hallo@revetly.ai" className="font-medium text-[var(--rv-green-deep)] underline">

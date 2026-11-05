@@ -3,7 +3,9 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Card, CardContent } from "@/components/ui/card"
-import { Mail, LifeBuoy } from "lucide-react"
+import { LifeBuoy } from "lucide-react"
+import { ContactForm } from "@/components/contact/contact-form"
+import { createClient } from "@/lib/supabase/server"
 
 type QA = { q: string; a: string }
 type Section = { title: string; items: QA[] }
@@ -91,7 +93,13 @@ const SECTIONS: Section[] = [
   },
 ]
 
-export default function HelpPage() {
+export default async function HelpPage() {
+  // Name und Adresse vorausfüllen. Konto und Plan hängt /api/contact selbst an.
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>
+  const defaultName = typeof meta.full_name === "string" ? meta.full_name : typeof meta.name === "string" ? meta.name : ""
+
   return (
     <div className="relative min-h-full overflow-hidden">
       <div className="relative z-[1] mx-auto max-w-3xl space-y-8 p-6 lg:p-8">
@@ -126,23 +134,20 @@ export default function HelpPage() {
         ))}
 
         <Card className="border border-border bg-[var(--app-green-wash)]">
-          <CardContent className="flex flex-col items-start gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <CardContent className="space-y-5 p-6">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/70">
                 <LifeBuoy className="h-5 w-5 text-[var(--rv-green-deep)]" />
               </span>
               <div>
                 <p className="text-sm font-semibold text-foreground">Noch Fragen offen?</p>
-                <p className="text-sm text-muted-foreground">Unser Team hilft dir gerne weiter.</p>
+                <p className="text-sm text-muted-foreground">
+                  Schreib uns, wir antworten per Mail. Oder direkt an{" "}
+                  <a href="mailto:support@revetly.ai" className="font-medium text-foreground underline">support@revetly.ai</a>.
+                </p>
               </div>
             </div>
-            <a
-              href="mailto:support@revetly.ai"
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-[var(--rv-mist)]"
-            >
-              <Mail className="h-4 w-4 text-[var(--rv-green-deep)]" />
-              support@revetly.ai
-            </a>
+            <ContactForm defaultTopic="support" defaultName={defaultName} defaultEmail={user?.email ?? ""} />
           </CardContent>
         </Card>
       </div>

@@ -313,7 +313,7 @@ export function RvPricing() {
                 asChild
               >
                 {tier.name === "Enterprise" ? (
-                  <a href="mailto:hallo@revetly.ai">{tier.cta}</a>
+                  <Link href="/kontakt?thema=vertrieb">{tier.cta}</Link>
                 ) : (
                   <Link
                     href={

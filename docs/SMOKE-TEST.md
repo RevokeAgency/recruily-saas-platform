@@ -63,6 +63,8 @@ erledigt sein.
 - [ ] Falls Kalender verbunden: Buchungslink schicken, Termin buchen,
       Bestätigung und Recruiter-Hinweis kommen an.
 - [ ] Absage schreiben und senden: Mail kommt beim Bewerber an.
+- [ ] `/kontakt`: Nachricht mit „Hilfe bei der Nutzung“ kommt bei
+      support@ an, Bestätigung beim Absender, „Antworten“ geht an ihn.
 - [ ] Freigabe-Link an eine Fachabteilung schicken, Link öffnen, Rückmeldung
       geben, sie erscheint beim Recruiter.
 

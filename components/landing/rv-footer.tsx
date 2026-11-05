@@ -39,8 +39,14 @@ export function RvFooter() {
           </div>
           <div>
             <h3 className="mb-[18px] text-[.78rem] font-bold tracking-[.1em] text-[var(--rv-ink)] uppercase">Kontakt</h3>
+            <a href="/kontakt" className="mb-3 block text-[.92rem] leading-[1.5] text-[var(--rv-muted)] transition-colors hover:text-[var(--rv-green-deep)]">
+              Kontaktformular
+            </a>
             <a href="mailto:hallo@revetly.ai" className="mb-3 block text-[.92rem] leading-[1.5] text-[var(--rv-muted)] transition-colors hover:text-[var(--rv-green-deep)]">
               hallo@revetly.ai
+            </a>
+            <a href="mailto:support@revetly.ai" className="mb-3 block text-[.92rem] leading-[1.5] text-[var(--rv-muted)] transition-colors hover:text-[var(--rv-green-deep)]">
+              support@revetly.ai
             </a>
           </div>
         </div>

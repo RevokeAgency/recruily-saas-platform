@@ -148,7 +148,7 @@ export function ComingSoon() {
               <span>&copy; 2026 Revetly</span>
               <nav aria-label="Rechtliches" className="flex flex-wrap gap-x-[18px] gap-y-1">
                 <Link href="/blog" className="hover:text-white">Blog</Link>
-                <a href="mailto:hallo@revetly.ai" className="hover:text-white">hallo@revetly.ai</a>
+                <Link href="/kontakt" className="hover:text-white">Kontakt</Link>
                 <Link href="/datenschutz" className="hover:text-white">Datenschutz</Link>
                 <Link href="/impressum" className="hover:text-white">Impressum</Link>
               </nav>

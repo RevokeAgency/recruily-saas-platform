@@ -9,10 +9,13 @@ import { ArrowLeft } from "lucide-react"
 export function LegalPage({
   title,
   intro,
+  showDate = true,
   children,
 }: {
   title: string
   intro?: string
+  /** "Stand: Jahr" unter dem Titel, für Rechtstexte. */
+  showDate?: boolean
   children: React.ReactNode
 }) {
   return (
@@ -40,7 +43,7 @@ export function LegalPage({
         <h1 className="mt-8 text-[2rem] font-bold leading-tight tracking-tight text-foreground">
           {title}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">Stand: {new Date().getFullYear()}</p>
+        {showDate && <p className="mt-2 text-sm text-muted-foreground">Stand: {new Date().getFullYear()}</p>}
         {intro && <p className="mt-4 text-[0.95rem] leading-relaxed text-muted-foreground">{intro}</p>}
 
         <div className="mt-8 space-y-8 text-[0.95rem] leading-relaxed text-[var(--rv-ink-soft)]">

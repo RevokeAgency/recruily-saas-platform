@@ -141,6 +141,14 @@ Noch auf die Hauptadresse umzustellen:
       DMARC `p=reject`). Wichtig: bei Lettermint `revetly.ai` ohne www, sonst
       lehnt Lettermint den Absender `@revetly.ai` ab. Damit
       Auto-Reply / Interview / Absage / Terminmails nicht im Spam landen.
+- [ ] **Kontaktformular** *(Code fertig 05.11.2026)*: `/kontakt` und
+      Hilfeseite in der App. Allgemeine Anfragen gehen an `hallo@`, „Hilfe bei
+      der Nutzung“ an `support@revetly.ai`. Dafür in Cloudflare → Email
+      Routing eine Weiterleitung für **`support@revetly.ai`** anlegen, sonst
+      kommen Support-Anfragen nicht an. Adressen optional umstellbar mit
+      `CONTACT_EMAIL` und `SUPPORT_EMAIL`. Test: je eine Nachricht mit
+      „Allgemeine Frage“ und „Hilfe bei der Nutzung“ schicken, beide
+      kommen an, „Antworten“ geht an den Absender.
 - [ ] **Sitemap in der Google Search Console einreichen** *(Search Console
       eingerichtet 03.11.2026)*:
       `https://www.revetly.ai/sitemap.xml` (dazu Bing Webmaster Tools).

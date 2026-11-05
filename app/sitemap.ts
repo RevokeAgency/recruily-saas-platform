@@ -67,6 +67,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     { url: absoluteUrl("/ki-transparenz"), changeFrequency: "monthly" as const, priority: 0.5 },
     { url: absoluteUrl("/datenschutz"), changeFrequency: "yearly" as const, priority: 0.3 },
+    { url: absoluteUrl("/kontakt"), changeFrequency: "yearly" as const, priority: 0.4 },
     { url: absoluteUrl("/impressum"), changeFrequency: "yearly" as const, priority: 0.3 },
     { url: absoluteUrl("/agb"), changeFrequency: "yearly" as const, priority: 0.3 },
     ...(await openJobs()),
