@@ -63,6 +63,201 @@ const EUR_LEX_DSGVO = "https://eur-lex.europa.eu/eli/reg/2016/679/oj"
 export const BLOG_POSTS: BlogPost[] = [
   // ───────────────────────────────────────────────────────────────────────────
   {
+    slug: "bewerbungen-sichten-checkliste",
+    metaTitle: "Bewerbungen sichten: Kriterien und Checkliste",
+    title: "Bewerbungen sichten: Mit festen Kriterien schneller und fairer zur Vorauswahl",
+    cardTitle: "Bewerbungen sichten",
+    excerpt:
+      "Wer Bewerbungen ohne vorher festgelegte Kriterien liest, entscheidet nach Eindruck und Reihenfolge. Wie du Kriterien festlegst, die Unterlagen in einem Durchgang sichtest und die Vorauswahl so dokumentierst, dass du sie später erklären kannst.",
+    metaDescription:
+      "Bewerbungen sichten mit festen Kriterien: Wie du die Vorauswahl vorbereitest, Unterlagen fair vergleichst und den Betriebsrat einbindest. Mit Checkliste.",
+    keywords: [
+      "Bewerbungen sichten",
+      "Bewerber Vorauswahl",
+      "Kriterien Sichtung Bewerbungsunterlagen",
+      "Bewerbungen sichten Checkliste",
+      "Betriebsrat Bewerbungen",
+    ],
+    category: "Auswahlprozess",
+    author: BLOG_AUTHOR,
+    publishedAt: "2026-11-13",
+    related: ["strukturierte-interviews-leitfaden", "ki-matching-vs-keyword-suche"],
+    blocks: [
+      {
+        type: "p",
+        text: "Die Sichtung ist der Schritt, in dem die meisten Bewerbungen ausscheiden. Trotzdem passiert sie oft nebenbei: zwischen zwei Terminen, in der Reihenfolge des Eingangs, mit einem Gefühl dafür, was man sucht, aber ohne aufgeschriebene Kriterien. Das Ergebnis hängt dann stärker davon ab, wann eine Bewerbung gelesen wurde, als davon, was darin steht.",
+      },
+      { type: "h2", text: "Kriterien festlegen, bevor du die erste Bewerbung öffnest" },
+      {
+        type: "p",
+        text: "Leg vor dem Lesen fest, woran du die Unterlagen misst. Danach ist es zu spät: Wer schon zwanzig Lebensläufe gesehen hat, passt seine Erwartungen unbewusst an das an, was gekommen ist. Teile die Anforderungen in zwei Gruppen.",
+      },
+      {
+        type: "list",
+        items: [
+          "Muss-Kriterien: ohne sie ist die Stelle nicht auszuüben, etwa eine Berufszulassung, ein Führerschein für eine Fahrtätigkeit oder eine bestimmte Ausbildung. Davon gibt es selten mehr als drei.",
+          "Kann-Kriterien: sie machen jemanden stärker, sind aber erlernbar, etwa Erfahrung mit einem bestimmten Werkzeug oder einer Branche.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Formuliere jedes Kriterium so, dass du es am Lebenslauf belegen kannst. „Teamfähig“ lässt sich in Unterlagen kaum prüfen, „hat ein Team geführt“ schon. Was sich nur im Gespräch klären lässt, gehört in den Interviewleitfaden, nicht in die Sichtung. Wie du den aufbaust, steht im Beitrag [Strukturierte Interviews](/blog/strukturierte-interviews-leitfaden).",
+      },
+      { type: "h2", text: "Worauf du dich nicht verlassen solltest" },
+      {
+        type: "p",
+        text: "Die Zahl der Berufsjahre sagt den späteren Berufserfolg nur schwach voraus [1, 2]. Fünf Jahre in einer Rolle können fünf Jahre Entwicklung sein oder ein Jahr Erfahrung fünfmal wiederholt. Schau deshalb auf das, was jemand in dieser Zeit tatsächlich gemacht hat.",
+      },
+      {
+        type: "p",
+        text: "Auch Stichworte führen in die Irre. Wer nach einem bestimmten Begriff sucht, übersieht alle, die dieselbe Fähigkeit anders beschreiben. Mehr dazu im Beitrag [KI-Matching statt Stichwortsuche](/blog/ki-matching-vs-keyword-suche).",
+      },
+      {
+        type: "p",
+        text: "Und schließlich alles, was mit der Stelle nichts zu tun hat: Foto, Alter, Name, Familienstand. Diese Angaben dürfen in die Entscheidung nicht einfließen [3]. Am sichersten ist es, sie beim Lesen bewusst zu überspringen.",
+      },
+      { type: "h2", text: "So sichtest du in einem Durchgang" },
+      {
+        type: "list",
+        items: [
+          "Erst alle Bewerbungen nur auf die Muss-Kriterien prüfen. Wer eines davon klar nicht erfüllt, scheidet aus. Im Zweifel bleibt die Bewerbung drin.",
+          "Dann die verbliebenen Bewerbungen an den Kann-Kriterien messen und in drei Gruppen einteilen: einladen, vielleicht, eher nicht.",
+          "Zu jeder Entscheidung einen Satz notieren, der sich auf die Kriterien bezieht. Das kostet wenig und macht die Vorauswahl später erklärbar.",
+          "Die Gruppe „vielleicht“ erst ansehen, wenn feststeht, wie viele Gespräche du führen willst.",
+          "Absagen für die Gruppe „eher nicht“ sofort verschicken.",
+        ],
+      },
+      {
+        type: "p",
+        text: "Wie die Absagen aussehen können, zeigt der Beitrag [Absage an Bewerber formulieren](/blog/absage-bewerber-formulieren).",
+      },
+      { type: "h2", text: "Mehrere Personen sichten: Vorher abstimmen" },
+      {
+        type: "p",
+        text: "Lesen zwei Personen dieselben Bewerbungen, lohnt sich ein kurzer Abgleich vorab. Nehmt drei Bewerbungen, sichtet sie unabhängig voneinander und vergleicht das Ergebnis. Weicht ihr stark ab, versteht ihr die Kriterien unterschiedlich. Das lässt sich in einem Gespräch klären, bevor es bei hundert Bewerbungen auffällt.",
+      },
+      { type: "h2", text: "Betriebsrat und Bewerbungsunterlagen" },
+      {
+        type: "p",
+        text: "In Deutschland muss ein Unternehmen mit in der Regel mehr als zwanzig wahlberechtigten Beschäftigten den Betriebsrat vor jeder Einstellung unterrichten und ihm die erforderlichen Bewerbungsunterlagen vorlegen [4]. Plane das in den Ablauf ein. Eine nachvollziehbar dokumentierte Vorauswahl macht dieses Gespräch deutlich einfacher.",
+      },
+      { type: "h2", text: "Wenn eine Software vorsortiert" },
+      {
+        type: "p",
+        text: "Eine Software kann die Reihenfolge vorschlagen, in der du Bewerbungen liest, und begründen, wo sie die Passung sieht. Die Entscheidung, wer ausscheidet, muss bei einem Menschen bleiben [5]. Setzt die Software dafür KI ein, gilt sie in der EU als Hochrisiko-System, mit eigenen Pflichten für dich als Arbeitgeber [6]. Was das konkret bedeutet, steht im Beitrag [EU AI Act im Recruiting](/blog/eu-ai-act-recruiting).",
+      },
+      {
+        type: "quote",
+        text: "Wer die Kriterien erst beim Lesen festlegt, sichtet nicht, er sucht nach Gründen für den ersten Eindruck.",
+      },
+      { type: "h2", text: "Checkliste für die Sichtung" },
+      {
+        type: "list",
+        items: [
+          "Muss- und Kann-Kriterien stehen fest, bevor die erste Bewerbung geöffnet wird.",
+          "Jedes Kriterium lässt sich an den Unterlagen belegen.",
+          "Foto, Alter, Name und Familienstand fließen nicht in die Entscheidung ein.",
+          "Zu jeder Entscheidung gibt es einen Satz mit Bezug auf die Kriterien.",
+          "Bei mehreren Lesenden wurde an drei Bewerbungen abgeglichen.",
+          "Der Betriebsrat ist eingeplant, falls es einen gibt.",
+          "Absagen gehen sofort raus, nicht erst nach der Besetzung.",
+        ],
+      },
+    ],
+    sources: [
+      { label: "Schmidt, F. L. & Hunter, J. E. (1998). The validity and utility of selection methods in personnel psychology. Psychological Bulletin, 124(2), 262–274", url: "https://doi.org/10.1037/0033-2909.124.2.262" },
+      { label: "Sackett, P. R., Zhang, C., Berry, C. M. & Lievens, F. (2022). Revisiting meta-analytic estimates of validity in personnel selection. Journal of Applied Psychology, 107(11), 2040–2068", url: "https://doi.org/10.1037/apl0000994" },
+      { label: "Allgemeines Gleichbehandlungsgesetz (Deutschland), § 1 und § 7", url: "https://www.gesetze-im-internet.de/agg/__1.html" },
+      { label: "Betriebsverfassungsgesetz (Deutschland), § 99 Abs. 1", url: "https://www.gesetze-im-internet.de/betrvg/__99.html" },
+      { label: "Verordnung (EU) 2016/679 (Datenschutz-Grundverordnung), Art. 22 (Automatisierte Entscheidungen im Einzelfall)", url: EUR_LEX_DSGVO },
+      { label: "Verordnung (EU) 2024/1689 (KI-Verordnung), Anhang III Nr. 4 und Art. 26", url: EUR_LEX_AI_ACT },
+    ],
+  },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  {
+    slug: "bewerbermanagement-software-kostenlos",
+    metaTitle: "Bewerbermanagement-Software kostenlos nutzen",
+    title: "Kostenlose Bewerbermanagement-Software: Was du bekommst und wo die Grenzen liegen",
+    cardTitle: "Bewerbermanagement kostenlos",
+    excerpt:
+      "Kostenlose Bewerbermanagement-Software gibt es in drei Formen: als Gratistarif, als zeitlich begrenzter Test und als Open Source zum selbst Betreiben. Was jede Form taugt, was sie wirklich kostet und welche Fragen du vorher klären solltest.",
+    metaDescription:
+      "Bewerbermanagement-Software kostenlos: Gratistarif, Testphase oder Open Source? Was jede Variante taugt, wo die Grenzen liegen und was der Datenschutz verlangt.",
+    keywords: [
+      "Bewerbermanagement Software kostenlos",
+      "Bewerbermanagementsystem kostenlos",
+      "Bewerbermanagement Tool kostenlos",
+      "Bewerbermanagement Software Open Source",
+      "kostenloses ATS",
+    ],
+    category: "Software-Auswahl",
+    author: BLOG_AUTHOR,
+    publishedAt: "2026-11-13",
+    related: ["bewerbermanagement-software-auswahl", "bewerberdaten-dsgvo-loeschfrist"],
+    blocks: [
+      {
+        type: "p",
+        text: "Für ein Unternehmen, das ein paar Stellen im Jahr besetzt, klingt kostenlose Software nach der naheliegenden Lösung. Oft ist sie das auch. Wichtig ist nur zu wissen, welche Art von kostenlos du vor dir hast, denn die Unterschiede zeigen sich meist erst, wenn die Bewerbungen schon im System liegen.",
+      },
+      { type: "h2", text: "Drei Arten von kostenlos" },
+      { type: "h3", text: "Gratistarif" },
+      {
+        type: "p",
+        text: "Viele Anbieter haben einen dauerhaft kostenlosen Einstieg mit Grenzen, etwa bei der Zahl der aktiven Stellen, der Nutzer oder der Bewerbungen. Für den Anfang reicht das oft. Prüf, was passiert, wenn du die Grenze erreichst: Läuft das System weiter, nur ohne neue Bewerbungen, oder kommst du an deine Daten erst nach einem Wechsel in einen bezahlten Tarif?",
+      },
+      { type: "h3", text: "Testphase" },
+      {
+        type: "p",
+        text: "Ein zeitlich begrenzter Test mit vollem Funktionsumfang ist gut, um ein System mit echten Bewerbungen auszuprobieren. Plan den Test so, dass in diesen Wochen tatsächlich eine Stelle ausgeschrieben ist. Eine Demo mit Beispieldaten zeigt dir wenig über deinen Alltag.",
+      },
+      { type: "h3", text: "Open Source zum selbst Betreiben" },
+      {
+        type: "p",
+        text: "Open-Source-Software kostet keine Lizenz, aber Betrieb. Jemand muss sie installieren, aktualisieren, sichern und überwachen. Betreibst du sie selbst, bist du allein für die Sicherheit der Bewerberdaten verantwortlich [1]. Für ein kleines Unternehmen ohne eigene IT ist das meist teurer als ein bezahlter Tarif.",
+      },
+      { type: "h2", text: "Was bei kostenloser Software genauso gilt" },
+      {
+        type: "p",
+        text: "Der Datenschutz unterscheidet nicht nach Preis. Auch ein kostenloser Anbieter verarbeitet Bewerberdaten in deinem Auftrag, du brauchst also einen Vertrag zur Auftragsverarbeitung [2]. Werden die Daten außerhalb der EU verarbeitet, gelten zusätzliche Anforderungen [3]. Und die Löschfristen bleiben deine Aufgabe, egal ob das System dabei hilft [4]. Welche Fristen gelten, steht im Beitrag [Bewerberdaten und DSGVO](/blog/bewerberdaten-dsgvo-loeschfrist).",
+      },
+      {
+        type: "p",
+        text: "Frag bei kostenlosen Angeboten besonders genau, wie sie sich finanzieren. Werden Bewerberdaten für andere Zwecke genutzt, etwa zum Training von Modellen oder für Stellenbörsen des Anbieters, ist das ein Ausschlussgrund.",
+      },
+      { type: "h2", text: "Fragen, bevor du startest" },
+      {
+        type: "list",
+        items: [
+          "Wo liegen die Grenzen des Gratistarifs, und was passiert, wenn du sie erreichst?",
+          "Kannst du alle Daten jederzeit vollständig exportieren?",
+          "Gibt es einen Vertrag zur Auftragsverarbeitung, auch im kostenlosen Tarif?",
+          "Wo werden die Daten verarbeitet?",
+          "Werden Bewerberdaten für irgendetwas anderes genutzt als für deine Stellen?",
+          "Löscht das System nach einer einstellbaren Frist von selbst?",
+          "Was kostet der nächste Tarif, wenn du wächst?",
+        ],
+      },
+      { type: "h2", text: "Wann sich ein bezahlter Tarif lohnt" },
+      {
+        type: "p",
+        text: "Sobald mehrere Personen mit Bewerbungen arbeiten, regelmäßig Stellen offen sind oder Bewerbungen per Mail und über die Stellenseite zusammenkommen, rechnet sich ein bezahlter Tarif meist über die gesparte Zeit. Welche Kriterien bei der Auswahl wirklich zählen, steht im Beitrag [Bewerbermanagement-Software für KMU](/blog/bewerbermanagement-software-auswahl).",
+      },
+      {
+        type: "quote",
+        text: "Kostenlos ist ein guter Anfang, wenn du jederzeit mit all deinen Daten wieder gehen kannst.",
+      },
+    ],
+    sources: [
+      { label: "Verordnung (EU) 2016/679 (Datenschutz-Grundverordnung), Art. 32 (Sicherheit der Verarbeitung)", url: EUR_LEX_DSGVO },
+      { label: "Datenschutz-Grundverordnung, Art. 28 (Auftragsverarbeiter)", url: EUR_LEX_DSGVO },
+      { label: "Datenschutz-Grundverordnung, Art. 44 ff. (Übermittlung in Drittländer)", url: EUR_LEX_DSGVO },
+      { label: "Datenschutz-Grundverordnung, Art. 5 Abs. 1 lit. e (Speicherbegrenzung)", url: EUR_LEX_DSGVO },
+    ],
+  },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  {
     slug: "bewerberdaten-dsgvo-loeschfrist",
     metaTitle: "Bewerberdaten nach DSGVO: Wann du löschen musst",
     title: "Bewerberdaten und DSGVO: Wie lange du Bewerbungen speichern darfst",
@@ -482,7 +677,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: BLOG_AUTHOR,
     publishedAt: "2026-06-23",
     updatedAt: "2026-11-13",
-    related: ["absage-bewerber-formulieren", "time-to-hire-senken"],
+    related: ["bewerbungen-sichten-checkliste", "absage-bewerber-formulieren"],
     blocks: [
       {
         type: "p",
@@ -1100,6 +1295,10 @@ export const BLOG_POSTS: BlogPost[] = [
           "Begründet jede KI-Einschätzung sich mit Belegen, und entscheidest am Ende du?",
           "Ist der Vertrag monatlich kündbar, oder bindest du dich für Jahre?",
         ],
+      },
+      {
+        type: "p",
+        text: "Du willst erst einmal ohne Kosten starten? Was kostenlose Angebote taugen, steht im Beitrag [Kostenlose Bewerbermanagement-Software](/blog/bewerbermanagement-software-kostenlos).",
       },
     ],
     sources: [
