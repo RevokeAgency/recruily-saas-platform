@@ -422,6 +422,23 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
 
 ## Betrieb
 
+- [ ] **Admin-Dashboard einrichten** *(Code fertig 13.11.2026)*: `/admin` mit
+      Umsatz, MRR, Churn (aus Stripe), Warteliste, Nutzern, Nutzung, Betrieb
+      und Kundenliste. Zugang nur für `admin@revetly.ai` mit Passwort und
+      zweitem Faktor (Authenticator-App).
+  - [ ] Supabase → Authentication → Users → **Add user**: `admin@revetly.ai`
+        mit starkem Passwort, „Auto Confirm User“ an. Registrieren über die
+        Seite geht im Wartelisten-Modus nicht.
+  - [ ] Supabase → Authentication → Multi-Factor: **TOTP** muss aktiviert
+        sein (Standard).
+  - [ ] Cloudflare: Weiterleitung für `admin@revetly.ai` anlegen, sonst kommt
+        „Passwort vergessen“ nicht an.
+  - [ ] Vercel: `ADMIN_EXCLUDE_EMAILS` mit den eigenen Testadressen
+        (kommagetrennt). `@revetly.ai` ist immer ausgeblendet.
+  - [ ] `/admin` öffnen, anmelden, QR-Code mit der App scannen, Code
+        bestätigen. Die Warteliste liegt jetzt unter `/admin/warteliste` und
+        braucht dieselbe Anmeldung.
+
 - [ ] Fehler-Monitoring einmal auslösen und prüfen, dass die Mail ankommt:
       eine beliebige App-Seite mit fehlerhaftem Zustand aufrufen oder
       `/api/telemetry/error` mit `{"message":"Testfehler"}` anstoßen. Danach

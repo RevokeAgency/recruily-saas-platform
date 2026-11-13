@@ -1,7 +1,6 @@
-import { isOperator } from "@/lib/admin"
+import { adminEmailOrNull } from "@/lib/admin/access"
 import { sendWaitlistLaunch } from "@/lib/email/waitlist"
 import { isWaitlistMode } from "@/lib/launch"
-import { createClient } from "@/lib/supabase/server"
 import { purgePending, sendLaunchBatch, waitlistDb, waitlistStats } from "@/lib/waitlist/store"
 import { unsubscribeToken } from "@/lib/waitlist/token"
 import { absoluteUrl } from "@/lib/site"
@@ -10,13 +9,9 @@ export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
 // Warteliste für den Betrieb: Zahlen, Testmail, Versand zum Start, Aufräumen.
-// Nur für MONITORING_ADMIN_EMAIL (lib/admin.ts).
+// Nur für den Admin mit zweitem Faktor (lib/admin/access.ts).
 
-async function operator(): Promise<string | null> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  return user?.email && isOperator(user.email) ? user.email : null
-}
+const operator = adminEmailOrNull
 
 export async function GET() {
   if (!(await operator())) return Response.json({ error: "Nicht berechtigt" }, { status: 403 })

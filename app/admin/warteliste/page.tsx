@@ -1,9 +1,8 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { redirect } from "next/navigation"
 
 import { WaitlistAdmin } from "@/components/waitlist/waitlist-admin"
-import { isOperator } from "@/lib/admin"
-import { createClient } from "@/lib/supabase/server"
+import { getAdminAccess } from "@/lib/admin/access"
 
 export const dynamic = "force-dynamic"
 
@@ -12,11 +11,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-// Interne Seite. Wer kein Betreiber ist (MONITORING_ADMIN_EMAIL), bekommt
-// ein 404, damit die Seite nach außen nicht existiert.
+// Interne Seite im Admin-Bereich. Ohne volle Anmeldung (admin@revetly.ai
+// mit zweitem Faktor) geht es zum Login unter /admin.
 export default async function WaitlistAdminPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!isOperator(user?.email)) notFound()
-  return <WaitlistAdmin email={user!.email!} />
+  const access = await getAdminAccess()
+  if (access.state !== "ok") redirect("/admin")
+  return <WaitlistAdmin email={access.user.email ?? ""} />
 }
