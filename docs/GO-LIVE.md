@@ -56,7 +56,8 @@ Stand der Durchsicht: 19.09.2026.
       am Limit. Seit „API Pay-as-you-go“ aktiv ist, meldet
       `/api/matching/diagnose` alle Modelle „frei“. Schlüssel heißt jetzt
       `MISTRAL_API_KEY`, Textaufgaben laufen auf `mistral-large-2512`.
-      Zum Abhaken noch: eine echte Bewerbung mit Score, `/api/matching/eval`
+      Echte Bewerbung mit Score bestätigt (04.11.2026, 34 %).
+      Zum Abhaken noch: `/api/matching/eval`
       ohne Ausreißer, Guthaben und Ausgabenlimit bei Mistral für den Betrieb.
 - [x] **Branch-Frage geklärt: `main` ist die Produktionslinie.** Vercel baut
       `main`, alles andere ist Nebengleis.
@@ -119,7 +120,7 @@ Noch auf die Hauptadresse umzustellen:
 - [ ] **Supabase Auth → URL Configuration**: Site URL + Redirect URLs auf
       `https://www.revetly.ai` prüfen (Passwort-Reset funktioniert bereits,
       29.10.2026).
-- [ ] **Supabase Auth → E-Mail-Templates** im Revetly-Layout einfügen:
+- [x] **Supabase Auth → E-Mail-Templates** *(eingefügt, bestätigt 04.11.2026)*:
       Vorlagen und Betreffzeilen in `docs/supabase-mails/README.md`.
 - [x] **Supabase Auth → SMTP** *(29.10.2026)*: über Lettermint
       (`smtp.lettermint.co`, Port 465, Benutzer `lettermint`, Projekt-Token).
@@ -152,7 +153,9 @@ Noch auf die Hauptadresse umzustellen:
 - [ ] **Sitemap in der Google Search Console einreichen** *(Search Console
       eingerichtet 03.11.2026)*:
       `https://www.revetly.ai/sitemap.xml` (dazu Bing Webmaster Tools).
-- [ ] **Kalenderanbindung einrichten** (Schritt für Schritt in
+- [ ] **Kalenderanbindung einrichten** *(13.11.2026: Microsoft-Client-ID ist
+      in Vercel gesetzt, die Datei unter /.well-known liefert sie aus. Rest
+      unbestätigt, Termine → Diagnose zeigt den Stand)* (Schritt für Schritt in
       `scripts/025_scheduling.md`, Code fertig seit 03.11.2026):
   - [ ] `SCHEDULING_TOKEN_KEY` in Vercel
   - [ ] Google Cloud: Calendar API, Branding, Bereiche `calendar.freebusy` und
@@ -404,7 +407,7 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       Fassung `2026-09-v2` in `lib/training/consent.ts`; bei inhaltlicher
       Änderung hochzählen, die Fassung wird pro Einwilligung gespeichert
       (Nachweispflicht Art. 7 Abs. 1 DSGVO).
-- [ ] `scripts/038_match_cache.sql` *(neu 03.11.2026, noch einspielen)*:
+- [x] `scripts/038_match_cache.sql` *(eingespielt, bestätigt 04.11.2026)*:
       **Ergebnis-Cache für das Matching.** Gleiche Eingaben (Lebenslauf,
       Stelle, Gewichtung, Modelle, Prompts) ergeben denselben Score ohne
       neuen KI-Aufruf. Nur der Server hat Zugriff, Einträge hängen per
