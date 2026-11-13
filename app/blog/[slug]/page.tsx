@@ -48,7 +48,7 @@ export async function generateMetadata(
 }
 
 /** Quellenverweise wie [1] oder [2, 3] als hochgestellte Links zur Quellenliste. */
-function WithRefs({ text }: { text: string }) {
+function Refs({ text }: { text: string }) {
   const parts = text.split(/(\s?\[\d+(?:,\s?\d+)*\])/)
   return (
     <>
@@ -67,6 +67,27 @@ function WithRefs({ text }: { text: string }) {
               </span>
             ))}
           </sup>
+        )
+      })}
+    </>
+  )
+}
+
+/**
+ * Fließtext mit internen Links im Format [Linktext](/pfad) und
+ * Quellenverweisen. Nur Pfade auf der eigenen Seite, keine externen Adressen.
+ */
+function WithRefs({ text }: { text: string }) {
+  const parts = text.split(/(\[[^\]]+\]\(\/[^)\s]*\))/)
+  return (
+    <>
+      {parts.map((part, i) => {
+        const m = part.match(/^\[([^\]]+)\]\((\/[^)\s]*)\)$/)
+        if (!m) return <Refs key={i} text={part} />
+        return (
+          <Link key={i} href={m[2]} className="font-semibold text-[var(--rv-green-deep)] underline decoration-[1.5px] underline-offset-2 hover:text-[var(--rv-ink)]">
+            {m[1]}
+          </Link>
         )
       })}
     </>
@@ -98,6 +119,12 @@ function Block({ block }: { block: BlogBlock }) {
           ))}
         </ul>
       )
+    case "example":
+      return (
+        <div className="my-6 rounded-[var(--rv-radius-lg)] border border-[rgba(12,26,22,.10)] bg-white p-[20px_22px] text-[.97rem] leading-[1.7] whitespace-pre-line text-[var(--rv-ink-soft)] shadow-[0_1px_0_rgba(12,26,22,.04)]">
+          <WithRefs text={block.text ?? ""} />
+        </div>
+      )
     case "quote":
       return (
         <blockquote className="my-7 rounded-[var(--rv-radius-lg)] border border-[rgba(12,26,22,.10)] bg-[var(--rv-mist)] p-[22px_24px] text-[1.05rem] leading-[1.6] font-semibold tracking-[-0.01em] text-[var(--rv-ink)]">
@@ -116,8 +143,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const post = getPost(slug)
   if (!post) notFound()
 
-  const related = getAllPosts()
-    .filter((p) => p.slug !== post.slug)
+  // Thematisch passende Beiträge zuerst (post.related), aufgefüllt mit den neuesten.
+  const others = getAllPosts().filter((p) => p.slug !== post.slug)
+  const related = [
+    ...(post.related ?? []).map((slug) => others.find((p) => p.slug === slug)).filter((p) => p !== undefined),
+    ...others,
+  ]
+    .filter((p, i, all) => all.findIndex((q) => q.slug === p.slug) === i)
     .slice(0, 2)
 
   // Strukturierte Daten: Google erkennt den Beitrag damit als Artikel und kann

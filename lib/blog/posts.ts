@@ -9,13 +9,15 @@
 //   - Du-Ansprache durchgehend, auch in Anriss und Meta-Description.
 //   - Keine Gedankenstriche im Fließtext, keine Ausrufezeichen.
 //   - Keine KI-, Mail- oder Zahlungsanbieter namentlich.
+//   - Interne Links im Text als [Linktext](/pfad), nur eigene Seiten.
 //   - Jede Tatsachenbehauptung mit Quelle; Verweise im Text als [1], [2] …
 //     beziehen sich auf `sources` in derselben Reihenfolge. Nur Quellen,
 //     die sich nachprüfen lassen (Gesetzestexte, veröffentlichte Studien).
 
 export interface BlogBlock {
-  type: "p" | "h2" | "h3" | "list" | "quote"
-  /** Für p, h2, h3, quote */
+  /** "example": Mustertext (Vorlage), Zeilenumbrüche bleiben erhalten. */
+  type: "p" | "h2" | "h3" | "list" | "quote" | "example"
+  /** Für p, h2, h3, quote, example */
   text?: string
   /** Für list */
   items?: string[]
@@ -49,6 +51,8 @@ export interface BlogPost {
   updatedAt?: string
   blocks: BlogBlock[]
   sources: BlogSource[]
+  /** Slugs der Beiträge für „Weiterlesen“, sonst die neuesten. */
+  related?: string[]
 }
 
 export const BLOG_AUTHOR = "Daniel Gräbner"
@@ -59,6 +63,254 @@ const EUR_LEX_DSGVO = "https://eur-lex.europa.eu/eli/reg/2016/679/oj"
 export const BLOG_POSTS: BlogPost[] = [
   // ───────────────────────────────────────────────────────────────────────────
   {
+    slug: "bewerberdaten-dsgvo-loeschfrist",
+    metaTitle: "Bewerberdaten nach DSGVO: Wann du löschen musst",
+    title: "Bewerberdaten und DSGVO: Wie lange du Bewerbungen speichern darfst",
+    cardTitle: "Bewerberdaten und DSGVO",
+    excerpt:
+      "Die DSGVO nennt keine feste Frist für Bewerbungsunterlagen. Trotzdem lässt sich ziemlich genau sagen, wann du löschen musst, was du Bewerbern vorher mitteilst und was beim Löschen gern vergessen wird.",
+    metaDescription:
+      "Bewerberdaten nach DSGVO: Rechtsgrundlage, Speicherdauer und Löschfristen in Deutschland und Österreich, mit Mustertext für die Informationspflicht.",
+    keywords: [
+      "Bewerberdaten DSGVO",
+      "Bewerberdaten löschen",
+      "Speicherdauer Bewerberdaten",
+      "Löschfrist Bewerbungsunterlagen",
+      "Informationspflicht Bewerber DSGVO Muster",
+    ],
+    category: "Recht & Compliance",
+    author: BLOG_AUTHOR,
+    publishedAt: "2026-11-13",
+    related: ["talent-pool-aktivieren", "absage-bewerber-formulieren"],
+    blocks: [
+      {
+        type: "p",
+        text: "Jede Bewerbung bringt personenbezogene Daten mit: Lebenslauf, Zeugnisse, oft ein Foto, manchmal Angaben zur Gesundheit oder zur Familie. Die Datenschutz-Grundverordnung regelt, wofür du diese Daten nutzen darfst, wie lange und was du den Bewerbern darüber sagen musst. Eine feste Zahl an Monaten steht nicht darin. Die Frist ergibt sich aus dem Zweck und aus den Fristen anderer Gesetze.",
+      },
+      { type: "h2", text: "Auf welcher Grundlage du Bewerbungen verarbeitest" },
+      {
+        type: "p",
+        text: "Wer sich bewirbt, möchte einen Arbeitsvertrag. Die Verarbeitung der Unterlagen ist eine Maßnahme vor Abschluss dieses Vertrags, die auf Anfrage der Person erfolgt [1]. Eine Einwilligung brauchst du dafür nicht. Du darfst die Daten aber nur für dieses eine Bewerbungsverfahren verwenden [2].",
+      },
+      {
+        type: "p",
+        text: "Willst du Unterlagen für spätere Stellen aufheben, ist das ein neuer Zweck. Dafür brauchst du eine Einwilligung, die freiwillig ist und jederzeit widerrufen werden kann [3, 4]. Wie du sie sauber einholst, steht im Beitrag [Talent-Pool nutzen](/blog/talent-pool-aktivieren).",
+      },
+      { type: "h2", text: "Wie lange du Bewerberdaten speichern darfst" },
+      {
+        type: "p",
+        text: "Grundsätzlich gilt: Personenbezogene Daten dürfen nur so lange gespeichert werden, wie es für den Zweck nötig ist [2]. Mit der Besetzung der Stelle ist der Zweck für alle anderen Bewerbungen eigentlich erfüllt. Trotzdem darfst du die Unterlagen noch eine Weile aufheben, und zwar wegen der Fristen, in denen abgelehnte Bewerber Ansprüche wegen Diskriminierung geltend machen können. Ohne Unterlagen könntest du dich dagegen nicht verteidigen.",
+      },
+      { type: "h3", text: "Deutschland" },
+      {
+        type: "p",
+        text: "Einen Anspruch nach dem Allgemeinen Gleichbehandlungsgesetz muss eine abgelehnte Person innerhalb von zwei Monaten schriftlich geltend machen. Die Frist beginnt mit dem Zugang der Absage [5]. Für die Klage hat sie danach weitere drei Monate [6]. Rechnet man beides zusammen, kommt man auf bis zu fünf Monate nach der Absage, dazu etwas Puffer für den Postweg. Eine Löschfrist von sechs Monaten nach der Absage deckt diesen Zeitraum ab.",
+      },
+      { type: "h3", text: "Österreich" },
+      {
+        type: "p",
+        text: "Für Ansprüche wegen Diskriminierung bei der Begründung eines Arbeitsverhältnisses sieht das Gleichbehandlungsgesetz eine Frist von sechs Monaten für die gerichtliche Geltendmachung vor [7]. Wer Unterlagen etwas länger als sechs Monate nach der Absage aufbewahrt, hat diesen Zeitraum abgedeckt.",
+      },
+      {
+        type: "p",
+        text: "Läuft ein Verfahren, darfst du die betroffenen Unterlagen natürlich bis zu dessen Ende behalten. Für alle anderen gilt: Frist abgelaufen, Daten löschen [8].",
+      },
+      { type: "h2", text: "Was du Bewerbern vorher mitteilen musst" },
+      {
+        type: "p",
+        text: "Bei der Erhebung musst du informieren, wer die Daten verarbeitet, wofür, auf welcher Grundlage und wie lange sie gespeichert werden [9]. Am einfachsten steht das in einem Datenschutzhinweis für Bewerber, verlinkt in jeder Stellenanzeige und im Bewerbungsformular. Kommen Bewerbungen per Mail, schick den Hinweis mit der Eingangsbestätigung.",
+      },
+      {
+        type: "p",
+        text: "Ein Mustertext für den Abschnitt zur Speicherdauer, den du an deine Fristen anpasst:",
+      },
+      {
+        type: "example",
+        text: "Speicherdauer\nWir speichern deine Bewerbungsunterlagen für die Dauer des Bewerbungsverfahrens. Erhältst du eine Absage, löschen wir deine Daten sechs Monate nach Zugang der Absage, sofern du nicht eingewilligt hast, dass wir sie für künftige Stellen aufbewahren. Diese Einwilligung kannst du jederzeit widerrufen. Kommt ein Arbeitsverhältnis zustande, übernehmen wir die erforderlichen Daten in deine Personalakte.",
+      },
+      {
+        type: "p",
+        text: "Siezt ihr Bewerber, tausch die Anrede einfach aus. Wichtig ist, dass die Frist im Hinweis mit der Frist übereinstimmt, nach der du tatsächlich löschst.",
+      },
+      { type: "h2", text: "Was beim Löschen gern vergessen wird" },
+      {
+        type: "p",
+        text: "Gelöscht ist eine Bewerbung erst, wenn sie überall weg ist. In der Praxis liegen Kopien an mehr Stellen, als man denkt:",
+      },
+      {
+        type: "list",
+        items: [
+          "im Postfach, an das die Bewerbung ursprünglich kam, und in weitergeleiteten Mails an Fachabteilungen",
+          "im Download-Ordner und auf dem Desktop derer, die die Unterlagen gelesen haben",
+          "ausgedruckt in Gesprächsmappen",
+          "in Tabellen, in denen Namen und Notizen gesammelt wurden",
+          "im Bewerbermanagementsystem selbst, falls es nicht von allein löscht",
+        ],
+      },
+      {
+        type: "p",
+        text: "Halte fest, wann du welche Unterlagen gelöscht hast. Du musst nachweisen können, dass du dich an die Grundsätze der DSGVO hältst [10]. Ein kurzer Vermerk mit Datum und Stelle reicht, ohne die gelöschten Daten selbst.",
+      },
+      { type: "h2", text: "Wenn Bewerber Auskunft oder Löschung verlangen" },
+      {
+        type: "p",
+        text: "Bewerber haben ein Recht auf Auskunft über die Daten, die du über sie gespeichert hast, einschließlich einer Kopie [11]. Verlangt jemand die Löschung und brauchst du die Daten nicht mehr, musst du sie löschen [8]. Antworten musst du in beiden Fällen ohne unnötige Verzögerung, spätestens innerhalb eines Monats [12].",
+      },
+      {
+        type: "p",
+        text: "Läuft die Frist für Diskriminierungsansprüche noch, darfst du die Unterlagen bis zu deren Ende behalten, wenn du sie zur Verteidigung brauchst. Teil das der Person mit, zusammen mit dem Datum, an dem gelöscht wird.",
+      },
+      { type: "h2", text: "Checkliste" },
+      {
+        type: "list",
+        items: [
+          "Datenschutzhinweis für Bewerber mit Zweck, Rechtsgrundlage und Speicherdauer ist in jeder Anzeige verlinkt.",
+          "Unterlagen werden nur für die Stelle genutzt, für die sich jemand beworben hat.",
+          "Für den Talent-Pool gibt es eine eigene, dokumentierte Einwilligung.",
+          "Nach der Absage wird zu einer festen Frist gelöscht, auch Kopien in Postfächern und Ordnern.",
+          "Löschungen werden mit Datum vermerkt.",
+          "Anfragen auf Auskunft oder Löschung werden innerhalb eines Monats beantwortet.",
+        ],
+      },
+    ],
+    sources: [
+      { label: "Verordnung (EU) 2016/679 (Datenschutz-Grundverordnung), Art. 6 Abs. 1 lit. b (Maßnahmen vor Vertragsabschluss)", url: EUR_LEX_DSGVO },
+      { label: "Datenschutz-Grundverordnung, Art. 5 Abs. 1 lit. b und e (Zweckbindung, Speicherbegrenzung)", url: EUR_LEX_DSGVO },
+      { label: "Datenschutz-Grundverordnung, Art. 6 Abs. 1 lit. a (Einwilligung)", url: EUR_LEX_DSGVO },
+      { label: "Datenschutz-Grundverordnung, Art. 7 (Bedingungen für die Einwilligung)", url: EUR_LEX_DSGVO },
+      { label: "Allgemeines Gleichbehandlungsgesetz (Deutschland), § 15 Abs. 4", url: "https://www.gesetze-im-internet.de/agg/__15.html" },
+      { label: "Arbeitsgerichtsgesetz (Deutschland), § 61b Abs. 1", url: "https://www.gesetze-im-internet.de/arbgg/__61b.html" },
+      { label: "Gleichbehandlungsgesetz (Österreich), § 15 Abs. 1, abrufbar im Rechtsinformationssystem des Bundes", url: "https://www.ris.bka.gv.at" },
+      { label: "Datenschutz-Grundverordnung, Art. 17 (Recht auf Löschung)", url: EUR_LEX_DSGVO },
+      { label: "Datenschutz-Grundverordnung, Art. 13 (Informationspflicht bei Erhebung)", url: EUR_LEX_DSGVO },
+      { label: "Datenschutz-Grundverordnung, Art. 5 Abs. 2 (Rechenschaftspflicht)", url: EUR_LEX_DSGVO },
+      { label: "Datenschutz-Grundverordnung, Art. 15 (Auskunftsrecht)", url: EUR_LEX_DSGVO },
+      { label: "Datenschutz-Grundverordnung, Art. 12 Abs. 3 (Frist für die Antwort)", url: EUR_LEX_DSGVO },
+    ],
+  },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  {
+    slug: "absage-bewerber-formulieren",
+    metaTitle: "Absage an Bewerber formulieren: Vorlagen",
+    title: "Absage an Bewerber formulieren: Vorlagen, die fair sind und kein Risiko schaffen",
+    cardTitle: "Absagen an Bewerber",
+    excerpt:
+      "Eine Absage ist die Nachricht, die die meisten Bewerber von dir bekommen. Wie du sie schnell, freundlich und ohne rechtliches Risiko formulierst, mit vier Vorlagen zum Anpassen.",
+    metaDescription:
+      "Absage an Bewerber formulieren: Vorlagen nach Sichtung und nach dem Vorstellungsgespräch, was in eine AGG-konforme Absage gehört und was nicht.",
+    keywords: [
+      "Absage Bewerber Vorlage",
+      "Absage Bewerber formulieren",
+      "Absage nach Vorstellungsgespräch",
+      "Absage Bewerber AGG konform",
+      "freundliche Absage Bewerber",
+    ],
+    category: "Auswahlprozess",
+    author: BLOG_AUTHOR,
+    publishedAt: "2026-11-13",
+    related: ["time-to-hire-senken", "bewerberdaten-dsgvo-loeschfrist"],
+    blocks: [
+      {
+        type: "p",
+        text: "Auf jede besetzte Stelle kommen viele Absagen. Für die meisten Menschen, die sich bei dir bewerben, ist die Absage deshalb der einzige Eindruck, der von deinem Unternehmen bleibt. Ob sie sich wieder bewerben oder anderen davon abraten, entscheidet sich oft an dieser einen Nachricht.",
+      },
+      { type: "h2", text: "Schnell ist freundlicher als ausführlich" },
+      {
+        type: "p",
+        text: "Die häufigste Kritik von Bewerbern ist nicht der Ton einer Absage, sondern dass sie gar nicht oder sehr spät kommt. Steht fest, dass jemand nicht weiterkommt, schick die Absage sofort. Jeder Tag Warten fühlt sich für die Person wie ein Hoffnungsschimmer an, der dann doch enttäuscht wird. Wo im Ablauf die Zeit sonst verloren geht, steht im Beitrag [Time-to-Hire senken](/blog/time-to-hire-senken).",
+      },
+      { type: "h2", text: "Was in eine Absage gehört" },
+      {
+        type: "list",
+        items: [
+          "Dank für die Bewerbung und die Zeit, die die Person investiert hat",
+          "eine klare Aussage, dass es diesmal nicht weitergeht, ohne Umschweife",
+          "keine Begründung, die an persönliche Merkmale anknüpft",
+          "ein guter Wunsch für die weitere Suche",
+          "auf Wunsch die Frage, ob die Unterlagen für künftige Stellen im Bestand bleiben dürfen",
+        ],
+      },
+      { type: "h2", text: "Was nicht hineingehört" },
+      {
+        type: "p",
+        text: "In Deutschland verbietet das Allgemeine Gleichbehandlungsgesetz Benachteiligungen wegen der ethnischen Herkunft, des Geschlechts, der Religion oder Weltanschauung, einer Behinderung, des Alters oder der sexuellen Identität [1]. Kann eine abgelehnte Person Indizien für eine solche Benachteiligung zeigen, musst du beweisen, dass keine vorlag [2]. Eine unbedachte Formulierung in der Absage kann genau so ein Indiz sein.",
+      },
+      {
+        type: "p",
+        text: "In Österreich gilt dasselbe Prinzip. Das Gleichbehandlungsgesetz schützt in der Arbeitswelt unter anderem vor Benachteiligung wegen des Geschlechts, der ethnischen Zugehörigkeit, der Religion oder Weltanschauung, des Alters und der sexuellen Orientierung [3], für Menschen mit Behinderung gilt zusätzlich das Behinderteneinstellungsgesetz [4].",
+      },
+      {
+        type: "p",
+        text: "Vermeide deshalb Sätze wie „wir suchen jemanden, der besser ins junge Team passt“, „die Stelle erfordert Deutsch als Muttersprache“ oder Hinweise auf Familie, Gesundheit oder Herkunft. Eine Begründung ist in der Regel ohnehin nicht nötig. Wenn du eine gibst, bezieh sie auf die Anforderungen der Stelle, etwa auf fehlende Erfahrung mit einer bestimmten Aufgabe.",
+      },
+      {
+        type: "p",
+        text: "Bei schwerbehinderten Bewerbern gelten in Deutschland zusätzliche Pflichten, etwa zur Beteiligung der Schwerbehindertenvertretung [5]. Öffentliche Arbeitgeber müssen sie außerdem grundsätzlich zum Vorstellungsgespräch einladen [6].",
+      },
+      { type: "h2", text: "Keine Absage ohne Mensch" },
+      {
+        type: "p",
+        text: "Eine Absage, die eine Software ohne menschliche Prüfung verschickt, ist eine automatisierte Entscheidung mit erheblicher Wirkung. Die ist nach der DSGVO grundsätzlich unzulässig [7]. Ein System darf sortieren und eine Absage vorbereiten, verschicken sollte sie aber jemand, der die Bewerbung gesehen hat. Mehr dazu im Beitrag [EU AI Act im Recruiting](/blog/eu-ai-act-recruiting).",
+      },
+      { type: "h2", text: "Vorlagen zum Anpassen" },
+      {
+        type: "p",
+        text: "Die Vorlagen sind in der Du-Form geschrieben. Siezt ihr Bewerber, tausch die Anrede aus. Ersetz die Platzhalter in geschweiften Klammern und lies jede Absage einmal, bevor du sie abschickst.",
+      },
+      { type: "h3", text: "Absage nach Sichtung der Unterlagen" },
+      {
+        type: "example",
+        text: "Betreff: Deine Bewerbung als {Stelle}\n\nHallo {Vorname},\n\ndanke für deine Bewerbung und das Interesse an {Unternehmen}. Wir haben uns deine Unterlagen genau angesehen und uns entschieden, mit anderen Bewerbungen weiterzumachen, die besser zu den Anforderungen dieser Stelle passen.\n\nWir wissen, dass in einer Bewerbung viel Arbeit steckt, und wünschen dir für deine weitere Suche alles Gute.\n\nViele Grüße\n{Name}",
+      },
+      { type: "h3", text: "Absage nach dem Vorstellungsgespräch" },
+      {
+        type: "example",
+        text: "Betreff: Unser Gespräch zur Stelle {Stelle}\n\nHallo {Vorname},\n\nnoch einmal danke für das Gespräch am {Datum} und die Zeit, die du dir genommen hast. Die Entscheidung ist uns nicht leicht gefallen. Wir haben uns für eine andere Person entschieden, deren Erfahrung mit {konkrete Aufgabe der Stelle} für diese Rolle den Ausschlag gegeben hat.\n\nDu hast im Gespräch einen sehr guten Eindruck hinterlassen. Wir wünschen dir für deinen weiteren Weg viel Erfolg.\n\nViele Grüße\n{Name}",
+      },
+      { type: "h3", text: "Absage mit Frage nach dem Talent-Pool" },
+      {
+        type: "example",
+        text: "Hallo {Vorname},\n\ndanke für deine Bewerbung als {Stelle}. Für diese Stelle haben wir uns für jemand anderen entschieden. Dein Profil hat uns aber gefallen, und es kann gut sein, dass bald eine passende Stelle frei wird.\n\nDürfen wir deine Unterlagen dafür bis zu {Zeitraum} aufbewahren und dich bei passenden Stellen ansprechen? Antworte einfach mit Ja auf diese Mail. Du kannst die Zustimmung jederzeit widerrufen, dann löschen wir deine Daten.\n\nViele Grüße\n{Name}",
+      },
+      {
+        type: "p",
+        text: "Die Einwilligung muss freiwillig sein und du musst sie nachweisen können [8]. Heb die Antwort deshalb auf. Ohne Antwort gilt die normale Löschfrist, die im Beitrag [Bewerberdaten und DSGVO](/blog/bewerberdaten-dsgvo-loeschfrist) erklärt ist.",
+      },
+      { type: "h3", text: "Antwort, wenn jemand nach dem Grund fragt" },
+      {
+        type: "example",
+        text: "Hallo {Vorname},\n\ngut, dass du nachfragst. Für die Stelle war uns {Anforderung aus der Ausschreibung} besonders wichtig. Hier hatten andere Bewerbungen mehr praktische Erfahrung vorzuweisen. Das sagt nichts über deine übrigen Stärken aus, und wir freuen uns, wenn du dich bei einer passenden Stelle wieder bewirbst.\n\nViele Grüße\n{Name}",
+      },
+      {
+        type: "p",
+        text: "Bleib dabei bei den Anforderungen aus der Ausschreibung und bei dem, was in den Unterlagen oder im Gespräch tatsächlich gezeigt wurde. Vergleiche mit konkreten anderen Personen oder Aussagen über die Persönlichkeit gehören nicht hinein.",
+      },
+      { type: "h2", text: "Datum festhalten" },
+      {
+        type: "p",
+        text: "In Deutschland beginnt die Frist für Ansprüche wegen Diskriminierung mit dem Zugang der Absage [9]. Halte deshalb fest, wann du welche Absage verschickt hast. Danach richtet sich auch, wann du die Unterlagen löschen musst.",
+      },
+      {
+        type: "quote",
+        text: "Eine gute Absage ist kurz, kommt schnell und begründet nichts, was mit der Person statt mit der Stelle zu tun hat.",
+      },
+    ],
+    sources: [
+      { label: "Allgemeines Gleichbehandlungsgesetz (Deutschland), § 1 und § 7", url: "https://www.gesetze-im-internet.de/agg/__1.html" },
+      { label: "Allgemeines Gleichbehandlungsgesetz (Deutschland), § 22 (Beweislast)", url: "https://www.gesetze-im-internet.de/agg/__22.html" },
+      { label: "Gleichbehandlungsgesetz (Österreich), §§ 3 und 17, abrufbar im Rechtsinformationssystem des Bundes", url: "https://www.ris.bka.gv.at" },
+      { label: "Behinderteneinstellungsgesetz (Österreich), § 7b, abrufbar im Rechtsinformationssystem des Bundes", url: "https://www.ris.bka.gv.at" },
+      { label: "Neuntes Buch Sozialgesetzbuch (Deutschland), § 164 Abs. 1", url: "https://www.gesetze-im-internet.de/sgb_9_2018/__164.html" },
+      { label: "Neuntes Buch Sozialgesetzbuch (Deutschland), § 165", url: "https://www.gesetze-im-internet.de/sgb_9_2018/__165.html" },
+      { label: "Verordnung (EU) 2016/679 (Datenschutz-Grundverordnung), Art. 22 (Automatisierte Entscheidungen im Einzelfall)", url: EUR_LEX_DSGVO },
+      { label: "Datenschutz-Grundverordnung, Art. 7 (Bedingungen für die Einwilligung)", url: EUR_LEX_DSGVO },
+      { label: "Allgemeines Gleichbehandlungsgesetz (Deutschland), § 15 Abs. 4", url: "https://www.gesetze-im-internet.de/agg/__15.html" },
+    ],
+  },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  {
     slug: "eu-ai-act-recruiting",
     metaTitle: "EU AI Act im Recruiting: Pflichten für HR",
     title: "EU AI Act im Recruiting: Was Personalabteilungen jetzt wissen müssen",
@@ -66,18 +318,21 @@ export const BLOG_POSTS: BlogPost[] = [
     excerpt:
       "Software, die Bewerbungen sichtet und vorsortiert, gilt in der EU als Hochrisiko-KI. Das bringt Pflichten mit sich, die viele Personalabteilungen noch nicht auf dem Schirm haben. Was das konkret bedeutet und woran du ein rechtssicheres System erkennst.",
     metaDescription:
-      "EU AI Act im Recruiting: Warum KI in der Bewerberauswahl als Hochrisiko gilt, welche Pflichten du als Arbeitgeber hast und worauf du bei Software achten solltest.",
+      "EU AI Act im Recruiting: Warum KI in der Bewerberauswahl als Hochrisiko gilt, welche Pflichten du als Arbeitgeber hast und worauf du bei Software achtest.",
     keywords: [
       "EU AI Act Recruiting",
       "KI-Verordnung Personalauswahl",
       "Hochrisiko KI Bewerbung",
       "KI Bewerberauswahl rechtssicher",
       "AI Act Pflichten Arbeitgeber",
+      "KI-Verordnung HR",
+      "KI im Recruiting EU AI Act",
     ],
     category: "Recht & Compliance",
     author: BLOG_AUTHOR,
     publishedAt: "2026-07-14",
-    updatedAt: "2026-10-06",
+    updatedAt: "2026-11-13",
+    related: ["ki-matching-vs-keyword-suche", "bewerberdaten-dsgvo-loeschfrist"],
     blocks: [
       {
         type: "p",
@@ -143,6 +398,10 @@ export const BLOG_POSTS: BlogPost[] = [
         type: "p",
         text: "Praktisch relevant wird auch der Ort der Verarbeitung. Schickt ein Anbieter Lebensläufe an ein Modell außerhalb der EU, ist das eine Übermittlung in ein Drittland mit allen Anforderungen, die daran hängen. Bei Anbietern mit europäischer Infrastruktur entfällt diese Diskussion weitgehend.",
       },
+      {
+        type: "p",
+        text: "Wie lange du Bewerbungen aufbewahren darfst und wann du sie löschen musst, steht im Beitrag [Bewerberdaten und DSGVO](/blog/bewerberdaten-dsgvo-loeschfrist).",
+      },
       { type: "h2", text: "Betriebsrat früh einbinden" },
       {
         type: "p",
@@ -156,6 +415,10 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         type: "p",
         text: "Ein praktischer Test für die Demo: Lass dir eine Bewerbung mit mittlerem Ergebnis zeigen und frag, warum es nicht mehr geworden ist. Bekommst du eine konkrete Antwort mit Bezug auf den Lebenslauf, ist das ein gutes Zeichen. Bekommst du eine Erklärung über Algorithmen und Gewichtungen, wirst du dasselbe Problem haben, wenn ein Bewerber sein Recht auf Erläuterung geltend macht.",
+      },
+      {
+        type: "p",
+        text: "Woran du inhaltliches Matching von einer reinen Stichwortsuche unterscheidest, zeigt der Beitrag [KI-Matching statt Stichwortsuche](/blog/ki-matching-vs-keyword-suche).",
       },
       { type: "h3", text: "Sechs Fragen für den Anbietertermin" },
       {
@@ -218,7 +481,8 @@ export const BLOG_POSTS: BlogPost[] = [
     category: "Auswahlprozess",
     author: BLOG_AUTHOR,
     publishedAt: "2026-06-23",
-    updatedAt: "2026-10-06",
+    updatedAt: "2026-11-13",
+    related: ["absage-bewerber-formulieren", "time-to-hire-senken"],
     blocks: [
       {
         type: "p",
@@ -354,7 +618,8 @@ export const BLOG_POSTS: BlogPost[] = [
     category: "Prozess & Kennzahlen",
     author: BLOG_AUTHOR,
     publishedAt: "2026-06-02",
-    updatedAt: "2026-10-06",
+    updatedAt: "2026-11-13",
+    related: ["absage-bewerber-formulieren", "strukturierte-interviews-leitfaden"],
     blocks: [
       {
         type: "p",
@@ -428,7 +693,7 @@ export const BLOG_POSTS: BlogPost[] = [
           "Vorsortieren bei Eingang. Nicht um die Entscheidung abzugeben, sondern um die Reihenfolge zu klären. Wer zuerst auf die zwanzig plausibelsten Bewerbungen schaut statt auf die zwanzig ältesten, ist schneller fertig.",
           "Feste Gesprächsfenster. Zwei Nachmittage pro Woche, dauerhaft geblockt.",
           "Eine Person, die für jede Stelle den nächsten Schritt verantwortet. Wenn alle zuständig sind, wartet jeder auf den anderen.",
-          "Absagen sofort. Eine Absage, die zwei Wochen liegen bleibt, schadet deinem Ruf und blockiert deine eigene Übersicht.",
+          "Absagen sofort. Eine Absage, die zwei Wochen liegen bleibt, schadet deinem Ruf und blockiert deine eigene Übersicht. Vorlagen dafür findest du im Beitrag [Absage an Bewerber formulieren](/blog/absage-bewerber-formulieren).",
           "Eine kurze Eingangsbestätigung mit realistischem Zeitplan. Wer weiß, wann er etwas hört, wartet geduldiger.",
         ],
       },
@@ -473,7 +738,8 @@ export const BLOG_POSTS: BlogPost[] = [
     category: "Sourcing",
     author: BLOG_AUTHOR,
     publishedAt: "2026-05-12",
-    updatedAt: "2026-10-06",
+    updatedAt: "2026-11-13",
+    related: ["bewerberdaten-dsgvo-loeschfrist", "absage-bewerber-formulieren"],
     blocks: [
       {
         type: "p",
@@ -526,6 +792,10 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         type: "p",
         text: "Willst du jemanden länger im Bestand halten, brauchst du eine Einwilligung [5]. Die muss freiwillig sein, sich auf einen klaren Zweck beziehen und jederzeit widerrufbar sein. Und du musst sie nachweisen können [6]. Ist der Zweck erledigt oder wird die Einwilligung widerrufen, sind die Daten zu löschen [7].",
+      },
+      {
+        type: "p",
+        text: "Rechtsgrundlage, Informationspflicht und eine Mustervorlage für die Speicherdauer findest du im Beitrag [Bewerberdaten und DSGVO](/blog/bewerberdaten-dsgvo-loeschfrist).",
       },
       { type: "h3", text: "So holst du die Einwilligung sauber ein" },
       {
@@ -588,11 +858,14 @@ export const BLOG_POSTS: BlogPost[] = [
       "Lebenslauf Analyse KI",
       "Keyword Filter Bewerbung",
       "semantisches Matching Recruiting",
+      "KI Bewerbungen analysieren",
+      "Bewerbungen mit KI auswerten",
     ],
     category: "Technologie",
     author: BLOG_AUTHOR,
     publishedAt: "2026-04-28",
-    updatedAt: "2026-10-06",
+    updatedAt: "2026-11-13",
+    related: ["eu-ai-act-recruiting", "bewerbermanagement-software-auswahl"],
     blocks: [
       {
         type: "p",
@@ -691,28 +964,41 @@ export const BLOG_POSTS: BlogPost[] = [
   // ───────────────────────────────────────────────────────────────────────────
   {
     slug: "bewerbermanagement-software-auswahl",
-    metaTitle: "Bewerbermanagement-Software für KMU auswählen",
+    metaTitle: "Bewerbermanagement-Software: Vergleich für KMU",
     title: "Bewerbermanagement-Software für KMU: Woran Auswahlprojekte scheitern",
     cardTitle: "Software-Auswahl für KMU",
     excerpt:
       "Funktionslisten sind bei Bewerbermanagement-Anbietern erstaunlich austauschbar. Die Unterschiede zeigen sich an anderer Stelle: beim Einrichtungsaufwand, beim Umgang mit E-Mail-Bewerbungen und bei der Frage, was mit deinen Daten passiert.",
     metaDescription:
-      "Bewerbermanagement-Software auswählen: Welche Kriterien für KMU wirklich zählen, welche Funktionen überschätzt werden und welche Fragen du Anbietern stellen solltest.",
+      "Bewerbermanagement-Software im Vergleich: Was ein Bewerbermanagementsystem können muss, welche Kriterien für KMU zählen und welche Fragen du zu Kosten stellst.",
     keywords: [
       "Bewerbermanagement Software",
       "ATS Software Vergleich",
       "Recruiting Software KMU",
       "Bewerbermanagement System einführen",
       "Applicant Tracking System",
+      "Bewerbermanagement Software Vergleich",
+      "Bewerbermanagement Software Kosten",
+      "Was ist ein Bewerbermanagementsystem",
     ],
     category: "Software-Auswahl",
     author: BLOG_AUTHOR,
     publishedAt: "2026-04-07",
-    updatedAt: "2026-10-06",
+    updatedAt: "2026-11-13",
+    related: ["bewerberdaten-dsgvo-loeschfrist", "eu-ai-act-recruiting"],
     blocks: [
       {
         type: "p",
         text: "Wer Bewerbermanagementsysteme vergleicht, bekommt schnell den Eindruck, dass alle dasselbe können. Weitgehend stimmt das auch. Die Unterschiede liegen fast nie im Funktionsumfang, sondern darin, wie viel Aufwand nötig ist, bis das System im Alltag tatsächlich benutzt wird.",
+      },
+      { type: "h2", text: "Was ist ein Bewerbermanagementsystem?" },
+      {
+        type: "p",
+        text: "Ein Bewerbermanagementsystem, auf Englisch Applicant Tracking System oder kurz ATS, sammelt Bewerbungen aus allen Kanälen an einem Ort, ordnet sie den richtigen Stellen zu und begleitet den Ablauf bis zur Zusage oder Absage. Dazu gehören meist eine Stellenseite mit Bewerbungsformular, die Kommunikation mit Bewerbern, die Terminplanung und das Löschen der Daten nach Ablauf der Frist.",
+      },
+      {
+        type: "p",
+        text: "Der Unterschied zur Tabelle und zum Postfach liegt nicht in einzelnen Funktionen, sondern darin, dass alle im Team denselben Stand sehen. Wer hat die Bewerbung gelesen, wer hat geantwortet, wann wird gelöscht? Genau an diesen Fragen hakt es ohne System.",
       },
       { type: "h2", text: "Der häufigste Fehler bei der Auswahl" },
       {
@@ -755,12 +1041,21 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: "h3", text: "Löschung" },
       {
         type: "p",
-        text: "Bewerbungsunterlagen dürfen nur so lange gespeichert werden, wie es für den Zweck nötig ist [4]. Prüf, ob das System nach einer einstellbaren Frist automatisch löscht oder ob jemand das von Hand nachhalten muss. Von Hand bedeutet in der Praxis: gar nicht.",
+        text: "Bewerbungsunterlagen dürfen nur so lange gespeichert werden, wie es für den Zweck nötig ist [4]. Prüf, ob das System nach einer einstellbaren Frist automatisch löscht oder ob jemand das von Hand nachhalten muss. Von Hand bedeutet in der Praxis: gar nicht. Welche Fristen gelten, steht im Beitrag [Bewerberdaten und DSGVO](/blog/bewerberdaten-dsgvo-loeschfrist).",
       },
       { type: "h3", text: "KI-Funktionen" },
       {
         type: "p",
         text: "Viele Systeme werben inzwischen mit KI. Setzt die Software KI ein, um Bewerbungen zu sichten oder vorzusortieren, gilt sie nach der europäischen KI-Verordnung als Hochrisiko-System, und du hast als Betreiber eigene Pflichten [5]. Frag, ob es eine Gebrauchsanweisung dafür gibt, ob jede Einschätzung begründet wird und ob die Entscheidung bei dir bleibt.",
+      },
+      { type: "h3", text: "Kosten und Vertragslaufzeit" },
+      {
+        type: "p",
+        text: "Die Preismodelle unterscheiden sich stark: pro Nutzer, pro aktiver Stelle, pro Bewerbung oder als feste Pauschale. Ein Vergleich der Listenpreise sagt deshalb wenig. Rechne mit deinen eigenen Zahlen von oben durch, was ein Jahr kostet, und frag nach Einrichtungsgebühren, Zusatzkosten für weitere Nutzer und der Mindestlaufzeit.",
+      },
+      {
+        type: "p",
+        text: "Kostenlose Einstiegsangebote lohnen sich als Test mit echten Bewerbungen. Prüf dabei, was passiert, wenn du die Grenze erreichst: Bleiben deine Daten zugänglich, und kannst du sie vollständig exportieren, falls du wechselst?",
       },
       { type: "h3", text: "Betriebsrat" },
       {
