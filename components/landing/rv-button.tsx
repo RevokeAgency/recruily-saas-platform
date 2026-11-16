@@ -15,7 +15,7 @@ const rvButtonVariants = cva(
         // Solid Revetly green — the workhorse primary. Gradient is reserved for
         // the single hero signature CTA (use `grad`).
         primary:
-          "bg-[var(--rv-green)] text-[#0C1A16] font-bold shadow-[0_10px_26px_-14px_rgba(22,199,124,.55)] hover:-translate-y-px hover:bg-[var(--rv-green-deep)] hover:shadow-[0_16px_34px_-14px_rgba(22,199,124,.62)]",
+          "bg-[var(--rv-green)] text-[#0C1A16] font-bold shadow-[0_10px_26px_-14px_rgba(0,224,189,.55)] hover:-translate-y-px hover:bg-[var(--rv-green-hover)] hover:shadow-[0_16px_34px_-14px_rgba(0,224,189,.62)]",
         // Solid Revetly blue — secondary brand action (e.g. sign in vs. sign up).
         blue:
           "bg-[var(--rv-cyan)] text-[#0C1A16] font-bold shadow-[0_10px_26px_-14px_rgba(34,193,238,.55)] hover:-translate-y-px hover:bg-[var(--rv-cyan-deep)] hover:shadow-[0_16px_34px_-14px_rgba(34,193,238,.62)]",

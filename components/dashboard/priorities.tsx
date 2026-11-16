@@ -30,7 +30,7 @@ const meta: Record<PriorityKind, { icon: typeof Zap; tone: "green" | "cyan" | "a
 }
 
 const toneChip: Record<"green" | "cyan" | "amber", string> = {
-  green: "bg-[rgba(22,199,124,.16)] text-[#45CB8D]",
+  green: "bg-[rgba(0,224,189,.16)] text-[#33E6CA]",
   cyan: "bg-[rgba(34,193,238,.16)] text-[#5AD1F2]",
   amber: "bg-[rgba(245,158,11,.16)] text-[#FCD34D]",
 }
@@ -46,7 +46,7 @@ export function Priorities({ items }: { items: PriorityItem[] }) {
     <div className="flex h-full flex-col rounded-[24px] bg-[var(--rv-ink)] p-6 text-white">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <ClipboardCheck className="h-4 w-4 text-[#45CB8D]" strokeWidth={2} />
+          <ClipboardCheck className="h-4 w-4 text-[#33E6CA]" strokeWidth={2} />
           <span className="text-[0.82rem] font-semibold text-white">Prioritäten</span>
         </div>
         {items.length > 0 && (
@@ -58,7 +58,7 @@ export function Priorities({ items }: { items: PriorityItem[] }) {
 
       {items.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
-          <CheckCircle2 className="h-9 w-9 text-[#45CB8D]" strokeWidth={1.75} />
+          <CheckCircle2 className="h-9 w-9 text-[#33E6CA]" strokeWidth={1.75} />
           <p className="mt-3 text-sm font-medium text-white">Alles erledigt</p>
           <p className="mt-1 text-xs text-white/50">
             Keine offenen Aufgaben — schön aufgeräumt.

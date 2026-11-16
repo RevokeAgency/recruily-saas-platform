@@ -133,7 +133,7 @@ interface Candidate {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 80) return "text-primary"
+  if (score >= 80) return "text-[var(--rv-green-deep)]"
   if (score >= 60) return "text-amber-500"
   return "text-destructive"
 }
@@ -150,12 +150,12 @@ function combinedScore(c: { match_score: number | null; interview_score: number 
 // German label + badge styling per status (raw enum values read unprofessional).
 function statusMeta(status: Candidate["status"]): { label: string; className: string } {
   switch (status) {
-    case "scored": return { label: "Bewertet", className: "border-[rgba(22,199,124,.4)] text-[var(--rv-green-deep)] bg-[var(--app-green-wash)]" }
+    case "scored": return { label: "Bewertet", className: "border-[rgba(0,224,189,.4)] text-[var(--rv-green-deep)] bg-[var(--app-green-wash)]" }
     case "analyzing": return { label: "Analysiere…", className: "border-border text-muted-foreground" }
     case "queued": return { label: "Wartet auf Kontingent", className: "border-amber-200 text-amber-600 bg-amber-50" }
     case "error": return { label: "Fehler", className: "border-destructive/30 text-destructive" }
     case "new": return { label: "Neu", className: "border-transparent text-[var(--rv-cyan-deep)] bg-[rgba(34,193,238,.12)]" }
-    case "shortlisted": return { label: "Shortlist", className: "border-[rgba(22,199,124,.4)] text-[var(--rv-green-deep)]" }
+    case "shortlisted": return { label: "Shortlist", className: "border-[rgba(0,224,189,.4)] text-[var(--rv-green-deep)]" }
     case "interviewed":
     case "Eingeladen": return { label: "Eingeladen", className: "border-amber-200 text-amber-600 bg-amber-50" }
     case "Eingestellt": return { label: "Eingestellt", className: "border-transparent bg-[image:var(--rv-gradient)] text-[#0C1A16]" }
@@ -184,7 +184,7 @@ function FeedbackPill({ feedback }: { feedback?: { verdict: "interessant" | "abl
     <span
       title={`${feedback.reviewer}: ${good ? "Interessant" : "Ablehnen"}${feedback.comment ? `. ${feedback.comment}` : ""}`}
       className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${
-        good ? "border-[rgba(22,199,124,.4)] bg-[var(--app-green-wash)] text-[var(--rv-green-deep)]" : "border-red-200 bg-red-50 text-red-600"
+        good ? "border-[rgba(0,224,189,.4)] bg-[var(--app-green-wash)] text-[var(--rv-green-deep)]" : "border-red-200 bg-red-50 text-red-600"
       }`}
     >
       <Icon className="h-2.5 w-2.5" />
@@ -841,7 +841,7 @@ export function JobCandidatesTab({ jobId, jobTitle, job, onCandidateHired }: Job
                     if (!fb) return null
                     const good = fb.verdict === "interessant"
                     return (
-                      <div className={`mb-4 rounded-2xl border p-4 ${good ? "border-[rgba(22,199,124,.3)] bg-[var(--app-green-wash)]" : "border-red-200 bg-red-50"}`}>
+                      <div className={`mb-4 rounded-2xl border p-4 ${good ? "border-[rgba(0,224,189,.3)] bg-[var(--app-green-wash)]" : "border-red-200 bg-red-50"}`}>
                         <div className="flex items-center gap-2">
                           {good
                             ? <ThumbsUp className="h-4 w-4 text-[var(--rv-green-deep)]" />

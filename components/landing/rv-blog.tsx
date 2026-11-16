@@ -59,7 +59,7 @@ export function RvBlog() {
           >
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="rounded-full bg-[rgba(22,199,124,.12)] px-3 py-[5px] text-[.71rem] font-bold tracking-[.08em] text-[var(--rv-green-deep)] uppercase">
+                <span className="rounded-full bg-[rgba(0,224,189,.12)] px-3 py-[5px] text-[.71rem] font-bold tracking-[.08em] text-[var(--rv-green-deep)] uppercase">
                   {lead.category}
                 </span>
                 <span className="text-[.78rem] text-[var(--rv-muted)]">{formatBlogDate(lead.publishedAt)}</span>

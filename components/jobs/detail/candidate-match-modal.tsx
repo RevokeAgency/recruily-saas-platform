@@ -199,7 +199,7 @@ function getScoreBgColor(score: number): string {
 }
 
 function getScoreStrokeColor(score: number): string {
-  if (score >= 80) return "#16C77C"
+  if (score >= 80) return "#00E0BD"
   if (score >= 60) return "#f59e0b"
   return "#ef4444"
 }
@@ -252,7 +252,7 @@ function CareerPrognosisBadge({ prognosis }: { prognosis: string }) {
       icon: TrendingUp,
       label: "Aufsteigend",
       description: "Kandidat zeigt starkes Wachstumspotenzial",
-      className: "bg-[var(--app-green-wash)] text-[var(--rv-green-deep)] border-[rgba(22,199,124,.35)]",
+      className: "bg-[var(--app-green-wash)] text-[var(--rv-green-deep)] border-[rgba(0,224,189,.35)]",
     },
     stable: {
       icon: Minus,
@@ -843,7 +843,7 @@ export function CandidateMatchModal({
                         <ul className="space-y-2">
                           {pitchPoints.map((reason, idx) => (
                             <li key={idx} className="flex items-start gap-2 text-sm text-teal-800">
-                              <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                              <span className="text-teal-600 mt-0.5 flex-shrink-0">•</span>
                               {reason}
                             </li>
                           ))}
@@ -856,7 +856,7 @@ export function CandidateMatchModal({
                 /* Free plan — Basic Score only. Full breakdown is a paid feature. */
                 <Card className="border-dashed border-border">
                   <CardContent className="p-5 text-center space-y-2">
-                    <Sparkles className="h-6 w-6 text-[var(--rv-green)] mx-auto" />
+                    <Sparkles className="h-6 w-6 text-[var(--rv-green-deep)] mx-auto" />
                     <h4 className="font-semibold text-sm text-foreground">Vollständige Match Analyse</h4>
                     <p className="text-sm text-muted-foreground">
                       Der detaillierte 9-Kategorien-Breakdown, die Karriere-Prognose und der
@@ -981,7 +981,7 @@ export function CandidateMatchModal({
                       size="sm"
                       onClick={markHired}
                       disabled={markingHired}
-                      className="w-full rounded-full border-[rgba(22,199,124,.4)] text-[var(--rv-green-deep)] hover:bg-[var(--app-green-wash)]"
+                      className="w-full rounded-full border-[rgba(0,224,189,.4)] text-[var(--rv-green-deep)] hover:bg-[var(--app-green-wash)]"
                     >
                       {markingHired
                         ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1070,7 +1070,7 @@ export function CandidateMatchModal({
             !connectDismissed &&
             calendarSetup.encryptionReady &&
             (calendarSetup.google || calendarSetup.microsoft) && (
-              <div className="rounded-xl border border-[rgba(22,199,124,.35)] bg-[var(--app-green-wash)] p-4">
+              <div className="rounded-xl border border-[rgba(0,224,189,.35)] bg-[var(--app-green-wash)] p-4">
                 <p className="text-sm font-medium text-foreground">
                   Kalender verbinden, dann passt der Termin sicher
                 </p>

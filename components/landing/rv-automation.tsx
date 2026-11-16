@@ -75,7 +75,7 @@ export function RvAutomation() {
                   className="rv-feed-item flex items-center gap-3.5 rounded-2xl px-4 py-3.5"
                   style={{ ["--d" as string]: `${0.45 + (FEED.length - 1 - i) * 0.3}s` }}
                 >
-                  <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-[rgba(22,199,124,.12)] text-[var(--rv-green-deep)]">
+                  <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-[rgba(0,224,189,.12)] text-[var(--rv-green-deep)]">
                     <f.icon className="h-[18px] w-[18px]" strokeWidth={2} />
                   </span>
                   <span className="min-w-0 flex-1">

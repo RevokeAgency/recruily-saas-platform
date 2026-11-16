@@ -62,7 +62,7 @@ export function BlogFooter() {
           </p>
           <Link
             href={waitlist ? "/" : "/auth/register"}
-            className="rv-btn rv-btn-shine mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--rv-green)] px-6 py-3.5 text-sm font-bold tracking-tight text-[#0C1A16] shadow-[0_10px_26px_-14px_rgba(22,199,124,.55)] transition-[transform,background-color,box-shadow] duration-200 hover:-translate-y-px hover:bg-[var(--rv-green-deep)]"
+            className="rv-btn rv-btn-shine mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-[var(--rv-green)] px-6 py-3.5 text-sm font-bold tracking-tight text-[#0C1A16] shadow-[0_10px_26px_-14px_rgba(0,224,189,.55)] transition-[transform,background-color,box-shadow] duration-200 hover:-translate-y-px hover:bg-[var(--rv-green-hover)]"
           >
             {waitlist ? "Auf die Warteliste" : "Kostenlos testen"}
             <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.4} />

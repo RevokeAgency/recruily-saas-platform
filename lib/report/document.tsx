@@ -35,9 +35,11 @@ const C = {
   faint: "#8A9E98",
   line: "#E3ECE8",
   mist: "#F4F8F6",
-  green: "#16C77C",
-  greenDeep: "#0E9F63",
-  greenWash: "#E7F8F0",
+  green: "#00E0BD",
+  greenDeep: "#007F6B",
+  greenWash: "#E6FCF8",
+  /** Grün der Verläufe, bewusst noch der alte Ton. */
+  gradientGreen: "#16C77C",
   cyan: "#22C1EE",
   red: "#C0362C",
   redWash: "#FDEEEC",
@@ -115,7 +117,7 @@ function GradientRule({ width = 507, height = 1.6 }: { width?: number; height?: 
     <Svg width={width} height={height}>
       <Defs>
         <LinearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor={C.green} />
+          <Stop offset="0" stopColor={C.gradientGreen} />
           <Stop offset="1" stopColor={C.cyan} />
         </LinearGradient>
       </Defs>
@@ -163,7 +165,7 @@ function Bar({ value, width = 120 }: { value: number | null; width?: number }) {
     <Svg width={width} height={6}>
       <Defs>
         <LinearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor={C.green} />
+          <Stop offset="0" stopColor={C.gradientGreen} />
           <Stop offset="1" stopColor={C.cyan} />
         </LinearGradient>
       </Defs>
@@ -246,7 +248,7 @@ function Avatar({ c, size = 58 }: { c: ReportCandidate; size?: number }) {
       <Svg width={size} height={size}>
         <Defs>
           <LinearGradient id="av" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={C.green} />
+            <Stop offset="0" stopColor={C.gradientGreen} />
             <Stop offset="1" stopColor={C.cyan} />
           </LinearGradient>
         </Defs>

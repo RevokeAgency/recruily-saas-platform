@@ -26,8 +26,10 @@ export const MAIL = {
   line: "#E3ECE8",
   mist: "#F4F8F6",
   page: "#EEF4F1",
-  green: "#16C77C",
-  greenDeep: "#0E9F63",
+  green: "#00E0BD",
+  greenDeep: "#007F6B",
+  /** Grün der Verläufe und Rückfallfarbe, wenn ein Mailprogramm keine Verläufe kann. */
+  gradientGreen: "#16C77C",
   cyan: "#22C1EE",
   gradient: "linear-gradient(90deg,#16C77C 0%,#22C1EE 100%)",
   font: "'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif",
@@ -104,7 +106,7 @@ ${preheader}
         <tr>
           <td style="background:#FFFFFF;border:1px solid ${MAIL.line};border-radius:24px;overflow:hidden;box-shadow:0 1px 2px rgba(12,26,22,.05),0 18px 40px -22px rgba(12,26,22,.28);">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr><td height="5" style="height:5px;line-height:5px;font-size:0;background:${MAIL.green};background-image:${MAIL.gradient};">&nbsp;</td></tr>
+              <tr><td height="5" style="height:5px;line-height:5px;font-size:0;background:${MAIL.gradientGreen};background-image:${MAIL.gradient};">&nbsp;</td></tr>
               <tr>
                 <td class="rv-card" style="padding:38px 40px 36px;font-family:${MAIL.font};font-size:15px;line-height:1.65;color:${MAIL.text};">
                   ${bodyHtml}
@@ -151,9 +153,9 @@ export function paragraph(html: string, opts: { muted?: boolean; small?: boolean
  */
 export function button(href: string, label: string, opts: { variant?: "primary" | "dark" } = {}): string {
   const dark = opts.variant === "dark"
-  const bg = dark ? `background:${MAIL.ink};` : `background:${MAIL.green};background-image:${MAIL.gradient};`
+  const bg = dark ? `background:${MAIL.ink};` : `background:${MAIL.gradientGreen};background-image:${MAIL.gradient};`
   const color = dark ? "#FFFFFF" : MAIL.ink
-  const glow = dark ? "0 10px 22px -12px rgba(12,26,22,.55)" : "0 10px 24px -12px rgba(22,199,124,.8)"
+  const glow = dark ? "0 10px 22px -12px rgba(12,26,22,.55)" : "0 10px 24px -12px rgba(0,224,189,.8)"
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 8px;">
   <tr>
     <td style="border-radius:999px;${bg}box-shadow:${glow};">
@@ -191,5 +193,5 @@ export function avatar(name: string, size = 44): string {
       .slice(0, 2)
       .map((p) => p[0]?.toUpperCase() ?? "")
       .join("") || "?"
-  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" valign="middle" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${size}px;background:${MAIL.green};background-image:linear-gradient(135deg,#16C77C 0%,#22C1EE 100%);font-family:${MAIL.font};font-size:${Math.round(size * 0.36)}px;font-weight:800;color:${MAIL.ink};">${escapeHtml(initials)}</td></tr></table>`
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" valign="middle" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${size}px;background:${MAIL.gradientGreen};background-image:linear-gradient(135deg,#16C77C 0%,#22C1EE 100%);font-family:${MAIL.font};font-size:${Math.round(size * 0.36)}px;font-weight:800;color:${MAIL.ink};">${escapeHtml(initials)}</td></tr></table>`
 }

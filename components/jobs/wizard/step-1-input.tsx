@@ -33,7 +33,7 @@ const inputMethods = [
     description: "Von LinkedIn, Indeed, Karriere.at, etc.",
     icon: LinkIcon,
     bgColor: "bg-primary/5",
-    iconColor: "text-primary",
+    iconColor: "text-[var(--rv-green-deep)]",
     borderColor: "border-primary",
   },
   {
@@ -140,7 +140,7 @@ export function JobWizardStep1({
           <CardContent className="pt-6">
             {isProcessing ? (
               <div className="flex flex-col items-center justify-center py-8">
-                <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+                <Loader2 className="h-10 w-10 text-[var(--rv-green-deep)] animate-spin mb-4" />
                 <p className="text-sm font-medium text-foreground">
                   Analysiere Stellenausschreibung mit AI...
                 </p>

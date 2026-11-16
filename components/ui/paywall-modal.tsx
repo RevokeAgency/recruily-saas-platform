@@ -62,13 +62,13 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
                 onClick={() => setInterval(i)}
                 className={`text-sm font-medium px-4 py-1.5 rounded-full transition-colors ${
                   interval === i
-                    ? 'bg-[var(--rv-green)] text-white'
+                    ? 'bg-[var(--rv-green)] text-[#0C1A16]'
                     : 'text-white/50 hover:text-white'
                 }`}
               >
                 {i === 'monthly' ? 'Monatlich' : 'Jährlich'}
                 {i === 'yearly' && (
-                  <span className="ml-1.5 bg-green-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="ml-1.5 bg-[var(--rv-green)] text-[#0C1A16] text-xs font-bold px-1.5 py-0.5 rounded-full">
                     2 Mo. gratis
                   </span>
                 )}
@@ -96,7 +96,7 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
               >
                 {plan.featured && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                    <span className="bg-[var(--rv-green)] text-white text-xs font-bold px-3 py-1 rounded-full">
+                    <span className="bg-[var(--rv-green)] text-[#0C1A16] text-xs font-bold px-3 py-1 rounded-full">
                       Beliebteste Wahl
                     </span>
                   </div>
@@ -110,11 +110,11 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
                   <span className="text-muted-foreground text-sm mb-0.5">/Mo</span>
                 </div>
                 {interval === 'yearly' && (
-                  <p className="text-xs text-green-600 font-medium mt-0.5">
+                  <p className="text-xs text-[var(--rv-green-deep)] font-medium mt-0.5">
                     €{plan.price_yearly}/Jahr — 2 Mo. gratis
                   </p>
                 )}
-                <p className="text-[var(--rv-green)] font-semibold text-sm mt-2">
+                <p className="text-[var(--rv-green-deep)] font-semibold text-sm mt-2">
                   {plan.matches_label}
                 </p>
                 <p className="text-muted-foreground text-xs mt-0.5 mb-3">
@@ -127,7 +127,7 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
                       key={f}
                       className="flex items-start gap-2 text-xs text-muted-foreground"
                     >
-                      <Check className="w-3.5 h-3.5 text-[var(--rv-green)] flex-shrink-0 mt-0.5" />
+                      <Check className="w-3.5 h-3.5 text-[var(--rv-green-deep)] flex-shrink-0 mt-0.5" />
                       {f}
                     </li>
                   ))}
@@ -139,7 +139,7 @@ export function PaywallModal({ isOpen, onClose, matchesUsed }: Props) {
                   disabled={busyPlan !== null}
                   className={`w-full py-2.5 rounded-full text-sm font-semibold text-center transition-colors flex items-center justify-center gap-2 disabled:opacity-60 ${
                     plan.featured
-                      ? 'bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)] text-white'
+                      ? 'bg-[var(--rv-green)] hover:bg-[var(--rv-green-hover)] text-[#0C1A16]'
                       : 'bg-[var(--rv-ink)] hover:bg-[#1a2b26] text-white'
                   }`}
                 >

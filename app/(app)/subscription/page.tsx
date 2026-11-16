@@ -388,7 +388,7 @@ export default function SubscriptionPage() {
                 plan.featured
                   ? "border-[var(--rv-green)] shadow-card"
                   : isCurrentPlan
-                  ? "border-[rgba(22,199,124,.5)]"
+                  ? "border-[rgba(0,224,189,.5)]"
                   : "border-border"
               )}
             >
@@ -402,7 +402,7 @@ export default function SubscriptionPage() {
               
               {isCurrentPlan && !plan.featured && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge variant="outline" className="border-[var(--rv-green)] text-[var(--rv-green)] bg-white">
+                  <Badge variant="outline" className="border-[var(--rv-green)] text-[var(--rv-green-deep)] bg-white">
                     Dein aktueller Plan
                   </Badge>
                 </div>
@@ -418,7 +418,7 @@ export default function SubscriptionPage() {
                   <Icon
                     className={cn(
                       "h-6 w-6",
-                      plan.featured ? "text-[var(--rv-green)]" : "text-muted-foreground"
+                      plan.featured ? "text-[var(--rv-green-deep)]" : "text-muted-foreground"
                     )}
                   />
                 </div>
@@ -446,7 +446,7 @@ export default function SubscriptionPage() {
 
                 {/* Match info */}
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-[var(--rv-green)]">
+                  <p className="text-sm font-semibold text-[var(--rv-green-deep)]">
                     {plan.matches_label}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -458,7 +458,7 @@ export default function SubscriptionPage() {
                 <ul className="space-y-2">
                   {plan.features.slice(2, 7).map((feature) => (
                     <li key={feature} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-[var(--rv-green)] flex-shrink-0 mt-0.5" />
+                      <Check className="h-4 w-4 text-[var(--rv-green-deep)] flex-shrink-0 mt-0.5" />
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -466,7 +466,7 @@ export default function SubscriptionPage() {
 
                 {/* CTA */}
                 <Button
-                  className={cn("w-full h-10 rounded-full", isCurrentExact && "border-[var(--rv-green)] text-[var(--rv-green)]")}
+                  className={cn("w-full h-10 rounded-full", isCurrentExact && "border-[var(--rv-green)] text-[var(--rv-green-deep)]")}
                   variant={isCurrentExact ? "outline" : plan.featured ? "default" : "outline"}
                   disabled={isCurrentExact || planId === "free" || busyPlan !== null}
                   onClick={() =>

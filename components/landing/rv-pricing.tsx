@@ -266,7 +266,7 @@ export function RvPricing() {
           </div>
           <span className="inline-flex items-center gap-1.5 text-[.8rem] font-bold text-[var(--rv-green-deep)]">
             <Check className="h-3.5 w-3.5" strokeWidth={2.6} />
-            <span className="rounded-full bg-[rgba(22,199,124,.12)] px-[11px] py-1">2 Monate gratis pro Jahr</span>
+            <span className="rounded-full bg-[rgba(0,224,189,.12)] px-[11px] py-1">2 Monate gratis pro Jahr</span>
           </span>
         </div>
 
@@ -366,7 +366,7 @@ export function RvPricing() {
                             {row.values.map((v, ci) => (
                               <td
                                 key={ci}
-                                className={`border-b border-[rgba(12,26,22,.10)] px-3.5 py-[13px] text-center text-[.84rem] ${ci === 2 ? "bg-[rgba(22,199,124,.05)]" : ""}`}
+                                className={`border-b border-[rgba(12,26,22,.10)] px-3.5 py-[13px] text-center text-[.84rem] ${ci === 2 ? "bg-[rgba(0,224,189,.05)]" : ""}`}
                               >
                                 {v === true ? (
                                   <Check className="mx-auto h-[17px] w-[17px] text-[var(--rv-green-deep)]" strokeWidth={2.6} />

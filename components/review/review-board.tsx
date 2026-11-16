@@ -74,7 +74,7 @@ export function ReviewBoard({ token, data }: { token: string; data: OkData }) {
       </section>
 
       {allDone && (
-        <div className="mt-5 flex items-start gap-3 rounded-[var(--rv-radius-lg)] border border-[rgba(22,199,124,.3)] bg-[var(--app-green-wash)] px-5 py-4">
+        <div className="mt-5 flex items-start gap-3 rounded-[var(--rv-radius-lg)] border border-[rgba(0,224,189,.3)] bg-[var(--app-green-wash)] px-5 py-4">
           <CheckCircle2 className="mt-0.5 h-5 w-5 flex-none text-[var(--rv-green-deep)]" />
           <div className="text-sm">
             <p className="font-semibold text-foreground">Danke, deine Rückmeldung ist angekommen.</p>
@@ -210,7 +210,7 @@ function CandidateCard({
           href={`/api/public/review/${token}/cv/${c.itemId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--app-line)] bg-white px-4 py-2 text-sm font-medium text-foreground transition-all hover:-translate-y-px hover:border-[var(--rv-green)] hover:shadow-[0_8px_20px_-14px_rgba(22,199,124,.6)]"
+          className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--app-line)] bg-white px-4 py-2 text-sm font-medium text-foreground transition-all hover:-translate-y-px hover:border-[var(--rv-green)] hover:shadow-[0_8px_20px_-14px_rgba(0,224,189,.6)]"
         >
           <FileText className="h-4 w-4" /> Lebenslauf ansehen
         </a>
@@ -257,7 +257,7 @@ function CandidateCard({
                 type="button"
                 onClick={() => submit("interessant")}
                 disabled={saving !== null}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[image:var(--rv-gradient)] px-4 py-3 text-sm font-bold text-[#0C1A16] shadow-[0_10px_24px_-14px_rgba(22,199,124,.8)] transition-transform duration-150 ease-out active:scale-[0.97] disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[image:var(--rv-gradient)] px-4 py-3 text-sm font-bold text-[#0C1A16] shadow-[0_10px_24px_-14px_rgba(0,224,189,.8)] transition-transform duration-150 ease-out active:scale-[0.97] disabled:opacity-60"
               >
                 {saving === "interessant" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ThumbsUp className="h-4 w-4" />}
                 Interessant

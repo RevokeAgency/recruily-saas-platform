@@ -143,7 +143,7 @@ export function JobWizardStep3({ formData, updateFormData, onBack }: Step3Props)
         <CardHeader>
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Briefcase className="h-6 w-6 text-primary" />
+              <Briefcase className="h-6 w-6 text-[var(--rv-green-deep)]" />
             </div>
             <div className="flex-1">
               <CardTitle className="text-xl">{formData.title}</CardTitle>

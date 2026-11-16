@@ -107,8 +107,8 @@ export function RejectionModal({
           {sent ? (
             /* Success state */
             <div className="text-center py-6">
-              <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
-                <Send className="w-6 h-6 text-green-500" />
+              <div className="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-3">
+                <Send className="w-6 h-6 text-teal-600" />
               </div>
               <p className="font-semibold text-foreground">
                 {emailed ? 'Absage wurde gesendet' : 'Kandidat wurde abgesagt'}
@@ -179,7 +179,7 @@ export function RejectionModal({
               <button
                 onClick={handleConfirm}
                 disabled={sending}
-                className="mt-4 w-full flex items-center justify-center gap-2 bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)] disabled:opacity-60 text-white font-semibold py-3 rounded-full transition-colors"
+                className="mt-4 w-full flex items-center justify-center gap-2 bg-[var(--rv-green)] hover:bg-[var(--rv-green-hover)] disabled:opacity-60 text-[#0C1A16] font-semibold py-3 rounded-full transition-colors"
               >
                 <Send className="w-4 h-4" />
                 {sending

@@ -148,7 +148,7 @@ export function FeedbackDialog({
                   <Star
                     className={`h-7 w-7 transition-colors ${
                       activeRating !== null && value <= activeRating
-                        ? "fill-[var(--rv-green)] text-[var(--rv-green)]"
+                        ? "fill-[var(--rv-green-deep)] text-[var(--rv-green-deep)]"
                         : "text-muted-foreground/35"
                     }`}
                     strokeWidth={1.8}

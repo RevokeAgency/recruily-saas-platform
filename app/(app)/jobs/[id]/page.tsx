@@ -82,7 +82,7 @@ export default function JobDetailPage() {
     return (
       <div className="p-6 lg:p-8 flex items-center justify-center min-h-[50vh]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+          <Loader2 className="h-8 w-8 text-[var(--rv-green-deep)] animate-spin" />
           <p className="text-muted-foreground">Laden...</p>
         </div>
       </div>

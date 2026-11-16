@@ -52,7 +52,7 @@ export function RecentActivity({ jobs, className }: { jobs: RecentJob[]; classNa
                     <Briefcase className="h-[18px] w-[18px] text-[var(--rv-green-deep)]" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                    <p className="font-medium text-foreground truncate group-hover:text-[var(--rv-green-deep)] transition-colors">
                       {job.title}
                     </p>
                     <p className="text-sm text-muted-foreground truncate">

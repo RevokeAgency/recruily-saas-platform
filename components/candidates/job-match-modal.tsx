@@ -221,7 +221,7 @@ export function JobMatchModal({
                           selectedJob?.id === job.id ? "bg-[var(--app-green-wash)]" : "bg-muted"
                         }`}>
                           <Briefcase className={`h-5 w-5 ${
-                            selectedJob?.id === job.id ? "text-primary" : "text-muted-foreground"
+                            selectedJob?.id === job.id ? "text-[var(--rv-green-deep)]" : "text-muted-foreground"
                           }`} />
                         </div>
                         <div className="flex-1 min-w-0">

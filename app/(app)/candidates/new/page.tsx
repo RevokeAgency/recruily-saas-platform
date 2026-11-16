@@ -48,7 +48,7 @@ interface CandidateData {
 const experienceLevelConfig = {
   junior: { label: "Junior", color: "bg-blue-100 text-blue-700", years: "0-2 Jahre" },
   mid: { label: "Mid-Level", color: "bg-amber-100 text-amber-700", years: "3-5 Jahre" },
-  senior: { label: "Senior", color: "bg-emerald-100 text-emerald-700", years: "6+ Jahre" },
+  senior: { label: "Senior", color: "bg-teal-100 text-teal-700", years: "6+ Jahre" },
 }
 
 function NewCandidateContent() {
@@ -365,7 +365,7 @@ function UploadSection({
                 <div className="w-20 h-20 rounded-full bg-teal-50 flex items-center justify-center">
                   <Loader2 className="h-10 w-10 text-teal-600 animate-spin" />
                 </div>
-                <Sparkles className="absolute -top-1 -right-1 h-6 w-6 text-teal-500" />
+                <Sparkles className="absolute -top-1 -right-1 h-6 w-6 text-teal-600" />
               </div>
               <p className="text-lg font-semibold text-slate-900 mt-6">
                 KI analysiert CV...
@@ -503,7 +503,7 @@ function PreviewSection({
       <Card className="rounded-2xl overflow-hidden">
         <CardContent className="p-0">
           {/* Header with gradient */}
-          <div className="bg-gradient-to-r from-teal-500 to-teal-600 px-8 py-10">
+          <div className="bg-gradient-to-r from-[#16C77C] to-[#0E9F62] px-8 py-10">
             <div className="flex items-center gap-6">
               {/* Avatar */}
               <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center shadow-lg">
@@ -624,7 +624,7 @@ function PreviewSection({
                     {skill}
                     <button
                       onClick={() => onRemoveSkill(skill)}
-                      className="text-teal-400 hover:text-teal-600 transition-colors"
+                      className="text-teal-600 hover:text-teal-700 transition-colors"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>

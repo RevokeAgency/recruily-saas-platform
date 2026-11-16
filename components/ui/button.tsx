@@ -12,9 +12,9 @@ const buttonVariants = cva(
         // Primary: solid Revetly green + ink text. The brand gradient is kept as an
         // opt-in `gradient` variant, reserved for rare signature CTAs.
         default:
-          'bg-[var(--rv-green)] text-[#0C1A16] font-semibold shadow-[0_1px_2px_rgba(12,26,22,.04),0_8px_20px_-10px_rgba(14,159,98,.45)] hover:bg-[var(--rv-green-deep)] hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_10px_24px_-10px_rgba(14,159,98,.55)]',
+          'bg-[var(--rv-green)] text-[#0C1A16] font-semibold shadow-[0_1px_2px_rgba(12,26,22,.04),0_8px_20px_-10px_rgba(0,127,107,.45)] hover:bg-[var(--rv-green-hover)] hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_10px_24px_-10px_rgba(0,127,107,.55)]',
         gradient:
-          'bg-[image:var(--rv-gradient)] text-[#0C1A16] font-semibold shadow-[0_1px_2px_rgba(12,26,22,.04),0_8px_20px_-10px_rgba(14,159,98,.45)] hover:brightness-[1.03] hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_10px_24px_-10px_rgba(14,159,98,.55)]',
+          'bg-[image:var(--rv-gradient)] text-[#0C1A16] font-semibold shadow-[0_1px_2px_rgba(12,26,22,.04),0_8px_20px_-10px_rgba(0,127,107,.45)] hover:brightness-[1.03] hover:shadow-[0_1px_2px_rgba(12,26,22,.04),0_10px_24px_-10px_rgba(0,127,107,.55)]',
         destructive:
           'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
         outline:
@@ -23,7 +23,7 @@ const buttonVariants = cva(
           'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         ghost:
           'hover:bg-[var(--app-green-wash)] hover:text-foreground dark:hover:bg-accent/50',
-        link: 'text-primary underline-offset-4 hover:underline',
+        link: 'text-[var(--rv-green-deep)] underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-10 px-4 py-2 has-[>svg]:px-3',

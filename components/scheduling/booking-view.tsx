@@ -406,7 +406,7 @@ export function BookingView({ token }: { token: string }) {
                         key={slot.start}
                         type="button"
                         onClick={() => setSelected(slot)}
-                        className="rounded-full border border-[var(--app-line)] bg-white px-4 py-2 text-sm font-medium text-foreground transition-all hover:-translate-y-px hover:border-[var(--rv-green)] hover:shadow-[0_8px_20px_-14px_rgba(22,199,124,.6)]"
+                        className="rounded-full border border-[var(--app-line)] bg-white px-4 py-2 text-sm font-medium text-foreground transition-all hover:-translate-y-px hover:border-[var(--rv-green)] hover:shadow-[0_8px_20px_-14px_rgba(0,224,189,.6)]"
                       >
                         {timeLabel(slot.start, ctx.timezone)}
                       </button>

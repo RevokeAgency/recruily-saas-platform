@@ -179,7 +179,7 @@ export function AppSidebar() {
           <div className="rounded-[10px] bg-[var(--rv-mist)] p-3 space-y-2">
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Sparkles className="h-3.5 w-3.5 text-[var(--rv-green)]" strokeWidth={1.75} />
+                <Sparkles className="h-3.5 w-3.5 text-[var(--rv-green-deep)]" strokeWidth={1.75} />
                 <span className="font-medium">KI-Matches</span>
               </div>
               <span className="font-semibold text-foreground tabular-nums">

@@ -81,7 +81,7 @@ const mockProfile = {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 80) return "text-success"
+  if (score >= 80) return "text-[var(--rv-green-deep)]"
   if (score >= 60) return "text-warning-foreground"
   return "text-destructive"
 }

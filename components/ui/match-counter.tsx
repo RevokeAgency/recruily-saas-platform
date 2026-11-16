@@ -25,7 +25,7 @@ export function MatchCounter() {
     <div className="mx-3 mb-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
-          <Zap className="w-3.5 h-3.5 text-[var(--rv-green)]" />
+          <Zap className="w-3.5 h-3.5 text-[var(--rv-green-deep)]" />
           <span className="text-xs font-semibold text-slate-600">
             {planLabel} Plan
           </span>
@@ -33,7 +33,7 @@ export function MatchCounter() {
         <span className={`text-xs font-bold ${
           isEmpty ? 'text-red-500'
           : isLow ? 'text-amber-500'
-          : 'text-[var(--rv-green)]'
+          : 'text-[var(--rv-green-deep)]'
         }`}>
           {remaining} übrig
         </span>
@@ -53,10 +53,10 @@ export function MatchCounter() {
       {(isEmpty || isLow) && (
         <a 
           href="/subscription"
-          className={`mt-2.5 flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg text-xs font-semibold text-white transition-colors ${
+          className={`mt-2.5 flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg text-xs font-semibold transition-colors ${
             isEmpty
-              ? 'bg-red-500 hover:bg-red-600'
-              : 'bg-[var(--rv-green)] hover:bg-[var(--rv-green-deep)]'
+              ? 'bg-red-500 hover:bg-red-600 text-white'
+              : 'bg-[var(--rv-green)] hover:bg-[var(--rv-green-hover)] text-[#0C1A16]'
           }`}
         >
           <Zap className="w-3 h-3" />

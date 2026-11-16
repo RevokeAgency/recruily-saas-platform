@@ -190,7 +190,7 @@ export function RvProblem() {
                     </div>
                     <div className="flex flex-col gap-1.5">
                       {RANKING.map((r) => (
-                        <div key={r.rank} className={`flex items-center gap-2.5 rounded-xl px-2 py-1.5 ${r.top ? "bg-[rgba(22,199,124,.10)]" : ""}`}>
+                        <div key={r.rank} className={`flex items-center gap-2.5 rounded-xl px-2 py-1.5 ${r.top ? "bg-[rgba(0,224,189,.10)]" : ""}`}>
                           <span className="w-3 flex-none text-[.68rem] font-extrabold text-[var(--rv-muted)] tabular-nums">{r.rank}</span>
                           <span className={`h-6 w-6 flex-none rounded-full ${r.top ? "bg-[image:var(--rv-gradient)]" : "bg-[rgba(12,26,22,.10)]"}`} />
                           <span className="flex min-w-0 flex-1 flex-col gap-1">

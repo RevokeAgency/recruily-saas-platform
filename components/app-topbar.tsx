@@ -175,7 +175,7 @@ export function AppTopbar({ preview }: { preview?: { user: UserProfile; pathname
               )}
               title={user.plan === "free" ? "KI-Matches der Probestelle, einmalig" : "KI-Matches diesen Monat"}
             >
-              <Sparkles className="h-4 w-4 text-[var(--rv-green)]" strokeWidth={2} />
+              <Sparkles className="h-4 w-4 text-[var(--rv-green-deep)]" strokeWidth={2} />
               {user.matches_used}/{user.matches_limit}
             </Link>
           )}

@@ -91,7 +91,7 @@ export default function BlogIndexPage() {
                 className="rounded-[var(--rv-radius-lg)] border border-[rgba(12,26,22,.10)] bg-white p-[26px_28px] transition-shadow duration-300 hover:shadow-[var(--rv-shadow)]"
               >
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <span className="rounded-full bg-[rgba(22,199,124,.12)] px-3 py-[5px] text-[.71rem] font-bold tracking-[.08em] text-[var(--rv-green-deep)] uppercase">
+                  <span className="rounded-full bg-[rgba(0,224,189,.12)] px-3 py-[5px] text-[.71rem] font-bold tracking-[.08em] text-[var(--rv-green-deep)] uppercase">
                     {post.category}
                   </span>
                   <span className="text-[.79rem] text-[var(--rv-muted)]">{formatBlogDate(post.publishedAt)}</span>

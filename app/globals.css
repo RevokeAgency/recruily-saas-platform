@@ -9,31 +9,40 @@
    rebrands every one of those ~150 call sites to Revetly green without
    touching each component individually. */
 @theme {
-  --color-teal-50: #EAFBF3;
-  --color-teal-100: #D3F5E4;
-  --color-teal-200: #A9EBCB;
-  --color-teal-300: #7EDDB0;
-  --color-teal-400: #45CB8D;
-  --color-teal-500: #16C77C;
-  --color-teal-600: #0E9F62;
-  --color-teal-700: #0C7F50;
-  --color-teal-800: #0A6440;
-  --color-teal-900: #084F34;
+  /* Rund um die Hauptfarbe #00E0BD (Stand 16.11.2026). 500 ist die Fläche,
+     ab 600 lesbar als Text auf Weiß (600: 4,9:1). */
+  --color-teal-50: #E6FCF8;
+  --color-teal-100: #CCF9F2;
+  --color-teal-200: #99F3E5;
+  --color-teal-300: #66ECD7;
+  --color-teal-400: #33E6CA;
+  --color-teal-500: #00E0BD;
+  --color-teal-600: #007F6B;
+  --color-teal-700: #00695A;
+  --color-teal-800: #005349;
+  --color-teal-900: #003E37;
 }
 
 :root {
   /* Revetly Design System — cyan/green brand, applies to landing, auth and dashboard */
   /* Brand ramp (source of truth: reference/revetly-landing/index.html) */
   --rv-cyan: #22C1EE;
-  --rv-green: #16C77C;
+  /* Hauptfarbe seit 16.11.2026. --rv-green für Flächen, Knöpfe, Punkte und
+     auf dunklem Grund; --rv-green-deep für Text, Links und Icons auf Hell
+     (#00E0BD hat auf Weiß nur 1,7:1, #007F6B hat 4,9:1). */
+  --rv-green: #00E0BD;
   --rv-cyan-deep: #0E96C4;
-  --rv-green-deep: #0E9F62;
+  --rv-green-deep: #007F6B;
+  /* Grün der Farbverläufe, bewusst noch der alte Ton. */
+  /* Hover für Flächen mit dunkler Schrift: etwas dunkler, Schrift bleibt lesbar. */
+  --rv-green-hover: #00C7A8;
+  --rv-gradient-green: #16C77C;
   --rv-ink: #0C1A16;
   --rv-ink-soft: #2C3D38;
   --rv-muted: #506A63;
   --rv-mist: #F1F6F4;
   --rv-mist-2: #E7F0EC;
-  --rv-gradient: linear-gradient(130deg, var(--rv-cyan) 0%, var(--rv-green) 100%);
+  --rv-gradient: linear-gradient(130deg, var(--rv-cyan) 0%, var(--rv-gradient-green) 100%);
   /* Landing/marketing-only radii — never applied to app-wide --radius (dashboard stays subtle) */
   --rv-radius: 20px;
   --rv-radius-lg: 30px;
@@ -94,7 +103,7 @@
   --sidebar-ring: var(--rv-green);
   /* Status colors */
   --success: var(--rv-green);
-  --success-foreground: #FFFFFF;
+  --success-foreground: var(--rv-ink);
   --warning: #F59E0B;
   --warning-foreground: #FFFFFF;
 
@@ -108,8 +117,8 @@
   --app-radius-pill: 999px;
   --app-line: rgba(12, 26, 22, 0.08);
   --app-shadow-card: 0 1px 2px rgba(12, 26, 22, 0.04), 0 8px 24px -12px rgba(12, 26, 22, 0.08);
-  --app-focus-ring: 0 0 0 3px rgba(22, 199, 124, 0.25);
-  --app-green-wash: rgba(22, 199, 124, 0.10);
+  --app-focus-ring: 0 0 0 3px rgba(0, 224, 189, 0.30);
+  --app-green-wash: rgba(0, 224, 189, 0.12);
 }
 
 /* Hide scrollbars on horizontally scrolling pill rows (topbar nav). */
@@ -537,7 +546,7 @@ html { scroll-behavior: smooth; }
    ───────────────────────────────────────────── */
 
 .rv-gradient-text {
-  background: linear-gradient(130deg, var(--rv-cyan) 0%, var(--rv-green) 35%, var(--rv-cyan) 70%, var(--rv-green) 100%);
+  background: linear-gradient(130deg, var(--rv-cyan) 0%, var(--rv-gradient-green) 35%, var(--rv-cyan) 70%, var(--rv-gradient-green) 100%);
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -566,9 +575,9 @@ html { scroll-behavior: smooth; }
 .rv-patternbg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
 .rv-patternbg::before { content: ""; position: absolute; inset: -20%; }
 .rv-patternbg[data-pattern="dots"]::before { background-image: radial-gradient(rgba(14,150,196,.22) 1.5px, transparent 1.7px); background-size: 24px 24px; -webkit-mask: radial-gradient(130% 80% at 50% -10%, #000, transparent 72%); mask: radial-gradient(130% 80% at 50% -10%, #000, transparent 72%); }
-.rv-patternbg[data-pattern="grid"]::before { background-image: linear-gradient(rgba(14,159,98,.13) 1px, transparent 1px), linear-gradient(90deg, rgba(14,159,98,.13) 1px, transparent 1px); background-size: 48px 48px; -webkit-mask: radial-gradient(120% 95% at 100% 0%, #000, transparent 72%); mask: radial-gradient(120% 95% at 100% 0%, #000, transparent 72%); }
+.rv-patternbg[data-pattern="grid"]::before { background-image: linear-gradient(rgba(0,127,107,.13) 1px, transparent 1px), linear-gradient(90deg, rgba(0,127,107,.13) 1px, transparent 1px); background-size: 48px 48px; -webkit-mask: radial-gradient(120% 95% at 100% 0%, #000, transparent 72%); mask: radial-gradient(120% 95% at 100% 0%, #000, transparent 72%); }
 .rv-patternbg[data-pattern="diagonal"]::before { background-image: repeating-linear-gradient(45deg, rgba(34,193,238,.11) 0 1.5px, transparent 1.5px 17px); -webkit-mask: radial-gradient(120% 95% at 0% 100%, #000, transparent 72%); mask: radial-gradient(120% 95% at 0% 100%, #000, transparent 72%); }
-.rv-patternbg[data-pattern="rings"]::before { background-image: repeating-radial-gradient(circle at 84% 22%, rgba(22,199,124,.16) 0 1.5px, transparent 1.5px 48px); -webkit-mask: linear-gradient(180deg, #000, transparent 92%); mask: linear-gradient(180deg, #000, transparent 92%); }
+.rv-patternbg[data-pattern="rings"]::before { background-image: repeating-radial-gradient(circle at 84% 22%, rgba(0,224,189,.18) 0 1.5px, transparent 1.5px 48px); -webkit-mask: linear-gradient(180deg, #000, transparent 92%); mask: linear-gradient(180deg, #000, transparent 92%); }
 .rv-patternbg[data-pattern="cross"]::before { background-image: linear-gradient(rgba(14,150,196,.16) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(14,150,196,.16) 1.5px, transparent 1.5px); background-size: 38px 38px; background-position: center; -webkit-mask: radial-gradient(120% 85% at 50% 0%, #000 38%, transparent 78%); mask: radial-gradient(120% 85% at 50% 0%, #000 38%, transparent 78%); }
 .rv-patternbg[data-pattern="mesh"]::before, .rv-patternbg[data-pattern="mesh"]::after { content: ""; position: absolute; border-radius: 50%; filter: blur(80px); will-change: transform; }
 .rv-patternbg[data-pattern="mesh"]::before { inset: auto; width: 48%; height: 75%; left: -8%; top: -22%; background: radial-gradient(circle, rgba(34,193,238,.42), transparent 65%); animation: rv-meshA 24s cubic-bezier(0.16,1,0.3,1) infinite alternate; }
@@ -677,7 +686,7 @@ html { scroll-behavior: smooth; }
   transition: transform .42s cubic-bezier(0.16,1,0.3,1), opacity .42s cubic-bezier(0.16,1,0.3,1), filter .38s cubic-bezier(0.16,1,0.3,1), box-shadow .42s cubic-bezier(0.16,1,0.3,1);
   will-change: transform, opacity;
 }
-.rv-tc-card[data-state="active"] { transform: translateX(0) translateY(0) scale(1) rotate(0deg); opacity: 1; z-index: 5; filter: none; box-shadow: 0 32px 80px -30px rgba(12,26,22,.28), 0 0 0 1px rgba(12,26,22,.10), 0 0 0 4px rgba(22,199,124,.12); }
+.rv-tc-card[data-state="active"] { transform: translateX(0) translateY(0) scale(1) rotate(0deg); opacity: 1; z-index: 5; filter: none; box-shadow: 0 32px 80px -30px rgba(12,26,22,.28), 0 0 0 1px rgba(12,26,22,.10), 0 0 0 4px rgba(0,224,189,.16); }
 .rv-tc-card[data-state="behind1"] { transform: translateX(16px) translateY(16px) scale(.963) rotate(1.2deg); opacity: .52; z-index: 4; filter: blur(.4px); pointer-events: none; }
 .rv-tc-card[data-state="behind2"] { transform: translateX(30px) translateY(30px) scale(.927) rotate(2.4deg); opacity: .26; z-index: 3; filter: blur(.9px); pointer-events: none; }
 .rv-tc-card[data-state="exit"] { transform: translateX(-112%) translateY(-8px) scale(.88) rotate(-5deg); opacity: 0; z-index: 6; pointer-events: none; }
@@ -711,7 +720,7 @@ html { scroll-behavior: smooth; }
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(230px circle at var(--sx, 50%) var(--sy, 50%), rgba(22, 199, 124, 0.10), transparent 65%);
+  background: radial-gradient(230px circle at var(--sx, 50%) var(--sy, 50%), rgba(0, 224, 189, 0.12), transparent 65%);
   opacity: 0;
   transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;

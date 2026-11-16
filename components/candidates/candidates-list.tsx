@@ -65,7 +65,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 const experienceLevelConfig = {
   junior: { label: "Junior", color: "bg-blue-100 text-blue-700" },
   mid: { label: "Mid-Level", color: "bg-amber-100 text-amber-700" },
-  senior: { label: "Senior", color: "bg-emerald-100 text-emerald-700" },
+  senior: { label: "Senior", color: "bg-teal-100 text-teal-700" },
 }
 
 function getInitials(name: string): string {
