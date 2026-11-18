@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
 import { KeyRound, Loader2, LogOut, ShieldCheck } from "lucide-react"
 
 import { RvButton } from "@/components/landing/rv-button"
@@ -21,13 +20,13 @@ export type AdminLoginStep = "credentials" | "enroll" | "verify" | "forbidden"
  * der Server (lib/admin/access.ts) und gibt ihn als `step` mit.
  */
 export function AdminLogin({ step, adminEmail, signedInAs }: { step: AdminLoginStep; adminEmail: string; signedInAs?: string | null }) {
-  const router = useRouter()
   const [supabase] = useState(createClient)
   const [email, setEmail] = useState(adminEmail)
   const [password, setPassword] = useState("")
   const [code, setCode] = useState("")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [done, setDone] = useState(false)
   const [enrollment, setEnrollment] = useState<{ factorId: string; qr: string; secret: string } | null>(null)
   const started = useRef(false)
 
@@ -50,51 +49,74 @@ export function AdminLogin({ step, adminEmail, signedInAs }: { step: AdminLoginS
     })()
   }, [step, supabase])
 
+  /** Bricht nach `ms` ab, damit der Knopf nie endlos lädt. */
+  const withTimeout = <T,>(p: Promise<T>, ms = 20_000): Promise<T> =>
+    Promise.race([p, new Promise<T>((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))])
+
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setBusy(true)
     setError(null)
-    const { data, error: e2 } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-    if (e2 || !data.user) {
-      setError("E-Mail oder Passwort stimmt nicht.")
+    try {
+      const { data, error: e2 } = await withTimeout(supabase.auth.signInWithPassword({ email: email.trim(), password }))
+      if (e2 || !data.user) {
+        setError("E-Mail oder Passwort stimmt nicht.")
+        setBusy(false)
+        return
+      }
+      if (data.user.email?.toLowerCase() !== adminEmail) {
+        await supabase.auth.signOut()
+        setError("Dieses Konto hat keinen Zugang zum Admin-Bereich.")
+        setBusy(false)
+        return
+      }
+      // Seite neu laden statt router.refresh: Die Seite lädt sichtbar neu,
+      // und ein Fehler beim Laden bleibt nicht hinter einem Ladezeichen hängen.
+      window.location.reload()
+    } catch {
+      setError("Keine Antwort vom Server. Bitte versuch es noch einmal.")
       setBusy(false)
-      return
     }
-    if (data.user.email?.toLowerCase() !== adminEmail) {
-      await supabase.auth.signOut()
-      setError("Dieses Konto hat keinen Zugang zum Admin-Bereich.")
-      setBusy(false)
-      return
-    }
-    router.refresh()
   }
 
   const confirmCode = async (e: React.FormEvent) => {
     e.preventDefault()
     setBusy(true)
     setError(null)
-    let factorId = enrollment?.factorId
-    if (!factorId) {
-      const { data } = await supabase.auth.mfa.listFactors()
-      factorId = data?.totp.find((f) => f.status === "verified")?.id
-    }
-    if (!factorId) {
-      setError("Kein zweiter Faktor gefunden. Lade die Seite neu.")
+    try {
+      let factorId = enrollment?.factorId
+      if (!factorId) {
+        const { data } = await withTimeout(supabase.auth.mfa.listFactors())
+        factorId = data?.totp.find((f) => f.status === "verified")?.id
+      }
+      if (!factorId) {
+        setError("Kein zweiter Faktor gefunden. Lade die Seite neu.")
+        setBusy(false)
+        return
+      }
+      const { error: e2 } = await withTimeout(
+        supabase.auth.mfa.challengeAndVerify({ factorId, code: code.replace(/\s/g, "") }),
+      )
+      if (e2) {
+        setError(
+          /invalid|code/i.test(e2.message)
+            ? "Der Code stimmt nicht. Nimm den aktuellen Code aus der App."
+            : `Bestätigung fehlgeschlagen: ${e2.message}`,
+        )
+        setBusy(false)
+        return
+      }
+      setDone(true)
+      window.location.reload()
+    } catch {
+      setError("Keine Antwort vom Server. Lade die Seite neu und versuch es noch einmal.")
       setBusy(false)
-      return
     }
-    const { error: e2 } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: code.replace(/\s/g, "") })
-    if (e2) {
-      setError("Der Code stimmt nicht. Nimm den aktuellen Code aus der App.")
-      setBusy(false)
-      return
-    }
-    router.refresh()
   }
 
   const signOut = async () => {
     await supabase.auth.signOut()
-    router.refresh()
+    window.location.reload()
   }
 
   return (
@@ -178,6 +200,7 @@ export function AdminLogin({ step, adminEmail, signedInAs }: { step: AdminLoginS
               />
             </div>
             {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
+            {done && <p role="status" className="text-sm font-medium text-[var(--rv-green-deep)]">Bestätigt. Die Übersicht wird geladen.</p>}
             <RvButton type="submit" variant="light" disabled={busy || (step === "enroll" && !enrollment)} className="w-full">
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
               Bestätigen

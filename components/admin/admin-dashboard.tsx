@@ -224,7 +224,7 @@ export function AdminDashboard({
           </>
         )}
 
-        {!db && <p className="mt-10 text-sm text-destructive">Datenbank nicht erreichbar (SUPABASE_SERVICE_ROLE_KEY fehlt).</p>}
+        {!db && <p className="mt-10 text-sm text-destructive">Zahlen aus der Datenbank nicht verfügbar. Entweder fehlt SUPABASE_SERVICE_ROLE_KEY, oder die Abfrage hat die Zeitgrenze überschritten (Vercel-Log, Einträge mit [admin]).</p>}
         {db && (
           <>
             {/* ── Wachstum ─────────────────────────────────────────────── */}
