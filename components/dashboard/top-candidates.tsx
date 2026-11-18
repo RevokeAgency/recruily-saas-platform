@@ -62,7 +62,7 @@ export function TopCandidates({ items }: { items: TopCandidate[] }) {
                   <p className="truncate text-sm font-medium text-foreground">{item.candidateName}</p>
                   <p className="truncate text-xs text-muted-foreground">{item.jobTitle}</p>
                 </div>
-                <span className="flex-none text-xl font-bold tabular-nums text-[var(--rv-green-deep)]">
+                <span className="flex-none text-xl font-bold tabular-nums text-foreground">
                   {item.matchScore}%
                 </span>
               </Link>
