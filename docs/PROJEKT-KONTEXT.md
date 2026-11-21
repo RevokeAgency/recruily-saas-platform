@@ -185,9 +185,10 @@ erklärt.
 
 - Verarbeitung **ausschließlich in der EU**. Deshalb Mistral (Frankreich) statt
   OpenAI, deshalb Lettermint (Europa) statt Resend (USA).
-- `AI_ALLOW_NON_EU_FALLBACK` ist absichtlich **aus**. Nur so ist zugesichert,
-  dass Bewerberdaten die EU nie verlassen. Wer ihn aktiviert, muss Google als
-  Auftragsverarbeiter in der Datenschutzerklärung nennen.
+- Einen Rückfall auf einen Anbieter außerhalb der EU gibt es nicht mehr
+  (`AI_ALLOW_NON_EU_FALLBACK` am 21.11.2026 entfernt). Zugelassene Anbieter
+  stehen in `PROVIDERS` in `lib/ai/provider.ts`, alle mit `eu: true`;
+  `tests/ai-provider-eu.test.ts` prüft das.
 - **Revetly lernt nur für das eigene Konto und nur mit Zustimmung.** Die
   Kalibrierung pro Konto läuft nur mit Einwilligung in der aktuellen Fassung
   (`CONSENT_VERSION` in `lib/training/consent.ts`, pro Einwilligung gespeichert,

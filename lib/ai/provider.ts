@@ -1,14 +1,14 @@
 import { createMistral } from "@ai-sdk/mistral"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Zentrale KI-Provider-Schicht (EU-Datenhoheit).
 //
 // Revetly verarbeitet Bewerberdaten — also personenbezogene Daten besonderer
-// Sensibilität. Standard-Provider ist deshalb **Mistral (Frankreich, EU)**:
-// Bewerberdaten verlassen im Regelbetrieb die EU nicht. Google/Gemini bleibt
-// nur als ausdrücklich zu aktivierender Notfall-Pfad im Code, damit ein
-// Ausfall die Plattform nicht lahmlegt — standardmäßig ist er AUS.
+// Sensibilität. Einziger Anbieter ist deshalb **Mistral über La Plateforme
+// (Frankreich, EU)**. Einen Rückfall auf einen Anbieter außerhalb der EU gibt
+// es nicht mehr (früher Google über AI_ALLOW_NON_EU_FALLBACK, entfernt am
+// 21.11.2026). Ein weiterer Anbieter darf nur in PROVIDERS mit eu: true
+// aufgenommen werden; tests/ai-provider-eu.test.ts schlägt sonst fehl.
 //
 // Alle KI-Aufrufe der Anwendung gehen über dieses Modul. Das hält die
 // Provider-Entscheidung an einer Stelle, macht sie auditierbar (AI Act) und
@@ -27,8 +27,21 @@ export type AiTask =
   | "verification"
   /** Bildverstehen (nur noch Fallback bei der Foto-Extraktion). */
   | "vision"
+  /** Revy: Plan und Werkzeugwahl (Function Calling). */
+  | "agent_plan"
+  /** Revy: Formulierung der Antwort, Einordnung von Anfragen, Entwürfe. */
+  | "agent_write"
 
-type ProviderName = "mistral" | "google"
+/**
+ * Zugelassene Anbieter. Nur Anbieter mit Verarbeitung in der EU. Ein Wechsel
+ * des Anbieters ist ein Eintrag hier plus AI_PROVIDER, keine Codeänderung an
+ * den Aufrufern.
+ */
+export const PROVIDERS = {
+  mistral: { eu: true, label: "Mistral AI (La Plateforme, EU)" },
+} as const
+
+type ProviderName = keyof typeof PROVIDERS
 
 /**
  * Modellwahl je Aufgabe, mit festen Versionen statt "-latest".
@@ -56,6 +69,10 @@ const MISTRAL_MODELS: Record<AiTask, string> = {
   utility: process.env.AI_MODEL_UTILITY || PRIMARY,
   verification: process.env.AI_MODEL_VERIFICATION || PRIMARY,
   vision: process.env.AI_MODEL_VISION || "pixtral-12b-2409",
+  // Revy: das stärkere Modell plant und wählt Werkzeuge, das kleine
+  // formuliert. Aliase laut Mistral-Doku (21.11.2026): Large 4, Small 4.
+  agent_plan: process.env.AI_MODEL_AGENT_PLAN || "mistral-large-latest",
+  agent_write: process.env.AI_MODEL_AGENT_WRITE || "mistral-small-latest",
 }
 
 // In-EU-Modellfallback: Fällt das erste Modell aus (Kapazitätsgrenze,
@@ -65,15 +82,7 @@ const MISTRAL_FALLBACK: Partial<Record<AiTask, string>> = {
   extraction: process.env.AI_MODEL_EXTRACTION_FALLBACK || SECONDARY,
   utility: process.env.AI_MODEL_UTILITY_FALLBACK || SECONDARY,
   verification: process.env.AI_MODEL_VERIFICATION_FALLBACK || SECONDARY,
-}
-
-// Notfall-Pfad. Nur aktiv, wenn AI_ALLOW_NON_EU_FALLBACK === "true".
-const GOOGLE_MODELS: Record<AiTask, string> = {
-  reasoning: "gemini-2.5-pro",
-  extraction: "gemini-2.5-flash",
-  utility: "gemini-2.5-flash",
-  verification: "gemini-2.5-pro",
-  vision: "gemini-2.5-flash",
+  agent_plan: process.env.AI_MODEL_AGENT_PLAN_FALLBACK || "mistral-small-latest",
 }
 
 /**
@@ -96,20 +105,6 @@ function mistralClient() {
   return createMistral({ apiKey })
 }
 
-function googleClient() {
-  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
-  if (!apiKey) return null
-  return createGoogleGenerativeAI({ apiKey })
-}
-
-/**
- * Ist der Nicht-EU-Notfallpfad freigeschaltet? Bewusst opt-in: ohne diese
- * Variable verlassen Bewerberdaten die EU nie — auch nicht bei einem Ausfall.
- */
-export function nonEuFallbackAllowed(): boolean {
-  return process.env.AI_ALLOW_NON_EU_FALLBACK === "true"
-}
-
 export interface ResolvedModel {
   // Provider-Modellinstanz (SDK-Version-agnostisch typisiert, damit ein
   // Provider-Upgrade nicht die ganze Kette bricht).
@@ -122,8 +117,8 @@ export interface ResolvedModel {
 }
 
 /**
- * Liefert die Modell-Kette für eine Aufgabe: primär Mistral (EU), danach —
- * nur wenn ausdrücklich erlaubt — der Notfall-Provider.
+ * Liefert die Modell-Kette für eine Aufgabe: das konfigurierte Modell, danach
+ * ein kleineres Modell desselben EU-Anbieters. Nie ein Anbieter außerhalb der EU.
  */
 export function modelChain(task: AiTask): ResolvedModel[] {
   const chain: ResolvedModel[] = []
@@ -132,23 +127,15 @@ export function modelChain(task: AiTask): ResolvedModel[] {
   if (mistral) {
     const id = MISTRAL_MODELS[task]
     chain.push({ model: mistral(id), provider: "mistral", modelId: id, euResident: true })
-    // Kleineres EU-Modell als Zwischenstufe, bevor auf einen anderen Provider
-    // (oder gar nicht) ausgewichen wird.
+    // Kleineres Modell desselben Anbieters als Rückfall.
     const fb = MISTRAL_FALLBACK[task]
     if (fb && fb !== id) {
       chain.push({ model: mistral(fb), provider: "mistral", modelId: fb, euResident: true })
     }
   }
 
-  if (nonEuFallbackAllowed()) {
-    const google = googleClient()
-    if (google) {
-      const id = GOOGLE_MODELS[task]
-      chain.push({ model: google(id), provider: "google", modelId: id, euResident: false })
-    }
-  }
-
-  return chain
+  // Harte Sperre: Was nicht als EU-Anbieter eingetragen ist, fällt raus.
+  return chain.filter((m) => PROVIDERS[m.provider]?.eu === true && m.euResident)
 }
 
 /** Menschenlesbare Kette für Logs/Diagnose, z. B. "mistral:mistral-large-2512". */

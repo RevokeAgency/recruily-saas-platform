@@ -120,9 +120,6 @@ export async function generateStructured<T>(args: {
       if (i !== 0) {
         console.warn(`[ai] ${args.label}: Fallback auf ${entry.provider}:${entry.modelId}`)
       }
-      if (!entry.euResident) {
-        console.warn(`[ai] ${args.label}: Verarbeitung außerhalb der EU (${entry.provider}) — Notfallpfad aktiv.`)
-      }
       return {
         output,
         run: { provider: entry.provider, modelId: entry.modelId, euResident: entry.euResident },

@@ -370,11 +370,13 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       ~45 s. Wer schneller sein will, setzt `AI_MODEL_VERIFICATION` auf
       `mistral-small-latest` und prüft anschließend mit `/api/matching/eval`,
       ob die erwarteten Score-Bänder weiter halten.
-- [ ] `AI_ALLOW_NON_EU_FALLBACK` *(optional, Default AUS)* — erlaubt bei einem
-      Mistral-Ausfall den Rückfall auf Google/Gemini. **Bewusst deaktiviert
-      lassen**: Nur so ist zugesichert, dass Bewerberdaten die EU nie verlassen.
-      Wird er aktiviert, muss Google als Auftragsverarbeiter in der
-      Datenschutzerklärung genannt werden.
+- [x] `AI_ALLOW_NON_EU_FALLBACK` *(entfernt 21.11.2026)*: Der Rückfall auf
+      Google gibt es im Code nicht mehr, die Variable wirkt nicht. Falls sie in
+      Vercel noch steht, löschen. `tests/ai-provider-eu.test.ts` verhindert,
+      dass ein Nicht-EU-Anbieter zurückkommt.
+- [ ] `AI_MODEL_AGENT_PLAN` / `AI_MODEL_AGENT_WRITE` *(optional)*: Modelle für
+      Revy, Standard `mistral-large-latest` (planen) und `mistral-small-latest`
+      (formulieren).
 - [ ] `AI_SHARED_TRAINING` **nicht setzen.** Schaltet das gemeinsame
       Modelltraining über Kunden hinweg ein. Seit Positionierung v2 sagt
       Revetly zu, nur pro Konto zu lernen; der Schalter bleibt deshalb aus.

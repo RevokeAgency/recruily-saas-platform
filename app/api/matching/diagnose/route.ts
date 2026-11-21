@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { generateText } from "ai"
 import { z } from "zod"
 import { createMistral } from "@ai-sdk/mistral"
-import { modelChain, nonEuFallbackAllowed, mistralApiKey, type AiTask } from "@/lib/ai/provider"
+import { modelChain, mistralApiKey, type AiTask } from "@/lib/ai/provider"
 import { AI_MAX_RETRIES, generateStructured, providerErrorDetail } from "@/lib/ai/generate"
 
 export const dynamic = "force-dynamic"
@@ -160,7 +160,7 @@ export async function GET() {
     const failing = results.filter((r) => !r.ok)
     return Response.json({
       ok: failing.length === 0 && structured.ok,
-      euOnly: !nonEuFallbackAllowed(),
+      euOnly: modelChain("reasoning").every((m) => m.euResident),
       // Das ist der aussagekräftigste Wert bei Status "Fehler": Läuft der
       // strukturierte Urteilspfad? Wenn nein, steht hier der genaue Grund.
       urteilStrukturiert: structured,

@@ -1,6 +1,6 @@
 # Revy: Analyse (Etappe 0) und Bauplan
 
-Stand: 21.11.2026. Zur Freigabe, noch nichts gebaut.
+Stand: 21.11.2026. Etappe 1 freigegeben am 21.11.2026 mit den Ergänzungen in Teil 5.
 
 Revy ist der agentische Assistent in Revetly, ab Growth inkludiert. Er
 antwortet nicht nur, er führt Arbeit aus: über ein festes Werkzeugregister,
@@ -374,3 +374,35 @@ sie zweifach: deterministisch im Code (Wortlisten, Belegprüfer, Absageprüfer)
 ohne Modell, und mit echtem Mistral-Aufruf. Der echte Lauf braucht einen
 Mistral-Schlüssel in dieser Umgebung; ohne ihn liefere ich nur die
 deterministischen Ergebnisse und sage das so.
+
+---
+
+## Teil 5: Ergänzungen bei der Freigabe (21.11.2026)
+
+1. **Absage-Regel präzisiert (Etappe 3):** Verboten ist eine
+   *kandidatenspezifische* Begründung. Der bestehende Standardtext in
+   `lib/email/rejection-text.ts` („… die noch besser zu unserem aktuellen
+   Anforderungsprofil passen“) ist die übliche Nichtbegründung und bleibt
+   unverändert. Der Prüfer blockt alles, was sich auf die konkrete Person
+   bezieht (Fähigkeiten, Erfahrung, Unterlagen, Gespräch, Score, Vergleich mit
+   anderen), und wird nicht strenger gebaut. Punkt 1.8.1 ist damit erledigt;
+   der Blogbeitrag bleibt ein eigenes Thema.
+2. **Rückkanal in Etappe 2:** Werkzeug `korrektur_melden(ref, kategorie,
+   score_vorher, score_nachher, belegstelle)`, Wirkungsklasse INTERN. Widerspricht
+   ein Nutzer Revy, wird protokolliert: Kategorie, Bewertung vorher und nachher,
+   Zeugnisformulierung oder Belegstelle, ohne Namen, ohne Firmennamen, ohne
+   Volltext. Eigene Tabelle, nur anhängen, als Trainingsmaterial.
+3. **Nicht-EU-Rückfall entfernt** (umgesetzt): Der Google-Pfad ist aus
+   `lib/ai/provider.ts` entfernt, die Pakete `@ai-sdk/google` und
+   `@ai-sdk/openai` aus dem Projekt. `tests/ai-provider-eu.test.ts` schlägt
+   fehl, sobald ein Nicht-EU-Anbieter in einer Modellkette, in `PROVIDERS`, in
+   `package.json` oder in einem Import auftaucht.
+4. **Separat, nicht Teil von Revy, vor Etappe 3:** Matching von
+   `mistral-large-2512` auf `mistral-large-latest` umstellen, mit Vorher-Nachher
+   gegen das Golden Set über `/api/matching/eval`. Eigener Auftrag, eigene
+   Abnahme.
+5. **Datenbank-Abschottung:** Ohne Antwort auf die Frage nach der eigenen
+   Datenbankrolle baue ich die Variante ohne JWT-Schlüssel: Sichten ohne die
+   gesperrten Spalten, RLS mit der Sitzung des Nutzers, Test im Quelltext, dass
+   Revy-Werkzeuge nur `revy.*` lesen. Die eigene Rolle lässt sich später
+   ergänzen.
