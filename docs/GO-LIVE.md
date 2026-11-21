@@ -416,6 +416,18 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       Cascade am Kandidaten, an der Stelle und am Konto. Ohne die Migration
       läuft das Matching wie bisher, nur ohne Cache. Details in
       `scripts/038_match_cache.md`.
+- [ ] `scripts/039_revy.sql` *(neu, 21.11.2026, noch nicht eingespielt)*:
+      **Revy, Etappe 1.** Pseudonym pro Kandidat, Schema `revy` mit
+      bereinigten Sichten, Seitentext für Belege, Protokoll, Sperren,
+      Vorfälle, Kontingent und Cache. Lokal gegen alle Migrationen getestet
+      (`tests/revy-db.test.ts`). Danach drei Schritte, sonst bleibt Revy aus:
+      1. **Supabase → Project Settings → API → Exposed schemas:** `revy`
+         ergänzen. Ohne das erreicht die App die Sichten nicht.
+      2. **Kontingent eintragen:** `REVY_REQUESTS_PER_MONTH` in
+         `lib/plans.ts`. Steht dort `'offen'`, antwortet Revy mit einem
+         Hinweis und ruft kein Modell auf.
+      3. Prüfabfragen aus `scripts/039_revy.md` im SQL-Editor.
+      Details in `scripts/039_revy.md` und `docs/revy/ETAPPE-1.md`.
 - [ ] **Entscheiden, ob die Beispiele für das gemeinsame Modell gelöscht
       werden** (auskommentierter Schritt am Ende von 029). Das gemeinsame
       Training ist abgeschaltet, der Export antwortet mit 403.

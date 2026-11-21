@@ -1,4 +1,4 @@
-import { generateText, Output, type ModelMessage } from "ai"
+import { generateText, Output, type ModelMessage, type ToolSet } from "ai"
 import type { z } from "zod"
 import { modelChain, type AiTask } from "./provider"
 
@@ -16,6 +16,8 @@ export interface AiRunInfo {
   provider: string
   modelId: string
   euResident: boolean
+  /** Modell laut Antwort des Anbieters, etwa die feste Version hinter einem "-latest"-Alias. */
+  servedModelId?: string
 }
 
 export interface StructuredResult<T> {
@@ -106,7 +108,7 @@ export async function generateStructured<T>(args: {
   for (let i = 0; i < chain.length; i++) {
     const entry = chain[i]
     try {
-      const { output } = await generateText({
+      const { output, response } = await generateText({
         model: entry.model,
         temperature: args.temperature ?? 0,
         maxRetries: AI_MAX_RETRIES,
@@ -122,7 +124,7 @@ export async function generateStructured<T>(args: {
       }
       return {
         output,
-        run: { provider: entry.provider, modelId: entry.modelId, euResident: entry.euResident },
+        run: { provider: entry.provider, modelId: entry.modelId, euResident: entry.euResident, servedModelId: response?.modelId },
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
@@ -175,4 +177,52 @@ export async function generatePlain(args: {
   throw new Error(
     `${args.label} fehlgeschlagen: ${lastError instanceof Error ? lastError.message : String(lastError)}`,
   )
+}
+
+export interface ToolPlanCall {
+  toolName: string
+  input: unknown
+}
+
+/**
+ * Werkzeugwahl per Function Calling über dieselbe Kette (Revy). Die Werkzeuge
+ * haben keine Ausführung: Das Modell schlägt Aufrufe nur vor, ausgeführt wird
+ * im Code nach eigener Prüfung (lib/revy/gate.ts). Ein Schritt, kein
+ * automatisches Weiterlaufen.
+ */
+export async function generateToolPlan(args: {
+  task: AiTask
+  system: string
+  prompt: string
+  tools: ToolSet
+  label: string
+}): Promise<{ text: string; calls: ToolPlanCall[]; run: AiRunInfo }> {
+  const chain = modelChain(args.task)
+  if (chain.length === 0) throw new Error(`${args.label}: Kein KI-Provider konfiguriert.`)
+
+  const failures: string[] = []
+  for (const entry of chain) {
+    try {
+      const result = await generateText({
+        model: entry.model,
+        temperature: 0,
+        maxRetries: AI_MAX_RETRIES,
+        seed: AI_SEED,
+        system: args.system,
+        prompt: args.prompt,
+        tools: args.tools,
+        toolChoice: "auto",
+      })
+      return {
+        text: result.text ?? "",
+        calls: result.toolCalls.map((c) => ({ toolName: c.toolName, input: c.input })),
+        run: { provider: entry.provider, modelId: entry.modelId, euResident: entry.euResident, servedModelId: result.response?.modelId },
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      failures.push(`${entry.provider}:${entry.modelId}: ${msg}`)
+      console.error(`[ai] ${args.label} mit ${entry.provider}:${entry.modelId} fehlgeschlagen: ${msg}`)
+    }
+  }
+  throw new Error(`${args.label} fehlgeschlagen: ${failures.join(" | ")}`)
 }

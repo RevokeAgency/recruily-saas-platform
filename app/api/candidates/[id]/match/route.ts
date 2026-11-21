@@ -1,9 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { createClient as createAdmin } from "@supabase/supabase-js"
-import { after } from "next/server"
-import { consumeMatch } from "@/lib/quota"
-import { extractResumeText, scoreJobCandidateLink } from "@/lib/scoring"
-import { duplicateMessage, findDuplicateInJob } from "@/lib/matching/duplicate"
+import { linkCandidateToJob, scoreLinkInBackground } from "@/lib/matching/link"
 import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
@@ -29,105 +25,16 @@ export async function POST(
     }
     const { ownerId } = await getWorkspace(supabase, user.id)
 
-    // Validate candidate + job + no duplicate link BEFORE spending a match, so
-    // a failed/duplicate request never consumes quota.
-    const { data: candidate, error: candidateError } = await supabase
-      .from("candidates")
-      .select("id, resume_text, resume_path")
-      .eq("id", candidateId)
-      .single()
-    if (candidateError || !candidate) {
-      return Response.json({ error: "Kandidat nicht gefunden" }, { status: 404 })
-    }
+    // Prüfen, Match verbrauchen, verknüpfen (lib/matching/link.ts), dann im
+    // Hintergrund matchen.
+    const result = await linkCandidateToJob(supabase, { ownerId, jobId, candidateId })
+    if (!result.ok) return Response.json(result.body, { status: result.status })
 
-    const { data: job, error: jobError } = await supabase
-      .from("jobs")
-      .select("id")
-      .eq("id", jobId)
-      .single()
-    if (jobError || !job) {
-      return Response.json({ error: "Job nicht gefunden" }, { status: 404 })
-    }
-
-    const { data: existingLink } = await supabase
-      .from("job_candidates")
-      .select("id")
-      .eq("job_id", jobId)
-      .eq("candidate_id", candidateId)
-      .single()
-    if (existingLink) {
-      return Response.json({ error: "Kandidat ist bereits mit diesem Job verknüpft" }, { status: 400 })
-    }
-
-    // Derselbe Lebenslauf liegt schon in der Stelle (als anderer Kandidat,
-    // etwa zweimal hochgeladen)? Dann kein zweites Matching: Es würde einen
-    // zweiten, womöglich abweichenden Score für dieselbe Person liefern und
-    // ein Match verbrauchen. Den Text dafür jetzt auslesen und speichern,
-    // das Matching braucht ihn ohnehin.
-    let resumeText: string | null = candidate.resume_text ?? null
-    if (!resumeText && candidate.resume_path) {
-      resumeText = await extractResumeText(candidate.resume_path)
-      if (resumeText) {
-        await supabase.from("candidates").update({ resume_text: resumeText }).eq("id", candidateId)
-          .then(({ error }) => { if (error) console.error("[match] resume_text skipped:", error.message) })
-      }
-    }
-    const duplicate = await findDuplicateInJob(supabase, jobId, resumeText, candidateId)
-    if (duplicate) {
-      return Response.json(
-        { error: duplicateMessage(duplicate), duplicate: true, existingLinkId: duplicate.linkId },
-        { status: 409 },
-      )
-    }
-
-    // Atomically spend one match (row-locked, monthly-reset aware).
-    const quota = await consumeMatch(supabase, ownerId)
-    if (!quota.allowed) {
-      return Response.json(
-        { error: "match_limit_reached", used: quota.used, limit: quota.limit },
-        { status: 403 }
-      )
-    }
-
-    // Create the link, then score it in the background.
-    const { data: linkData, error: linkError } = await supabase
-      .from("job_candidates")
-      .insert({
-        job_id: jobId,
-        candidate_id: candidateId,
-        status: "analyzing",
-        user_id: ownerId,
-      })
-      .select("id")
-      .single()
-
-    if (linkError || !linkData) {
-      console.error("Error linking candidate to job:", linkError)
-      return Response.json({ error: linkError?.message ?? "Fehler beim Verknüpfen" }, { status: 500 })
-    }
-
-    // Score AFTER the response is sent. after() keeps the serverless function
-    // alive until scoring finishes — a plain fire-and-forget promise gets
-    // frozen/killed on Vercel once the response returns, which left candidates
-    // stuck in "analyzing". A service-role client is used so the background work
-    // doesn't depend on the request's (now torn-down) cookie context.
-    const linkId = linkData.id
-    after(async () => {
-      try {
-        const admin = createAdmin(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
-          { auth: { persistSession: false } },
-        )
-        await scoreJobCandidateLink(admin, linkId)
-      } catch (err) {
-        console.error("[match] background scoring failed:", err)
-      }
-    })
+    scoreLinkInBackground(result.linkId)
 
     return Response.json({
       success: true,
-      linkId: linkData.id,
+      linkId: result.linkId,
       message: "Matching wird gestartet...",
     })
   } catch (error) {

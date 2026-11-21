@@ -1,0 +1,230 @@
+{
+  "eintraege": [
+    {
+      "id": 1,
+      "created_at": "2026-11-21T20:11:57.224Z",
+      "run_id": "96d54671-2100-41a9-9404-c39693eaf5f3",
+      "actor_id": "aaaaaaaa-1111-4000-8000-00000000000a",
+      "befehl": "Zeig mir die drei besten Bewerbungen und wo SAP steht",
+      "plan": [
+        {
+          "schritt": 1,
+          "werkzeug": "pool_suchen",
+          "parameter": {
+            "stelle_id": "10000000-0000-0000-0000-00000000000a",
+            "sortierung": "score",
+            "limit": 3
+          },
+          "wirkung": "LESEND",
+          "klartext": "Durchsuchen: Bewerbungen der Stelle, sortiert nach Score",
+          "siegel": "9dfcd727df3276c9e0c73f451779168d"
+        },
+        {
+          "schritt": 2,
+          "werkzeug": "belege_suchen",
+          "parameter": {
+            "refs_aus_schritt": 1,
+            "anzahl": 1,
+            "begriffe": [
+              "SAP"
+            ]
+          },
+          "wirkung": "LESEND",
+          "klartext": "Unterlagen nach „SAP“ durchsuchen (Kandidaten aus Schritt 1)",
+          "siegel": "5663a704a4f3170c65e14f1c1f56cd46"
+        }
+      ],
+      "werkzeug": "plan",
+      "parameter": null,
+      "wirkung": "SYSTEM",
+      "refs": [],
+      "freigabe_durch": null,
+      "freigabe_am": null,
+      "modell": "mistral-large-latest",
+      "modell_version": "testlauf-ersatzmodell",
+      "ergebnis": {
+        "schritte": 2,
+        "abgelehnt": [],
+        "einordnung": "mistral-small-latest"
+      }
+    },
+    {
+      "id": 2,
+      "created_at": "2026-11-21T20:11:57.224Z",
+      "run_id": "96d54671-2100-41a9-9404-c39693eaf5f3",
+      "actor_id": "aaaaaaaa-1111-4000-8000-00000000000a",
+      "befehl": null,
+      "plan": null,
+      "werkzeug": "pool_suchen",
+      "parameter": {
+        "stelle_id": "10000000-0000-0000-0000-00000000000a",
+        "sortierung": "score",
+        "limit": 3
+      },
+      "wirkung": "LESEND",
+      "refs": [
+        "K-AAAA0001",
+        "K-AAAA0003"
+      ],
+      "freigabe_durch": null,
+      "freigabe_am": null,
+      "modell": null,
+      "modell_version": null,
+      "ergebnis": {
+        "ausgefuehrt": true,
+        "anzahl": 2
+      }
+    },
+    {
+      "id": 3,
+      "created_at": "2026-11-21T20:11:57.224Z",
+      "run_id": "96d54671-2100-41a9-9404-c39693eaf5f3",
+      "actor_id": "aaaaaaaa-1111-4000-8000-00000000000a",
+      "befehl": null,
+      "plan": null,
+      "werkzeug": "belege_suchen",
+      "parameter": {
+        "refs_aus_schritt": 1,
+        "anzahl": 1,
+        "begriffe": [
+          "SAP"
+        ]
+      },
+      "wirkung": "LESEND",
+      "refs": [
+        "K-AAAA0001"
+      ],
+      "freigabe_durch": null,
+      "freigabe_am": null,
+      "modell": null,
+      "modell_version": null,
+      "ergebnis": {
+        "ausgefuehrt": true,
+        "anzahl": 1
+      }
+    },
+    {
+      "id": 4,
+      "created_at": "2026-11-21T20:11:57.224Z",
+      "run_id": "96d54671-2100-41a9-9404-c39693eaf5f3",
+      "actor_id": "aaaaaaaa-1111-4000-8000-00000000000a",
+      "befehl": null,
+      "plan": null,
+      "werkzeug": "antwort",
+      "parameter": null,
+      "wirkung": "SYSTEM",
+      "refs": [
+        "K-AAAA0001"
+      ],
+      "freigabe_durch": null,
+      "freigabe_am": null,
+      "modell": "mistral-small-latest",
+      "modell_version": "testlauf-ersatzmodell",
+      "ergebnis": {
+        "aussagen": 1,
+        "belegt": 1
+      }
+    },
+    {
+      "id": 5,
+      "created_at": "2026-11-21T20:11:57.224Z",
+      "run_id": "b4d8afb8-47ef-43af-b00d-774aa52f5879",
+      "actor_id": "aaaaaaaa-1111-4000-8000-00000000000a",
+      "befehl": null,
+      "plan": null,
+      "werkzeug": "sperrschicht",
+      "parameter": null,
+      "wirkung": "SYSTEM",
+      "refs": [],
+      "freigabe_durch": null,
+      "freigabe_am": null,
+      "modell": null,
+      "modell_version": null,
+      "ergebnis": {
+        "gesperrt": true,
+        "kategorie": "alter",
+        "ebene": "wortliste"
+      }
+    },
+    {
+      "id": 6,
+      "created_at": "2026-11-21T20:11:57.225Z",
+      "run_id": "a5a8a87f-d37c-4d22-96c4-b713cffff580",
+      "actor_id": "aaaaaaaa-1111-4000-8000-00000000000a",
+      "befehl": "Matche K-AAAA0002 gegen die geheime Stelle",
+      "plan": [
+        {
+          "schritt": 1,
+          "werkzeug": "gegen_stelle_matchen",
+          "parameter": {
+            "stelle_id": "10000000-0000-0000-0000-0000000000ac",
+            "refs": [
+              "K-AAAA0002"
+            ]
+          },
+          "wirkung": "LESEND",
+          "klartext": "Gegen die Stelle matchen (1 Kandidaten)",
+          "siegel": "db6d74584d8ab0260d34110496b7306a"
+        }
+      ],
+      "werkzeug": "plan",
+      "parameter": null,
+      "wirkung": "SYSTEM",
+      "refs": [],
+      "freigabe_durch": null,
+      "freigabe_am": null,
+      "modell": "mistral-large-latest",
+      "modell_version": "testlauf-ersatzmodell",
+      "ergebnis": {
+        "schritte": 1,
+        "abgelehnt": [],
+        "einordnung": "mistral-small-latest"
+      }
+    },
+    {
+      "id": 7,
+      "created_at": "2026-11-21T20:11:57.225Z",
+      "run_id": "a5a8a87f-d37c-4d22-96c4-b713cffff580",
+      "actor_id": "aaaaaaaa-1111-4000-8000-00000000000a",
+      "befehl": null,
+      "plan": null,
+      "werkzeug": "gegen_stelle_matchen",
+      "parameter": {
+        "stelle_id": "10000000-0000-0000-0000-0000000000ac",
+        "refs": [
+          "K-AAAA0002"
+        ]
+      },
+      "wirkung": "LESEND",
+      "refs": [],
+      "freigabe_durch": null,
+      "freigabe_am": null,
+      "modell": null,
+      "modell_version": null,
+      "ergebnis": {
+        "ausgefuehrt": true,
+        "anzahl": 0
+      }
+    },
+    {
+      "id": 8,
+      "created_at": "2026-11-21T20:11:57.225Z",
+      "run_id": "a5a8a87f-d37c-4d22-96c4-b713cffff580",
+      "actor_id": "aaaaaaaa-1111-4000-8000-00000000000a",
+      "befehl": null,
+      "plan": null,
+      "werkzeug": "antwort",
+      "parameter": null,
+      "wirkung": "SYSTEM",
+      "refs": [],
+      "freigabe_durch": null,
+      "freigabe_am": null,
+      "modell": "mistral-small-latest",
+      "modell_version": "testlauf-ersatzmodell",
+      "ergebnis": {
+        "aussagen": 1,
+        "belegt": 0
+      }
+    }
+  ]
+}

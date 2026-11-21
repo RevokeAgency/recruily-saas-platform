@@ -84,7 +84,18 @@ lädt `tests/db/revy-seed.sql` und prüft Mandantentrennung, private Stellen im
 Team, fehlende Spalten, bereinigte Inhalte, das Protokoll nur zum Anhängen
 und das Kontingent. Ohne `REVY_TEST_PG` wird er übersprungen.
 
-Nach dem Einspielen in Supabase kurz im SQL-Editor:
+Die Ende-zu-Ende-Tests von Revy (`tests/revy-agent.test.ts`) arbeiten mit
+der Ausgabe dieser Sichten für Mandant A, gespeichert in
+`tests/fixtures/revy-tenant-a.json`. Nach einer Änderung an 039 oder am
+Seed neu erzeugen mit `tests/db/revy-fixture.sql` (Befehl im Kopf der
+Datei).
+
+Nach dem Einspielen in Supabase:
+
+1. **Project Settings → API → Exposed schemas:** `revy` ergänzen. Die App
+   liest die Sichten über die API; ohne Freigabe antwortet sie mit
+   „schema must be one of …“.
+2. Kurz im SQL-Editor:
 
 ```sql
 select count(*) filter (where revy_ref is null) as ohne_ref from public.candidates;  -- 0

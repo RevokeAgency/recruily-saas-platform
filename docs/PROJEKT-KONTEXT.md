@@ -75,7 +75,8 @@ app/agb|impressum|datenschutz/   Rechtstexte
 app/blog/        sechs SEO-Beiträge
 components/landing/   die Marketing-Startseite, Präfix rv-
 lib/ai/          provider.ts (Modellwahl), generate.ts
-lib/matching/    imlrs.ts, dossier.ts, hard-facts.ts, calibration.ts, pool-rank.ts
+lib/matching/    imlrs.ts, dossier.ts, hard-facts.ts, calibration.ts, pool-rank.ts, link.ts
+lib/revy/        Revy, der Assistent im Chat (docs/revy/PLAN.md, ETAPPE-1.md)
 lib/email/       client.ts (Lettermint/Resend), routing, scheduling, attachments
 lib/dsgvo|scheduling|stripe|training|monitoring/
 scripts/         SQL-Migrationen 001-027, jeweils mit .md-Erläuterung
@@ -715,3 +716,24 @@ ohne Anmeldung und ohne Datenbank, etwa für Aufnahmen im Produktvideo
   `MatchQuality report`.
 - Schutz: In Produktion 404, außer `ENABLE_DEV_PREVIEW=true` ist zur
   Laufzeit gesetzt. `noindex`.
+
+## Revy, Etappe 1 (21.11.2026, Migration 039)
+
+Assistent im Chat, ab Growth. Plan und Begründungen: `docs/revy/PLAN.md`,
+Abnahme: `docs/revy/ETAPPE-1.md`.
+
+- Revy liest nur das Schema `revy` (bereinigte Sichten, RLS mit der Sitzung
+  des Nutzers). Kandidaten heißen dort `K-XXXXXXXX`, Namen setzt erst
+  `components/revy/revy-launcher.tsx` im Browser ein.
+- Ablauf in `lib/revy/agent.ts`: Namen zu Kürzeln, Sperrschicht
+  (`policy.ts`), Cache, Kontingent, Einordnung durch das Modell, Plan per
+  Function Calling, Gate (`gate.ts`), Ausführung nur des gespeicherten Plans,
+  Antwort mit Belegpflicht (`evidence.ts`), Protokoll (`audit.ts`).
+- Werkzeuge mit fester Wirkungsklasse: `tools.ts`. Neue Werkzeuge nur dort,
+  Freigaberegel nur in `gate.ts`.
+- Verknüpfen und Matchen geht für die bestehende Route und für Revy über
+  `lib/matching/link.ts`.
+- Kontingent: `REVY_REQUESTS_PER_MONTH` in `lib/plans.ts`, `'offen'` heißt
+  gesperrt.
+- Tests: `tests/revy-agent.test.ts` (ohne Datenbank, Modelle ersetzt),
+  `tests/revy-db.test.ts` (echte Postgres, nur mit `REVY_TEST_PG`).

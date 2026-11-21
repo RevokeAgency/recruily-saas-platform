@@ -50,6 +50,8 @@ export interface ExtractedDocument {
   /** Text wie bisher extrahiert, inklusive versteckter Stellen. Nur zum Abgleich mit Altbeständen. */
   rawText: string
   findings: DocumentFinding[]
+  /** Sichtbarer Text je Seite (nur PDF). Für Belegstellen mit Seitenzahl in Revy. */
+  pages?: string[]
 }
 
 /** Versteckte Befunde entfernen Text, die übrigen markieren ihn nur. */

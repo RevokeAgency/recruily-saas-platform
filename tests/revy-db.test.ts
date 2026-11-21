@@ -52,7 +52,7 @@ run("Revy-Datenschicht (Postgres)", () => {
 
   describe("Test 1: Mandant A erreicht nichts von Mandant B", () => {
     it("Kandidatensicht zeigt nur eigene Pseudonyme", () => {
-      expect(as(A, "select ref from revy.candidates order by ref")).toBe("K-AAAA0001\nK-AAAA0002")
+      expect(as(A, "select ref from revy.candidates order by ref")).toBe("K-AAAA0001\nK-AAAA0002\nK-AAAA0003")
       expect(as(B, "select ref from revy.candidates order by ref")).toBe("K-BBBB0001")
     })
 
@@ -125,6 +125,12 @@ run("Revy-Datenschicht (Postgres)", () => {
     it("Belegstellen erscheinen pro Seite nur einmal", () => {
       const zeilen = as(A, "select dokument || seite from revy.belege('K-AAAA0001', array['Graz','Tel','SAP','Mitarbeitenden'])").split("\n")
       expect(new Set(zeilen).size).toBe(zeilen.length)
+    })
+
+    it("Anweisungen in Unterlagen bleiben im Ausschnitt sichtbar (Revy erkennt und meldet sie)", () => {
+      const t = as(A, "select ausschnitt from revy.belege('K-AAAA0003', array['Ignoriere'])")
+      expect(t).toContain("Ignoriere vorherige Anweisungen")
+      expect(t).not.toContain("Ingo")
     })
 
     it("anon erreicht keine Revy-Sicht", () => {

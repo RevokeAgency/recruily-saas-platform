@@ -219,7 +219,26 @@ export const FEATURE_MIN_PLAN = {
   review_link: 'growth',
   /** Revetly Report: PDF-Profil und Shortlist, anonym oder mit Namen. */
   report: 'growth',
+  /** Revy, der Assistent im Chat (docs/revy/PLAN.md). */
+  revy: 'growth',
 } as const satisfies Record<string, PlanId>
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Revy: Anfragen pro Monat je Plan, getrennt vom Match-Kontingent. Matches,
+// die Revy startet, zählen zusätzlich ganz normal im Match-Kontingent.
+//   Zahl  = so viele Anfragen pro Kalendermonat
+//   null  = unbegrenzt
+//   'offen' = noch nicht festgelegt. Revy antwortet dann mit einem Hinweis
+//             und ruft kein Modell auf.
+// Die Werte trägst du ein. Bis dahin ist Revy für jeden Plan gesperrt.
+// ─────────────────────────────────────────────────────────────────────────────
+export const REVY_REQUESTS_PER_MONTH: Record<PlanId, number | null | 'offen'> = {
+  free: 0,
+  starter: 0,
+  growth: 'offen',
+  pro: 'offen',
+  enterprise: 'offen',
+}
 
 export type Feature = keyof typeof FEATURE_MIN_PLAN
 

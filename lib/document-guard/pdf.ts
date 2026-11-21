@@ -80,6 +80,7 @@ export async function extractPdfGuarded(buffer: Buffer, source: FindingSource): 
     text: visiblePages.join("\n").trim(),
     rawText: rawPages.join("\n").trim(),
     findings: mergeAdjacent(hidden),
+    pages: visiblePages,
   }
 }
 

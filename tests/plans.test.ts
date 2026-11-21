@@ -16,6 +16,7 @@ describe("Funktionen nach Plan", () => {
       talent_pool: [false, false, true, true, true],
       interview_guide: [false, false, true, true, true],
       pool_rank: [false, false, true, true, true],
+      revy: [false, false, true, true, true],
       review_link: [false, false, true, true, true],
       report: [false, false, true, true, true],
     }

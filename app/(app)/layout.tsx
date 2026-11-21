@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { AppTopbar } from "@/components/app-topbar"
 import { FeedbackPrompt } from "@/components/feedback/feedback-prompt"
+import { RevyLauncher } from "@/components/revy/revy-launcher"
 
 export default async function AppLayout({
   children,
@@ -32,6 +33,8 @@ export default async function AppLayout({
       </div>
       {/* Produktumfrage nach den ersten Matches. Meldet sich von selbst. */}
       <FeedbackPrompt />
+      {/* Revy, der Assistent im Chat. Einzige Einbindung (docs/revy/PLAN.md). */}
+      <RevyLauncher />
     </div>
   )
 }
