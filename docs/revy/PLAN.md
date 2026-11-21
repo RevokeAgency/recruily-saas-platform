@@ -406,3 +406,21 @@ deterministischen Ergebnisse und sage das so.
    gesperrten Spalten, RLS mit der Sitzung des Nutzers, Test im Quelltext, dass
    Revy-Werkzeuge nur `revy.*` lesen. Die eigene Rolle lässt sich später
    ergänzen.
+
+## Teil 6: Umsetzung Etappe 2 (21.11.2026)
+
+Abweichungen vom Plan, mit Grund:
+
+- **Notizen** landen im bestehenden Notizfeld der Bewerbung
+  (`job_candidates.notes`) statt in einer neuen Tabelle `candidate_notes`.
+  So sieht man sie in der Stelle ohne Änderung an der Oberfläche.
+- **Korrekturen** speichern auch das Kürzel nicht. Das Kürzel ist ein
+  Pseudonym und damit noch personenbezogen; für Trainingsmaterial reicht
+  Kategorie, Bewertung und geschwärzte Belegstelle.
+- **Suche überarbeitet**, weil Revy nach Etappe 1 zu wenig fand: Volltext in
+  den Unterlagen (`revy.suche`), Treffer statt strenger Und-Verknüpfung,
+  fehlende Berufsjahre schließen nicht mehr aus, Statuswerte wie in der App,
+  der Planer kennt die Anforderungen der Stelle, technische Fehler werden
+  genannt statt „nichts gefunden“.
+
+Bericht: `docs/revy/ETAPPE-2.md`.

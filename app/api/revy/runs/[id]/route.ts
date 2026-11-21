@@ -5,12 +5,13 @@ import { revyRequest } from "@/lib/revy/http"
 export const dynamic = "force-dynamic"
 export const maxDuration = 120
 
-const bodySchema = z.object({ aktion: z.enum(["kosten_bestaetigen", "abbrechen"]) })
+const bodySchema = z.object({ aktion: z.enum(["kosten_bestaetigen", "bestaetigen", "abbrechen"]) })
 
 /**
- * Abrechnungsdialog: Der Nutzer bestätigt die Matches eines Plans oder bricht
- * ab. Ausgeführt wird der gespeicherte Plan, unverändert. Das ist keine
- * Freigabe für Versand (NACH_AUSSEN), die gibt es nur über eine eigene Route.
+ * Abrechnungsdialog und Bestätigung: Der Nutzer bestätigt die Matches eines
+ * Plans oder Änderungen an mehr als zehn Kandidaten, oder bricht ab.
+ * Ausgeführt wird der gespeicherte Plan, unverändert. Das ist keine Freigabe
+ * für Versand (NACH_AUSSEN), die gibt es nur über eine eigene Route.
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

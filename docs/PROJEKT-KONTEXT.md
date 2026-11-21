@@ -737,3 +737,15 @@ Abnahme: `docs/revy/ETAPPE-1.md`.
   Pro 1000, Enterprise unbegrenzt Anfragen pro Monat; `'offen'` hieße gesperrt.
 - Tests: `tests/revy-agent.test.ts` (ohne Datenbank, Modelle ersetzt),
   `tests/revy-db.test.ts` (echte Postgres, nur mit `REVY_TEST_PG`).
+
+### Revy, Etappe 2 (21.11.2026, Migration 040)
+
+- Werkzeuge liegen in `lib/revy/tools/` (`base.ts`, `lesen.ts`,
+  `intern.ts`, Register in `index.ts`). INTERN schreibt nur mit der Sitzung
+  des Nutzers (`userWrite`) in `job_candidates` und `candidate_tags`.
+- Rücknahme: `lib/revy/actions.ts`, Route `/api/revy/actions/[id]`. Zurück
+  nur, wenn noch Revys Stand gilt.
+- Einrichtungsprüfung: `lib/revy/status.ts`, Route `/api/revy/status`,
+  gelber Hinweis im Revy-Fenster.
+- Ab elf geänderten Kandidaten fragt Revy vorher (`CONFIRM_ABOVE` in
+  `lib/revy/agent.ts`).

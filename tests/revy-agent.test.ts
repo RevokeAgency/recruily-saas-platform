@@ -1,12 +1,13 @@
-import { readFileSync, writeFileSync } from "node:fs"
+import { readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { fakeClient, type FakeDb } from "./helpers/fake-supabase"
+import { listActions, undoAction } from "@/lib/revy/actions"
 import { confirmRun, runCommand } from "@/lib/revy/agent"
 import { AUDIT_FIELDS, auditToCsv, readAudit } from "@/lib/revy/audit"
 import { NO_EVIDENCE, checkEvidence } from "@/lib/revy/evidence"
 import { admitProposal, gate } from "@/lib/revy/gate"
 import { BLOCKED_TEXT, checkDeterministic, checkText } from "@/lib/revy/policy"
-import { REGISTRY } from "@/lib/revy/tools"
+import { REGISTRY, WRITABLE_TABLES } from "@/lib/revy/tools"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Abnahmetests 2, 3, 5, 6 und 8 für Revy, Etappe 1, deterministisch.
@@ -67,10 +68,9 @@ let datenstand = 1
 
 function freshDb(): FakeDb {
   const clone = JSON.parse(JSON.stringify(fixture))
-  return {
+  const dbRef: FakeDb = {
     tables: {
       "revy.candidates": clone.candidates,
-      "revy.applications": clone.applications,
       "revy.jobs": clone.jobs,
       candidates: clone.people.map((p: { full_name: string; revy_ref: string }) => ({
         ...p,
@@ -79,13 +79,44 @@ function freshDb(): FakeDb {
       })),
       candidate_document_pages: clone.candidates.map((c: { candidate_id: string }) => ({ id: 1, candidate_id: c.candidate_id })),
       user_profiles: [{ id: OWNER, plan: "growth" }],
+      job_candidates: clone.job_candidates,
+      candidate_tags: [],
+      revy_actions: [],
+      revy_corrections: [],
       revy_runs: [],
       revy_audit: [],
       revy_blocked_requests: [],
       revy_incidents: [],
       revy_cache: [],
     },
+    // Sichten wie in 039/040: Status der Bewerbung und Tags kommen live aus den Tabellen.
+    views: {
+      "revy.applications": () =>
+        clone.applications.map((a: { bewerbung_id: string }) => {
+          const jc = (dbRef.tables.job_candidates as Array<{ id: string; status: string }>).find((j) => j.id === a.bewerbung_id)
+          return { ...a, status: jc?.status ?? (a as { status?: string }).status }
+        }),
+      "revy.tags": () =>
+        (dbRef.tables.candidate_tags as Array<{ candidate_id: string; job_id: string | null; tag: string }>).map((t) => ({
+          ref: clone.candidates.find((c: { candidate_id: string }) => c.candidate_id === t.candidate_id)?.ref,
+          stelle_id: t.job_id,
+          tag: t.tag,
+        })),
+    },
+    unique: {
+      candidate_tags: (a, b) => a.candidate_id === b.candidate_id && (a.job_id ?? null) === (b.job_id ?? null) && String(a.tag).toLowerCase() === String(b.tag).toLowerCase(),
+    },
     rpc: {
+      "revy.suche": ({ p_begriffe }) => {
+        const out: Array<{ ref: string; begriffe: string[] }> = []
+        for (const c of clone.candidates as Array<{ ref: string }>) {
+          const text = (clone.belege as Array<{ ref: string; ausschnitt: string }>).filter((b) => b.ref === c.ref).map((b) => b.ausschnitt.toLowerCase()).join(" ")
+          const hits = (p_begriffe as string[]).map((t) => t.toLowerCase()).filter((t) => text.includes(t))
+          if (hits.length) out.push({ ref: c.ref, begriffe: hits })
+        }
+        return out
+      },
+      "revy.korrektur_text": ({ p_text }) => String(p_text).replace(/Sabine|Maja/g, "[Name]").replace(/Lager GmbH/g, "[Firma]"),
       "revy.belege": ({ p_ref, p_begriffe }) =>
         clone.belege.filter(
           (b: { ref: string; ausschnitt: string }) =>
@@ -96,6 +127,7 @@ function freshDb(): FakeDb {
       match_usage: () => ({ used: 10, limit: 300, remaining: 290 }),
     },
   }
+  return dbRef
 }
 
 function ctx() {
@@ -228,7 +260,7 @@ describe("Test 3: präparierter Lebenslauf", () => {
     await run("Wie passt Frau Maja auf die Stelle?")
     const planPrompt = models.prompts[1]
     expect(planPrompt).toContain("K-AAAA0001")
-    expect(planPrompt).not.toMatch(/Sabine|Maja|Injekt|Ignoriere|SAP EWM/)
+    expect(planPrompt).not.toMatch(/Sabine|Maja|Injekt|Ignoriere|Lager GmbH|Spedition Nord|Täglich SAP TM/)
   })
 
   it("kein Modell bekommt je einen Namen, auch wenn der Nutzer ihn tippt", async () => {
@@ -416,13 +448,255 @@ describe("Test 8: Protokoll einer Beispielsitzung", () => {
   })
 })
 
-// ── Quelltext: Revy liest nur revy.* ────────────────────────────────────────
+// ── Quelltext: Revy liest nur revy.*, schreibt nur mit der Sitzung ──────────
 
 describe("Werkzeuge lesen nur aus dem Schema revy", () => {
-  it("jedes .from() und .rpc() in lib/revy/tools.ts läuft über revy(ctx.db)", () => {
-    const src = readFileSync("lib/revy/tools.ts", "utf8").replace(/\s+/g, "")
-    const calls = [...src.matchAll(/([\w.()]{0,20})\.(from|rpc)\(/g)].map((m) => m[1])
-    expect(calls.length).toBeGreaterThan(5)
-    for (const before of calls) expect(before.endsWith("revy(ctx.db)"), before).toBe(true)
+  const dir = "lib/revy/tools"
+  const files = readdirSync(dir).filter((f) => f.endsWith(".ts")).map((f) => `${dir}/${f}`)
+
+  it("jedes .from() und .rpc() läuft über revy(ctx.db), userWrite(ctx) oder ctx.admin auf Revy-Tabellen", () => {
+    let n = 0
+    for (const f of files) {
+      const src = readFileSync(f, "utf8").replace(/\s+/g, "")
+      for (const m of src.matchAll(/([\w.()]{0,20})\.(from|rpc)\("([\w_]+)"/g)) {
+        n++
+        const [, before, , table] = m
+        if (before.endsWith("revy(ctx.db)")) continue
+        if (before.endsWith("userWrite(ctx)")) {
+          expect(WRITABLE_TABLES as readonly string[], `${f}: ${table}`).toContain(table)
+          continue
+        }
+        if (before.endsWith("ctx.admin")) {
+          expect(["revy_actions", "revy_corrections"], `${f}: ${table}`).toContain(table)
+          continue
+        }
+        throw new Error(`${f}: ${before}.${m[2]}("${table}") liest an revy vorbei`)
+      }
+    }
+    expect(n).toBeGreaterThan(10)
+  })
+
+  it("kein Werkzeug ist NACH_AUSSEN, INTERN nur die Etappe-2-Werkzeuge", () => {
+    const intern = Object.values(REGISTRY).filter((t) => t.effect === "INTERN").map((t) => t.name).sort()
+    expect(intern).toEqual(["korrektur_melden", "notiz_anlegen", "status_setzen", "tag_entfernen", "tag_setzen"])
+  })
+})
+
+// ── Bessere Suche (nach Rückmeldung zu Etappe 1) ────────────────────────────
+
+const PRIVAT_JOB = "10000000-0000-0000-0000-0000000000ac"
+const toolCtx = () => ({ ...ctx(), runId: null, previous: [] }) as never
+type Liste = { gefunden: number; liste: Array<{ ref: string; treffer?: string[]; berufsjahre_unbekannt?: boolean; status?: string; tags?: string[] }> }
+const liste = (res: Awaited<ReturnType<typeof run>>, i = 0) => res.ergebnisse[i].data as Liste
+
+describe("Suche findet, was im Profil oder in den Unterlagen steht", () => {
+  it("Begriffe aus Profil und Unterlagen, sortiert nach Treffern", async () => {
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { begriffe: ["SAP", "Spedition"] } }])
+    const res = await run("Wer kann SAP oder kommt aus der Spedition?", null)
+    const l = liste(res)
+    expect(l.liste.map((c) => c.ref)).toEqual(["K-AAAA0003", "K-AAAA0001"])
+    // "Spedition" steckt in der Ausbildung (Speditionskaufmann), also im Profil
+    expect(l.liste[0].treffer).toEqual(["SAP (Profil)", "Spedition (Profil)"])
+  })
+
+  it("nur in den Unterlagen erwähnt: wird trotzdem gefunden", async () => {
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { begriffe: ["SAP TM"] } }])
+    const res = await run("Wer hat Erfahrung mit SAP TM?", null)
+    expect(liste(res).liste.map((c) => c.ref)).toEqual(["K-AAAA0003"])
+    expect(liste(res).liste[0].treffer).toEqual(["SAP TM (Unterlagen)"])
+  })
+
+  it("modus alle verlangt jeden Begriff", async () => {
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { begriffe: ["SAP", "Disposition"], modus: "alle" } }])
+    const res = await run("Wer hat SAP und Disposition?", null)
+    expect(liste(res).liste.map((c) => c.ref)).toEqual(["K-AAAA0003"])
+  })
+
+  it("fehlende Berufsjahre schließen nicht aus, sondern werden markiert", async () => {
+    ;(db.tables["revy.candidates"] as Array<{ ref: string; berufsjahre: number | null }>).find((c) => c.ref === "K-AAAA0003")!.berufsjahre = null
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { begriffe: ["SAP"], min_berufsjahre: 7 } }])
+    const res = await run("Wer hat SAP und mindestens sieben Jahre Erfahrung?", null)
+    const l = liste(res).liste
+    expect(l.map((c) => c.ref)).toEqual(["K-AAAA0001", "K-AAAA0003"])
+    expect(l[1].berufsjahre_unbekannt).toBe(true)
+  })
+
+  it("Status wie in der App: „eingeladen“ findet Eingeladen", async () => {
+    ;(db.tables.job_candidates as Array<{ id: string; status: string }>).find((j) => j.id.endsWith("a3"))!.status = "Eingeladen"
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { stelle_id: JOB, status: "eingeladen" } }])
+    const res = await run("Wen habe ich eingeladen?")
+    const l = liste(res).liste
+    expect(l.map((c) => c.ref)).toEqual(["K-AAAA0003"])
+    expect(l[0].status).toBe("Eingeladen")
+  })
+
+  it("Suchbegriff mit gesperrtem Merkmal wird nicht verwendet", async () => {
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { begriffe: ["SAP", "Kopftuch"] } }])
+    const res = await run("Wer hat SAP?", null)
+    expect(res.hinweise.join(" ")).toMatch(/geschütztes Merkmal/)
+    expect(liste(res).liste.length).toBe(2)
+  })
+
+  it("Volltext noch nicht eingerichtet (040 fehlt): Suche im Profil plus Hinweis", async () => {
+    delete db.rpc["revy.suche"]
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { begriffe: ["SAP"] } }])
+    const res = await run("Wer hat SAP?", null)
+    expect(liste(res).liste.length).toBe(2)
+    expect(res.hinweise.join(" ")).toMatch(/Migration 040/)
+  })
+
+  it("technischer Fehler: klarer Hinweis statt „nichts her“", async () => {
+    delete db.tables["revy.candidates"]
+    db.views!["revy.candidates"] = () => {
+      throw new Error('relation "revy.candidates" does not exist')
+    }
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { begriffe: ["SAP"] } }])
+    const res = await run("Wer hat SAP?", null).catch((e) => e)
+    expect(res.status).toBe("fehler")
+    expect(res.aussagen).toEqual([])
+    expect(res.hinweise.join(" ")).toMatch(/noch nicht vollständig eingerichtet/)
+  })
+
+  it("Planer kennt die Anforderungen der Stelle im Geltungsbereich", async () => {
+    models.plan.mockReturnValue([])
+    await run("Such passende Leute für diese Stelle")
+    const planPrompt = models.prompts.find((p) => p.includes("<befehl>"))!
+    expect(planPrompt).toContain("Muss-Skills: SAP, Führung")
+  })
+})
+
+// ── Etappe 2: Änderungen mit Rücknahme ──────────────────────────────────────
+
+const jc = (suffix: string) => (db.tables.job_candidates as Array<{ id: string; status: string; notes: string | null }>).find((j) => j.id.endsWith(suffix))!
+
+describe("Etappe 2: Status, Tags, Notizen, Korrekturen", () => {
+  it("Status auf Shortlist, Protokoll mit vorher und nachher, einzeln zurücknehmbar", async () => {
+    models.plan.mockReturnValue([{ toolName: "status_setzen", input: { stelle_id: JOB, status: "shortlist", refs: ["K-AAAA0001"] } }])
+    const res = await run("Setz K-AAAA0001 auf die Shortlist")
+    expect(res.status).toBe("fertig")
+    expect(jc("0a").status).toBe("shortlisted")
+    expect(res.aussagen).toEqual([])
+    expect(models.answer).not.toHaveBeenCalled()
+    const [a] = db.tables.revy_actions as Array<{ id: string; vorher: unknown; nachher: unknown; werkzeug: string }>
+    expect(a).toMatchObject({ werkzeug: "status_setzen", vorher: { status: "scored" }, nachher: { status: "shortlisted" } })
+    expect(db.tables.revy_audit.find((x) => x.werkzeug === "status_setzen")?.wirkung).toBe("INTERN")
+
+    expect(await undoAction(ctx(), a.id)).toEqual({ ok: true })
+    expect(jc("0a").status).toBe("scored")
+    expect((await undoAction(ctx(), a.id)).ok).toBe(false)
+    expect(db.tables.revy_audit.some((x) => x.werkzeug === "ruecknahme")).toBe(true)
+    expect((await listActions(ctx()))[0].zurueckgenommen_am).toBeTruthy()
+  })
+
+  it("Rücknahme lässt eine spätere Änderung von Hand stehen", async () => {
+    models.plan.mockReturnValue([{ toolName: "status_setzen", input: { stelle_id: JOB, status: "shortlist", refs: ["K-AAAA0001"] } }])
+    await run("Setz K-AAAA0001 auf die Shortlist")
+    jc("0a").status = "Eingeladen"
+    const [a] = db.tables.revy_actions as Array<{ id: string }>
+    const r = await undoAction(ctx(), a.id)
+    expect(r).toEqual({ ok: false, grund: "Inzwischen geändert. Revy lässt den neuen Stand stehen." })
+    expect(jc("0a").status).toBe("Eingeladen")
+  })
+
+  it("Absagen und Einstellungen fasst Revy nicht an", async () => {
+    jc("a3").status = "Abgesagt"
+    models.plan.mockReturnValue([{ toolName: "status_setzen", input: { stelle_id: JOB, status: "shortlist", refs: ["K-AAAA0003"] } }])
+    const res = await run("Setz K-AAAA0003 auf die Shortlist")
+    expect(jc("a3").status).toBe("Abgesagt")
+    expect((res.ergebnisse[0].data as { uebersprungen: Array<{ grund: string }> }).uebersprungen[0].grund).toMatch(/Abgesagt/)
+    // Und ein Status "abgesagt" ist als Ziel gar nicht erlaubt
+    models.plan.mockReturnValue([{ toolName: "status_setzen", input: { stelle_id: JOB, status: "abgesagt", refs: ["K-AAAA0001"] } }])
+    const res2 = await run("Sag K-AAAA0001 ab")
+    expect(res2.plan).toEqual([])
+  })
+
+  it("Tag setzen, kein doppeltes Tag, in der Suche filterbar, zurücknehmbar", async () => {
+    models.plan.mockReturnValue([{ toolName: "tag_setzen", input: { tag: "Runde 2", stelle_id: JOB, refs: ["K-AAAA0001", "K-AAAA0003"] } }])
+    await run("Markier K-AAAA0001 und K-AAAA0003 mit Runde 2")
+    expect(db.tables.candidate_tags).toHaveLength(2)
+    models.plan.mockReturnValue([{ toolName: "tag_setzen", input: { tag: "runde 2", stelle_id: JOB, refs: ["K-AAAA0001"] } }])
+    const dup = await run("Markier K-AAAA0001 nochmal mit Runde 2")
+    expect((dup.ergebnisse[0].data as { uebersprungen: Array<{ grund: string }> }).uebersprungen[0].grund).toBe("Tag schon vorhanden")
+
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { stelle_id: JOB, tag: "Runde 2" } }])
+    const found = await run("Wer ist in Runde 2?")
+    expect(liste(found).liste.map((c) => c.ref).sort()).toEqual(["K-AAAA0001", "K-AAAA0003"])
+    expect(liste(found).liste[0].tags).toEqual(["Runde 2"])
+
+    const a = (db.tables.revy_actions as Array<{ id: string; ref: string; werkzeug: string }>).find((x) => x.ref === "K-AAAA0003" && x.werkzeug === "tag_setzen")!
+    expect((await undoAction(ctx(), a.id)).ok).toBe(true)
+    expect(db.tables.candidate_tags).toHaveLength(1)
+  })
+
+  it("Tag entfernen und wiederherstellen", async () => {
+    models.plan.mockReturnValue([{ toolName: "tag_setzen", input: { tag: "Rückruf", refs: ["K-AAAA0001"] } }])
+    await run("Tag Rückruf für K-AAAA0001")
+    models.plan.mockReturnValue([{ toolName: "tag_entfernen", input: { tag: "rückruf", refs: ["K-AAAA0001"] } }])
+    await run("Nimm Rückruf bei K-AAAA0001 weg")
+    expect(db.tables.candidate_tags).toHaveLength(0)
+    const a = (db.tables.revy_actions as Array<{ id: string; werkzeug: string }>).find((x) => x.werkzeug === "tag_entfernen")!
+    expect((await undoAction(ctx(), a.id)).ok).toBe(true)
+    expect((db.tables.candidate_tags as Array<{ tag: string }>).map((t) => t.tag)).toEqual(["Rückruf"])
+  })
+
+  it("Tag oder Notiz mit gesperrtem Merkmal wird nicht gespeichert", async () => {
+    const tag = await REGISTRY.tag_setzen.run({ tag: "Muslim", refs: ["K-AAAA0001"] }, toolCtx(), 1)
+    expect(tag.hinweise?.[0]).toMatch(/geschütztes Merkmal/)
+    const notiz = await REGISTRY.notiz_anlegen.run({ stelle_id: JOB, text: "Ist schwanger", refs: ["K-AAAA0001"] }, toolCtx(), 1)
+    expect(notiz.hinweise?.[0]).toMatch(/geschütztes Merkmal/)
+    expect(db.tables.candidate_tags).toHaveLength(0)
+    expect(jc("0a").notes).toBeNull()
+  })
+
+  it("Notiz hängt an die bestehende Notiz an und lässt sich zurücknehmen", async () => {
+    jc("0a").notes = "Gutes Telefonat."
+    models.plan.mockReturnValue([{ toolName: "notiz_anlegen", input: { stelle_id: JOB, text: "Zweitgespräch mit der Fachabteilung planen", refs: ["K-AAAA0001"] } }])
+    await run("Notier bei K-AAAA0001: Zweitgespräch mit der Fachabteilung planen")
+    expect(jc("0a").notes).toMatch(/^Gutes Telefonat\.\n\n\[\d{2}\.\d{2}\.\d{4}, Revy\] Zweitgespräch mit der Fachabteilung planen$/)
+    const a = (db.tables.revy_actions as Array<{ id: string }>)[0]
+    expect((await undoAction(ctx(), a.id)).ok).toBe(true)
+    expect(jc("0a").notes).toBe("Gutes Telefonat.")
+  })
+
+  it("Korrektur: Trainingsmaterial ohne Namen, Firma und Kürzel, nicht rücknehmbar", async () => {
+    models.plan.mockReturnValue([
+      { toolName: "korrektur_melden", input: { ref: "K-AAAA0001", kategorie: "fachlich", score_vorher: 60, score_nachher: 85, belegstelle: "Sabine Maja: fünf Jahre SAP EWM bei der Lager GmbH" } },
+    ])
+    await run("Fachlich ist K-AAAA0001 eher 85 als 60, sie hat fünf Jahre SAP EWM")
+    const [k] = db.tables.revy_corrections as Array<Record<string, unknown>>
+    expect(k).toMatchObject({ kategorie: "fachlich", score_vorher: 60, score_nachher: 85, belegstelle: "[Name] [Name]: fünf Jahre SAP EWM bei der [Firma]" })
+    expect(JSON.stringify(k)).not.toMatch(/K-AAAA|Sabine|Maja|Lager GmbH/)
+    expect(db.tables.revy_actions).toHaveLength(0)
+  })
+
+  it("mehr als zehn Kandidaten: erst Bestätigung, dann Ausführung mit Freigabe im Protokoll", async () => {
+    models.plan.mockReturnValue([
+      { toolName: "pool_suchen", input: { stelle_id: JOB } },
+      { toolName: "tag_setzen", input: { tag: "Sichtung", refs_aus_schritt: 1, anzahl: 12 } },
+    ])
+    const res = await run("Tagge die ersten zwölf Bewerbungen mit Sichtung")
+    expect(res.status).toBe("wartet_auf_bestaetigung")
+    expect(res.bestaetigung).toEqual({ kandidaten: 12 })
+    expect(db.tables.candidate_tags).toHaveLength(0)
+    const done = await confirmRun(ctx(), res.runId!)
+    expect(done?.status).toBe("fertig")
+    expect(db.tables.candidate_tags).toHaveLength(2)
+    const step = db.tables.revy_audit.find((a) => a.werkzeug === "tag_setzen")!
+    expect(step.freigabe_durch).toBe(OWNER)
+    expect(await confirmRun(ctx(), res.runId!)).toBeNull()
+  })
+
+  it("Änderungsläufe kommen nie aus dem Cache", async () => {
+    models.plan.mockReturnValue([{ toolName: "tag_setzen", input: { tag: "Favorit", refs: ["K-AAAA0001"] } }])
+    await run("Favorit für K-AAAA0001")
+    await run("Favorit für K-AAAA0001")
+    expect(models.plan).toHaveBeenCalledTimes(2)
+    expect(db.tables.revy_cache).toHaveLength(0)
+  })
+
+  it("private Stelle: Status nur, wenn die Bewerbung in der genannten Stelle liegt", async () => {
+    models.plan.mockReturnValue([{ toolName: "status_setzen", input: { stelle_id: PRIVAT_JOB, status: "shortlist", refs: ["K-AAAA0001"] } }])
+    const res = await run("Setz K-AAAA0001 in der geheimen Stelle auf die Shortlist")
+    expect((res.ergebnisse[0].data as { uebersprungen: Array<{ grund: string }> }).uebersprungen[0].grund).toBe("nicht in dieser Stelle")
   })
 })

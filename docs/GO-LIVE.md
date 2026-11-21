@@ -428,6 +428,10 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
          (`REVY_REQUESTS_PER_MONTH` in `lib/plans.ts`).
       3. Prüfabfragen aus `scripts/039_revy.md` im SQL-Editor.
       Details in `scripts/039_revy.md` und `docs/revy/ETAPPE-1.md`.
+- [ ] `scripts/040_revy_etappe2.sql` *(neu, 21.11.2026)*: **Revy, Etappe 2.**
+      Tags, rücknehmbare Änderungen, Korrekturen als Trainingsmaterial und
+      die Volltextsuche in den Unterlagen. Ohne 040 sucht Revy nur im Profil
+      und sagt das. Lokal getestet. Details in `scripts/040_revy_etappe2.md`.
 - [ ] **Entscheiden, ob die Beispiele für das gemeinsame Modell gelöscht
       werden** (auskommentierter Schritt am Ende von 029). Das gemeinsame
       Training ist abgeschaltet, der Export antwortet mit 403.

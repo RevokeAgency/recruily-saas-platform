@@ -167,4 +167,71 @@ run("Revy-Datenschicht (Postgres)", () => {
       expect(fails(() => as(A, `select public.revy_consume_request('${A}', 100)`))).toMatch(/permission denied/)
     })
   })
+
+  describe("Etappe 2 (040): Tags, Aktionen, Korrekturen, Volltext", () => {
+    const CAND_A = "20000000-0000-0000-0000-00000000000a"
+    const CAND_A_PRIVAT = "20000000-0000-0000-0000-0000000000ac"
+    const CAND_B = "20000000-0000-0000-0000-00000000000b"
+    const JOB_A = "10000000-0000-0000-0000-00000000000a"
+
+    it("Tags: eigene setzen und lesen, fremde weder setzen noch sehen", () => {
+      as(A, `insert into public.candidate_tags (user_id, candidate_id, job_id, tag) values ('${A}', '${CAND_A}', '${JOB_A}', 'Runde 2')`)
+      expect(as(A, "select ref || ':' || tag from revy.tags")).toBe("K-AAAA0001:Runde 2")
+      expect(fails(() => as(A, `insert into public.candidate_tags (user_id, candidate_id, tag) values ('${A}', '${CAND_B}', 'x')`))).toMatch(/row-level security/)
+      expect(fails(() => as(A, `insert into public.candidate_tags (user_id, candidate_id, tag) values ('${B}', '${CAND_B}', 'x')`))).toMatch(/row-level security/)
+      expect(as(B, "select count(*) from revy.tags")).toBe("0")
+      expect(as(B, "select count(*) from public.candidate_tags")).toBe("0")
+    })
+
+    it("Tags: Teammitglied kann Kandidaten der privaten Stelle nicht taggen", () => {
+      expect(
+        fails(() => as(TEAM_A, `insert into public.candidate_tags (user_id, candidate_id, tag) values ('${A}', '${CAND_A_PRIVAT}', 'x')`)),
+      ).toMatch(/row-level security/)
+    })
+
+    it("Tags mit gesperrtem Merkmal erreichen Revy nicht", () => {
+      as(A, `insert into public.candidate_tags (user_id, candidate_id, tag) values ('${A}', '${CAND_A}', 'Kopftuch')`)
+      expect(as(A, "select count(*) from public.candidate_tags where tag = 'Kopftuch'")).toBe("1")
+      expect(as(A, "select count(*) from revy.tags where tag = 'Kopftuch'")).toBe("0")
+    })
+
+    it("Volltextsuche: nur eigene Kürzel, nie Text, gesperrte Begriffe werden ignoriert", () => {
+      expect(as(A, "select ref || ':' || array_to_string(begriffe, ',') from revy.suche(array['SAP','Spedition']) order by ref")).toBe(
+        "K-AAAA0001:sap\nK-AAAA0003:sap,spedition",
+      )
+      expect(as(A, "select count(*) from revy.suche(array['Wien','Bernd'])")).toBe("0")
+      expect(as(A, "select count(*) from revy.suche(array['verheiratet','Kinder'])")).toBe("0")
+      expect(psql("select pg_get_function_result('revy.suche(text[])'::regprocedure)")).toBe("TABLE(ref text, begriffe text[])")
+    })
+
+    it("Korrekturen: Belegstelle ohne Name, Firma und Kontakt; nur anhängen; Nutzer schreiben nicht", () => {
+      const t = as(A, "select revy.korrektur_text('K-AAAA0001', 'Sabine Maja leitete bei der Lager GmbH ein Team. Tel +43 664 1234567. Auch bei Muster Logistik AG.')")
+      expect(t).toBe("[Name] [Name] leitete bei der [Firma] ein Team. Tel [Nummer]. Auch bei [Firma].")
+      asService(`insert into public.revy_corrections (user_id, kategorie, score_vorher, score_nachher, belegstelle) values ('${A}', 'fachlich', 60, 80, 'x')`)
+      expect(fails(() => asService("update public.revy_corrections set score_nachher = 1"))).toMatch(/nur zum Anhängen/)
+      expect(fails(() => asService("delete from public.revy_corrections"))).toMatch(/nur zum Anhängen/)
+      expect(fails(() => as(A, `insert into public.revy_corrections (user_id, kategorie) values ('${A}', 'fachlich')`))).toMatch(/permission denied/)
+      expect(as(B, "select count(*) from public.revy_corrections")).toBe("0")
+      const spalten = psql("select string_agg(column_name, ',' order by column_name) from information_schema.columns where table_name = 'revy_corrections'")
+      expect(spalten).toBe("belegstelle,created_at,id,kategorie,score_nachher,score_vorher,user_id")
+    })
+
+    it("Aktionen: nur der Server schreibt, Nutzer lesen den eigenen Mandanten", () => {
+      expect(fails(() => as(A, `insert into public.revy_actions (user_id, werkzeug, ref, ziel) values ('${A}', 'x', 'K-AAAA0001', '{}')`))).toMatch(/permission denied/)
+      asService(`insert into public.revy_actions (user_id, werkzeug, ref, ziel) values ('${A}', 'tag_setzen', 'K-AAAA0001', '{}')`)
+      expect(as(A, "select count(*) from public.revy_actions")).toBe("1")
+      expect(as(B, "select count(*) from public.revy_actions")).toBe("0")
+    })
+
+    it("Lauf kann auf Bestätigung warten", () => {
+      asService(`insert into public.revy_runs (user_id, session_id, status) values ('${A}', gen_random_uuid(), 'wartet_auf_bestaetigung')`)
+      expect(as(A, "select count(*) from public.revy_runs where status = 'wartet_auf_bestaetigung'")).toBe("1")
+    })
+
+    it("Datenstand ändert sich mit Tags", () => {
+      const vorher = as(A, "select revy.datenstand(null)")
+      as(A, `insert into public.candidate_tags (user_id, candidate_id, tag) values ('${A}', '${CAND_A}', 'Favorit')`)
+      expect(as(A, "select revy.datenstand(null)")).not.toBe(vorher)
+    })
+  })
 })

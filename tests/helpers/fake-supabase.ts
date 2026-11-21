@@ -9,11 +9,17 @@ type Filter = (r: Row) => boolean
 export interface FakeDb {
   tables: Record<string, Row[]>
   rpc: Record<string, (args: Record<string, unknown>) => unknown>
+  /** Sichten: werden bei jedem Lesen neu aus den Tabellen berechnet. */
+  views?: Record<string, () => Row[]>
+  /** Eindeutige Schlüssel je Tabelle, für Fehler 23505 beim Einfügen. */
+  unique?: Record<string, (a: Row, b: Row) => boolean>
 }
 
-class Query implements PromiseLike<{ data: unknown; error: null; count?: number }> {
+type Result = { data: unknown; error: { message: string; code?: string } | null; count?: number }
+
+class Query implements PromiseLike<Result> {
   private filters: Filter[] = []
-  private op: "select" | "insert" | "update" | "upsert" = "select"
+  private op: "select" | "insert" | "update" | "upsert" | "delete" = "select"
   private payload: Row | Row[] | null = null
   private mode: "many" | "single" | "maybe" = "many"
   private orderBy: { col: string; asc: boolean } | null = null
@@ -25,6 +31,8 @@ class Query implements PromiseLike<{ data: unknown; error: null; count?: number 
   constructor(private db: FakeDb, private table: string) {}
 
   private rows(): Row[] {
+    const view = this.db.views?.[this.table]
+    if (view) return view()
     return (this.db.tables[this.table] ??= [])
   }
 
@@ -41,6 +49,14 @@ class Query implements PromiseLike<{ data: unknown; error: null; count?: number 
   update(p: Row) {
     this.op = "update"
     this.payload = p
+    return this
+  }
+  delete() {
+    this.op = "delete"
+    return this
+  }
+  is(col: string, v: unknown) {
+    this.filters.push((r) => (r[col] ?? null) === v)
     return this
   }
   upsert(p: Row | Row[], opts?: { onConflict?: string }) {
@@ -90,7 +106,7 @@ class Query implements PromiseLike<{ data: unknown; error: null; count?: number 
     return this.rows().filter((r) => this.filters.every((f) => f(r)))
   }
 
-  private exec(): { data: unknown; error: null; count?: number } {
+  private exec(): Result {
     let out: Row[] = []
     if (this.op === "select") {
       out = this.match()
@@ -102,8 +118,15 @@ class Query implements PromiseLike<{ data: unknown; error: null; count?: number 
       }
       if (this.max != null) out = out.slice(0, this.max)
       if (this.head) return { data: null, error: null, count: out.length }
+    } else if (this.op === "delete") {
+      out = this.match()
+      this.db.tables[this.table] = this.rows().filter((r) => !out.includes(r))
     } else if (this.op === "insert") {
       const list = Array.isArray(this.payload) ? this.payload : [this.payload as Row]
+      const same = this.db.unique?.[this.table]
+      if (same && list.some((p) => this.rows().some((r) => same(r, p)))) {
+        return { data: null, error: { message: "duplicate key value", code: "23505" } }
+      }
       out = list.map((p) => {
         const row: Row = { id: crypto.randomUUID(), created_at: new Date().toISOString(), ...p }
         if (this.table === "revy_audit") row.id = this.rows().length + 1
@@ -128,7 +151,7 @@ class Query implements PromiseLike<{ data: unknown; error: null; count?: number 
     return { data: out, error: null }
   }
 
-  then<A, B>(ok?: ((v: { data: unknown; error: null; count?: number }) => A | PromiseLike<A>) | null, bad?: ((e: unknown) => B | PromiseLike<B>) | null) {
+  then<A, B>(ok?: ((v: Result) => A | PromiseLike<A>) | null, bad?: ((e: unknown) => B | PromiseLike<B>) | null) {
     return Promise.resolve(this.exec()).then(ok, bad)
   }
 }
