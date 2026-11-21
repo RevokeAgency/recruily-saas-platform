@@ -230,14 +230,14 @@ export const FEATURE_MIN_PLAN = {
 //   null  = unbegrenzt
 //   'offen' = noch nicht festgelegt. Revy antwortet dann mit einem Hinweis
 //             und ruft kein Modell auf.
-// Die Werte trägst du ein. Bis dahin ist Revy für jeden Plan gesperrt.
+// Festgelegt am 21.11.2026.
 // ─────────────────────────────────────────────────────────────────────────────
 export const REVY_REQUESTS_PER_MONTH: Record<PlanId, number | null | 'offen'> = {
   free: 0,
   starter: 0,
-  growth: 'offen',
-  pro: 'offen',
-  enterprise: 'offen',
+  growth: 500,
+  pro: 1000,
+  enterprise: null,
 }
 
 export type Feature = keyof typeof FEATURE_MIN_PLAN

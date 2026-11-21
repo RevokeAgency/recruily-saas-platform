@@ -733,7 +733,7 @@ Abnahme: `docs/revy/ETAPPE-1.md`.
   Freigaberegel nur in `gate.ts`.
 - Verknüpfen und Matchen geht für die bestehende Route und für Revy über
   `lib/matching/link.ts`.
-- Kontingent: `REVY_REQUESTS_PER_MONTH` in `lib/plans.ts`, `'offen'` heißt
-  gesperrt.
+- Kontingent: `REVY_REQUESTS_PER_MONTH` in `lib/plans.ts`: Growth 500,
+  Pro 1000, Enterprise unbegrenzt Anfragen pro Monat; `'offen'` hieße gesperrt.
 - Tests: `tests/revy-agent.test.ts` (ohne Datenbank, Modelle ersetzt),
   `tests/revy-db.test.ts` (echte Postgres, nur mit `REVY_TEST_PG`).

@@ -58,7 +58,7 @@ vi.mock("@/lib/matching/link", () => ({
 
 vi.mock("@/lib/plans", async (orig) => {
   const actual = await orig<typeof import("@/lib/plans")>()
-  return { ...actual, REVY_REQUESTS_PER_MONTH: { ...actual.REVY_REQUESTS_PER_MONTH, growth: 100 } }
+  return { ...actual, REVY_REQUESTS_PER_MONTH: { ...actual.REVY_REQUESTS_PER_MONTH, growth: 100, pro: "offen" } }
 })
 
 

@@ -99,8 +99,9 @@ psql "$C dbname=revetly_test" -qtA -f tests/db/revy-fixture.sql > tests/fixtures
 1. `scripts/039_revy.sql` in Supabase einspielen.
 2. **Supabase → Project Settings → API → Exposed schemas:** `revy`
    ergänzen.
-3. `REVY_REQUESTS_PER_MONTH` in `lib/plans.ts` füllen (Growth, Pro,
-   Enterprise stehen auf `'offen'`, das heißt gesperrt).
+3. ~~Kontingent festlegen~~ erledigt 21.11.2026: Growth 500, Pro 1000,
+   Enterprise unbegrenzt Anfragen pro Monat (`REVY_REQUESTS_PER_MONTH` in
+   `lib/plans.ts`).
 4. Entscheiden, ob Revy in die Planliste auf der Preisseite kommt. Die
    Sperre gilt ab Growth (`FEATURE_MIN_PLAN.revy`), in `PLANS.growth.features`
    und damit auf der Landing steht es noch nicht, weil das die bestehende

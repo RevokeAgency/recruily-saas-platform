@@ -423,9 +423,9 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       (`tests/revy-db.test.ts`). Danach drei Schritte, sonst bleibt Revy aus:
       1. **Supabase → Project Settings → API → Exposed schemas:** `revy`
          ergänzen. Ohne das erreicht die App die Sichten nicht.
-      2. **Kontingent eintragen:** `REVY_REQUESTS_PER_MONTH` in
-         `lib/plans.ts`. Steht dort `'offen'`, antwortet Revy mit einem
-         Hinweis und ruft kein Modell auf.
+      2. ~~Kontingent eintragen~~ *(erledigt 21.11.2026)*: Growth 500,
+         Pro 1000, Enterprise unbegrenzt Anfragen pro Monat
+         (`REVY_REQUESTS_PER_MONTH` in `lib/plans.ts`).
       3. Prüfabfragen aus `scripts/039_revy.md` im SQL-Editor.
       Details in `scripts/039_revy.md` und `docs/revy/ETAPPE-1.md`.
 - [ ] **Entscheiden, ob die Beispiele für das gemeinsame Modell gelöscht

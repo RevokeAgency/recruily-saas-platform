@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { FEATURE_MIN_PLAN, PLANS, PLAN_ORDER, featureFrom, hasFeature, type Feature } from "@/lib/plans"
+import { FEATURE_MIN_PLAN, PLANS, PLAN_ORDER, REVY_REQUESTS_PER_MONTH, featureFrom, hasFeature, type Feature } from "@/lib/plans"
 import { requireFeature } from "@/lib/quota"
 
 const ORDER = PLAN_ORDER
@@ -75,6 +75,13 @@ describe("Planlisten", () => {
       const where = ORDER.filter((p) => PLANS[p].features.some((f) => re.test(f)))
       expect(where, feature).toEqual([FEATURE_MIN_PLAN[feature]])
     }
+  })
+})
+
+describe("Revy-Kontingent", () => {
+  it("ist für jeden Plan festgelegt und passt zur Freischaltung ab Growth", () => {
+    expect(REVY_REQUESTS_PER_MONTH).toEqual({ free: 0, starter: 0, growth: 500, pro: 1000, enterprise: null })
+    for (const p of ORDER) expect(REVY_REQUESTS_PER_MONTH[p] !== 0, p).toBe(hasFeature(p, "revy"))
   })
 })
 
