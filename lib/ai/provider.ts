@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks"
 import { createMistral } from "@ai-sdk/mistral"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,8 +61,26 @@ type ProviderName = keyof typeof PROVIDERS
  * einem Wechsel /api/matching/eval laufen lassen.
  * - vision → pixtral: einziger Bildpfad, nur Fallback.
  */
-const PRIMARY = "mistral-large-2512"
+// AI_MODEL_MATCHING stellt alle vier Textaufgaben des Matchings auf einmal um
+// (etwa auf mistral-large-latest). Einzelne AI_MODEL_* gehen weiterhin vor.
+// Vorher /api/matching/eval?vergleich=<modell> laufen lassen.
+const PRIMARY = process.env.AI_MODEL_MATCHING || "mistral-large-2512"
 const SECONDARY = "mistral-small-latest"
+
+/** Aufgaben, die zum Matching gehören (für Vergleich und Umstellung). */
+export const MATCHING_TASKS: AiTask[] = ["reasoning", "extraction", "utility", "verification"]
+
+// Modell nur für einen Ablauf übersteuern, ohne Umgebungsvariable: für den
+// Vorher-Nachher-Vergleich im Eval. Gilt nur innerhalb von withMatchingModel.
+const matchingOverride = new AsyncLocalStorage<string>()
+
+/** Führt fn mit einem anderen Modell für die Matching-Aufgaben aus. Nur EU-Modelle von Mistral. */
+export function withMatchingModel<T>(modelId: string, fn: () => Promise<T>): Promise<T> {
+  if (!/^(mistral|magistral|ministral|open-mistral|pixtral)-[a-z0-9.-]+$/.test(modelId)) {
+    throw new Error(`Unbekanntes Modell: ${modelId}`)
+  }
+  return matchingOverride.run(modelId, fn)
+}
 
 const MISTRAL_MODELS: Record<AiTask, string> = {
   reasoning: process.env.AI_MODEL_REASONING || PRIMARY,
@@ -125,7 +144,8 @@ export function modelChain(task: AiTask): ResolvedModel[] {
 
   const mistral = mistralClient()
   if (mistral) {
-    const id = MISTRAL_MODELS[task]
+    const override = MATCHING_TASKS.includes(task) ? matchingOverride.getStore() : undefined
+    const id = override ?? MISTRAL_MODELS[task]
     chain.push({ model: mistral(id), provider: "mistral", modelId: id, euResident: true })
     // Kleineres Modell desselben Anbieters als Rückfall.
     const fb = MISTRAL_FALLBACK[task]

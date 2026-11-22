@@ -9,6 +9,7 @@
  *   --runs=2        score each case N times to measure consistency (drift)
  *   --case=<id>     run a single case
  *   --json          machine-readable output (for CI)
+ *   --modell=<id>   alle Matching-Aufgaben mit diesem Modell (AI_MODEL_MATCHING)
  *
  * Exit code 1 if any case falls outside its expected band → usable as a gate.
  */
@@ -27,6 +28,8 @@ const opt = (name, fallback) => {
 const RUNS = Math.max(1, Number(opt("runs", "1")) || 1)
 const ONLY = opt("case", null)
 const AS_JSON = args.includes("--json")
+const MODELL = opt("modell", null)
+if (MODELL) process.env.AI_MODEL_MATCHING = MODELL
 
 if (!process.env.MISTRAL_API_KEY && !process.env.MISTRAL_GENERATIVE_AI_API_KEY) {
   console.error("MISTRAL_API_KEY fehlt — das Eval braucht echte Modell-Aufrufe.")

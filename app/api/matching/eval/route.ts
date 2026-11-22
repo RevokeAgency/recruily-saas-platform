@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest } from "next/server"
 import { runIMLRSMatch } from "@/lib/matching/imlrs"
+import { describeChain, withMatchingModel } from "@/lib/ai/provider"
 // Statisch importiert, damit das Golden-Set sicher im Serverless-Bundle landet
 // (eine zur Laufzeit gelesene Datei würde vom Build-Tracing nicht erfasst).
 import goldenSet from "@/scripts/eval/golden-set.json"
@@ -31,6 +32,9 @@ interface GoldenCase {
  *
  *   GET /api/matching/eval            → alle Fälle
  *   GET /api/matching/eval?case=<id>  → ein Fall (schnell)
+ *   GET /api/matching/eval?modell=<id> → alle Fälle mit einem anderen Modell
+ *   GET /api/matching/eval?vergleich=<id> → Vorher-Nachher: aktuelles gegen
+ *       neues Modell, Fall für Fall, mit Empfehlung (vor einem Modellwechsel)
  *
  * Nur für eingeloggte Inhaber. Verbraucht KEIN Match-Kontingent (die Fälle sind
  * synthetisch und berühren keine Kundendaten).
@@ -53,6 +57,53 @@ export async function GET(req: NextRequest) {
     }
 
     const gestartet = Date.now()
+    const url = new URL(req.url)
+    const vergleich = url.searchParams.get("vergleich")
+    const modell = url.searchParams.get("modell")
+
+    // Vorher-Nachher: jeden Fall mit dem aktuellen und dem neuen Modell.
+    if (vergleich) {
+      const zeilen: Array<{ id: string; erwartet: string; vorher: CaseResult; nachher: CaseResult; differenz: number | null }> = []
+      const offen: string[] = []
+      for (const c of cases) {
+        if (zeilen.length > 0 && Date.now() - gestartet > ZEITBUDGET_MS - 100_000) {
+          offen.push(c.id)
+          continue
+        }
+        const vorher = await runCase(c)
+        const nachher = await runCase(c, vergleich)
+        zeilen.push({
+          id: c.id,
+          erwartet: `${c.expect.minOverall}-${c.expect.maxOverall}`,
+          vorher,
+          nachher,
+          differenz: vorher.score != null && nachher.score != null ? nachher.score - vorher.score : null,
+        })
+      }
+      const ok = (k: "vorher" | "nachher") => zeilen.filter((z) => z[k].ok).length
+      const fehler = zeilen.filter((z) => z.nachher.fehler).length
+      const diffs = zeilen.map((z) => z.differenz).filter((d): d is number => d != null)
+      const mittel = diffs.length ? Math.round((diffs.reduce((a, b) => a + Math.abs(b), 0) / diffs.length) * 10) / 10 : null
+      const empfehlung =
+        fehler > 0
+          ? `Nicht umstellen: ${fehler} Fall/Fälle mit Fehler beim neuen Modell (oft Rate-Limit, siehe fehler).`
+          : ok("nachher") < ok("vorher")
+            ? "Nicht umstellen: Das neue Modell liegt in weniger Fällen im erwarteten Band."
+            : offen.length
+              ? "Noch offen: Restliche Fälle einzeln mit &case=<id> nachholen."
+              : "Umstellung unbedenklich: mindestens so viele Fälle im Band, keine Fehler."
+      return Response.json({
+        aktuell: describeChain("reasoning")[0],
+        neu: `mistral:${vergleich}`,
+        bestanden: { vorher: `${ok("vorher")}/${zeilen.length}`, nachher: `${ok("nachher")}/${zeilen.length}` },
+        mittlereAbweichung: mittel,
+        empfehlung,
+        dauerSekunden: Math.round((Date.now() - gestartet) / 100) / 10,
+        faelle: zeilen,
+        offen: offen.length ? offen : undefined,
+      })
+    }
+
     const results = []
     const offen: string[] = []
     for (const c of cases) {
@@ -61,32 +112,7 @@ export async function GET(req: NextRequest) {
         offen.push(c.id)
         continue
       }
-      const started = Date.now()
-      try {
-        const match = await runIMLRSMatch(c.candidate, c.job)
-        const inBand = match.overallScore >= c.expect.minOverall && match.overallScore <= c.expect.maxOverall
-        const koOk = c.expect.knockout == null || match.knockout === c.expect.knockout
-        results.push({
-          id: c.id,
-          ok: inBand && koOk,
-          score: match.overallScore,
-          erwartet: `${c.expect.minOverall}-${c.expect.maxOverall}`,
-          knockout: match.knockout,
-          knockoutErwartet: c.expect.knockout ?? null,
-          modell: match.detail.modelUsed,
-          euIntern: match.detail.euResident,
-          sekunden: Math.round((Date.now() - started) / 100) / 10,
-          note: c.note,
-        })
-      } catch (err) {
-        results.push({
-          id: c.id,
-          ok: false,
-          fehler: (err instanceof Error ? err.message : String(err)).slice(0, 300),
-          sekunden: Math.round((Date.now() - started) / 100) / 10,
-          note: c.note,
-        })
-      }
+      results.push({ id: c.id, erwartet: `${c.expect.minOverall}-${c.expect.maxOverall}`, ...(await runCase(c, modell ?? undefined)), note: c.note })
     }
 
     const bestanden = results.filter((r) => r.ok).length
@@ -106,5 +132,34 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("[matching eval] error:", error)
     return Response.json({ error: "Eval fehlgeschlagen" }, { status: 500 })
+  }
+}
+
+type CaseResult = Awaited<ReturnType<typeof runCase>>
+
+/** Ein Fall, optional mit anderem Modell für die Matching-Aufgaben. */
+async function runCase(c: GoldenCase, modelId?: string) {
+  const started = Date.now()
+  try {
+    const match = modelId ? await withMatchingModel(modelId, () => runIMLRSMatch(c.candidate, c.job)) : await runIMLRSMatch(c.candidate, c.job)
+    const inBand = match.overallScore >= c.expect.minOverall && match.overallScore <= c.expect.maxOverall
+    const koOk = c.expect.knockout == null || match.knockout === c.expect.knockout
+    return {
+      ok: inBand && koOk,
+      score: match.overallScore as number | null,
+      knockout: match.knockout,
+      knockoutErwartet: c.expect.knockout ?? null,
+      modell: match.detail.modelUsed,
+      euIntern: match.detail.euResident,
+      sekunden: Math.round((Date.now() - started) / 100) / 10,
+      fehler: undefined as string | undefined,
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      score: null,
+      fehler: (err instanceof Error ? err.message : String(err)).slice(0, 300),
+      sekunden: Math.round((Date.now() - started) / 100) / 10,
+    }
   }
 }

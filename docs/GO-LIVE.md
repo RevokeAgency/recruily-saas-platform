@@ -374,6 +374,18 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       Google gibt es im Code nicht mehr, die Variable wirkt nicht. Falls sie in
       Vercel noch steht, löschen. `tests/ai-provider-eu.test.ts` verhindert,
       dass ein Nicht-EU-Anbieter zurückkommt.
+- [ ] **Matching auf `mistral-large-latest` umstellen** *(vorbereitet 22.11.2026)*.
+      `mistral-large-2512` ist seit 31.10.2026 abgekündigt und wird am
+      30.04.2027 abgeschaltet. Ablauf:
+      1. Angemeldet `https://revetly.ai/api/matching/eval?vergleich=mistral-large-latest`
+         öffnen. Antwort zeigt pro Golden-Set-Fall beide Scores und eine
+         Empfehlung.
+      2. Steht dort „Umstellung unbedenklich“: in Vercel
+         `AI_MODEL_MATCHING=mistral-large-latest` setzen und neu deployen.
+      3. Danach `/api/matching/eval` ohne Parameter: alle Fälle im Band.
+      Bestehende Scores bleiben, nur neue Matches nutzen das neue Modell. Der
+      Match-Cache rechnet nach dem Wechsel neu (Modell ist Teil des
+      Fingerabdrucks).
 - [ ] `AI_MODEL_AGENT_PLAN` / `AI_MODEL_AGENT_WRITE` *(optional)*: Modelle für
       Revy, Standard `mistral-large-latest` (planen) und `mistral-small-latest`
       (formulieren).

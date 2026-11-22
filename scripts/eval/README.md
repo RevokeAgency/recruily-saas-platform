@@ -5,9 +5,24 @@ Damit keine Änderung an Prompts, Rubrik oder Gewichten mehr blind live geht.
 ## Ausführen
 
 ```bash
-GOOGLE_GENERATIVE_AI_API_KEY=... \
+MISTRAL_API_KEY=... \
   node --experimental-strip-types scripts/eval/run-eval.mjs
 ```
+
+Oder ohne lokalen Schlüssel in der laufenden App (angemeldet):
+`/api/matching/eval`.
+
+## Modellwechsel: Vorher-Nachher
+
+`/api/matching/eval?vergleich=mistral-large-latest` rechnet jeden Fall mit
+dem aktuellen und dem neuen Modell und gibt pro Fall beide Scores, die
+Differenz und eine Empfehlung zurück. Fehler beim neuen Modell (meist ein
+Rate-Limit, weil neue Modelle bei Mistral oft kleinere Kontingente haben)
+führen zu „Nicht umstellen“. Reicht die Zeit nicht für alle Fälle, den Rest
+mit `&case=<id>` nachholen.
+
+Umstellen danach über die Variable `AI_MODEL_MATCHING` in Vercel (alle vier
+Matching-Aufgaben auf einmal), lokal mit `--modell=<id>`.
 
 Optionen:
 
@@ -16,6 +31,7 @@ Optionen:
 | `--runs=3` | Jeden Fall 3× bewerten → misst die **Streuung** (Konsistenz) |
 | `--case=<id>` | Nur einen Fall laufen lassen |
 | `--json` | Maschinenlesbare Ausgabe (CI) |
+| `--modell=<id>` | Alle Matching-Aufgaben mit diesem Modell |
 
 Exit-Code `1`, wenn ein Fall außerhalb seines erwarteten Bandes liegt — direkt
 als Gate in CI verwendbar.

@@ -47,6 +47,28 @@ describe("Modellkette bleibt in der EU", () => {
     expect(describeChain("agent_write")[0]).toBe("mistral:mistral-small-latest")
   })
 
+  it("Matching-Modell lässt sich für einen Ablauf übersteuern, Revy bleibt unberührt", async () => {
+    vi.stubEnv("MISTRAL_API_KEY", "test")
+    const { describeChain, withMatchingModel } = await load()
+    expect(describeChain("reasoning")[0]).toBe("mistral:mistral-large-2512")
+    const inner = await withMatchingModel("mistral-large-latest", async () => ({
+      reasoning: describeChain("reasoning")[0],
+      verification: describeChain("verification")[0],
+      agent: describeChain("agent_plan")[0],
+    }))
+    expect(inner).toEqual({ reasoning: "mistral:mistral-large-latest", verification: "mistral:mistral-large-latest", agent: "mistral:mistral-large-latest" })
+    expect(describeChain("reasoning")[0]).toBe("mistral:mistral-large-2512")
+    expect(() => withMatchingModel("gpt-4o", async () => 1)).toThrow(/Unbekanntes Modell/)
+  })
+
+  it("AI_MODEL_MATCHING stellt alle Matching-Aufgaben um", async () => {
+    vi.stubEnv("MISTRAL_API_KEY", "test")
+    vi.stubEnv("AI_MODEL_MATCHING", "mistral-large-latest")
+    const { describeChain } = await load()
+    for (const t of ["reasoning", "extraction", "utility", "verification"] as const) expect(describeChain(t)[0]).toBe("mistral:mistral-large-latest")
+    expect(describeChain("agent_write")[0]).toBe("mistral:mistral-small-latest")
+  })
+
   it("kein Nicht-EU-SDK in package.json", () => {
     const pkg = JSON.parse(readFileSync("package.json", "utf8")) as Record<string, Record<string, string> | undefined>
     const deps = { ...pkg.dependencies, ...pkg.devDependencies }
