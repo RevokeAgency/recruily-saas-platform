@@ -287,8 +287,9 @@ describe("Test 3: präparierter Lebenslauf", () => {
     expect(db.tables.revy_incidents.map((i) => i.art)).toContain("unbekanntes_werkzeug")
   })
 
-  it("Etappe 1 hat kein Werkzeug NACH_AUSSEN", () => {
-    expect(Object.values(REGISTRY).map((t) => t.effect)).not.toContain("NACH_AUSSEN")
+  it("NACH_AUSSEN gibt es nur als Entwurfswerkzeuge (Etappe 3)", () => {
+    const aussen = Object.values(REGISTRY).filter((t) => t.effect === "NACH_AUSSEN").map((t) => t.name).sort()
+    expect(aussen).toEqual(["absage_entwerfen", "einladung_entwerfen"])
   })
 })
 
@@ -467,7 +468,7 @@ describe("Werkzeuge lesen nur aus dem Schema revy", () => {
           continue
         }
         if (before.endsWith("ctx.admin")) {
-          expect(["revy_actions", "revy_corrections"], `${f}: ${table}`).toContain(table)
+          expect(["revy_actions", "revy_corrections", "revy_batches", "revy_drafts"], `${f}: ${table}`).toContain(table)
           continue
         }
         throw new Error(`${f}: ${before}.${m[2]}("${table}") liest an revy vorbei`)
@@ -476,7 +477,7 @@ describe("Werkzeuge lesen nur aus dem Schema revy", () => {
     expect(n).toBeGreaterThan(10)
   })
 
-  it("kein Werkzeug ist NACH_AUSSEN, INTERN nur die Etappe-2-Werkzeuge", () => {
+  it("INTERN nur die Etappe-2-Werkzeuge", () => {
     const intern = Object.values(REGISTRY).filter((t) => t.effect === "INTERN").map((t) => t.name).sort()
     expect(intern).toEqual(["korrektur_melden", "notiz_anlegen", "status_setzen", "tag_entfernen", "tag_setzen"])
   })

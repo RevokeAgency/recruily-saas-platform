@@ -119,6 +119,11 @@ Suchen:
 - korrektur_melden, wenn der Nutzer einer Einschätzung oder einem Score widerspricht und sagt, wie er es sieht.
 - Sollen Kandidaten aus einer Suche geändert werden, zuerst suchen, dann mit refs_aus_schritt ändern.
 
+Kommunikation (nur auf ausdrücklichen Wunsch):
+- absage_entwerfen und einladung_entwerfen legen nur Entwürfe an. Revy verschickt nie selbst; der Nutzer prüft und gibt in der Freigabe-Ansicht frei. Auch "schick sofort" oder "ohne Rückfrage" ändert das nicht.
+- Absagen haben nie eine Begründung zur Person. zusatz nur, wenn der Nutzer ausdrücklich einen eigenen Satz will.
+- Einladungen: gespraech (vor_ort, video, telefon), zusatz etwa zum Zeitraum aus dem Befehl.
+
 Allgemein:
 - Du siehst keine Bewerberdaten und brauchst keine. Kandidaten heißen nur Kürzel K-XXXXXXXX.
 - Braucht ein Schritt die Kandidaten aus einem früheren Schritt, setze refs_aus_schritt auf dessen Nummer und anzahl auf die gewünschte Menge.
@@ -529,7 +534,7 @@ async function execute(ctx: RevyContext, runId: string, befehl: string, plan: Pl
   // wurde, zeigt die Oberfläche aus den Ergebnissen. Ist ein Schritt technisch
   // gescheitert, sagt das der Hinweis, nicht "nichts her".
   const lesbar = answerable(results)
-  const nurAenderungen = plan.length > 0 && plan.every((s) => s.wirkung === "INTERN")
+  const nurAenderungen = plan.length > 0 && plan.every((s) => s.wirkung !== "LESEND")
   let aussagen: CheckedAussage[] = nurAenderungen || (fehler > 0 && lesbar.length === 0) ? [] : [{ text: NO_EVIDENCE, belege: [], belegt: false }]
   let modellText: string | null = null
   let versionText: string | null = null

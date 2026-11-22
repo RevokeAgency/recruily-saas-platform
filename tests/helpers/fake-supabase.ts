@@ -11,6 +11,8 @@ export interface FakeDb {
   rpc: Record<string, (args: Record<string, unknown>) => unknown>
   /** Sichten: werden bei jedem Lesen neu aus den Tabellen berechnet. */
   views?: Record<string, () => Row[]>
+  /** Standardwerte je Tabelle wie in der Migration (default ...). */
+  defaults?: Record<string, Row>
   /** Eindeutige Schlüssel je Tabelle, für Fehler 23505 beim Einfügen. */
   unique?: Record<string, (a: Row, b: Row) => boolean>
 }
@@ -128,7 +130,7 @@ class Query implements PromiseLike<Result> {
         return { data: null, error: { message: "duplicate key value", code: "23505" } }
       }
       out = list.map((p) => {
-        const row: Row = { id: crypto.randomUUID(), created_at: new Date().toISOString(), ...p }
+        const row: Row = { id: crypto.randomUUID(), created_at: new Date().toISOString(), ...this.db.defaults?.[this.table], ...p }
         if (this.table === "revy_audit") row.id = this.rows().length + 1
         this.rows().push(row)
         return row
@@ -166,6 +168,7 @@ export function fakeClient(db: FakeDb, prefix = "") {
     },
     schema: (s: string) => fakeClient(db, s === "public" ? "" : `${s}.`),
     storage: { from: () => ({ download: async () => ({ data: null }) }) },
+    auth: { admin: { getUserById: async (id: string) => ({ data: { user: { id, email: `${id.slice(0, 4)}@firma.test` } }, error: null }) } },
   }
   return client
 }

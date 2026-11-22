@@ -119,6 +119,8 @@ const COMPACT: Array<[BlockedCategory, RegExp]> = [
 // Prüfung entfernt, damit "Berufserfahrung in Jahren" oder "Projektmanager"
 // nicht gesperrt wird.
 const ALLOWED_PHRASES: RegExp[] = [
+  // Gendergerechte Doppelform ist keine Frage nach dem Geschlecht
+  /\b(kandidatinnen und kandidaten|bewerberinnen und bewerber|kandidaten und kandidatinnen|bewerber und bewerberinnen)\b/g,
   /\bjahre\w* (berufs)?erfahrung\b/g,
   /\b(berufs|fuehrungs|branchen)erfahrung\b/g,
   /\b(kaufmann|kauffrau|fachmann|fachfrau|obmann|vertrauensmann|kaufmaennisch\w*)\b/g,

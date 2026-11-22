@@ -1,4 +1,4 @@
-import { sendMail } from "@/lib/email/client"
+import { sendMail, type MailInput } from "@/lib/email/client"
 import { MAIL, shell } from "@/lib/email/layout"
 import { MAX_REJECTION_TEXT, defaultRejectionText } from "@/lib/email/rejection-text"
 
@@ -22,6 +22,29 @@ export function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;")
 }
 
+/** Die Absage-Mail selbst, ohne Versand. Auch für Revy (lib/revy/versand.ts). */
+export function buildRejectionMail(input: {
+  to: string
+  candidateName: string
+  jobTitle: string
+  companyName: string
+  text?: string | null
+}): MailInput {
+  const custom = input.text?.trim().slice(0, MAX_REJECTION_TEXT)
+  const text = custom || defaultRejectionText(input.candidateName, input.jobTitle, input.companyName)
+  return {
+    to: input.to,
+    subject: `Ihre Bewerbung als ${input.jobTitle} bei ${input.companyName}`,
+    // Ohne Überschrift und Oberzeile: Eine Absage soll wie ein Brief wirken,
+    // nicht wie eine Systemmeldung. Der Text bleibt, wie er geschrieben ist.
+    html: shell(
+      input.companyName,
+      `<div style="white-space:pre-line;font-size:15px;line-height:1.7;color:${MAIL.text};">${escapeHtml(text)}</div>`,
+      { preheader: `Rückmeldung zu Ihrer Bewerbung als ${input.jobTitle}` },
+    ),
+  }
+}
+
 export async function sendRejectionMail(input: {
   to: string
   candidateName: string
@@ -29,21 +52,5 @@ export async function sendRejectionMail(input: {
   companyName: string
   text?: string | null
 }): Promise<boolean> {
-  const custom = input.text?.trim().slice(0, MAX_REJECTION_TEXT)
-  const text = custom || defaultRejectionText(input.candidateName, input.jobTitle, input.companyName)
-
-  return sendMail(
-    {
-      to: input.to,
-      subject: `Ihre Bewerbung als ${input.jobTitle} bei ${input.companyName}`,
-      // Ohne Überschrift und Oberzeile: Eine Absage soll wie ein Brief wirken,
-      // nicht wie eine Systemmeldung. Der Text bleibt, wie er geschrieben ist.
-      html: shell(
-        input.companyName,
-        `<div style="white-space:pre-line;font-size:15px;line-height:1.7;color:${MAIL.text};">${escapeHtml(text)}</div>`,
-        { preheader: `Rückmeldung zu Ihrer Bewerbung als ${input.jobTitle}` },
-      ),
-    },
-    "Absage",
-  )
+  return sendMail(buildRejectionMail(input), "Absage")
 }

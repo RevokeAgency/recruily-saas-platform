@@ -37,6 +37,10 @@ export interface MailInput {
   headers?: Record<string, string>
   /** Lettermint-Route für diese Mail, sonst LETTERMINT_ROUTE. */
   route?: string
+  /** Lettermint: Daten zur Mail, kommen in Webhooks als data.metadata zurück. */
+  metadata?: Record<string, string>
+  /** Lettermint: Idempotency-Key, macht eine Wiederholung binnen 24 Stunden sicher. */
+  idempotencyKey?: string
 }
 
 const FROM = process.env.MAIL_FROM || "Revetly <karriere@revetly.ai>"
@@ -69,12 +73,14 @@ async function sendViaLettermint(mail: MailInput): Promise<string> {
   const route = mail.route || process.env.LETTERMINT_ROUTE
   if (route) body.route = route
   if (mail.headers && Object.keys(mail.headers).length) body.headers = mail.headers
+  if (mail.metadata && Object.keys(mail.metadata).length) body.metadata = mail.metadata
 
   const res = await fetch(LETTERMINT_URL, {
     method: "POST",
     headers: {
       "x-lettermint-token": process.env.LETTERMINT_API_TOKEN!,
       "Content-Type": "application/json",
+      ...(mail.idempotencyKey ? { "Idempotency-Key": mail.idempotencyKey } : {}),
     },
     body: JSON.stringify(body),
   })
@@ -135,6 +141,19 @@ export async function sendMail(mail: MailInput, label: string): Promise<boolean>
     console.error(`[mail] ${label} über ${provider} fehlgeschlagen:`, err)
     return false
   }
+}
+
+/**
+ * Versand nur über Lettermint (EU), mit Kennung des Anbieters. Für Revy: Dort
+ * gibt es keinen Rückfall auf Resend (USA), und die Kennung braucht der
+ * Zustellstatus. Wirft bei Fehlern.
+ */
+export async function sendMailEuOnly(mail: MailInput, label: string): Promise<string> {
+  if (mailProvider() !== "lettermint") throw new Error("Versand nur über Lettermint (EU), LETTERMINT_API_TOKEN fehlt")
+  if (!mail.to?.trim()) throw new Error("Empfänger fehlt")
+  const id = await sendViaLettermint(mail)
+  console.info(`[mail] ${label} über lettermint verschickt (${id})`)
+  return id
 }
 
 // ── Gemeinsame Bausteine der Mailvorlagen ───────────────────────────────────

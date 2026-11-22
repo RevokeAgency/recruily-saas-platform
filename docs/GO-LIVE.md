@@ -386,6 +386,10 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       Bestehende Scores bleiben, nur neue Matches nutzen das neue Modell. Der
       Match-Cache rechnet nach dem Wechsel neu (Modell ist Teil des
       Fingerabdrucks).
+- [ ] `LETTERMINT_WEBHOOK_SECRET`: Secret des Lettermint-Webhooks für den
+      Zustellstatus von Revy (beginnt mit `whsec_`).
+- [ ] `REVY_SEND_INTERVAL_SECONDS` *(optional)*: Abstand zwischen zwei Mails
+      eines Revy-Stapels, Standard 10.
 - [ ] `AI_MODEL_AGENT_PLAN` / `AI_MODEL_AGENT_WRITE` *(optional)*: Modelle für
       Revy, Standard `mistral-large-latest` (planen) und `mistral-small-latest`
       (formulieren).
@@ -444,6 +448,12 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       Tags, rücknehmbare Änderungen, Korrekturen als Trainingsmaterial und
       die Volltextsuche in den Unterlagen. Ohne 040 sucht Revy nur im Profil
       und sagt das. Lokal getestet. Details in `scripts/040_revy_etappe2.md`.
+- [ ] `scripts/041_revy_etappe3.sql` *(neu, 22.11.2026)*: **Revy, Etappe 3.**
+      Entwürfe für Absagen und Einladungen, Freigabe mit Einmal-Token,
+      gestaffelter Versand, Zustellstatus. Danach Lettermint-Webhook auf
+      `/api/webhooks/lettermint` einrichten und `LETTERMINT_WEBHOOK_SECRET`
+      setzen (Schritte in `docs/revy/ETAPPE-3.md`). Details in
+      `scripts/041_revy_etappe3.md`.
 - [ ] **Entscheiden, ob die Beispiele für das gemeinsame Modell gelöscht
       werden** (auskommentierter Schritt am Ende von 029). Das gemeinsame
       Training ist abgeschaltet, der Export antwortet mit 403.

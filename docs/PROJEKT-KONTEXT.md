@@ -749,3 +749,14 @@ Abnahme: `docs/revy/ETAPPE-1.md`.
   gelber Hinweis im Revy-Fenster.
 - Ab elf geänderten Kandidaten fragt Revy vorher (`CONFIRM_ABOVE` in
   `lib/revy/agent.ts`).
+
+### Revy, Etappe 3 (22.11.2026, Migration 041)
+
+- Entwürfe: `lib/revy/tools/aussen.ts` (nur Entwürfe, kein Versand),
+  Vorlagen `lib/revy/vorlagen.ts`, Prüfer `lib/revy/absage-pruefer.ts`.
+- Freigabe: `lib/revy/freigabe.ts`, Route `/api/revy/batches/[id]`
+  (Einmal-Token aus GET, Freigabe per POST).
+- Versand: `lib/revy/versand.ts`, nur `sendMailEuOnly` (Lettermint).
+  Angestoßen aus Freigabe, Statusabfrage und Cron `/api/cron/revy-versand`.
+- Zustellstatus: `/api/webhooks/lettermint`, Signatur in
+  `lib/email/lettermint-webhook.ts`.

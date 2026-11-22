@@ -6,9 +6,9 @@ import { getTool, type Effect } from "./tools"
 //
 //   LESEND       läuft sofort.
 //   INTERN       läuft sofort, rücknehmbar über revy_actions (ab Etappe 2).
-//   NACH_AUSSEN  läuft nie aus dem Plan heraus. Es entstehen nur Entwürfe;
-//                versendet wird ausschließlich über die eigene Freigaberoute
-//                nach einem Klick (ab Etappe 3).
+//   NACH_AUSSEN  erzeugt nur Entwürfe. Versendet wird ausschließlich über
+//                die eigene Freigaberoute nach einem Klick mit Einmal-Token
+//                (lib/revy/freigabe.ts).
 //
 // Dazu die Ableitungsregel gegen Prompt Injection: Ausgeführt wird nur, was
 // im gespeicherten Plan steht. Der Plan entsteht, bevor das Modell
@@ -27,6 +27,7 @@ export interface PlannedStep {
 
 export type GateDecision =
   | { ok: true; wirkung: Effect }
+  // freigabe_noetig bleibt als Grund für künftige Werkzeuge reserviert.
   | { ok: false; grund: "unbekanntes_werkzeug" | "ungueltige_parameter" | "ungeplante_aktion" | "freigabe_noetig"; detail?: string; vorfall: boolean }
 
 export function seal(werkzeug: string, parameter: unknown): string {
@@ -80,7 +81,10 @@ export function gate(step: PlannedStep, plan: PlannedStep[]): GateDecision {
     case "INTERN":
       return { ok: true, wirkung: "INTERN" }
     case "NACH_AUSSEN":
-      // Kein Weg aus dem Plan heraus. Auch nicht mit Bestätigung.
-      return { ok: false, grund: "freigabe_noetig", vorfall: false }
+      // Läuft nur als Entwurf: Werkzeuge dieser Klasse legen ausschließlich
+      // Entwürfe an (lib/revy/tools/aussen.ts). Versendet wird nie aus dem
+      // Plan, sondern nur über die Freigaberoute nach einem Klick
+      // (lib/revy/freigabe.ts). Auch eine Bestätigung im Chat ändert das nicht.
+      return { ok: true, wirkung: "NACH_AUSSEN" }
   }
 }

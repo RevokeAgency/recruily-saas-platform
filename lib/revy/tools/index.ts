@@ -1,4 +1,5 @@
 import type { ToolDef } from "./base"
+import { AUSSEN } from "./aussen"
 import { INTERN } from "./intern"
 import { LESEN } from "./lesen"
 
@@ -9,7 +10,7 @@ export * from "./base"
 export { remainingMatches } from "./lesen"
 export { appendNote, KATEGORIEN } from "./intern"
 
-export const REGISTRY = { ...LESEN, ...INTERN } as const satisfies Record<string, ToolDef>
+export const REGISTRY = { ...LESEN, ...INTERN, ...AUSSEN } as const satisfies Record<string, ToolDef>
 
 export type ToolName = keyof typeof REGISTRY
 

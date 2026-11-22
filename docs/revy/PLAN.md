@@ -424,3 +424,18 @@ Abweichungen vom Plan, mit Grund:
   genannt statt „nichts gefunden“.
 
 Bericht: `docs/revy/ETAPPE-2.md`.
+
+## Teil 7: Umsetzung Etappe 3 (22.11.2026)
+
+- Absagen und Einladungen ausschließlich aus festen Vorlagen
+  (`lib/revy/vorlagen.ts`), kein Modelltext. Standard-Absage = bestehender
+  Text, unverändert.
+- Absageprüfer (`lib/revy/absage-pruefer.ts`) nach Teil 5: blockt nur
+  Begründungen zur Person; Modellprüfung nur für einen freien Zusatz.
+- Freigabe mit Einmal-Token (`lib/revy/freigabe.ts`), Versand gestaffelt nur
+  über Lettermint (`lib/revy/versand.ts`), Zustellstatus per Webhook.
+- Abweichung: Statt eines Crons im Minutentakt (geht auf Vercel Hobby nicht)
+  läuft der Versand nach der Freigabe und während die Freigabe-Ansicht offen
+  ist; ein täglicher Cron fängt den Rest.
+
+Bericht: `docs/revy/ETAPPE-3.md`.

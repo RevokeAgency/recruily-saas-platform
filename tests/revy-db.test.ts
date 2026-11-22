@@ -234,4 +234,40 @@ run("Revy-Datenschicht (Postgres)", () => {
       expect(as(A, "select revy.datenstand(null)")).not.toBe(vorher)
     })
   })
+
+  describe("Etappe 3 (041): Entwürfe, Freigabe, Zustellungen", () => {
+    const JC_A = "30000000-0000-0000-0000-00000000000a"
+
+    it("Stapel und Entwürfe: nur der Server schreibt, Nutzer lesen den eigenen Mandanten", () => {
+      const batch = asService(
+        `insert into public.revy_batches (user_id, art, stelle_id, token_hash, token_bis) values ('${A}', 'absage', '10000000-0000-0000-0000-00000000000a', 'abc', now()) returning id`,
+      ).split("\n").find((l) => /^[0-9a-f-]{36}$/.test(l))!
+      asService(`insert into public.revy_drafts (batch_id, user_id, job_candidate_id, ref, betreff, text) values ('${batch}', '${A}', '${JC_A}', 'K-AAAA0001', 'Betreff', 'Guten Tag {{name}}')`)
+      asService(`insert into public.revy_deliveries (user_id, batch_id, draft_id, job_candidate_id, ref) select '${A}', '${batch}', id, '${JC_A}', 'K-AAAA0001' from public.revy_drafts where batch_id = '${batch}'`)
+      expect(as(A, "select count(*) from public.revy_batches")).toBe("1")
+      expect(as(A, "select status from public.revy_deliveries")).toBe("geplant")
+      expect(as(B, "select count(*) from public.revy_batches")).toBe("0")
+      expect(as(B, "select count(*) from public.revy_drafts")).toBe("0")
+      expect(as(B, "select count(*) from public.revy_deliveries")).toBe("0")
+      expect(fails(() => as(A, `insert into public.revy_batches (user_id, art) values ('${A}', 'absage')`))).toMatch(/permission denied/)
+      expect(fails(() => as(A, `update public.revy_deliveries set status = 'gesendet'`))).toMatch(/permission denied/)
+      expect(fails(() => as(A, `update public.revy_batches set status = 'freigegeben'`))).toMatch(/permission denied/)
+    })
+
+    it("der Token-Hash ist für Nutzer nicht lesbar", () => {
+      expect(fails(() => as(A, "select token_hash from public.revy_batches"))).toMatch(/permission denied/)
+      expect(fails(() => as(A, "select * from public.revy_batches"))).toMatch(/permission denied/)
+      expect(as(A, "select art || ':' || status from public.revy_batches")).toBe("absage:entwurf")
+    })
+
+    it("kontaktierbar liefert nur ja oder nein und nur eigene Kürzel", () => {
+      expect(as(A, "select ref || ':' || hat_email from revy.kontaktierbar(array['K-AAAA0001','K-BBBB0001'])")).toBe("K-AAAA0001:true")
+      expect(psql("select pg_get_function_result('revy.kontaktierbar(text[])'::regprocedure)")).toBe("TABLE(ref text, hat_email boolean)")
+    })
+
+    it("nur gültige Statuswerte", () => {
+      expect(fails(() => asService("update public.revy_deliveries set status = 'irgendwas'"))).toMatch(/check constraint/)
+      expect(fails(() => asService("update public.revy_batches set status = 'verschickt'"))).toMatch(/check constraint/)
+    })
+  })
 })

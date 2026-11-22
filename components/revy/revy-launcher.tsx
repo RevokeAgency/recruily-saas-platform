@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { ArrowUp, ChevronDown, Download, FileText, History, Loader2, RotateCcw, ShieldAlert, Sparkles, X } from "lucide-react"
+import { ArrowLeft, ArrowUp, ChevronDown, Download, FileText, History, Loader2, Mail, RotateCcw, ShieldAlert, Sparkles, X } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/client"
+import { renderDraft } from "@/lib/revy/vorlagen"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Revy im App-Layout: ein schwebender Knopf, darüber das Chatfenster.
@@ -131,6 +132,7 @@ export function RevyLauncher() {
   const [busy, setBusy] = useState(false)
   const [names, setNames] = useState<Record<string, string>>({})
   const [view, setView] = useState<"chat" | "aenderungen">("chat")
+  const [freigabe, setFreigabe] = useState<string | null>(null)
   const [setup, setSetup] = useState<SetupStatus | null>(null)
   const sessionRef = useRef<string | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -287,7 +289,9 @@ export function RevyLauncher() {
             <div className="flex h-[min(640px,calc(100vh-6rem))] flex-col overflow-hidden rounded-[28.5px] bg-white">
               <Header stelle={!!stelleId} view={view} onView={setView} onClose={() => setOpen(false)} />
 
-              {view === "aenderungen" ? (
+              {freigabe ? (
+                <FreigabeView batchId={freigabe} names={names} resolveRefs={resolveRefs} onBack={() => setFreigabe(null)} />
+              ) : view === "aenderungen" ? (
                 <ChangesView names={names} resolveRefs={resolveRefs} />
               ) : (
               <div ref={listRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4" aria-live="polite">
@@ -316,6 +320,7 @@ export function RevyLauncher() {
                       names={names}
                       kostenOffen={!!m.kostenOffen}
                       onCost={(a) => m.res.runId && void decideCost(m.id, m.res.runId, a)}
+                      onFreigabe={setFreigabe}
                     />
                   ),
                 )}
@@ -468,11 +473,13 @@ function RevyAnswer({
   names,
   kostenOffen,
   onCost,
+  onFreigabe,
 }: {
   res: RevyResponse
   names: Record<string, string>
   kostenOffen: boolean
   onCost: (a: Aktion) => void
+  onFreigabe: (batchId: string) => void
 }) {
   if (res.status === "gesperrt") {
     return (
@@ -527,9 +534,13 @@ function RevyAnswer({
         </div>
       )}
 
-      {res.ergebnisse.map((e) => (
-        <ResultBlock key={e.schritt} e={e} names={names} />
-      ))}
+      {res.ergebnisse.map((e) =>
+        e.werkzeug === "absage_entwerfen" || e.werkzeug === "einladung_entwerfen" ? (
+          <DraftResult key={e.schritt} e={e} names={names} onOpen={onFreigabe} />
+        ) : (
+          <ResultBlock key={e.schritt} e={e} names={names} />
+        ),
+      )}
 
       {res.aussagen.length > 0 && (
         <div className="space-y-2">
@@ -867,5 +878,316 @@ function ChangesView({ names, resolveRefs }: { names: Record<string, string>; re
         </ul>
       )}
     </div>
+  )
+}
+
+// ── Etappe 3: Entwürfe und Freigabe ────────────────────────────────────────
+
+interface Entwurfsergebnis {
+  batch_id: string | null
+  art: "absage" | "einladung"
+  entwuerfe: number
+  uebersprungen: Array<{ ref: string; grund: string }>
+}
+
+function DraftResult({ e, names, onOpen }: { e: Ergebnis; names: Record<string, string>; onOpen: (id: string) => void }) {
+  const d = e.data as Entwurfsergebnis
+  const wort = d.art === "absage" ? (d.entwuerfe === 1 ? "Absage" : "Absagen") : d.entwuerfe === 1 ? "Einladung" : "Einladungen"
+  return (
+    <div className="rounded-2xl border border-[var(--rv-green)] bg-white px-3.5 py-3 text-sm text-[var(--rv-ink)]">
+      <p className="flex items-center gap-2 font-semibold">
+        <Mail className="h-4 w-4 text-[var(--rv-green-deep)]" aria-hidden />
+        {d.entwuerfe} {wort} als Entwurf
+      </p>
+      <p className="mt-1 text-xs text-[var(--rv-ink-soft)]">Revy verschickt nichts selbst. Du prüfst die Entwürfe und gibst sie frei.</p>
+      {d.uebersprungen.length > 0 && (
+        <ul className="mt-1.5 text-xs text-[var(--rv-ink-soft)]">
+          {d.uebersprungen.map((u) => (
+            <li key={u.ref}>
+              {names[u.ref] ?? u.ref}: {u.grund}
+            </li>
+          ))}
+        </ul>
+      )}
+      {d.batch_id && (
+        <button
+          type="button"
+          onClick={() => onOpen(d.batch_id as string)}
+          className="mt-2.5 rounded-full bg-[var(--rv-green)] px-3.5 py-1.5 text-xs font-semibold text-[var(--rv-ink)] active:scale-[0.97]"
+        >
+          Prüfen und freigeben
+        </button>
+      )}
+    </div>
+  )
+}
+
+interface BatchView {
+  id: string
+  art: "absage" | "einladung"
+  status: string
+  ton: string
+  stelle: { id: string; titel: string; firma: string }
+  entwuerfe: Array<{
+    id: string
+    ref: string
+    betreff: string
+    text: string
+    ausgewaehlt: boolean
+    zustellung: { status: string; fehler: string | null } | null
+  }>
+  token?: string
+}
+
+const TON_LABEL: Record<string, string> = {
+  standard: "Standard",
+  kurz: "Kurz",
+  persoenlich: "Persönlich",
+  offen: "Offen",
+  vor_ort: "Vor Ort",
+  video: "Video",
+  telefon: "Telefon",
+}
+
+const ZUSTELL_LABEL: Record<string, string> = {
+  geplant: "geplant",
+  in_versand: "wird verschickt",
+  gesendet: "verschickt",
+  zugestellt: "zugestellt",
+  zurueckgewiesen: "nicht zugestellt",
+  fehler: "Fehler",
+  abgebrochen: "gestoppt",
+}
+
+function FreigabeView({
+  batchId,
+  names,
+  resolveRefs,
+  onBack,
+}: {
+  batchId: string
+  names: Record<string, string>
+  resolveRefs: (refs: string[]) => Promise<void>
+  onBack: () => void
+}) {
+  const [batch, setBatch] = useState<BatchView | null>(null)
+  const [fehler, setFehler] = useState<string | null>(null)
+  const [auswahl, setAuswahl] = useState<Set<string>>(new Set())
+  const [offen, setOffen] = useState<string | null>(null)
+  const [laeuft, setLaeuft] = useState(false)
+  const [zustellung, setZustellung] = useState<Record<string, { status: string; fehler: string | null }>>({})
+  const [version, setVersion] = useState(0)
+
+  // Stapel laden (mit frischem Einmal-Token, solange offen).
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/revy/batches/${batchId}`, { cache: "no-store" })
+      .then(async (r) => {
+        const b = await r.json().catch(() => null)
+        if (cancelled) return
+        if (!r.ok) {
+          setFehler(b?.error ?? "Entwurf nicht lesbar.")
+          return
+        }
+        const v = b as BatchView
+        setBatch(v)
+        setAuswahl(new Set(v.entwuerfe.filter((d) => d.ausgewaehlt).map((d) => d.id)))
+        const z: Record<string, { status: string; fehler: string | null }> = {}
+        for (const d of v.entwuerfe) if (d.zustellung) z[d.id] = d.zustellung
+        setZustellung(z)
+        void resolveRefs(v.entwuerfe.map((d) => d.ref))
+      })
+      .catch(() => !cancelled && setFehler("Keine Verbindung."))
+    return () => {
+      cancelled = true
+    }
+  }, [batchId, version, resolveRefs])
+
+  // Fortschritt abfragen, solange etwas geplant ist.
+  const versandLaeuft = batch?.status === "freigegeben" || Object.values(zustellung).some((z) => z.status === "geplant" || z.status === "in_versand")
+  useEffect(() => {
+    if (!versandLaeuft) return
+    const t = window.setInterval(async () => {
+      try {
+        const r = await fetch(`/api/revy/batches/${batchId}/status`, { cache: "no-store" })
+        const b = await r.json()
+        if (!r.ok) return
+        const z: Record<string, { status: string; fehler: string | null }> = {}
+        for (const d of b.zustellungen as Array<{ draft_id: string; status: string; fehler: string | null }>) z[d.draft_id] = { status: d.status, fehler: d.fehler }
+        setZustellung(z)
+        setBatch((prev) => (prev ? { ...prev, status: b.status } : prev))
+      } catch {
+        /* nächster Versuch */
+      }
+    }, 4000)
+    return () => window.clearInterval(t)
+  }, [versandLaeuft, batchId])
+
+  const post = async (body: Record<string, unknown>) => {
+    setLaeuft(true)
+    try {
+      const r = await fetch(`/api/revy/batches/${batchId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      const b = await r.json().catch(() => null)
+      if (!r.ok) setFehler(b?.error ?? "Das ging gerade nicht.")
+      else setFehler(null)
+      return r.ok
+    } finally {
+      setLaeuft(false)
+    }
+  }
+
+  if (!batch) {
+    return (
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 text-sm text-[var(--rv-ink-soft)]">
+        <BackLink onBack={onBack} />
+        {fehler ?? (
+          <span className="flex items-center gap-2 text-[var(--rv-muted)]">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            Lädt
+          </span>
+        )}
+      </div>
+    )
+  }
+
+  const istOffen = batch.status === "entwurf"
+  const toene = batch.art === "absage" ? ["standard", "kurz", "persoenlich"] : ["offen", "vor_ort", "video", "telefon"]
+  const anzahl = auswahl.size
+  const wort = batch.art === "absage" ? (anzahl === 1 ? "Absage" : "Absagen") : anzahl === 1 ? "Einladung" : "Einladungen"
+
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+      <BackLink onBack={onBack} />
+      <p className="text-sm font-bold text-[var(--rv-ink)]">
+        {batch.art === "absage" ? "Absagen" : "Einladungen"} · {batch.stelle.titel}
+      </p>
+      <p className="mt-0.5 text-xs text-[var(--rv-ink-soft)]">
+        {istOffen
+          ? "Prüf die Entwürfe, wähl ab, was nicht raus soll, und gib frei. Verschickt wird gestaffelt."
+          : batch.status === "abgebrochen"
+            ? "Abgebrochen. Was noch nicht verschickt war, bleibt liegen."
+            : "Freigegeben. Der Stand je Empfänger aktualisiert sich hier."}
+      </p>
+
+      {istOffen && (
+        <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label={batch.art === "absage" ? "Ton für alle" : "Gesprächsform für alle"}>
+          {toene.map((t) => (
+            <button
+              key={t}
+              type="button"
+              disabled={laeuft}
+              onClick={async () => {
+                if (t !== batch.ton && (await post({ aktion: "ton", ton: t }))) setVersion((v) => v + 1)
+              }}
+              className={`rounded-full px-3 py-1 text-xs font-medium ${t === batch.ton ? "bg-[var(--rv-ink)] text-white" : "bg-[var(--rv-mist)] text-[var(--rv-ink-soft)] hover:bg-[var(--rv-mist-2)]"}`}
+            >
+              {TON_LABEL[t] ?? t}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <ul className="mt-3 divide-y divide-[var(--rv-mist-2)] overflow-hidden rounded-2xl border border-[var(--rv-mist-2)]">
+        {batch.entwuerfe.map((d) => {
+          const name = names[d.ref] ?? d.ref
+          const z = zustellung[d.id]
+          const werte = { name, stelle: batch.stelle.titel, firma: batch.stelle.firma }
+          return (
+            <li key={d.id} className="px-3.5 py-2 text-sm">
+              <div className="flex items-center gap-2.5">
+                {istOffen && (
+                  <input
+                    type="checkbox"
+                    checked={auswahl.has(d.id)}
+                    onChange={(ev) =>
+                      setAuswahl((prev) => {
+                        const n = new Set(prev)
+                        if (ev.target.checked) n.add(d.id)
+                        else n.delete(d.id)
+                        return n
+                      })
+                    }
+                    aria-label={`${name} auswählen`}
+                    className="h-4 w-4 accent-[var(--rv-green-deep)]"
+                  />
+                )}
+                <button type="button" onClick={() => setOffen(offen === d.id ? null : d.id)} className="min-w-0 flex-1 text-left">
+                  <span className={`block truncate font-semibold ${istOffen && !auswahl.has(d.id) ? "text-[var(--rv-muted)] line-through" : "text-[var(--rv-ink)]"}`}>{name}</span>
+                  <span className="block truncate text-xs text-[var(--rv-muted)]">{renderDraft(d.betreff, werte)}</span>
+                </button>
+                {z && (
+                  <span className={`shrink-0 text-xs ${z.status === "zugestellt" ? "text-[var(--rv-green-deep)]" : z.status === "fehler" || z.status === "zurueckgewiesen" ? "text-red-600" : "text-[var(--rv-muted)]"}`} title={z.fehler ?? undefined}>
+                    {ZUSTELL_LABEL[z.status] ?? z.status}
+                  </span>
+                )}
+              </div>
+              {offen === d.id && (
+                <div className="mt-2 whitespace-pre-line rounded-xl bg-[var(--rv-mist)] px-3 py-2 text-xs leading-relaxed text-[var(--rv-ink)]">{renderDraft(d.text, werte)}</div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+
+      {fehler && <p className="mt-2 text-xs text-red-600">{fehler}</p>}
+
+      {istOffen && batch.token && (
+        <div className="mt-3 space-y-2">
+          {/* Bewusster Klick: kein Fokus beim Öffnen, Enter und Leertaste lösen
+              nichts aus, nur ein echter Klick (event.detail > 0). */}
+          <button
+            type="button"
+            disabled={laeuft || anzahl === 0}
+            onKeyDown={(ev) => {
+              if (ev.key === "Enter" || ev.key === " ") ev.preventDefault()
+            }}
+            onClick={async (ev) => {
+              if (ev.detail === 0) return
+              if (await post({ aktion: "freigeben", token: batch.token, ausgewaehlt: [...auswahl] })) setVersion((v) => v + 1)
+            }}
+            className="w-full rounded-full bg-[var(--rv-green)] px-4 py-2 text-sm font-semibold text-[var(--rv-ink)] active:scale-[0.98] disabled:opacity-40"
+          >
+            {anzahl} {wort} verschicken
+          </button>
+          <p className="text-center text-[11px] text-[var(--rv-muted)]">Nur per Klick, nicht mit Enter. Danach geht eine Mail nach der anderen raus.</p>
+          <button
+            type="button"
+            disabled={laeuft}
+            onClick={async () => {
+              if (await post({ aktion: "abbrechen" })) setVersion((v) => v + 1)
+            }}
+            className="w-full rounded-full px-4 py-1.5 text-xs font-medium text-[var(--rv-ink-soft)] hover:bg-[var(--rv-mist)]"
+          >
+            Entwürfe verwerfen
+          </button>
+        </div>
+      )}
+
+      {batch.status === "freigegeben" && Object.values(zustellung).some((z) => z.status === "geplant") && (
+        <button
+          type="button"
+          disabled={laeuft}
+          onClick={async () => {
+            if (await post({ aktion: "abbrechen" })) setVersion((v) => v + 1)
+          }}
+          className="mt-3 w-full rounded-full border border-[var(--rv-mist-2)] px-4 py-1.5 text-xs font-medium text-[var(--rv-ink)] hover:bg-[var(--rv-mist)]"
+        >
+          Restlichen Versand stoppen
+        </button>
+      )}
+    </div>
+  )
+}
+
+function BackLink({ onBack }: { onBack: () => void }) {
+  return (
+    <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1 text-xs font-medium text-[var(--rv-ink-soft)] hover:text-[var(--rv-ink)]">
+      <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+      Zurück zum Chat
+    </button>
   )
 }
