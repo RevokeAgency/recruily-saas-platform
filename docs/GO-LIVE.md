@@ -379,7 +379,10 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       30.04.2027 abgeschaltet. Ablauf:
       1. Angemeldet `https://revetly.ai/api/matching/eval?vergleich=mistral-large-latest`
          öffnen. Antwort zeigt pro Golden-Set-Fall beide Scores und eine
-         Empfehlung.
+         Empfehlung. Der erste Lauf am 23.11.2026 war ungültig: Large 4 lehnte
+         wegen `top_p` ab, die Werte kamen vom Rückfallmodell. Seit dem Fix
+         (`top_p = 1`) neu laufen lassen; ein Rückfall gilt jetzt als Fehler.
+         Fälle, die aus Zeitgründen offen bleiben, mit `&case=<id>` nachholen.
       2. Steht dort „Umstellung unbedenklich“: in Vercel
          `AI_MODEL_MATCHING=mistral-large-latest` setzen und neu deployen.
       3. Danach `/api/matching/eval` ohne Parameter: alle Fälle im Band.

@@ -28,6 +28,8 @@ export interface CheckedAussage {
   text: string
   belege: Beleg[]
   belegt: boolean
+  /** zusammenfassung: im Code aus den Daten gezählt; hilfe: feste Übersicht. Beide ohne Modell. */
+  art?: "zusammenfassung" | "hilfe"
 }
 
 function norm(s: string): string {

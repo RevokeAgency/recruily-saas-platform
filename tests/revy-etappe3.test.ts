@@ -417,3 +417,39 @@ describe("Versand nur über Lettermint (EU)", () => {
     vi.unstubAllEnvs()
   })
 })
+
+describe("Absage ohne Stellenangabe (Protokoll 23.11.2026: „Kannst du K-… absagen?“)", () => {
+  it("eine offene Bewerbung: Revy nimmt sie und legt den Entwurf für diese Stelle an", async () => {
+    models.plan.mockReturnValue([{ toolName: "absage_entwerfen", input: { refs: ["K-AAAA0001"] } }])
+    const res = await runCommand(ctx(), { befehl: "Kannst du K-AAAA0001 absagen?", sessionId: SESSION, scope: { stelleId: null } })
+    const d = res.ergebnisse[0].data as { stapel: Array<{ stelle_id: string; entwuerfe: number }>; uebersprungen: unknown[] }
+    expect(d.stapel).toEqual([expect.objectContaining({ stelle_id: JOB, entwuerfe: 1 })])
+    expect(d.uebersprungen).toEqual([])
+    expect(sent).toHaveLength(0)
+  })
+
+  it("in mehreren Stellen offen: Revy fragt nach der Stelle statt zu raten", async () => {
+    const PRIVAT = "10000000-0000-0000-0000-0000000000ac"
+    const extra = { ...(fixture.applications[0] as Record<string, unknown>), bewerbung_id: "30000000-0000-0000-0000-0000000000ff", stelle_id: PRIVAT }
+    const view = db.views!["revy.applications"]
+    db.views!["revy.applications"] = () => [...view(), { ...extra, status: "scored" }]
+    models.plan.mockReturnValue([{ toolName: "absage_entwerfen", input: { refs: ["K-AAAA0001"] } }])
+    const res = await runCommand(ctx(), { befehl: "Sag K-AAAA0001 ab", sessionId: SESSION, scope: { stelleId: null } })
+    const d = res.ergebnisse[0].data as { entwuerfe: number; uebersprungen: Array<{ grund: string }> }
+    expect(d.entwuerfe).toBe(0)
+    expect(d.uebersprungen[0].grund).toBe("in mehreren Stellen beworben, sag mir die Stelle")
+  })
+
+  it("„Sag allen unter 70 % ab“: Suche über alle Stellen, dann Entwürfe je Stelle", async () => {
+    db.rpc["revy.kontaktierbar"] = ({ p_refs }) => (p_refs as string[]).map((r) => ({ ref: r, hat_email: true }))
+    models.plan.mockReturnValue([
+      { toolName: "pool_suchen", input: { max_score: 69, limit: 50 } },
+      { toolName: "absage_entwerfen", input: { refs_aus_schritt: 1, anzahl: 50 } },
+    ])
+    const res = await runCommand(ctx(), { befehl: "Sag allen unter 70 % ab", sessionId: SESSION, scope: { stelleId: null } })
+    const d = res.ergebnisse[1].data as { stapel: Array<{ stelle_id: string }>; entwuerfe: number }
+    expect(d.entwuerfe).toBe(2)
+    expect(d.stapel.map((s) => s.stelle_id).sort()).toEqual(["10000000-0000-0000-0000-00000000000a", "10000000-0000-0000-0000-0000000000ac"])
+    expect(sent).toHaveLength(0)
+  })
+})

@@ -27,6 +27,7 @@ interface Aussage {
   text: string
   belege: Beleg[]
   belegt: boolean
+  art?: "zusammenfassung" | "hilfe"
 }
 interface Ergebnis {
   schritt: number
@@ -65,12 +66,12 @@ const QUELLE: Record<Beleg["quelle"], string> = {
 const BEISPIELE_STELLE = [
   "Zeig mir die fünf besten Bewerbungen mit Score",
   "Such im Pool nach passenden Leuten für diese Stelle",
-  "Setz die drei besten auf die Shortlist und tagge sie mit Runde 2",
+  "Lad die zwei besten zum Videogespräch ein",
 ]
 const BEISPIELE_POOL = [
+  "Was ist offen? Gib mir einen Überblick",
   "Wer im Pool hat SAP und mindestens fünf Jahre Erfahrung?",
-  "Zeig mir Leute mit Führungserfahrung in Graz",
-  "Wer ist mit dem Tag Rückruf markiert?",
+  "Sag allen ab, die unter 40 % liegen",
 ]
 
 /** Kurztexte für die Änderungen von Revy. */
@@ -680,6 +681,7 @@ function ResultBlock({ e, names }: { e: Ergebnis; names: Record<string, string> 
     )
   }
   if (intern) return <ChangeResult e={e} names={names} />
+  if (e.werkzeug === "ueberblick") return <OverviewResult e={e} />
   if (items.length === 0) return null
   const gefunden = !Array.isArray(e.data) ? (e.data as { gefunden?: number })?.gefunden : undefined
 
@@ -727,6 +729,8 @@ function ResultBlock({ e, names }: { e: Ergebnis; names: Record<string, string> 
 function AussageView({ a, names }: { a: Aussage; names: Record<string, string> }) {
   const [open, setOpen] = useState(false)
   if (!a.belegt) return <p className="text-sm italic text-[var(--rv-ink-soft)]">{a.text}</p>
+  // Zusammenfassung (im Code aus den Daten gezählt) und Hilfe: kein Zitat nötig.
+  if (a.art) return <p className="whitespace-pre-line text-sm text-[var(--rv-ink)]">{withNames(a.text, names)}</p>
   return (
     <div className="text-sm text-[var(--rv-ink)]">
       <p>{withNames(a.text, names)}</p>
@@ -885,6 +889,7 @@ function ChangesView({ names, resolveRefs }: { names: Record<string, string>; re
 
 interface Entwurfsergebnis {
   batch_id: string | null
+  stapel?: Array<{ batch_id: string; stelle_id: string; entwuerfe: number }>
   art: "absage" | "einladung"
   entwuerfe: number
   uebersprungen: Array<{ ref: string; grund: string }>
@@ -909,15 +914,18 @@ function DraftResult({ e, names, onOpen }: { e: Ergebnis; names: Record<string, 
           ))}
         </ul>
       )}
-      {d.batch_id && (
-        <button
-          type="button"
-          onClick={() => onOpen(d.batch_id as string)}
-          className="mt-2.5 rounded-full bg-[var(--rv-green)] px-3.5 py-1.5 text-xs font-semibold text-[var(--rv-ink)] active:scale-[0.97]"
-        >
-          Prüfen und freigeben
-        </button>
-      )}
+      <div className="mt-2.5 flex flex-wrap gap-2">
+        {(d.stapel?.length ? d.stapel : d.batch_id ? [{ batch_id: d.batch_id, entwuerfe: d.entwuerfe }] : []).map((st, i, all) => (
+          <button
+            key={st.batch_id}
+            type="button"
+            onClick={() => onOpen(st.batch_id)}
+            className="rounded-full bg-[var(--rv-green)] px-3.5 py-1.5 text-xs font-semibold text-[var(--rv-ink)] active:scale-[0.97]"
+          >
+            Prüfen und freigeben{all.length > 1 ? ` (Stelle ${i + 1}, ${st.entwuerfe})` : ""}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -1189,5 +1197,42 @@ function BackLink({ onBack }: { onBack: () => void }) {
       <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
       Zurück zum Chat
     </button>
+  )
+}
+
+interface Ueberblick {
+  pro_stelle: Array<{ stelle_id: string; titel: string; bewerbungen: number; status: Record<string, number>; durchschnitt_score: number | null; neu_7_tage: number; wartet_ueber_14_tage: number }>
+}
+
+function OverviewResult({ e }: { e: Ergebnis }) {
+  const d = e.data as Ueberblick
+  if (!d.pro_stelle?.length) return null
+  return (
+    <div className="overflow-hidden rounded-2xl border border-[var(--rv-mist-2)]">
+      <ul className="divide-y divide-[var(--rv-mist-2)]">
+        {d.pro_stelle.map((s) => (
+          <li key={s.stelle_id} className="px-3.5 py-2 text-sm">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="truncate font-semibold text-[var(--rv-ink)]">{s.titel}</span>
+              <span className="shrink-0 text-xs tabular-nums text-[var(--rv-muted)]">
+                {s.bewerbungen} {s.bewerbungen === 1 ? "Bewerbung" : "Bewerbungen"}
+                {s.durchschnitt_score != null ? ` · Ø ${s.durchschnitt_score} %` : ""}
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs text-[var(--rv-ink-soft)]">
+              {Object.entries(s.status)
+                .sort((a, b) => b[1] - a[1])
+                .map(([k, v]) => `${k} ${v}`)
+                .join(" · ") || "noch keine Bewerbungen"}
+            </p>
+            {(s.neu_7_tage > 0 || s.wartet_ueber_14_tage > 0) && (
+              <p className="mt-0.5 text-xs text-[var(--rv-muted)]">
+                {[s.neu_7_tage ? `${s.neu_7_tage} neu diese Woche` : null, s.wartet_ueber_14_tage ? `${s.wartet_ueber_14_tage} warten über 14 Tage` : null].filter(Boolean).join(" · ")}
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }

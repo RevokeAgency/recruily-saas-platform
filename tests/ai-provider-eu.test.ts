@@ -45,6 +45,8 @@ describe("Modellkette bleibt in der EU", () => {
     const { describeChain } = await load()
     expect(describeChain("agent_plan")[0]).toBe("mistral:mistral-large-latest")
     expect(describeChain("agent_write")[0]).toBe("mistral:mistral-small-latest")
+    // Erst das große Modell des Matchings, dann small (Protokoll 23.11.2026)
+    expect(describeChain("agent_plan")).toEqual(["mistral:mistral-large-latest", "mistral:mistral-large-2512", "mistral:mistral-small-latest"])
   })
 
   it("Matching-Modell lässt sich für einen Ablauf übersteuern, Revy bleibt unberührt", async () => {

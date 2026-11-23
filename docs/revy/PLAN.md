@@ -439,3 +439,23 @@ Bericht: `docs/revy/ETAPPE-2.md`.
   ist; ein täglicher Cron fängt den Rest.
 
 Bericht: `docs/revy/ETAPPE-3.md`.
+
+## Teil 8: Revy klüger (23.11.2026, nach dem Protokoll vom 23.11.)
+
+Befunde aus dem Protokoll und was dagegen gebaut ist:
+
+| Befund | Ursache | Jetzt |
+| --- | --- | --- |
+| Revy plante mit `mistral-small-latest` | Large 4 lehnt bei Temperatur 0 jeden Aufruf ab, wenn `top_p` nicht 1 ist | `top_p = 1` bei jedem Aufruf (`lib/ai/generate.ts`); Rückfallkette Large 4 → `mistral-large-2512` → small; Grund des Rückfalls steht im Protokoll (`planer_rueckfall`) |
+| Erfundene Filter („nur Talent-Pool“) | kleines Modell | Filter ohne Grundlage im Wortlaut fliegen vor dem Siegel raus (`lib/revy/plausibel.ts`), steht im Protokoll (`filter_entfernt`) |
+| Leere Suche | zu enge Filter | Bei null Treffern lockert die Suche einen Filter und sagt welchen |
+| „Bewerber“ als Suchbegriff | Füllwort | Füllwörter werden ignoriert |
+| „Wie viele habe ich eingeladen?“ = vier Suchen | kein passendes Werkzeug | neues Werkzeug `ueberblick` (je Stelle nach Status, Ø-Score, neu, wartend) |
+| „Was kannst du?“ = „nichts her“ | kein Werkzeug | feste Übersicht mit Beispielen |
+| „nichts her“ unter einer Trefferliste | Modell zitiert nicht wörtlich | Zusammenfassung aus den Daten (im Code gezählt) vorn, unbelegte Modellsätze fallen dann weg |
+| „Kannst du K-… absagen?“ ohne Plan | Prompt sagte noch „Absagen kann Revy nicht“, Stelle fehlte | Prompt korrigiert; Absage und Einladung ohne Stelle nehmen die eine offene Bewerbung, bei mehreren fragt Revy |
+| Falsch gesperrt (Herkunft) | „aus dem Tourismus“ | Einordnung kennt Stadt und Branche als zulässig |
+| „Sag denen ab“ ging nicht | kein Bezug zur letzten Antwort | Kürzel der letzten Antwort gehen an den Planer (nur Kürzel) |
+
+Neue Filter der Suche: Score von/bis, Eingang älter/jünger als, Status über
+alle Stellen.

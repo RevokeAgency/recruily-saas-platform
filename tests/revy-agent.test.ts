@@ -8,6 +8,7 @@ import { NO_EVIDENCE, checkEvidence } from "@/lib/revy/evidence"
 import { admitProposal, gate } from "@/lib/revy/gate"
 import { BLOCKED_TEXT, checkDeterministic, checkText } from "@/lib/revy/policy"
 import { REGISTRY, WRITABLE_TABLES } from "@/lib/revy/tools"
+import { trimUnfoundedFilters } from "@/lib/revy/plausibel"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Abnahmetests 2, 3, 5, 6 und 8 für Revy, Etappe 1, deterministisch.
@@ -312,17 +313,15 @@ describe("Test 5: jede Aussage hat einen Beleg", () => {
       weitere_schritte: [],
     })
     const res = await run("Wer hat SAP und wo steht das?")
-    const texts = res.aussagen.map((a) => a.text)
-    expect(texts).toEqual([
-      "K-AAAA0001 hat fünf Jahre SAP EWM.",
-      NO_EVIDENCE,
-      "K-AAAA0001 hat den höchsten Score der Stelle.",
-      NO_EVIDENCE,
-    ])
-    for (const a of res.aussagen) {
-      if (a.belegt) expect(a.belege.length).toBeGreaterThan(0)
-      else expect(a.text).toBe(NO_EVIDENCE)
-    }
+    // Vorn die Zusammenfassung aus den Daten (im Code gezählt), dann nur die
+    // belegten Sätze des Modells. Erfundenes, Unbelegtes und gesperrte
+    // Merkmale fallen weg.
+    const [summary, ...rest] = res.aussagen
+    expect(summary).toMatchObject({ art: "zusammenfassung", belegt: true })
+    expect(summary.text).toMatch(/^2 Treffer\. Ganz oben: K-AAAA0001/)
+    expect(rest.map((a) => a.text)).toEqual(["K-AAAA0001 hat fünf Jahre SAP EWM.", "K-AAAA0001 hat den höchsten Score der Stelle."])
+    for (const a of rest) expect(a.belege.length).toBeGreaterThan(0)
+    expect(JSON.stringify(res.aussagen)).not.toMatch(/HANA|motiviert|Elternzeit/)
   })
 
   it("falsche Seite zählt nicht als Beleg", () => {
@@ -354,10 +353,13 @@ describe("Test 6: Frage ohne Grundlage", () => {
     expect(models.answer).not.toHaveBeenCalled()
   })
 
-  it("kein passendes Werkzeug: ebenfalls kein Raten", async () => {
+  it("kein passendes Werkzeug: kein Raten, stattdessen die Übersicht, was Revy kann", async () => {
     models.plan.mockReturnValue([])
     const res = await run("Wie wird das Wetter morgen?")
-    expect(res.aussagen).toEqual([{ text: NO_EVIDENCE, belege: [], belegt: false }])
+    expect(res.aussagen).toHaveLength(1)
+    expect(res.aussagen[0]).toMatchObject({ art: "hilfe" })
+    expect(res.aussagen[0].text).toMatch(/^Das kann ich für dich erledigen/)
+    expect(models.answer).not.toHaveBeenCalled()
   })
 
   it("Antwortmodell behauptet trotzdem etwas ohne Beleg: wird ersetzt", async () => {
@@ -699,5 +701,94 @@ describe("Etappe 2: Status, Tags, Notizen, Korrekturen", () => {
     models.plan.mockReturnValue([{ toolName: "status_setzen", input: { stelle_id: PRIVAT_JOB, status: "shortlist", refs: ["K-AAAA0001"] } }])
     const res = await run("Setz K-AAAA0001 in der geheimen Stelle auf die Shortlist")
     expect((res.ergebnisse[0].data as { uebersprungen: Array<{ grund: string }> }).uebersprungen[0].grund).toBe("nicht in dieser Stelle")
+  })
+})
+
+// ── Klüger (Protokoll vom 23.11.2026) ───────────────────────────────────────
+
+describe("Revy klüger: Fälle aus dem Protokoll vom 23.11.2026", () => {
+  it("„Führungserfahrung in Graz“: erfundener Talent-Pool-Filter fliegt raus und steht im Protokoll", async () => {
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { ort: "Graz", skills: ["SAP"], nur_talent_pool: true } }])
+    const res = await run("Zeig mir Leute mit SAP in Graz", null)
+    expect(res.plan[0].klartext).not.toMatch(/Talent-Pool/)
+    expect(liste(res).liste.map((c) => c.ref)).toEqual(["K-AAAA0001", "K-AAAA0003"])
+    const planAudit = db.tables.revy_audit.find((a) => a.werkzeug === "plan") as { ergebnis: { filter_entfernt?: unknown } }
+    expect(planAudit.ergebnis.filter_entfernt).toEqual([{ schritt: 1, filter: ["nur_talent_pool"] }])
+  })
+
+  it("Filter, die der Nutzer nennt, bleiben", async () => {
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { skills: ["SAP"], nur_talent_pool: true } }])
+    const res = await run("Wer im Talent-Pool hat SAP?", null)
+    expect(res.plan[0].klartext).toMatch(/nur Talent-Pool/)
+  })
+
+  it("null Treffer mit allen Filtern: Revy lockert und sagt, welcher Filter gefehlt hat", async () => {
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { begriffe: ["SAP"], ort: "Wien" } }])
+    const res = await run("Wer hat SAP in Wien?", null)
+    expect(liste(res).liste.map((c) => c.ref)).toEqual(["K-AAAA0001", "K-AAAA0003"])
+    expect(res.hinweise.join(" ")).toMatch(/Ohne „Ort Wien“ sind es 2/)
+  })
+
+  it("Füllwörter wie „Bewerber“ filtern nichts", async () => {
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { begriffe: ["Bewerber", "SAP TM"] } }])
+    const res = await run("Zeig mir Bewerber mit SAP TM", null)
+    expect(liste(res).liste.map((c) => c.ref)).toEqual(["K-AAAA0003"])
+    expect(liste(res).liste[0].treffer).toEqual(["SAP TM (Unterlagen)"])
+  })
+
+  it("Score-Filter über alle Stellen: „unter 70 %“", async () => {
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { max_score: 69, limit: 50 } }])
+    const res = await run("Wer liegt unter 70 %?", null)
+    expect(liste(res).liste.map((c) => c.ref).sort()).toEqual(["K-AAAA0002", "K-AAAA0003"])
+  })
+
+  it("„Wie viele habe ich eingeladen?“: ein Überblick statt vier Suchen, Antwort im Code gezählt", async () => {
+    jc("a3").status = "Eingeladen"
+    models.plan.mockReturnValue([{ toolName: "ueberblick", input: {} }])
+    const res = await run("Wie viele Bewerber habe ich bereits eingeladen?", null)
+    const d = res.ergebnisse[0].data as { bewerbungen: number; status: Record<string, number>; pro_stelle: unknown[] }
+    expect(d.bewerbungen).toBe(3)
+    expect(d.status).toEqual({ Bewertet: 2, Eingeladen: 1 })
+    expect(res.aussagen[0]).toMatchObject({ art: "zusammenfassung" })
+    expect(res.aussagen[0].text).toMatch(/^3 Bewerbungen in 2 Stellen\. Nach Status: Bewertet 2, Eingeladen 1\./)
+    expect(models.answer).not.toHaveBeenCalled()
+  })
+
+  it("„Was kannst du alles?“: Übersicht mit Beispielen statt „nichts her“", async () => {
+    models.plan.mockReturnValue([])
+    const res = await run("Was kannst du alles für mich erledigen?", null)
+    expect(res.aussagen[0].art).toBe("hilfe")
+    expect(res.aussagen[0].text).toMatch(/Sag allen unter 40 % ab/)
+  })
+
+  it("Treffer da, Modell zitiert nicht sauber: Zusammenfassung statt „nichts her“", async () => {
+    models.plan.mockReturnValue([{ toolName: "pool_suchen", input: { stelle_id: JOB, sortierung: "score" } }])
+    models.answer.mockReturnValue({ aussagen: [{ text: "Die Bewerber passen gut.", belege: [] }], weitere_schritte: [] })
+    const res = await run("Zeig mir die Bewerbungen")
+    expect(res.aussagen.map((a) => a.text)).toEqual(["2 Treffer. Ganz oben: K-AAAA0001 (Logistikleiter, Graz, 81 %)."])
+  })
+
+  it("Folgebefehl: „setz die auf die Shortlist“ kennt die Kürzel der letzten Antwort", async () => {
+    models.plan.mockReturnValueOnce([{ toolName: "pool_suchen", input: { stelle_id: JOB, sortierung: "score" } }])
+    await run("Zeig mir die Bewerbungen")
+    models.plan.mockReturnValueOnce([{ toolName: "status_setzen", input: { stelle_id: JOB, status: "shortlist", refs: ["K-AAAA0001"] } }])
+    await run("Setz den ersten davon auf die Shortlist")
+    const prompt = models.prompts.filter((p) => p.includes("<befehl>")).pop()!
+    expect(prompt).toContain("Letztes Ergebnis (in Reihenfolge): K-AAAA0001, K-AAAA0003")
+    expect(prompt).not.toMatch(/Sabine|Maja|Logistikleiter/)
+    expect(jc("0a").status).toBe("shortlisted")
+  })
+})
+
+describe("Filter-Prüfung gegen den Wortlaut", () => {
+  it.each([
+    ["Leute mit Führung in Graz", { ort: "Graz", nur_talent_pool: true }, ["nur_talent_pool"]],
+    ["Wer hat SAP?", { ort: "Wien", status: "eingeladen", min_berufsjahre: 3 }, ["ort", "min_berufsjahre", "status"]],
+    ["Wen habe ich zum Gespräch eingeladen?", { status: "eingeladen" }, []],
+    ["Wer hat mindestens 5 Jahre in Graz?", { ort: "Graz", min_berufsjahre: 5 }, []],
+    ["Sag allen unter 40 % ab", { max_score: 39 }, []],
+    ["Wer wartet seit zwei Wochen?", { eingang_aelter_als_tage: 14 }, []],
+  ] as Array<[string, Record<string, unknown>, string[]]>)("„%s“", (befehl, input, entfernt) => {
+    expect(trimUnfoundedFilters("pool_suchen", input, befehl).entfernt.sort()).toEqual(entfernt.sort())
   })
 })

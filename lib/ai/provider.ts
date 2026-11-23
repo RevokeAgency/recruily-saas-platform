@@ -96,12 +96,17 @@ const MISTRAL_MODELS: Record<AiTask, string> = {
 
 // In-EU-Modellfallback: Fällt das erste Modell aus (Kapazitätsgrenze,
 // Rate-Limit, kein Zugriff), versucht es das zweite. Beide bleiben in der EU.
-const MISTRAL_FALLBACK: Partial<Record<AiTask, string>> = {
-  reasoning: process.env.AI_MODEL_REASONING_FALLBACK || SECONDARY,
-  extraction: process.env.AI_MODEL_EXTRACTION_FALLBACK || SECONDARY,
-  utility: process.env.AI_MODEL_UTILITY_FALLBACK || SECONDARY,
-  verification: process.env.AI_MODEL_VERIFICATION_FALLBACK || SECONDARY,
-  agent_plan: process.env.AI_MODEL_AGENT_PLAN_FALLBACK || "mistral-small-latest",
+const MISTRAL_FALLBACK: Partial<Record<AiTask, string[]>> = {
+  reasoning: [process.env.AI_MODEL_REASONING_FALLBACK || SECONDARY],
+  extraction: [process.env.AI_MODEL_EXTRACTION_FALLBACK || SECONDARY],
+  utility: [process.env.AI_MODEL_UTILITY_FALLBACK || SECONDARY],
+  verification: [process.env.AI_MODEL_VERIFICATION_FALLBACK || SECONDARY],
+  // Revy plant zuerst mit Large 4. Scheitert das (Tarif, Kontingent), mit dem
+  // großen Modell, das auch das Matching nutzt, und erst zuletzt mit small:
+  // Das kleine Modell plant spürbar schlechter (Protokoll vom 23.11.2026).
+  agent_plan: process.env.AI_MODEL_AGENT_PLAN_FALLBACK
+    ? [process.env.AI_MODEL_AGENT_PLAN_FALLBACK]
+    : ["mistral-large-2512", "mistral-small-latest"],
 }
 
 /**
@@ -147,10 +152,11 @@ export function modelChain(task: AiTask): ResolvedModel[] {
     const override = MATCHING_TASKS.includes(task) ? matchingOverride.getStore() : undefined
     const id = override ?? MISTRAL_MODELS[task]
     chain.push({ model: mistral(id), provider: "mistral", modelId: id, euResident: true })
-    // Kleineres Modell desselben Anbieters als Rückfall.
-    const fb = MISTRAL_FALLBACK[task]
-    if (fb && fb !== id) {
-      chain.push({ model: mistral(fb), provider: "mistral", modelId: fb, euResident: true })
+    // Rückfall auf weitere Modelle desselben Anbieters.
+    for (const fb of MISTRAL_FALLBACK[task] ?? []) {
+      if (fb && !chain.some((c) => c.modelId === fb)) {
+        chain.push({ model: mistral(fb), provider: "mistral", modelId: fb, euResident: true })
+      }
     }
   }
 
