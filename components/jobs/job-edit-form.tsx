@@ -192,7 +192,7 @@ export function JobEditForm({
           <ChipInput label="Erforderliche Skills" values={form.requiredSkills} onChange={(v) => set("requiredSkills", v)} placeholder="Skill eingeben, Enter" />
           <ChipInput label="Nice-to-have Skills" hint="(optional)" values={form.niceToHaveSkills} onChange={(v) => set("niceToHaveSkills", v)} placeholder="Skill eingeben, Enter" />
           <ChipInput label="Sprachen" hint="(optional)" values={form.languages} onChange={(v) => set("languages", v)} placeholder="z.B. Deutsch (fließend)" />
-          <ChipInput label="KO-Kriterien" hint="(harte Muss-Anforderungen, optional)" values={form.koCriteria} onChange={(v) => set("koCriteria", v)} placeholder="z.B. Führerschein Klasse B" />
+          <ChipInput label="KO-Kriterien" hint="(nur rechtliche Voraussetzungen wie Führerschein, Arbeitserlaubnis, Berufsberechtigung; alles andere zählt als Muss-Anforderung)" values={form.koCriteria} onChange={(v) => set("koCriteria", v)} placeholder="z.B. Führerschein Klasse B" />
         </CardContent>
       </Card>
 

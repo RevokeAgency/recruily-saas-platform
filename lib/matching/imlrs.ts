@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { generateStructured } from "@/lib/ai/generate"
 import { describeChain } from "@/lib/ai/provider"
+import { splitKoCriteria } from "@/lib/matching/rechtliche-voraussetzung"
 import { generateDossier, renderDossier, type CareerDossier } from "./dossier"
 import { withApplicantTextRule } from "@/lib/ai/applicant-text"
 import {
@@ -288,9 +289,20 @@ function evidenceSupported(evidence: string, haystack: string): boolean {
  */
 export async function runIMLRSMatch(
   candidate: IMLRSCandidateInput,
-  job: IMLRSJobInput,
+  jobInput: IMLRSJobInput,
   opts?: { weights?: Record<string, number> | null },
 ): Promise<IMLRSMatchResult> {
+  // K.O. nur für rechtliche Voraussetzungen (lib/matching/rechtliche-voraussetzung.ts).
+  // Alle anderen K.O.-Kriterien des Kunden ("Studium", "5 Jahre", "SAP")
+  // werden zu Muss-Anforderungen: Sie zählen im Score, schließen aber
+  // niemanden aus.
+  const ko = splitKoCriteria(jobInput.ko_criteria)
+  const muss = jobInput.required_skills ?? []
+  const job: IMLRSJobInput = {
+    ...jobInput,
+    ko_criteria: ko.rechtlich,
+    required_skills: [...muss, ...ko.anforderung.filter((a) => !muss.some((m) => m.trim().toLowerCase() === a.toLowerCase()))],
+  }
   const tenantWeights = sanitizeWeights(opts?.weights)
   const weights: Record<CategoryKey, number> = tenantWeights ?? IMLRS_WEIGHTS
   // ── Stage A: dossier (reuse cache when provided) ──────────────────────────

@@ -300,9 +300,10 @@ export function JobWizardStep2({ formData, updateFormData, onNext, onBack }: Ste
             KO-Kriterien
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Harte Muss-Anforderungen. Kandidaten, die eine davon nachweislich nicht erfüllen,
-            werden im Matching als „KO“ markiert und ans Ende gereiht – der Score bleibt zur
-            Nachvollziehbarkeit erhalten. Im Zweifel (nicht eindeutig belegbar) wird niemand ausgeschlossen.
+            Nur rechtliche Voraussetzungen, ohne die jemand die Stelle nicht ausüben darf: etwa
+            Führerschein, Arbeitserlaubnis oder Berufsberechtigung. Wer eine davon nachweislich nicht
+            erfüllt, wird als „KO“ markiert. Alles andere, etwa Studium, Lehre oder Jahre an Erfahrung,
+            zählt als Muss-Anforderung im Score und schließt niemanden aus. Im Zweifel wird niemand ausgeschlossen.
           </p>
         </CardHeader>
         <CardContent className="space-y-3">

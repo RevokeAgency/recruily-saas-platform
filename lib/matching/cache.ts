@@ -26,7 +26,8 @@ import {
 // Berechnung selbst ändert (Gewichte, Obergrenzen, Zusammenrechnen), erhöht
 // MATCH_LOGIC_VERSION, sonst blieben alte Ergebnisse gültig.
 
-export const MATCH_LOGIC_VERSION = 1
+// 2 (23.11.2026): K.O. und Zulassungssperre nur noch für rechtliche Voraussetzungen.
+export const MATCH_LOGIC_VERSION = 2
 
 let tableMissingLogged = false
 
