@@ -72,6 +72,12 @@ export async function GET(req: NextRequest) {
         }
         const vorher = await runCase(c)
         const nachher = await runCase(c, vergleich)
+        // Hat gar nicht das neue Modell geantwortet, sondern ein Rückfall?
+        // Dann taugt der Fall nicht als Vergleich.
+        if (nachher.modell && nachher.modell !== `mistral:${vergleich}`) {
+          nachher.ok = false
+          nachher.fehler = `Rückfall auf ${nachher.modell}: ${vergleich} hat nicht geantwortet`
+        }
         zeilen.push({
           id: c.id,
           erwartet: `${c.expect.minOverall}-${c.expect.maxOverall}`,

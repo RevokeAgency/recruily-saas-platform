@@ -43,6 +43,15 @@ export const AI_MAX_RETRIES = 4
  */
 export const AI_SEED = 20261103
 
+/**
+ * top_p ausdrücklich 1. Bei Temperatur 0 (greedy) verlangt Mistral Large 4
+ * (mistral-large-latest) top_p = 1 und lehnt sonst jeden Aufruf ab ("top_p
+ * must be 1 when using greedy sampling", Eval vom 23.11.2026). Für die übrigen
+ * Modelle ändert es nichts: Bei Temperatur 0 wird ohnehin das
+ * wahrscheinlichste Token genommen.
+ */
+export const AI_TOP_P = 1
+
 /** Ist das Modell im Tarif des Kontos nicht freigeschaltet (Fehler bei uns, nicht beim Kunden)? */
 export function isTierNotAllowed(message: string): boolean {
   return /not available in your subscription tier|tier_not_allowed/i.test(message)
@@ -113,6 +122,7 @@ export async function generateStructured<T>(args: {
         temperature: args.temperature ?? 0,
         maxRetries: AI_MAX_RETRIES,
         seed: AI_SEED,
+        topP: AI_TOP_P,
         output: Output.object({ schema: args.schema }),
         system: args.system,
         ...(args.messages ? { messages: args.messages } : { prompt: args.prompt ?? "" }),
@@ -162,6 +172,7 @@ export async function generatePlain(args: {
         temperature: 0,
         maxRetries: AI_MAX_RETRIES,
         seed: AI_SEED,
+        topP: AI_TOP_P,
         system: args.system,
         prompt: args.prompt,
       })
@@ -196,7 +207,7 @@ export async function generateToolPlan(args: {
   prompt: string
   tools: ToolSet
   label: string
-}): Promise<{ text: string; calls: ToolPlanCall[]; run: AiRunInfo }> {
+}): Promise<{ text: string; calls: ToolPlanCall[]; run: AiRunInfo; rueckfall?: string[] }> {
   const chain = modelChain(args.task)
   if (chain.length === 0) throw new Error(`${args.label}: Kein KI-Provider konfiguriert.`)
 
@@ -208,6 +219,7 @@ export async function generateToolPlan(args: {
         temperature: 0,
         maxRetries: AI_MAX_RETRIES,
         seed: AI_SEED,
+        topP: AI_TOP_P,
         system: args.system,
         prompt: args.prompt,
         tools: args.tools,
@@ -217,6 +229,8 @@ export async function generateToolPlan(args: {
         text: result.text ?? "",
         calls: result.toolCalls.map((c) => ({ toolName: c.toolName, input: c.input })),
         run: { provider: entry.provider, modelId: entry.modelId, euResident: entry.euResident, servedModelId: result.response?.modelId },
+        // Warum frühere Modelle der Kette nicht geantwortet haben (fürs Protokoll).
+        ...(failures.length ? { rueckfall: failures.map((f) => f.slice(0, 160)) } : {}),
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
