@@ -81,3 +81,26 @@ describe("Nur rechtliche Voraussetzungen schließen aus", () => {
     expect(zulassungsSperre(f)).toMatchObject({ verletzt: false, cap: null })
   })
 })
+
+describe("K.O.-Urteile des Modells werden den Kriterien der Stelle zugeordnet", () => {
+  it("auch bei leicht anderem Wortlaut (Eval 26.11.2026)", async () => {
+    const { matchKnockoutResults } = await import("@/lib/matching/imlrs")
+    const out = matchKnockoutResults(
+      ["Führerschein Klasse B", "Arbeitserlaubnis für Österreich"],
+      [
+        { criterion: "Führerschein Klasse B (KO-Kriterium)", failed: true, reason: "laut CV kein Führerschein" },
+        { criterion: "arbeitserlaubnis für österreich", failed: false, reason: "EU-Bürgerin" },
+      ],
+    )
+    expect(out).toEqual([
+      { criterion: "Führerschein Klasse B", failed: true, reason: "laut CV kein Führerschein" },
+      { criterion: "Arbeitserlaubnis für Österreich", failed: false, reason: "EU-Bürgerin" },
+    ])
+  })
+
+  it("erfundene Kriterien zählen nicht, fehlende Urteile schließen niemanden aus", async () => {
+    const { matchKnockoutResults } = await import("@/lib/matching/imlrs")
+    expect(matchKnockoutResults(["Führerschein Klasse B"], [{ criterion: "Studium", failed: true, reason: "x" }])).toEqual([])
+    expect(matchKnockoutResults(["Führerschein Klasse B"], [])).toEqual([])
+  })
+})

@@ -113,7 +113,7 @@ export async function GET(req: NextRequest) {
       return Response.json({
         aktuell: describeChain("reasoning")[0],
         neu: `mistral:${vergleich}`,
-        bestanden: { vorher: `${ok("vorher")}/${zeilen.length}`, nachher: `${ok("nachher")}/${zeilen.length}` },
+        bestanden: { vorher: nurNeu ? "nicht gerechnet" : `${ok("vorher")}/${zeilen.length}`, nachher: `${ok("nachher")}/${zeilen.length}` },
         mittlereAbweichung: mittel,
         empfehlung,
         dauerSekunden: Math.round((Date.now() - gestartet) / 100) / 10,
@@ -167,6 +167,8 @@ async function runCase(c: GoldenCase, modelId?: string) {
       score: match.overallScore as number | null,
       knockout: match.knockout,
       knockoutErwartet: c.expect.knockout ?? null,
+      // Urteil des Modells zu den K.O.-Kriterien, wie geliefert
+      koUrteile: match.detail.knockoutRoh ?? [],
       modell: match.detail.modelUsed,
       euIntern: match.detail.euResident,
       sekunden: Math.round((Date.now() - started) / 100) / 10,

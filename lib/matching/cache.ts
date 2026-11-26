@@ -27,7 +27,8 @@ import {
 // MATCH_LOGIC_VERSION, sonst blieben alte Ergebnisse gültig.
 
 // 2 (23.11.2026): K.O. und Zulassungssperre nur noch für rechtliche Voraussetzungen.
-export const MATCH_LOGIC_VERSION = 2
+// 3 (26.11.2026): K.O.-Urteile auch bei leicht anderem Wortlaut zugeordnet.
+export const MATCH_LOGIC_VERSION = 3
 
 let tableMissingLogged = false
 

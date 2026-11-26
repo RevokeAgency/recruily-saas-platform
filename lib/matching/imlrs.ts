@@ -196,6 +196,8 @@ export interface IMLRSMatchDetail {
   euResident: boolean
   /** Gesetzt, wenn das Ergebnis aus dem Match-Cache kommt: wann es berechnet wurde. */
   cache?: { berechnetAm: string }
+  /** Urteile des Modells zu K.O.-Kriterien, wie geliefert (zur Nachprüfung). */
+  knockoutRoh?: { criterion: string; failed: boolean; reason: string }[]
 }
 
 export interface IMLRSMatchResult {
@@ -287,6 +289,37 @@ function evidenceSupported(evidence: string, haystack: string): boolean {
  * Runs the full IMLRS 2.0 pipeline for a candidate-job pair.
  * Same call signature as v1 — existing callers upgrade automatically.
  */
+function normKo(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9äöüß]+/g, " ").trim()
+}
+
+/**
+ * Ordnet die Urteile des Modells den K.O.-Kriterien der Stelle zu. Früher nur
+ * bei exakt gleichem Wortlaut; schrieb das Modell "Führerschein Klasse B
+ * (K.O.)" statt "Führerschein Klasse B", fiel das Urteil still weg und
+ * niemand wurde ausgeschlossen (Eval vom 26.11.2026). Jetzt: gleicher Text
+ * nach Vereinfachung, oder einer enthält den anderen. Nur Kriterien, die die
+ * Stelle definiert hat, zählen; der Wortlaut im Ergebnis ist der der Stelle.
+ */
+export function matchKnockoutResults(
+  defined: string[],
+  judged: { criterion: string; failed: boolean; reason: string }[],
+): { criterion: string; failed: boolean; reason: string }[] {
+  const out: { criterion: string; failed: boolean; reason: string }[] = []
+  for (const def of defined) {
+    const d = normKo(def)
+    if (!d) continue
+    const hit =
+      judged.find((r) => normKo(r.criterion) === d) ??
+      judged.find((r) => {
+        const c = normKo(r.criterion)
+        return c.length >= 4 && d.length >= 4 && (c.includes(d) || d.includes(c))
+      })
+    if (hit) out.push({ criterion: def, failed: hit.failed, reason: hit.reason })
+  }
+  return out
+}
+
 export async function runIMLRSMatch(
   candidate: IMLRSCandidateInput,
   jobInput: IMLRSJobInput,
@@ -430,12 +463,7 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
 
   // KO: only criteria the job actually defined count (model can't invent KOs).
   const definedKo = job.ko_criteria || []
-  const koResults =
-    definedKo.length === 0
-      ? []
-      : (judged.knockoutResults || []).filter((r) =>
-          definedKo.some((k) => k.trim().toLowerCase() === r.criterion.trim().toLowerCase()),
-        )
+  const koResults = matchKnockoutResults(definedKo, judged.knockoutResults || [])
 
   // Eine fehlende Berufszulassung ist ein Ausschluss, auch wenn der Kunde
   // keine eigenen K.O.-Kriterien gepflegt hat. Die Herkunft steht im Text,
@@ -475,6 +503,7 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
       dossierSummary: dossier?.summary ?? "Kein Dossier — Bewertung auf Basis der Strukturdaten.",
       weightsSource: tenantWeights ? "kunden-kalibriert" : "standard",
       weightsUsed: weights,
+      knockoutRoh: judged.knockoutResults || [],
       modelUsed: `${judgeRun.provider}:${judgeRun.modelId}`,
       euResident: judgeRun.euResident,
     },
