@@ -35,6 +35,7 @@ interface GoldenCase {
  *   GET /api/matching/eval?modell=<id> → alle Fälle mit einem anderen Modell
  *   GET /api/matching/eval?vergleich=<id> → Vorher-Nachher: aktuelles gegen
  *       neues Modell, Fall für Fall, mit Empfehlung (vor einem Modellwechsel)
+ *   …&nur=neu → im Vergleich nur das neue Modell rechnen (kürzer)
  *
  * Nur für eingeloggte Inhaber. Verbraucht KEIN Match-Kontingent (die Fälle sind
  * synthetisch und berühren keine Kundendaten).
@@ -60,17 +61,20 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url)
     const vergleich = url.searchParams.get("vergleich")
     const modell = url.searchParams.get("modell")
+    // nur=neu: im Vergleich nur das neue Modell rechnen (spart die Zeit des
+    // alten Laufs, wenn der Fall sonst nicht ins Zeitlimit passt).
+    const nurNeu = url.searchParams.get("nur") === "neu"
 
     // Vorher-Nachher: jeden Fall mit dem aktuellen und dem neuen Modell.
     if (vergleich) {
-      const zeilen: Array<{ id: string; erwartet: string; vorher: CaseResult; nachher: CaseResult; differenz: number | null }> = []
+      const zeilen: Array<{ id: string; erwartet: string; vorher: CaseResult | null; nachher: CaseResult; differenz: number | null }> = []
       const offen: string[] = []
       for (const c of cases) {
         if (zeilen.length > 0 && Date.now() - gestartet > ZEITBUDGET_MS - 100_000) {
           offen.push(c.id)
           continue
         }
-        const vorher = await runCase(c)
+        const vorher = nurNeu ? null : await runCase(c)
         const nachher = await runCase(c, vergleich)
         // Hat gar nicht das neue Modell geantwortet, sondern ein Rückfall?
         // Dann taugt der Fall nicht als Vergleich.
@@ -83,19 +87,27 @@ export async function GET(req: NextRequest) {
           erwartet: `${c.expect.minOverall}-${c.expect.maxOverall}`,
           vorher,
           nachher,
-          differenz: vorher.score != null && nachher.score != null ? nachher.score - vorher.score : null,
+          differenz: vorher?.score != null && nachher.score != null ? nachher.score - vorher.score : null,
         })
       }
-      const ok = (k: "vorher" | "nachher") => zeilen.filter((z) => z[k].ok).length
+      const ok = (k: "vorher" | "nachher") => zeilen.filter((z) => z[k]?.ok).length
+      // Zu langsam für den Betrieb? Ein Matching darf höchstens 300 Sekunden
+      // laufen; über 120 Sekunden je Bewerbung oder mehr als doppelt so lange
+      // wie bisher ist ein Warnzeichen (meist ein kleines Kontingent).
+      const langsam = zeilen.filter(
+        (z) => z.nachher.sekunden > 120 || (z.vorher != null && z.nachher.sekunden > 2 * z.vorher.sekunden),
+      )
       const fehler = zeilen.filter((z) => z.nachher.fehler).length
       const diffs = zeilen.map((z) => z.differenz).filter((d): d is number => d != null)
       const mittel = diffs.length ? Math.round((diffs.reduce((a, b) => a + Math.abs(b), 0) / diffs.length) * 10) / 10 : null
       const empfehlung =
         fehler > 0
           ? `Nicht umstellen: ${fehler} Fall/Fälle mit Fehler beim neuen Modell (oft Rate-Limit, siehe fehler).`
-          : ok("nachher") < ok("vorher")
+          : !nurNeu && ok("nachher") < ok("vorher")
             ? "Nicht umstellen: Das neue Modell liegt in weniger Fällen im erwarteten Band."
-            : offen.length
+            : langsam.length
+              ? `Noch nicht umstellen: Das neue Modell ist zu langsam (${langsam.map((z) => `${z.id} ${z.nachher.sekunden} s`).join(", ")}). Ein Matching darf höchstens 300 Sekunden dauern. Kontingent (Tokens pro Minute) bei Mistral prüfen.`
+              : offen.length
               ? "Noch offen: Restliche Fälle einzeln mit &case=<id> nachholen."
               : "Umstellung unbedenklich: mindestens so viele Fälle im Band, keine Fehler."
       return Response.json({
