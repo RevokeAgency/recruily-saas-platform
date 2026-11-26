@@ -104,3 +104,45 @@ describe("K.O.-Urteile des Modells werden den Kriterien der Stelle zugeordnet", 
     expect(matchKnockoutResults(["Führerschein Klasse B"], [])).toEqual([])
   })
 })
+
+describe("K.O. nur mit wörtlichem Zitat (Eval 26.11.2026: „im Dossier nicht belegt“ reichte für K.O.)", () => {
+  const lena = "Lena Wolf, Vertrieb.\n2020 bis heute: Innendienst-Vertrieb. Hinweis: Ich besitze keinen Führerschein und nutze ausschließlich öffentliche Verkehrsmittel.\nAusbildung: HAK Matura."
+  const ohne = "Max Berger, Servicetechniker. Seit 2018 Wartung von Heizungsanlagen. Ausbildung: Lehre Elektrotechnik."
+
+  it("ausdrücklich verneint, Zitat steht im Lebenslauf: K.O.", async () => {
+    const { pruefeKoUrteile } = await import("@/lib/matching/imlrs")
+    const r = pruefeKoUrteile(
+      [{ criterion: "Führerschein Klasse B", beleg: "Ich besitze keinen Führerschein", status: "nicht_erfuellt", reason: "ausdrücklich verneint" }],
+      lena,
+    )
+    expect(r.urteile).toEqual([{ criterion: "Führerschein Klasse B", failed: true, reason: "ausdrücklich verneint" }])
+    expect(r.roh[0].belegGeprueft).toBe(true)
+  })
+
+  it("nicht erwähnt, Modell sagt trotzdem nicht erfüllt: kein K.O., im Gespräch klären", async () => {
+    const { pruefeKoUrteile } = await import("@/lib/matching/imlrs")
+    const r = pruefeKoUrteile(
+      [{ criterion: "Führerschein Klasse B", beleg: null, status: "nicht_erfuellt", reason: "Im Dossier nicht belegt, für Serviceeinsätze essenziell." }],
+      ohne,
+    )
+    expect(r.urteile[0].failed).toBe(false)
+    expect(r.urteile[0].reason).toMatch(/^Im Gespräch klären/)
+  })
+
+  it("erfundenes Zitat, das nicht in den Unterlagen steht: kein K.O.", async () => {
+    const { pruefeKoUrteile } = await import("@/lib/matching/imlrs")
+    const r = pruefeKoUrteile(
+      [{ criterion: "Führerschein Klasse B", beleg: "Ich habe keinen Führerschein", status: "nicht_erfuellt", reason: "x" }],
+      ohne,
+    )
+    expect(r.urteile[0].failed).toBe(false)
+    expect(r.roh[0].belegGeprueft).toBe(false)
+  })
+
+  it("Auszüge für den Richter: der Satz zum Führerschein wird gefunden, sonst keiner", async () => {
+    const { koAuszuege } = await import("@/lib/matching/imlrs")
+    expect(koAuszuege(lena, "Führerschein Klasse B")).toEqual(["Hinweis: Ich besitze keinen Führerschein und nutze ausschließlich öffentliche Verkehrsmittel."])
+    expect(koAuszuege(ohne, "Führerschein Klasse B")).toEqual([])
+    expect(koAuszuege("Lenkberechtigung B vorhanden.", "Führerschein Klasse B")).toEqual(["Lenkberechtigung B vorhanden."])
+  })
+})

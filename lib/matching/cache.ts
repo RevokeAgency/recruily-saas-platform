@@ -28,7 +28,8 @@ import {
 
 // 2 (23.11.2026): K.O. und Zulassungssperre nur noch für rechtliche Voraussetzungen.
 // 3 (26.11.2026): K.O.-Urteile auch bei leicht anderem Wortlaut zugeordnet.
-export const MATCH_LOGIC_VERSION = 3
+// 4 (26.11.2026): K.O. nur mit wörtlichem Zitat aus den Unterlagen, nie bei bloßem Fehlen.
+export const MATCH_LOGIC_VERSION = 4
 
 let tableMissingLogged = false
 

@@ -55,7 +55,14 @@ const judgeSchema = z.object({
   prognosisReason: z.string().describe("Kurze belegte Begründung der Prognose"),
   knockoutResults: z.array(z.object({
     criterion: z.string().describe("Der exakte Wortlaut des geprüften KO-Kriteriums"),
-    failed: z.boolean().describe("true NUR wenn eindeutig belegbar ist, dass der Kandidat dieses Muss-Kriterium NICHT erfüllt. Bei Unklarheit: false"),
+    // Reihenfolge: erst das Zitat suchen, dann einstufen.
+    beleg: z.string().nullable().describe(
+      "Wörtliches Zitat aus Lebenslauf, Anschreiben oder Dossier, das die NICHT-Erfüllung AUSDRÜCKLICH sagt (etwa 'Ich besitze keinen Führerschein'). " +
+      "null, wenn es kein solches Zitat gibt. Dass etwas nicht erwähnt ist, ist KEIN Beleg.",
+    ),
+    status: z.enum(["erfuellt", "nicht_erfuellt", "unklar"]).describe(
+      "nicht_erfuellt NUR mit wörtlichem Zitat in beleg. Nicht erwähnt oder nicht eindeutig: unklar.",
+    ),
     reason: z.string().describe("Kurze Begründung auf Deutsch"),
   })).describe("Bewertung jedes KO-Kriteriums. Leeres Array, wenn keine vorgegeben"),
 })
@@ -197,7 +204,7 @@ export interface IMLRSMatchDetail {
   /** Gesetzt, wenn das Ergebnis aus dem Match-Cache kommt: wann es berechnet wurde. */
   cache?: { berechnetAm: string }
   /** Urteile des Modells zu K.O.-Kriterien, wie geliefert (zur Nachprüfung). */
-  knockoutRoh?: { criterion: string; failed: boolean; reason: string }[]
+  knockoutRoh?: { criterion: string; beleg: string | null; status: string; reason: string; belegGeprueft: boolean }[]
 }
 
 export interface IMLRSMatchResult {
@@ -244,7 +251,10 @@ Kalibrierung: Sei streng und differenziert. Ein Gesamtbild über 80 bedeutet "so
 - Ausbildung (10 %), Soft Skills (10 %), Sprachen (5 %), Standort (5 %), Branche (10 %), Gehalt (5 %; unbelegt → 60, Konfidenz niedrig), Kultur (10 %).
 
 ## KO-Kriterien
-Prüfe jedes vorgegebene KO-Kriterium einzeln und KONSERVATIV: "failed" nur bei eindeutigem Beleg der Nicht-Erfüllung. Unklar → nicht ausschließen, im Interview klären.
+Prüfe jedes vorgegebene KO-Kriterium einzeln und KONSERVATIV.
+- status "nicht_erfuellt" NUR, wenn die Unterlagen die Nicht-Erfüllung AUSDRÜCKLICH sagen. Das Zitat dazu kommt wörtlich in "beleg".
+- Ist das Kriterium nicht erwähnt oder nicht eindeutig, ist der status "unklar", auch wenn es für die Stelle wichtig ist. Unklar schließt niemanden aus; es wird im Gespräch geklärt.
+- Die Stellen aus den Unterlagen zu den K.O.-Kriterien stehen im Block "AUSZÜGE ZU DEN K.O.-KRITERIEN".
 
 Antworte IMMER auf Deutsch.`
 
@@ -289,6 +299,68 @@ function evidenceSupported(evidence: string, haystack: string): boolean {
  * Runs the full IMLRS 2.0 pipeline for a candidate-job pair.
  * Same call signature as v1 — existing callers upgrade automatically.
  */
+// Begriffe, unter denen häufige K.O.-Kriterien in Lebensläufen auftauchen.
+const KO_SYNONYME: Array<[RegExp, string[]]> = [
+  [/fuehrerschein|lenkberechtigung|fahrerlaubnis/, ["führerschein", "fuehrerschein", "lenkberechtigung", "fahrerlaubnis", "klasse b", "pkw", "auto"]],
+  [/arbeitserlaubnis|arbeitsberechtigung|aufenthalt|rot[- ]weiss[- ]rot/, ["arbeitserlaubnis", "arbeitsberechtigung", "aufenthalt", "rot-weiß-rot", "rot-weiss-rot", "beschäftigungsbewilligung"]],
+  [/stapler/, ["stapler"]],
+]
+
+function foldKo(s: string): string {
+  return s.toLowerCase().replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+}
+
+/** Sätze aus den Unterlagen, die das K.O.-Kriterium betreffen (höchstens drei). */
+export function koAuszuege(text: string, kriterium: string): string[] {
+  const k = foldKo(kriterium)
+  const worte = new Set(k.split(/[^a-z0-9]+/).filter((w) => w.length >= 4))
+  for (const [re, syn] of KO_SYNONYME) if (re.test(k)) syn.forEach((x) => worte.add(foldKo(x)))
+  const saetze = text.split(/(?<=[.!?])\s+|\n+/).map((x) => x.trim()).filter(Boolean)
+  const out: string[] = []
+  for (const satz of saetze) {
+    const f = foldKo(satz)
+    if ([...worte].some((w) => f.includes(w))) out.push(satz.slice(0, 300))
+    if (out.length >= 3) break
+  }
+  return out
+}
+
+function normZitat(s: string): string {
+  return s.toLowerCase().replace(/[„“”"'‚‘’«»]/g, "").replace(/\s+/g, " ").replace(/[.…]+$/, "").trim()
+}
+
+/**
+ * Urteil des Modells prüfen: Ausgeschlossen wird nur bei status
+ * "nicht_erfuellt" UND einem Zitat, das wörtlich in den Unterlagen steht.
+ * Sonst ist das Kriterium unklar und wird im Gespräch geklärt (Eval vom
+ * 26.11.2026: "im Dossier nicht belegt" reichte bisher für einen K.O.).
+ */
+export function pruefeKoUrteile(
+  roh: { criterion: string; beleg: string | null; status: "erfuellt" | "nicht_erfuellt" | "unklar"; reason: string }[],
+  korpus: string,
+): {
+  urteile: { criterion: string; failed: boolean; reason: string }[]
+  roh: { criterion: string; beleg: string | null; status: string; reason: string; belegGeprueft: boolean }[]
+} {
+  const k = normZitat(korpus)
+  const geprueft = roh.map((r) => {
+    const z = r.beleg ? normZitat(r.beleg) : ""
+    const belegGeprueft = z.length >= 6 && k.includes(z)
+    return { ...r, belegGeprueft }
+  })
+  return {
+    roh: geprueft,
+    urteile: geprueft.map((r) => {
+      const failed = r.status === "nicht_erfuellt" && r.belegGeprueft
+      const reason =
+        r.status === "nicht_erfuellt" && !failed
+          ? `Im Gespräch klären: Die Unterlagen sagen dazu nichts Eindeutiges. ${r.reason}`.slice(0, 400)
+          : r.reason
+      return { criterion: r.criterion, failed, reason }
+    }),
+  }
+}
+
 function normKo(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9äöüß]+/g, " ").trim()
 }
@@ -380,12 +452,25 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
     ? `\n=== ANSCHREIBEN (für Soft Skills / Kultur / Motivation) ===\n${candidate.cover_letter_text.trim().slice(0, 4000)}`
     : ""
 
+  // Sätze aus Lebenslauf und Anschreiben zu den K.O.-Kriterien: Der Richter
+  // sieht sonst nur das Dossier, und ein Satz wie "Ich besitze keinen
+  // Führerschein" geht dort leicht verloren.
+  const koQuellen = [candidate.resume_text ?? "", candidate.cover_letter_text ?? ""].join("\n")
+  const koText = (job.ko_criteria ?? []).length
+    ? `\n\n=== AUSZÜGE ZU DEN K.O.-KRITERIEN (aus Lebenslauf und Anschreiben) ===\n${(job.ko_criteria ?? [])
+        .map((k) => {
+          const stellen = koAuszuege(koQuellen, k)
+          return `${k}:\n${stellen.length ? stellen.map((x) => `- "${x}"`).join("\n") : "- keine Erwähnung in den Unterlagen"}`
+        })
+        .join("\n")}`
+    : ""
+
   // ── Stage C: judge (model chain with automatic fallback) ─────────────────
   const { output: judged, run: judgeRun } = await generateStructured({
     task: "reasoning",
     schema: judgeSchema,
     system: withApplicantTextRule(judgeSystemPrompt),
-    prompt: `Bewerte dieses Kandidaten-Job-Paar nach der strengen Rubrik.\n\n=== KARRIERE-DOSSIER ===\n${dossierText}\n\n=== HARD FACTS (deterministisch, bindend) ===\n${hardFactsText}${coverText}\n\n${jobText}`,
+    prompt: `Bewerte dieses Kandidaten-Job-Paar nach der strengen Rubrik.\n\n=== KARRIERE-DOSSIER ===\n${dossierText}\n\n=== HARD FACTS (deterministisch, bindend) ===\n${hardFactsText}${coverText}${koText}\n\n${jobText}`,
     label: "IMLRS-Bewertung",
   })
 
@@ -463,7 +548,10 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
 
   // KO: only criteria the job actually defined count (model can't invent KOs).
   const definedKo = job.ko_criteria || []
-  const koResults = matchKnockoutResults(definedKo, judged.knockoutResults || [])
+  // Ein Ausschluss zählt nur mit Zitat, das wirklich in den Unterlagen steht.
+  const koKorpus = [koQuellen, dossierText].join("\n")
+  const koGeprueft = pruefeKoUrteile(judged.knockoutResults || [], koKorpus)
+  const koResults = matchKnockoutResults(definedKo, koGeprueft.urteile)
 
   // Eine fehlende Berufszulassung ist ein Ausschluss, auch wenn der Kunde
   // keine eigenen K.O.-Kriterien gepflegt hat. Die Herkunft steht im Text,
@@ -503,7 +591,7 @@ Zusammenfassung: ${candidate.summary_ai || candidate.summary || "—"}`
       dossierSummary: dossier?.summary ?? "Kein Dossier — Bewertung auf Basis der Strukturdaten.",
       weightsSource: tenantWeights ? "kunden-kalibriert" : "standard",
       weightsUsed: weights,
-      knockoutRoh: judged.knockoutResults || [],
+      knockoutRoh: koGeprueft.roh,
       modelUsed: `${judgeRun.provider}:${judgeRun.modelId}`,
       euResident: judgeRun.euResident,
     },
