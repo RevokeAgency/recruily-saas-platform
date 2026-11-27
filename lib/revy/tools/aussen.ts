@@ -1,9 +1,11 @@
 import { z } from "zod"
 import { checkRejectionWithModel, type Pruefung } from "../absage-pruefer"
 import { checkText } from "../policy"
-import { GESPRAECH, TOENE, absageVorlage, einladungVorlage } from "../vorlagen"
+import { pickTerminart, terminStand, terminartText } from "../termine"
+import { GESPRAECH, TOENE, absageVorlage, einladungVorlage, terminVorlage } from "../vorlagen"
 import {
   APPLICATION_COLS,
+  BEGRIFF,
   REF,
   def,
   describeRefs,
@@ -37,13 +39,23 @@ const aussenRefs = {
 const KEINE_ABSAGE = new Set(["Abgesagt", "rejected", "Eingestellt", "hired", "analyzing", "queued"])
 /** Status, bei denen eine Einladung keinen Sinn ergibt. */
 const KEINE_EINLADUNG = new Set(["Abgesagt", "rejected", "Eingestellt", "hired", "Eingeladen", "interviewed", "analyzing", "queued"])
+/**
+ * Status, bei denen ein Terminvorschlag keinen Sinn ergibt. Eingeladen und
+ * Gespräch geführt bleiben möglich: Ein Buchungslink nach einer Einladung per
+ * Mail oder für ein zweites Gespräch ist üblich. Ein neuer Link zieht den
+ * alten zurück.
+ */
+export const KEIN_TERMIN = new Set(["Abgesagt", "rejected", "Eingestellt", "hired", "analyzing", "queued"])
+
+type Art = "absage" | "einladung" | "termin"
+const WERKZEUG: Record<Art, string> = { absage: "absage_entwerfen", einladung: "einladung_entwerfen", termin: "termin_vorschlagen" }
 
 interface Entwurfsergebnis {
   /** Erster Stapel, für einfache Fälle. */
   batch_id: string | null
   /** Ein Stapel je Stelle. */
   stapel: Array<{ batch_id: string; stelle_id: string; entwuerfe: number }>
-  art: "absage" | "einladung"
+  art: Art
   entwuerfe: number
   uebersprungen: Array<{ ref: string; grund: string }>
 }
@@ -84,7 +96,7 @@ async function targetApplications(
 async function createDrafts(
   ctx: ToolContext,
   schritt: number,
-  art: "absage" | "einladung",
+  art: Art,
   stelleId: string | undefined,
   refs: string[],
   ausgeschlossen: Set<string>,
@@ -92,6 +104,7 @@ async function createDrafts(
   zusatz: string | null,
   vorlage: { betreff: string; text: string },
   pruefung: Pruefung,
+  extra: Record<string, unknown> = {},
 ): Promise<StepResult> {
   const { ziele, uebersprungen } = await targetApplications(ctx, refs, stelleId, ausgeschlossen)
 
@@ -102,7 +115,7 @@ async function createDrafts(
   for (const [sid, gruppe] of nachStelle) {
     const { data: batch, error: bErr } = await ctx.admin
       .from("revy_batches")
-      .insert({ user_id: ctx.ownerId, actor_id: ctx.actorId, run_id: ctx.runId, art, stelle_id: sid, ton, zusatz })
+      .insert({ user_id: ctx.ownerId, actor_id: ctx.actorId, run_id: ctx.runId, art, stelle_id: sid, ton, zusatz, ...extra })
       .select("id")
       .single()
     if (bErr || !batch) throw new Error(`Entwurf nicht angelegt: ${bErr?.message}`)
@@ -122,7 +135,7 @@ async function createDrafts(
     stapel.push({ batch_id: batchId, stelle_id: sid, entwuerfe: gruppe.length })
   }
   const data: Entwurfsergebnis = { batch_id: stapel[0]?.batch_id ?? null, stapel, art, entwuerfe: ziele.length, uebersprungen }
-  return { schritt, werkzeug: art === "absage" ? "absage_entwerfen" : "einladung_entwerfen", refs: ziele.map((a) => a.ref), data, korpus: {} }
+  return { schritt, werkzeug: WERKZEUG[art], refs: ziele.map((a) => a.ref), data, korpus: {} }
 }
 
 // ── absage_entwerfen ────────────────────────────────────────────────────────
@@ -191,7 +204,43 @@ const einladungEntwerfen = def({
   },
 })
 
+// ── termin_vorschlagen (Etappe 4) ───────────────────────────────────────────
+
+const terminVorschlagen = def({
+  name: "termin_vorschlagen",
+  effect: "NACH_AUSSEN",
+  description:
+    "Legt Terminvorschläge als Entwürfe an: eine Mail mit persönlichem Buchungslink, über den der Bewerber selbst einen freien Termin aus deinem Kalender wählt. Nutzt deine Zeiten und Terminarten unter Termine. Revy verschickt nichts; der Link entsteht erst beim Versand nach der Freigabe.",
+  params: z.object({
+    stelle_id: z.string().uuid().optional().describe("Weglassen, wenn unklar: Revy nimmt die offene Bewerbung des Kandidaten"),
+    ...aussenRefs,
+    terminart: BEGRIFF.optional().describe("Name einer Terminart aus dem Befehl, sonst die Standard-Terminart"),
+    zusatz: z.string().trim().max(500).optional().describe("Optionaler Satz aus dem Befehl"),
+  }),
+  describe: (p) => `Terminvorschläge mit Buchungslink als Entwurf anlegen (${describeRefs(p)})${p.terminart ? `, Terminart ${p.terminart}` : ""}`,
+  impact: (p) => refsUpperBound(p),
+  cost: noCost,
+  async run(p, ctx, schritt) {
+    const hinweise: string[] = []
+    let zusatz: string | null = p.zusatz?.trim() || null
+    if (zusatz && checkText(zusatz)) {
+      hinweise.push("Der Zusatz betraf ein geschütztes Merkmal und ist nicht im Entwurf.")
+      zusatz = null
+    }
+    const stand = await terminStand(ctx.admin, ctx.actorId)
+    const { art, nichtGefunden } = pickTerminart(stand, p.terminart)
+    const text = terminartText(art)
+    if (nichtGefunden) hinweise.push(`Eine Terminart „${p.terminart}“ gibt es nicht. Revy nimmt „${text.name}“.`)
+    if (!art) hinweise.push(`Du hast noch keine Terminart. Beim Versand legt Revetly „${text.name}“ an, ${text.dauer} Minuten ${text.ort}. Ändern kannst du das unter Termine.`)
+    if (!stand.eingerichtet) hinweise.push("Du hast deine Zeiten noch nicht gespeichert. Der Link zeigt die Standardzeiten. Ändern kannst du das unter Termine.")
+    const vorlage = terminVorlage(text, zusatz)
+    const r = await createDrafts(ctx, schritt, "termin", p.stelle_id, resolveRefs(p, ctx), KEIN_TERMIN, "standard", zusatz, vorlage, { ok: true }, { meeting_type_id: art?.id ?? null })
+    return { ...r, hinweise }
+  },
+})
+
 export const AUSSEN = {
   absage_entwerfen: absageEntwerfen,
   einladung_entwerfen: einladungEntwerfen,
+  termin_vorschlagen: terminVorschlagen,
 }

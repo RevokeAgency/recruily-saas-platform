@@ -288,9 +288,9 @@ describe("Test 3: präparierter Lebenslauf", () => {
     expect(db.tables.revy_incidents.map((i) => i.art)).toContain("unbekanntes_werkzeug")
   })
 
-  it("NACH_AUSSEN gibt es nur als Entwurfswerkzeuge (Etappe 3)", () => {
+  it("NACH_AUSSEN gibt es nur als Entwurfswerkzeuge (Etappe 3 und 4)", () => {
     const aussen = Object.values(REGISTRY).filter((t) => t.effect === "NACH_AUSSEN").map((t) => t.name).sort()
-    expect(aussen).toEqual(["absage_entwerfen", "einladung_entwerfen"])
+    expect(aussen).toEqual(["absage_entwerfen", "einladung_entwerfen", "termin_vorschlagen"])
   })
 })
 

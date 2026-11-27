@@ -133,6 +133,12 @@ Kommunikation (auf Wunsch, etwa "sag ab", "absagen", "lad ein", "einladen"):
 - Einladungen: gespraech (vor_ort, video, telefon), zusatz etwa zum Zeitraum aus dem Befehl.
 - "Sag allen ab, die unter 40 % liegen" heißt: pool_suchen mit max_score 39 und limit 50, dann absage_entwerfen mit refs_aus_schritt und anzahl 50.
 
+Termine (auf Wunsch, etwa "Termin", "Terminvorschlag", "Buchungslink", "Termin ausmachen", "soll sich einen Termin aussuchen"):
+- termin_vorschlagen legt Mails mit persönlichem Buchungslink als Entwürfe an. Der Bewerber wählt selbst einen freien Termin aus dem Kalender des Nutzers. terminart nur, wenn der Nutzer eine nennt ("Zweitgespräch").
+- "Lad ein" ohne Termin oder Link bleibt einladung_entwerfen. Fällt Termin, Terminvorschlag oder Buchungslink, nimm termin_vorschlagen.
+- "Wann habe ich Zeit", "freie Termine", "meine Zeiten", "wie sind meine Termine eingestellt" heißt: verfuegbarkeit_zeigen. Zeiten und Terminarten ändern kann Revy nicht, das geht unter Termine.
+- "Schick den drei besten einen Terminvorschlag" heißt: pool_suchen mit stelle_id, sortierung score, limit 3, dann termin_vorschlagen mit refs_aus_schritt und anzahl 3.
+
 Allgemein:
 - Du siehst keine Bewerberdaten und brauchst keine. Kandidaten heißen nur Kürzel K-XXXXXXXX.
 - Braucht ein Schritt die Kandidaten aus einem früheren Schritt, setze refs_aus_schritt auf dessen Nummer und anzahl auf die gewünschte Menge.
@@ -319,6 +325,7 @@ export const HILFE: CheckedAussage = {
     "• Vergleichen und belegen: „Was kann K-… genau, und wo steht das?“",
     "• Ordnen: „Setz die drei besten auf die Shortlist“, „Tagge die mit Runde 2“, „Notier bei …“",
     "• Schreiben: „Sag allen unter 40 % ab“, „Lad die ersten zwei zum Videogespräch ein“. Ich lege Entwürfe an, du gibst frei.",
+    "• Termine: „Schick den drei besten einen Terminvorschlag“, „Wann habe ich nächste Woche Zeit?“. Der Bewerber wählt selbst einen freien Termin.",
     "• Matchen: „Matche die Treffer gegen die Stelle“.",
     "Nach einer Antwort kannst du dich auf die Liste beziehen: „die“, „davon“, „die ersten drei“.",
   ].join("\n"),
@@ -350,6 +357,14 @@ function summarize(results: StepResult[]): CheckedAussage[] {
         belege: [],
         text: `${plural(d.gefunden, "Treffer", "Treffer")}${d.gefunden > d.liste.length ? `, hier die ersten ${d.liste.length}` : ""}. Ganz oben: ${top.ref}${details ? ` (${details})` : ""}.`,
       })
+    }
+    if (r.werkzeug === "verfuegbarkeit_zeigen") {
+      const d = r.data as { wochenzeiten: string[]; terminart: { name: string; dauer: number }; frei: { naechste: string[]; gesamt: number; tage: number } }
+      const zeiten = d.wochenzeiten.length ? `Deine Zeiten: ${d.wochenzeiten.join(", ")}.` : "Du hast keine Wochenzeiten eingestellt."
+      const frei = d.frei.gesamt
+        ? `Freie Termine für ${d.terminart.name} (${d.terminart.dauer} Minuten) in den nächsten ${d.frei.tage} Tagen: ${d.frei.gesamt}. Der nächste: ${d.frei.naechste[0]}.`
+        : `In den nächsten ${d.frei.tage} Tagen ist kein Termin für ${d.terminart.name} frei.`
+      out.push({ art: "zusammenfassung", belegt: true, belege: [], text: `${zeiten} ${frei}` })
     }
     if (r.werkzeug === "ueberblick") {
       const d = r.data as { stellen: number; bewerbungen: number; status: Record<string, number>; neu_7_tage: number; wartet_ueber_14_tage: number }
@@ -523,7 +538,8 @@ export async function runCommand(
 
   const response = await execute(ctx, runId, befehl, planned.steps, null)
   // Nur rein lesende Läufe kommen in den Cache: Matching und Änderungen schreiben.
-  const cacheable = key && response.status === "fertig" && planned.steps.every((s) => s.wirkung === "LESEND" && s.werkzeug !== "gegen_stelle_matchen")
+  // Freie Termine hängen an der Uhrzeit und an fremden Kalendern, nicht am Datenstand.
+  const cacheable = key && response.status === "fertig" && planned.steps.every((s) => s.wirkung === "LESEND" && s.werkzeug !== "gegen_stelle_matchen" && s.werkzeug !== "verfuegbarkeit_zeigen")
   if (cacheable) await writeCache(ctx.admin, ctx.ownerId, key, { ...response, runId: null })
   return response
 }

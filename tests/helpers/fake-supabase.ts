@@ -71,6 +71,18 @@ class Query implements PromiseLike<Result> {
     this.filters.push((r) => r[col] === v)
     return this
   }
+  neq(col: string, v: unknown) {
+    this.filters.push((r) => r[col] !== v)
+    return this
+  }
+  lt(col: string, v: string) {
+    this.filters.push((r) => String(r[col]) < v)
+    return this
+  }
+  gt(col: string, v: string) {
+    this.filters.push((r) => String(r[col]) > v)
+    return this
+  }
   in(col: string, vs: unknown[]) {
     this.filters.push((r) => vs.includes(r[col]))
     return this

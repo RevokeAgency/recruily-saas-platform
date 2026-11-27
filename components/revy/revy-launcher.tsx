@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, ArrowUp, ChevronDown, Download, FileText, History, Loader2, Mail, RotateCcw, ShieldAlert, Sparkles, X } from "lucide-react"
+import { ArrowLeft, ArrowUp, CalendarClock, ChevronDown, Download, FileText, History, Loader2, Mail, RotateCcw, ShieldAlert, Sparkles, X } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/client"
 import { renderDraft } from "@/lib/revy/vorlagen"
@@ -66,7 +66,7 @@ const QUELLE: Record<Beleg["quelle"], string> = {
 const BEISPIELE_STELLE = [
   "Zeig mir die fünf besten Bewerbungen mit Score",
   "Such im Pool nach passenden Leuten für diese Stelle",
-  "Lad die zwei besten zum Videogespräch ein",
+  "Schick den zwei besten einen Terminvorschlag",
 ]
 const BEISPIELE_POOL = [
   "Was ist offen? Gib mir einen Überblick",
@@ -536,7 +536,7 @@ function RevyAnswer({
       )}
 
       {res.ergebnisse.map((e) =>
-        e.werkzeug === "absage_entwerfen" || e.werkzeug === "einladung_entwerfen" ? (
+        e.werkzeug === "absage_entwerfen" || e.werkzeug === "einladung_entwerfen" || e.werkzeug === "termin_vorschlagen" ? (
           <DraftResult key={e.schritt} e={e} names={names} onOpen={onFreigabe} />
         ) : (
           <ResultBlock key={e.schritt} e={e} names={names} />
@@ -682,6 +682,7 @@ function ResultBlock({ e, names }: { e: Ergebnis; names: Record<string, string> 
   }
   if (intern) return <ChangeResult e={e} names={names} />
   if (e.werkzeug === "ueberblick") return <OverviewResult e={e} />
+  if (e.werkzeug === "verfuegbarkeit_zeigen") return <AvailabilityResult e={e} />
   if (items.length === 0) return null
   const gefunden = !Array.isArray(e.data) ? (e.data as { gefunden?: number })?.gefunden : undefined
 
@@ -887,24 +888,36 @@ function ChangesView({ names, resolveRefs }: { names: Record<string, string>; re
 
 // ── Etappe 3: Entwürfe und Freigabe ────────────────────────────────────────
 
+type EntwurfsArt = "absage" | "einladung" | "termin"
+
+/** Wort für die Art, Einzahl oder Mehrzahl. */
+function artWort(art: EntwurfsArt, n: number): string {
+  if (art === "absage") return n === 1 ? "Absage" : "Absagen"
+  if (art === "termin") return n === 1 ? "Terminvorschlag" : "Terminvorschläge"
+  return n === 1 ? "Einladung" : "Einladungen"
+}
+
 interface Entwurfsergebnis {
   batch_id: string | null
   stapel?: Array<{ batch_id: string; stelle_id: string; entwuerfe: number }>
-  art: "absage" | "einladung"
+  art: EntwurfsArt
   entwuerfe: number
   uebersprungen: Array<{ ref: string; grund: string }>
 }
 
 function DraftResult({ e, names, onOpen }: { e: Ergebnis; names: Record<string, string>; onOpen: (id: string) => void }) {
   const d = e.data as Entwurfsergebnis
-  const wort = d.art === "absage" ? (d.entwuerfe === 1 ? "Absage" : "Absagen") : d.entwuerfe === 1 ? "Einladung" : "Einladungen"
+  const wort = artWort(d.art, d.entwuerfe)
   return (
     <div className="rounded-2xl border border-[var(--rv-green)] bg-white px-3.5 py-3 text-sm text-[var(--rv-ink)]">
       <p className="flex items-center gap-2 font-semibold">
         <Mail className="h-4 w-4 text-[var(--rv-green-deep)]" aria-hidden />
         {d.entwuerfe} {wort} als Entwurf
       </p>
-      <p className="mt-1 text-xs text-[var(--rv-ink-soft)]">Revy verschickt nichts selbst. Du prüfst die Entwürfe und gibst sie frei.</p>
+      <p className="mt-1 text-xs text-[var(--rv-ink-soft)]">
+        Revy verschickt nichts selbst. Du prüfst die Entwürfe und gibst sie frei.
+        {d.art === "termin" ? " Der Buchungslink entsteht erst beim Versand." : ""}
+      </p>
       {d.uebersprungen.length > 0 && (
         <ul className="mt-1.5 text-xs text-[var(--rv-ink-soft)]">
           {d.uebersprungen.map((u) => (
@@ -932,10 +945,11 @@ function DraftResult({ e, names, onOpen }: { e: Ergebnis; names: Record<string, 
 
 interface BatchView {
   id: string
-  art: "absage" | "einladung"
+  art: EntwurfsArt
   status: string
   ton: string
   stelle: { id: string; titel: string; firma: string }
+  termin?: { name: string; dauer: number; ort: string; eigener_kalender: boolean }
   entwuerfe: Array<{
     id: string
     ref: string
@@ -1063,15 +1077,15 @@ function FreigabeView({
   }
 
   const istOffen = batch.status === "entwurf"
-  const toene = batch.art === "absage" ? ["standard", "kurz", "persoenlich"] : ["offen", "vor_ort", "video", "telefon"]
+  const toene = batch.art === "absage" ? ["standard", "kurz", "persoenlich"] : batch.art === "einladung" ? ["offen", "vor_ort", "video", "telefon"] : []
   const anzahl = auswahl.size
-  const wort = batch.art === "absage" ? (anzahl === 1 ? "Absage" : "Absagen") : anzahl === 1 ? "Einladung" : "Einladungen"
+  const wort = artWort(batch.art, anzahl)
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
       <BackLink onBack={onBack} />
       <p className="text-sm font-bold text-[var(--rv-ink)]">
-        {batch.art === "absage" ? "Absagen" : "Einladungen"} · {batch.stelle.titel}
+        {artWort(batch.art, 2)} · {batch.stelle.titel}
       </p>
       <p className="mt-0.5 text-xs text-[var(--rv-ink-soft)]">
         {istOffen
@@ -1081,7 +1095,22 @@ function FreigabeView({
             : "Freigegeben. Der Stand je Empfänger aktualisiert sich hier."}
       </p>
 
-      {istOffen && (
+      {batch.termin && (
+        <div className="mt-3 flex gap-2 rounded-xl bg-[var(--rv-mist)] px-3 py-2 text-xs text-[var(--rv-ink-soft)]">
+          <CalendarClock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span>
+            {batch.termin.name}, {batch.termin.dauer} Minuten, {batch.termin.ort}.{" "}
+            {batch.termin.eigener_kalender
+              ? "Der Link zeigt die freien Zeiten aus deinem Kalender und gilt 21 Tage."
+              : "Angelegt von jemand anderem im Team. Freigeben kann nur diese Person, weil der Link ihren Kalender nutzt."}{" "}
+            <Link href="/termine" className="font-semibold text-[var(--rv-ink)] underline underline-offset-2">
+              Zeiten und Terminarten
+            </Link>
+          </span>
+        </div>
+      )}
+
+      {istOffen && toene.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label={batch.art === "absage" ? "Ton für alle" : "Gesprächsform für alle"}>
           {toene.map((t) => (
             <button
@@ -1103,7 +1132,7 @@ function FreigabeView({
         {batch.entwuerfe.map((d) => {
           const name = names[d.ref] ?? d.ref
           const z = zustellung[d.id]
-          const werte = { name, stelle: batch.stelle.titel, firma: batch.stelle.firma }
+          const werte = { name, stelle: batch.stelle.titel, firma: batch.stelle.firma, link: "[persönlicher Buchungslink]", gueltig_bis: "[Datum, 21 Tage nach dem Versand]" }
           return (
             <li key={d.id} className="px-3.5 py-2 text-sm">
               <div className="flex items-center gap-2.5">
@@ -1233,6 +1262,54 @@ function OverviewResult({ e }: { e: Ergebnis }) {
           </li>
         ))}
       </ul>
+    </div>
+  )
+}
+
+interface Verfuegbarkeit {
+  eingerichtet: boolean
+  zeitzone: string
+  wochenzeiten: string[]
+  terminarten: Array<{ id: string; name: string; dauer: number; ort: string; standard: boolean }>
+  kalender: number
+  terminart: { name: string; dauer: number; ort: string }
+  frei: { naechste: string[]; gesamt: number; tage: number; unvollstaendig: boolean }
+}
+
+function AvailabilityResult({ e }: { e: Ergebnis }) {
+  const d = e.data as Verfuegbarkeit
+  if (!d?.frei) return null
+  return (
+    <div className="overflow-hidden rounded-2xl border border-[var(--rv-mist-2)] text-sm">
+      <div className="px-3.5 py-2">
+        <p className="flex items-center gap-2 font-semibold text-[var(--rv-ink)]">
+          <CalendarClock className="h-4 w-4 text-[var(--rv-green-deep)]" aria-hidden />
+          Nächste freie Termine
+        </p>
+        <p className="mt-0.5 text-xs text-[var(--rv-muted)]">
+          {d.terminart.name}, {d.terminart.dauer} Minuten · {d.frei.gesamt} frei in {d.frei.tage} Tagen
+        </p>
+        {d.frei.naechste.length > 0 ? (
+          <ul className="mt-1.5 space-y-0.5 text-xs tabular-nums text-[var(--rv-ink)]">
+            {d.frei.naechste.map((z) => (
+              <li key={z}>{z}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-1.5 text-xs text-[var(--rv-ink-soft)]">Im Zeitraum ist nichts frei.</p>
+        )}
+      </div>
+      <div className="border-t border-[var(--rv-mist-2)] px-3.5 py-2 text-xs text-[var(--rv-ink-soft)]">
+        <p>{d.wochenzeiten.length ? d.wochenzeiten.join(" · ") : "Keine Wochenzeiten eingestellt"} ({d.zeitzone})</p>
+        <p className="mt-0.5">
+          {d.terminarten.length ? `Terminarten: ${d.terminarten.map((t) => `${t.name} (${t.dauer} Min.)`).join(", ")}` : "Noch keine Terminart angelegt"}
+          {" · "}
+          {d.kalender === 0 ? "kein Kalender verbunden" : d.kalender === 1 ? "1 Kalender verbunden" : `${d.kalender} Kalender verbunden`}
+        </p>
+        <Link href="/termine" className="mt-1 inline-block font-semibold text-[var(--rv-ink)] underline underline-offset-2">
+          Unter Termine ändern
+        </Link>
+      </div>
     </div>
   )
 }

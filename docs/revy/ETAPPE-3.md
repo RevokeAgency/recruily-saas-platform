@@ -83,6 +83,6 @@ dieser Umgebung. Mailversand und Modelle sind in den Tests ersetzt.
   solange die Freigabe-Ansicht offen ist. Was danach noch geplant ist,
   verschickt der tägliche Cron `/api/cron/revy-versand` am nächsten Morgen.
   Mit Vercel Pro lässt sich der Cron enger takten.
-- Einladungen enthalten noch keinen Buchungslink; der kommt mit Etappe 4.
+- Einladungen enthalten keinen Buchungslink. Dafür gibt es seit Etappe 4 den Terminvorschlag (`docs/revy/ETAPPE-4.md`).
 - Eigene Texte je Empfänger gibt es bewusst nicht, nur Vorlagen und ein
   geprüfter Zusatz für alle.

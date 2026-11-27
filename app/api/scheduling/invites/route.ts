@@ -5,13 +5,13 @@ import { createBookingToken } from "@/lib/scheduling/crypto"
 import { adminClient, ensureDefaultMeetingType, loadMeetingTypes, loadProfile } from "@/lib/scheduling/store"
 import { sendBookingInvite } from "@/lib/email/scheduling"
 import { requireFeature } from "@/lib/quota"
+import { BOOKING_INVITE_VALID_DAYS } from "@/lib/scheduling/types"
 import { absoluteUrl } from "@/lib/site"
 import { getWorkspace } from "@/lib/workspace"
 
 export const dynamic = "force-dynamic"
 
-/** Wie lange ein Buchungslink gilt. Danach muss der Recruiter neu einladen. */
-const INVITE_VALID_DAYS = 21
+const INVITE_VALID_DAYS = BOOKING_INVITE_VALID_DAYS
 
 /**
  * Angemeldete Person und ihr Arbeitsbereich. Einladungen und Termine laufen

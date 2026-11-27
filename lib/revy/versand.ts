@@ -2,8 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { logDecisions } from "@/lib/compliance/decision-log"
 import { sendMailEuOnly } from "@/lib/email/client"
 import { buildRejectionMail } from "@/lib/email/rejection"
-import { buildInvitationMail } from "@/lib/email/revy"
+import { buildBookingProposalMail, buildInvitationMail } from "@/lib/email/revy"
+import { hasFeature } from "@/lib/plans"
+import { getPlan } from "@/lib/quota"
 import { checkRejection } from "./absage-pruefer"
+import { activateInvite, createInviteForDelivery, revokeInvite } from "./termine"
 import { renderDraft } from "./vorlagen"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -14,6 +17,10 @@ import { renderDraft } from "./vorlagen"
 // beansprucht (geplant → in_versand), damit zwei gleichzeitige Läufe nie
 // dieselbe Mail zweimal schicken. Versand nur über Lettermint (EU), mit der
 // Zustellungs-ID als Idempotency-Key und als Metadatum für den Webhook.
+//
+// Terminvorschläge (Etappe 4): Erst hier entsteht der Buchungslink, über den
+// Kalender der Person, die freigegeben hat. Scheitert der Versand, wird der
+// neue Link zurückgezogen; ältere offene Links erst nach dem Versand.
 //
 // Angestoßen wird der Versand nach der Freigabe, solange die Freigabe-Ansicht
 // den Fortschritt abfragt, und täglich durch /api/cron/revy-versand.
@@ -42,7 +49,7 @@ async function fail(admin: SupabaseClient, id: string, fehler: string) {
 
 /** Eine beanspruchte Zustellung verschicken. */
 async function deliver(admin: SupabaseClient, d: DeliveryRow): Promise<"gesendet" | "fehler" | "abgebrochen"> {
-  const { data: batch } = await admin.from("revy_batches").select("id, art, status, freigegeben_durch, stelle_id").eq("id", d.batch_id).maybeSingle()
+  const { data: batch } = await admin.from("revy_batches").select("id, art, status, freigegeben_durch, stelle_id, meeting_type_id, zusatz").eq("id", d.batch_id).maybeSingle()
   if (!batch || batch.status === "abgebrochen") {
     await admin.from("revy_deliveries").update({ status: "abgebrochen", updated_at: new Date().toISOString() }).eq("id", d.id)
     return "abgebrochen"
@@ -50,7 +57,7 @@ async function deliver(admin: SupabaseClient, d: DeliveryRow): Promise<"gesendet
   const { data: draft } = await admin.from("revy_drafts").select("betreff, text").eq("id", d.draft_id).maybeSingle()
   const { data: link } = await admin
     .from("job_candidates")
-    .select("id, status, job_id, user_id, candidate:candidates(full_name, email), job:jobs(title, company)")
+    .select("id, status, job_id, candidate_id, user_id, candidate:candidates(full_name, email), job:jobs(title, company)")
     .eq("id", d.job_candidate_id ?? "")
     .maybeSingle()
   const candidate = (link?.candidate ?? null) as { full_name?: string | null; email?: string | null } | null
@@ -64,15 +71,50 @@ async function deliver(admin: SupabaseClient, d: DeliveryRow): Promise<"gesendet
     return "fehler"
   }
   const status = String(link.status)
-  const art = batch.art as "absage" | "einladung"
+  const art = batch.art as "absage" | "einladung" | "termin"
   if (["Abgesagt", "rejected", "Eingestellt", "hired"].includes(status) || (art === "einladung" && ["Eingeladen", "interviewed"].includes(status))) {
     await fail(admin, d.id, `Status inzwischen ${status}, nicht verschickt`)
     return "fehler"
   }
 
   const werte = { name: candidate.full_name || "Bewerberin, Bewerber", stelle: job.title || "die ausgeschriebene Stelle", firma: job.company || "unser Unternehmen" }
-  const text = renderDraft(draft.text as string, werte)
+  let text = renderDraft(draft.text as string, werte)
   const betreff = renderDraft(draft.betreff as string, werte)
+
+  // Terminvorschlag: Buchungslink anlegen, Kalender der freigebenden Person.
+  let invite: { inviteId: string; url: string } | null = null
+  if (art === "termin") {
+    if (!batch.freigegeben_durch) {
+      await fail(admin, d.id, "Keine Freigabe hinterlegt")
+      return "fehler"
+    }
+    if (!text.includes("{{link}}")) {
+      await fail(admin, d.id, "Entwurf ohne Buchungslink, nicht verschickt")
+      return "fehler"
+    }
+    if (!hasFeature(await getPlan(admin, d.user_id), "self_booking")) {
+      await fail(admin, d.id, "Terminbuchung ist im aktuellen Plan nicht enthalten, nicht verschickt")
+      return "fehler"
+    }
+    const r = await createInviteForDelivery(admin, {
+      userId: batch.freigegeben_durch as string,
+      meetingTypeId: (batch.meeting_type_id as string | null) ?? null,
+      jobCandidateId: link.id as string,
+      jobId: (link.job_id as string | null) ?? null,
+      candidateId: (link.candidate_id as string | null) ?? null,
+      candidateName: candidate.full_name ?? null,
+      candidateEmail: candidate.email,
+      jobTitle: job.title ?? null,
+      companyName: job.company ?? null,
+      note: (batch.zusatz as string | null) ?? null,
+    })
+    if ("fehler" in r) {
+      await fail(admin, d.id, r.fehler)
+      return "fehler"
+    }
+    invite = r
+    text = renderDraft(text, { ...werte, gueltig_bis: r.gueltigBis })
+  }
 
   // Letzte Sicherung: Absagen ohne Begründung zur Person. Geprüft wird der
   // Vorlagentext; Name, Stelle und Firma selbst zählen nicht (eine Firma
@@ -83,24 +125,34 @@ async function deliver(admin: SupabaseClient, d: DeliveryRow): Promise<"gesendet
   }
 
   let replyTo: string | null = null
-  if (art === "einladung" && batch.freigegeben_durch) {
+  if (art !== "absage" && batch.freigegeben_durch) {
     const { data: u } = await admin.auth.admin.getUserById(batch.freigegeben_durch as string)
     replyTo = u?.user?.email ?? null
   }
   const mail =
     art === "absage"
       ? buildRejectionMail({ to: candidate.email, candidateName: werte.name, jobTitle: werte.stelle, companyName: werte.firma, text })
-      : buildInvitationMail({ to: candidate.email, subject: betreff, text, companyName: werte.firma, replyTo })
+      : invite
+        ? buildBookingProposalMail({ to: candidate.email, subject: betreff, text, companyName: werte.firma, bookingUrl: invite.url, replyTo })
+        : buildInvitationMail({ to: candidate.email, subject: betreff, text, companyName: werte.firma, replyTo })
 
   let anbieterId: string
   try {
-    anbieterId = await sendMailEuOnly({ ...mail, metadata: { revy_delivery: d.id }, idempotencyKey: d.id }, art === "absage" ? "Revy-Absage" : "Revy-Einladung")
+    anbieterId = await sendMailEuOnly(
+      { ...mail, metadata: { revy_delivery: d.id }, idempotencyKey: d.id },
+      art === "absage" ? "Revy-Absage" : art === "termin" ? "Revy-Terminvorschlag" : "Revy-Einladung",
+    )
   } catch (err) {
+    if (invite) await revokeInvite(admin, invite.inviteId)
     await fail(admin, d.id, err instanceof Error ? err.message : String(err))
     return "fehler"
   }
   const jetzt = new Date().toISOString()
-  await admin.from("revy_deliveries").update({ status: "gesendet", gesendet_am: jetzt, anbieter_id: anbieterId, updated_at: jetzt }).eq("id", d.id)
+  await admin
+    .from("revy_deliveries")
+    .update({ status: "gesendet", gesendet_am: jetzt, anbieter_id: anbieterId, updated_at: jetzt, ...(invite ? { booking_invite_id: invite.inviteId } : {}) })
+    .eq("id", d.id)
+  if (invite) await activateInvite(admin, invite.inviteId, link.id as string)
 
   // Folgen wie beim Versand von Hand: Status der Bewerbung und Protokoll.
   if (art === "absage") {

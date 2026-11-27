@@ -17,7 +17,7 @@ import { describeChain } from "@/lib/ai/provider"
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Nach jeder Änderung an Prompts, Werkzeugen oder Prüfern um eins erhöhen. */
-export const REVY_LOGIC_VERSION = 1
+export const REVY_LOGIC_VERSION = 2
 
 export function normalizeCommand(befehl: string): string {
   return befehl.toLowerCase().replace(/\s+/g, " ").trim()

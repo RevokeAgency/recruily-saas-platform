@@ -21,6 +21,9 @@ export interface SchedulingProfile {
   maxPerDay: number
 }
 
+/** Wie lange ein Buchungslink gilt. Danach muss der Recruiter neu einladen. */
+export const BOOKING_INVITE_VALID_DAYS = 21
+
 export type LocationKind = "video_auto" | "custom_link" | "phone" | "onsite"
 
 export interface MeetingType {

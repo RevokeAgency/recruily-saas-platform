@@ -457,6 +457,10 @@ Supabase eingespielt. Reihenfolge egal, alle additiv:
       `/api/webhooks/lettermint` einrichten und `LETTERMINT_WEBHOOK_SECRET`
       setzen (Schritte in `docs/revy/ETAPPE-3.md`). Details in
       `scripts/041_revy_etappe3.md`.
+- [ ] `scripts/042_revy_etappe4.sql` *(neu, 27.11.2026)*: **Revy, Etappe 4.**
+      Terminvorschläge mit Buchungslink. Erlaubt die Art `termin` für
+      Stapel und merkt sich Terminart und Buchungslink. Nach 041 einspielen.
+      Lokal getestet. Details in `scripts/042_revy_etappe4.md`.
 - [ ] **Entscheiden, ob die Beispiele für das gemeinsame Modell gelöscht
       werden** (auskommentierter Schritt am Ende von 029). Das gemeinsame
       Training ist abgeschaltet, der Export antwortet mit 403.

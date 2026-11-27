@@ -270,4 +270,18 @@ run("Revy-Datenschicht (Postgres)", () => {
       expect(fails(() => asService("update public.revy_batches set status = 'verschickt'"))).toMatch(/check constraint/)
     })
   })
+
+  describe("Etappe 4 (042): Terminvorschläge", () => {
+    it("Art termin erlaubt, andere nicht; Terminart lesbar, Token-Hash weiter nicht", () => {
+      asService(`insert into public.revy_batches (user_id, art, stelle_id, token_hash) values ('${A}', 'termin', '10000000-0000-0000-0000-00000000000a', 'abc')`)
+      expect(fails(() => asService(`insert into public.revy_batches (user_id, art) values ('${A}', 'anruf')`))).toMatch(/check constraint/)
+      expect(as(A, "select count(*) from public.revy_batches where art = 'termin' and meeting_type_id is null")).toBe("1")
+      expect(fails(() => as(A, "select token_hash from public.revy_batches"))).toMatch(/permission denied/)
+      expect(as(B, "select count(*) from public.revy_batches where art = 'termin'")).toBe("0")
+    })
+
+    it("Zustellung verweist auf den Buchungslink", () => {
+      expect(psql("select data_type from information_schema.columns where table_name = 'revy_deliveries' and column_name = 'booking_invite_id'")).toBe("uuid")
+    })
+  })
 })

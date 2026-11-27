@@ -459,3 +459,18 @@ Befunde aus dem Protokoll und was dagegen gebaut ist:
 
 Neue Filter der Suche: Score von/bis, Eingang älter/jünger als, Status über
 alle Stellen.
+
+## Teil 9: Umsetzung Etappe 4 (27.11.2026)
+
+- `termin_vorschlagen` (NACH_AUSSEN, nur Entwurf): Mail aus fester Vorlage
+  mit Platzhalter für den Buchungslink. Der Link entsteht erst beim Versand
+  über die bestehende Terminbuchung (`booking_invites`, nur Hash), wie bei
+  der Einladung von Hand.
+- `verfuegbarkeit_zeigen` (LESEND): Wochenzeiten, Terminarten, verbundene
+  Kalender, nächste freie Termine. Ändern nur unter Termine, keine zweite
+  Konfiguration. Abweichung vom Plan: Name `verfuegbarkeit_zeigen` statt
+  `verfuegbarkeit_konfigurieren`, weil Revy nichts konfiguriert.
+- Terminvorschläge gibt frei, wer sie angelegt hat, weil der Link deren
+  Kalender nutzt.
+
+Bericht: `docs/revy/ETAPPE-4.md`.

@@ -11,6 +11,9 @@ import { defaultRejectionText } from "@/lib/email/rejection-text"
 // Platzhalter statt Namen: {{name}}, {{stelle}}, {{firma}}. Eingesetzt wird
 // erst beim Versand auf dem Server (renderDraft). Bewerber werden gesiezt
 // (Korrespondenz im Namen des Kunden).
+//
+// Terminvorschläge (Etappe 4) tragen zusätzlich {{link}} und {{gueltig_bis}}.
+// Der Buchungslink entsteht erst beim Versand; im Entwurf steht er nie.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const TOENE = ["standard", "kurz", "persoenlich"] as const
@@ -59,7 +62,39 @@ export function einladungVorlage(gespraech: Gespraech, zusatz?: string | null): 
   }
 }
 
-/** Platzhalter füllen. Nur beim Versand auf dem Server und in der Vorschau im Browser. */
-export function renderDraft(text: string, werte: { name: string; stelle: string; firma: string }): string {
-  return text.replaceAll(P.name, werte.name).replaceAll(P.stelle, werte.stelle).replaceAll(P.firma, werte.firma)
+/** Platzhalter für den Buchungslink und sein Ablaufdatum (Etappe 4). */
+export const LINK = "{{link}}"
+export const GUELTIG_BIS = "{{gueltig_bis}}"
+
+/** Terminart, wie sie im Vorschlag steht: Name, Dauer, Ort. */
+export interface TerminartText {
+  name: string
+  dauer: number
+  ort: string
+}
+
+export function terminVorlage(art: TerminartText, zusatz?: string | null): { betreff: string; text: string } {
+  return {
+    betreff: `Terminvorschlag: ${P.stelle} bei ${P.firma}`,
+    text: `Guten Tag ${P.name},\n\nvielen Dank für Ihre Bewerbung als ${P.stelle}. Wir möchten Sie gern zu einem Gespräch einladen: ${art.name}, ${art.dauer} Minuten, ${art.ort}.\n\n${zusatzAbsatz(zusatz)}Über Ihren persönlichen Link wählen Sie selbst einen Termin, der Ihnen passt:\n${LINK}\n\nDer Link gilt bis ${GUELTIG_BIS}. Passt keiner der Termine, antworten Sie einfach auf diese E-Mail.\n\nMit freundlichen Grüßen\n${P.firma}`,
+  }
+}
+
+/** Werte dürfen selbst keine Platzhalter einschleusen (etwa ein Name „{{link}}“). */
+function wert(s: string): string {
+  return s.replace(/\{\{|\}\}/g, "")
+}
+
+/**
+ * Platzhalter füllen. Nur beim Versand auf dem Server und in der Vorschau im
+ * Browser. Ohne link bleibt {{link}} stehen: Die Mail setzt dort den Knopf ein.
+ */
+export function renderDraft(
+  text: string,
+  werte: { name: string; stelle: string; firma: string; link?: string; gueltig_bis?: string },
+): string {
+  let out = text.replaceAll(P.name, wert(werte.name)).replaceAll(P.stelle, wert(werte.stelle)).replaceAll(P.firma, wert(werte.firma))
+  if (werte.gueltig_bis != null) out = out.replaceAll(GUELTIG_BIS, wert(werte.gueltig_bis))
+  if (werte.link != null) out = out.replaceAll(LINK, wert(werte.link))
+  return out
 }

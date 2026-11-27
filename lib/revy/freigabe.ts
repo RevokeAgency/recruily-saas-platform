@@ -1,7 +1,9 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto"
 import type { RevyContext } from "./agent"
 import { writeAudit } from "./audit"
-import { GESPRAECH, TOENE, absageVorlage, einladungVorlage, type Gespraech, type Ton } from "./vorlagen"
+import { loadMeetingTypes } from "@/lib/scheduling/store"
+import { ORT_TEXT, STANDARD_TERMINART } from "./termine"
+import { GESPRAECH, TOENE, absageVorlage, einladungVorlage, type Gespraech, type TerminartText, type Ton } from "./vorlagen"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Freigabe von Entwürfen (Etappe 3). Einziger Weg, auf dem Revy-Entwürfe
@@ -17,6 +19,8 @@ import { GESPRAECH, TOENE, absageVorlage, einladungVorlage, type Gespraech, type
 //     Fremde Entwurfs-IDs in der Anfrage werden ignoriert.
 //  4. Danach plant die Freigabe die Zustellungen gestaffelt ein
 //     (lib/revy/versand.ts).
+//  5. Terminvorschläge (Etappe 4) gibt nur frei, wer sie angelegt hat: Der
+//     Buchungslink zeigt die freien Zeiten aus dem Kalender dieser Person.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const TOKEN_MINUTES = 15
@@ -36,10 +40,14 @@ function sameHash(a: string, b: string): boolean {
   return x.length === y.length && timingSafeEqual(x, y)
 }
 
+type Art = "absage" | "einladung" | "termin"
+
 interface BatchRow {
   id: string
   user_id: string
-  art: "absage" | "einladung"
+  actor_id: string | null
+  meeting_type_id: string | null
+  art: Art
   stelle_id: string
   ton: string
   zusatz: string | null
@@ -60,10 +68,12 @@ export interface DraftView {
 
 export interface BatchView {
   id: string
-  art: "absage" | "einladung"
+  art: Art
   status: string
   ton: string
   stelle: { id: string; titel: string; firma: string }
+  /** Nur bei Terminvorschlägen: Terminart und ob der Link deinen Kalender nutzt. */
+  termin?: TerminartText & { eigener_kalender: boolean }
   entwuerfe: DraftView[]
   /** Nur solange der Stapel offen ist. Einmal verwendbar. */
   token?: string
@@ -74,7 +84,7 @@ export type FreigabeFehler = { ok: false; status: number; error: string }
 async function loadBatch(ctx: RevyContext, id: string): Promise<BatchRow | null> {
   const { data } = await ctx.admin
     .from("revy_batches")
-    .select("id, user_id, art, stelle_id, ton, zusatz, status, token_hash, token_bis, freigegeben_am")
+    .select("id, user_id, actor_id, meeting_type_id, art, stelle_id, ton, zusatz, status, token_hash, token_bis, freigegeben_am")
     .eq("id", id)
     .eq("user_id", ctx.ownerId)
     .maybeSingle()
@@ -105,8 +115,17 @@ export async function openBatch(ctx: RevyContext, id: string): Promise<BatchView
     .eq("batch_id", id)
   const byDraft = new Map(((deliveries ?? []) as Array<{ draft_id: string; status: string; fehler: string | null; gesendet_am: string | null; zugestellt_am: string | null }>).map((d) => [d.draft_id, d]))
 
+  let termin: BatchView["termin"]
+  if (b.art === "termin") {
+    const eigen = b.actor_id === ctx.actorId
+    const types = b.actor_id ? await loadMeetingTypes(ctx.admin, b.actor_id) : []
+    const t = types.find((x) => x.id === b.meeting_type_id) ?? types.find((x) => x.isDefault && x.active) ?? types.find((x) => x.active)
+    termin = { ...(t ? { name: t.name, dauer: t.durationMinutes, ort: ORT_TEXT[t.locationKind] ?? "" } : STANDARD_TERMINART), eigener_kalender: eigen }
+  }
+
+  // Terminvorschläge anderer Personen: ansehen ja, freigeben nein, also kein Token.
   let token: string | undefined
-  if (b.status === "entwurf") {
+  if (b.status === "entwurf" && (b.art !== "termin" || b.actor_id === ctx.actorId)) {
     token = randomBytes(32).toString("base64url")
     await ctx.admin
       .from("revy_batches")
@@ -121,6 +140,7 @@ export async function openBatch(ctx: RevyContext, id: string): Promise<BatchView
     status: b.status,
     ton: b.ton,
     stelle: { id: b.stelle_id, ...job },
+    ...(termin ? { termin } : {}),
     entwuerfe: ((drafts ?? []) as Array<Omit<DraftView, "zustellung">>).map((d) => {
       const z = byDraft.get(d.id)
       return { ...d, zustellung: z ? { status: z.status, fehler: z.fehler, gesendet_am: z.gesendet_am, zugestellt_am: z.zugestellt_am } : null }
@@ -134,6 +154,7 @@ export async function setTone(ctx: RevyContext, id: string, ton: string): Promis
   const b = await loadBatch(ctx, id)
   if (!b || !(await visibleJob(ctx, b.stelle_id))) return { ok: false, status: 404, error: "Entwurf nicht gefunden" }
   if (b.status !== "entwurf") return { ok: false, status: 409, error: "Der Stapel ist nicht mehr offen." }
+  if (b.art === "termin") return { ok: false, status: 400, error: "Bei Terminvorschlägen bestimmt die Terminart Dauer und Ort. Ändern kannst du sie unter Termine." }
   let vorlage: { betreff: string; text: string }
   if (b.art === "absage") {
     if (!(TOENE as readonly string[]).includes(ton)) return { ok: false, status: 400, error: "Unbekannter Ton" }
@@ -160,6 +181,9 @@ export async function approveBatch(
   const b = await loadBatch(ctx, id)
   if (!b || !(await visibleJob(ctx, b.stelle_id))) return { ok: false, status: 404, error: "Entwurf nicht gefunden" }
   if (b.status !== "entwurf") return { ok: false, status: 409, error: "Dieser Stapel ist schon freigegeben oder abgebrochen." }
+  if (b.art === "termin" && b.actor_id !== ctx.actorId) {
+    return { ok: false, status: 403, error: "Terminvorschläge gibt frei, wer sie angelegt hat. Der Buchungslink zeigt die freien Zeiten aus dem Kalender dieser Person." }
+  }
   if (!input.token || !b.token_hash || !sameHash(hashToken(input.token), b.token_hash)) {
     return { ok: false, status: 403, error: "Freigabe nur aus der Freigabe-Ansicht. Bitte die Ansicht neu öffnen." }
   }

@@ -3,6 +3,7 @@ import { getMatchUsage } from "@/lib/quota"
 import { linkCandidateToJob, scoreLinkInBackground } from "@/lib/matching/link"
 import { checkText } from "../policy"
 import { ensureDocumentPages } from "../pages"
+import { freieZeiten, pickTerminart, terminStand, terminartText } from "../termine"
 import {
   APPLICATION_COLS,
   BEGRIFF,
@@ -492,8 +493,42 @@ export async function remainingMatches(ctx: ToolContext): Promise<number | null>
   return usage ? usage.remaining : null
 }
 
+// ── verfuegbarkeit_zeigen (Etappe 4) ─────────────────────────────────────────
+
+const verfuegbarkeitZeigen = def({
+  name: "verfuegbarkeit_zeigen",
+  effect: "LESEND",
+  description:
+    "Zeigt die eigenen Zeiten für Gespräche: Wochenzeiten, Terminarten, verbundene Kalender und die nächsten freien Termine. Für Fragen wie „Wann habe ich Zeit?“ oder „Wie sind meine Termine eingestellt?“. Ändern geht nur unter Termine, nicht über Revy.",
+  params: z.object({
+    terminart: BEGRIFF.optional().describe("Name einer Terminart aus dem Befehl, sonst die Standard-Terminart"),
+    tage: z.number().int().min(1).max(30).optional().describe("Zeitraum in Tagen, Standard 14"),
+  }),
+  describe: (p) => `Deine Zeiten und freien Termine${p.tage ? ` (${p.tage} Tage)` : ""} zeigen`,
+  cost: noCost,
+  async run(p, ctx, schritt) {
+    const stand = await terminStand(ctx.admin, ctx.actorId)
+    const { art, nichtGefunden } = pickTerminart(stand, p.terminart)
+    const text = terminartText(art)
+    const frei = await freieZeiten(ctx.admin, ctx.actorId, text.dauer, { tage: p.tage })
+    const hinweise: string[] = []
+    if (nichtGefunden) hinweise.push(`Eine Terminart „${p.terminart}“ gibt es nicht. Revy zeigt die Zeiten für „${text.name}“.`)
+    if (!stand.eingerichtet) hinweise.push("Du hast deine Zeiten noch nicht gespeichert. Revy rechnet mit den Standardzeiten. Ändern kannst du das unter Termine.")
+    if (frei.unvollstaendig) hinweise.push("Ein verbundener Kalender war gerade nicht erreichbar. Belegte Zeiten aus diesem Kalender fehlen in der Liste.")
+    return {
+      schritt,
+      werkzeug: "verfuegbarkeit_zeigen",
+      refs: [],
+      data: { ...stand, terminart: text, frei, einstellungen: "/termine" },
+      korpus: {},
+      hinweise,
+    }
+  },
+})
+
 export const LESEN = {
   ueberblick,
+  verfuegbarkeit_zeigen: verfuegbarkeitZeigen,
   pool_suchen: poolSuchen,
   stelle_details: stelleDetails,
   kandidat_details: kandidatDetails,
