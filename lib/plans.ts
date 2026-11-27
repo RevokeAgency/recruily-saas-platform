@@ -42,6 +42,14 @@ export const EXTRA_SEAT = {
 
 const SEAT_PRICE = `${EXTRA_SEAT.price_monthly.toFixed(2).replace('.', ',')} €`
 
+/**
+ * Revy-Anfragen pro Monat (festgelegt am 21.11.2026). Hier vor PLANS, damit
+ * Planlisten und Preisseite dieselben Zahlen zeigen wie die Sperre
+ * (REVY_REQUESTS_PER_MONTH weiter unten).
+ */
+export const REVY_ANFRAGEN = { growth: 500, pro: 1000 } as const
+const fmtDe = (n: number) => n.toLocaleString('de-DE')
+
 export const PLANS = {
   free: {
     label: 'Free',
@@ -108,6 +116,7 @@ export const PLANS = {
       '10 aktive Stellen',
       'Alles aus Starter',
       `${SEATS.growth} Nutzer, weitere für je ${SEAT_PRICE} im Monat`,
+      `Revy, der Assistent im Chat (${fmtDe(REVY_ANFRAGEN.growth)} Anfragen pro Monat)`,
       'Absagen per E-Mail',
       'Terminbuchung mit Google- und Microsoft-Kalender',
       'Talent-Pool: neue Stellen gegen alte Bewerber',
@@ -136,6 +145,7 @@ export const PLANS = {
       'Unbegrenzt viele Stellen',
       'Alles aus Growth',
       'Unbegrenzt viele Nutzer',
+      `${fmtDe(REVY_ANFRAGEN.pro)} Revy-Anfragen pro Monat`,
       'Gewichtung lernt aus deinen Einstellungen',
       'Vorrangiger Support',
     ],
@@ -158,6 +168,7 @@ export const PLANS = {
       'Unbegrenzt viele Stellen',
       'Alles aus Pro',
       'Verhandelbare Preise über dem Kontingent',
+      'Revy-Anfragen unbegrenzt',
       'Fester Ansprechpartner',
       'Einrichtung und Schulung',
     ],
@@ -235,8 +246,8 @@ export const FEATURE_MIN_PLAN = {
 export const REVY_REQUESTS_PER_MONTH: Record<PlanId, number | null | 'offen'> = {
   free: 0,
   starter: 0,
-  growth: 500,
-  pro: 1000,
+  growth: REVY_ANFRAGEN.growth,
+  pro: REVY_ANFRAGEN.pro,
   enterprise: null,
 }
 

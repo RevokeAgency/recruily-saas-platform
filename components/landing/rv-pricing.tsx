@@ -7,7 +7,7 @@ import { Check, Minus } from "lucide-react"
 import { useReveal } from "@/lib/hooks/useReveal"
 import { RvButton } from "./rv-button"
 import { RvModal, RvModalTrigger, RvModalContent } from "./rv-modal"
-import { EXTRA_SEAT, PLANS } from "@/lib/plans"
+import { EXTRA_SEAT, PLANS, REVY_ANFRAGEN } from "@/lib/plans"
 
 // Preise, Kontingente und Stellen kommen aus lib/plans.ts, derselben Quelle
 // wie die Abrechnung. Jede Funktion steht nur beim kleinsten Plan, der sie
@@ -84,6 +84,7 @@ const TIERS: Tier[] = [
       `${PLANS.growth.active_jobs} aktive Stellen`,
       `${fmt(PLANS.growth.matches)} Matches pro Monat`,
       `${PLANS.growth.seats} Nutzer, weitere für je ${SEAT_PRICE} im Monat`,
+      `Revy, der Assistent im Chat (${fmt(REVY_ANFRAGEN.growth)} Anfragen pro Monat)`,
       "Absagen per E-Mail",
       "Terminbuchung mit Google- und Microsoft-Kalender",
       "Talent-Pool: neue Stellen gegen alte Bewerber",
@@ -108,6 +109,7 @@ const TIERS: Tier[] = [
       "Unbegrenzt viele Stellen",
       `${fmt(PLANS.pro.matches)} Matches pro Monat`,
       "Unbegrenzt viele Nutzer",
+      `${fmt(REVY_ANFRAGEN.pro)} Revy-Anfragen pro Monat`,
       "Gewichtung lernt aus deinen Einstellungen",
       "Vorrangiger Support",
     ],
@@ -123,6 +125,7 @@ const TIERS: Tier[] = [
     features: [
       "Volumen nach Absprache",
       "Verhandelbare Preise über dem Kontingent",
+      "Revy-Anfragen unbegrenzt",
       "Fester Ansprechpartner",
       "Einrichtung und Schulung",
     ],
@@ -174,6 +177,7 @@ const MATRIX_GROUPS: Array<{ group: string; rows: Array<{ label: string; values:
       { label: "Bestenvergleich", values: [false, false, true, true, true] },
       { label: "Freigabe-Link für Fachabteilungen", values: [false, false, true, true, true] },
       { label: "Revetly Report (PDF, auch anonym)", values: [false, false, true, true, true] },
+      { label: "Revy, der Assistent im Chat", values: [false, false, `${fmt(REVY_ANFRAGEN.growth)} / Monat`, `${fmt(REVY_ANFRAGEN.pro)} / Monat`, "Unbegrenzt"] },
       { label: "Auswertungen", values: [false, "Kennzahlen", "ausführlich", "ausführlich", "ausführlich"] },
       { label: "Gewichtung lernt mit", values: [false, false, false, true, true] },
       { label: "Volumen nach Absprache", values: [false, false, false, false, true] },

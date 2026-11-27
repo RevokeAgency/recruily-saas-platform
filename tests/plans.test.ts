@@ -70,6 +70,7 @@ describe("Planlisten", () => {
       [/Bestenvergleich/, "pool_rank"],
       [/Freigabe-Link/, "review_link"],
       [/Revetly Report/, "report"],
+      [/^Revy, der Assistent/, "revy"],
     ]
     for (const [re, feature] of listed) {
       const where = ORDER.filter((p) => PLANS[p].features.some((f) => re.test(f)))
@@ -82,6 +83,14 @@ describe("Revy-Kontingent", () => {
   it("ist für jeden Plan festgelegt und passt zur Freischaltung ab Growth", () => {
     expect(REVY_REQUESTS_PER_MONTH).toEqual({ free: 0, starter: 0, growth: 500, pro: 1000, enterprise: null })
     for (const p of ORDER) expect(REVY_REQUESTS_PER_MONTH[p] !== 0, p).toBe(hasFeature(p, "revy"))
+  })
+
+  it("Planlisten nennen dieselben Anfragen wie die Sperre", () => {
+    expect(PLANS.growth.features.join(" ")).toContain(`${REVY_REQUESTS_PER_MONTH.growth} Anfragen pro Monat`)
+    expect(PLANS.pro.features.join(" ")).toContain(`${Number(REVY_REQUESTS_PER_MONTH.pro).toLocaleString("de-DE")} Revy-Anfragen pro Monat`)
+    expect(REVY_REQUESTS_PER_MONTH.enterprise).toBeNull()
+    expect(PLANS.enterprise.features).toContain("Revy-Anfragen unbegrenzt")
+    for (const p of ["free", "starter"] as const) expect(PLANS[p].features.join(" ")).not.toMatch(/Revy/)
   })
 })
 
